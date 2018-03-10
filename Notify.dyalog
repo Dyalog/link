@@ -20,11 +20,6 @@
  (folder name extn)←⎕NPARTS path
  folder←¯1↓folder ⍝ drop trailing /
 
- :If ~(type≡'deleted')∨(U.IsDir path)∨extn≡link.extn
-     Log'Ignoring due to extension: ',type,' of ',path
-     →0
- :EndIf
-
  nsname←(1+≢link.dir)↓folder
  ((nsname='/')/nsname)←'.'
  nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
@@ -32,8 +27,13 @@
  :If 3=⎕NC link.onRead ⍝ user exit defined?
      :Trap 0
          →((link⍎link.onRead)type path nsname)↓0 ⍝ return 1 to continue else 0
+         :If ~(type≡'deleted')∨(U.IsDir path)∨extn≡link.extn
+             Log'Ignoring due to extension: ',type,' of ',path
+             →0
+         :EndIf
      :Else
          ⎕←'*** onRead callback ',link.onRead,' failed: ',⊃⎕DMX.EM
+         ∘∘∘
      :EndTrap
  :EndIf
 
@@ -51,16 +51,16 @@
      :If 0≠≢z←U.GetName path     ⍝ try to extract the name
          name←z
      :EndIf
-     :If 0≠≢z←U.GetLinkInfo ns name  ⍝ Redefines existing object with a source file
-     :AndIf ⎕NEXISTS 4⊃z       ⍝ ... and that file exists
+     :If 0≠≢z←4⊃U.GetLinkInfo ns name  ⍝ Redefines existing object with a source file
+     :AndIf ⎕NEXISTS z       ⍝ ... and that file exists
          affected←(⍕ns),'.',name
          Log'(created): ignoring new file ',path
-         Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+         Log'           attempts to redefine ',affected,' which is linked to ',z
          →0
      :EndIf
 
  :Case 'changed'               ⍝ Update to existing file?
-     :If 0≠≢⊃z←U.GetLinkInfo ns name       ⍝ name already linked
+     :If 0≠≢z←4⊃U.GetLinkInfo ns name       ⍝ name already linked
      :AndIf name≡U.GetName path            ⍝ name matches file contents
      :AndIf (U.Normalise path)≡U.Normalise 4⊃z  ⍝ to the same file name
          effect←1 ⋄ affected←(⍕ns),name

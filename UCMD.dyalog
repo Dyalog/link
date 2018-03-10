@@ -23,7 +23,7 @@
           quiet←~0 Input.Switch'prompt'        ⍝ do not prompt on external changes?
           reset←0 Input.Switch'reset'          ⍝ Whether to flatten the external folder structure
      
-          (onRead onWrite onCreate)←''∘Input.Switch¨'onRead' 'onWrite' 'onCreate'
+          (onRead onWrite onCreate)←''∘Input.Switch¨'onRead' 'onWrite' 'onCreate' 
      
           :If protect≢⊂'none'
               →0⊣r←'-protect not yet supported'

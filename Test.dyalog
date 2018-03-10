@@ -19,10 +19,10 @@
       'assertion failed'⎕SIGNAL timeout/11
     ∇
 
-    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file
+    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz
      
-	     U←##.Utils    
-
+      U←##.Utils
+     
       {}⎕SE.UCMD'udebug on'
       ⎕SE.Link.DEBUG←0 ⍝ 1 = Trace, 2 = Stop on entry
      
@@ -40,8 +40,9 @@
       #.⎕EX name
       ns←⍎name #.⎕NS''
      
-      ⎕SE.UCMD'link #.',name,' ',folder   
-      assert '1=≢⎕SE.Link.Links'
+      cb←' -onRead=⎕SE.Link.Test.onRead -onWrite=⎕SE.Link.Test.onWrite'
+      ⎕SE.UCMD'link #.',name,' ',folder,cb
+      assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
      
       ⍝ Create a monadic function
@@ -54,22 +55,22 @@
       ⍝ Create sub-folder
       ⎕MKDIR folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''sub'''
-
+     
       ⍝ Put a copy of foo in the folder
       (⊂foo)⎕NPUT folder,'/sub/foo.dyalog'
       assert'foo≡ns.sub.⎕NR ''foo'''
-      
+     
       ⍝ Create a class with missing dependency
       (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/aClass.dyalog'
       assert'9=ns.sub.⎕NC ''aClass'''
       assert'ac≡⎕SRC ns.sub.aClass'
- 
+     
       ⍝ Now add the base class
       (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/bClass.dyalog'
       assert'9=ns.sub.⎕NC ''bClass'''
       assert'bc≡⎕SRC ns.sub.bClass'
-      	  
-      ⍝ Check that the derived class works      
+     
+      ⍝ Check that the derived class works
       :Trap 0 ⋄ {}⎕NEW ns.sub.aClass
       :Else ⋄ ⎕←'NB: Unable to instantiate aClass: ',⊃⎕DM
       :EndTrap
@@ -79,25 +80,25 @@
       assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
       ⍝ *** Known bug: functions in a renamed folder/namespace link to the old file names
-      :If ~∨/'/bus/foo.dyalog'⍷4⊃U.GetLinkInfo ns 'foo'
+      :If ~∨/'/bus/foo.dyalog'⍷4⊃U.GetLinkInfo ns'foo'
           ⎕←'*** file links incorrect after namespace rename'
       :EndIf
       assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
      
       ⍝ Now copy a file containing a function
-      old←U.GetLinkInfo ns 'foo'
-      (folder,'/foo - copy.dyalog')⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste 
+      old←U.GetLinkInfo ns'foo'
+      (folder,'/foo - copy.dyalog')⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
       ⎕DL 1 ⍝ Allow FileSystemWatcher time to react
       (folder,'/goo.dyalog')⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
       ⎕DL 1 ⍝ Allow FileSystemWatcher some time to react
       ⍝ Verify that the old function has NOT become linked to the new file
-      :If old≢new←U.GetLinkInfo ns 'foo'
+      :If old≢new←U.GetLinkInfo ns'foo'
           ⎕←'*** foo defined by ',new,' - should be ',old
       :EndIf
      
       ⍝ Now edit the new file so it does define 'foo'
       tn←(folder,'/goo.dyalog')⎕NTIE 0
-      'g' ⎕NREPLACE tn 5 80 ⍝ (beware UTF-8 encoded file)
+      'g'⎕NREPLACE tn 5 80 ⍝ (beware UTF-8 encoded file)
       ⎕NUNTIE tn
       ⍝ Validate that this did cause goo to arrive in the workspace
       goo←' r←goo x' ' x x'
@@ -105,56 +106,97 @@
      
       ⍝ Now simulate changing goo using the editor and verify the file is updated
       ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x'
-      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET (folder,''/goo.dyalog'') 1'   
-      
+      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET (folder,''/goo.dyalog'') 1'
+     
       ⍝ Now test the Notify function - and verify the System Variable setting trick
-
-      link.fsw.Object.EnableRaisingEvents←0 ⍝ Disable notifications        
+     
+      link.fsw.Object.EnableRaisingEvents←0 ⍝ Disable notifications
       (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')⎕NPUT file←folder,'/bus/_SV.dyalog'
-      ⎕SE.Link.Notify 'created' file
-
+      ⎕SE.Link.Notify'created'file
+     
       assert'0=ns.bus.⎕IO'
-	     assert'1=ns.⎕IO'
-      
+      assert'1=ns.⎕IO'
+     
       link.fsw.Object.EnableRaisingEvents←1 ⍝ Re-enable watcher
+     
+      ⍝ Now test whether exits implement ".charmat" support
+      ⍝ First, write vars in the workspace to file'
+     
+      ns.cm←↑ns.cv←'Line 1' 'Line two'
+      ns'cm'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
+      ns'cv'⎕SE.Link.Fix ⍬ ⍝ Ditto for charvec
+      assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
+      assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
+     
+      ⍝ Then verify that modifying the file brings changes back
+      (⊂ns.cv←ns.cv,⊂'Line three')⎕NPUT (folder,'/cv.charvec') 1
+      (⊂↓ns.cm←↑ns.cv)⎕NPUT (folder,'/cm.charmat') 1
       
+      assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
+      assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
+     
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
       2 ⎕NDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
+     
+      ⍝ The variables
+      ⎕NDELETE folder,'/cv.charmat'
+      ⎕NDELETE folder,'/cm.charmat'
+      assert'0 0≡ns.⎕NC 2 2⍴''cmcv'''
      
       ⍝ The the functions, one by one
       ⎕NDELETE folder,'/nil.dyalog'
       assert'0=ns.⎕NC ''nil'''
       ⎕NDELETE folder,'/foo.dyalog'
       ⎕NDELETE folder,'/goo.dyalog'
-      assert '0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
+      assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
      EXIT: ⍝ →EXIT to aborted test and clean up
-
+     
       ⎕SE.UCMD']link #.',name,' -reset'
       assert'0=≢⎕SE.Link.Links'
      
-      2 ⎕NDELETE folder    ⍝ 
+      2 ⎕NDELETE folder    ⍝
       assert'9=#.⎕NC name' ⍝ After ]link -reset this should not remove the namespace
      
       Log'Tests passed OK'
     ∇
 
+   ⍝ Callback functions to implement .charmat & .charvec support
 
-    ∇ r←onRead args;⎕TRAP
-      ⎕TRAP←0 'S' ⋄ ∘∘∘
-     
+    ∇ r←onRead(type file nsname);⎕TRAP;parts;data;extn
+      r←1 ⍝ Carry on, Soldier!
+      :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
+          data←(↑⍣(extn≡'.charmat'))⊃⎕NGET file 1
+          ⍎nsname,'.',(2⊃parts),'←data'
+          r←0 ⍝ We're done
+      :EndIf
     ∇
 
-    ∇ r←onWrite args;⎕TRAP
-      ⎕TRAP←0 'S' ⋄ ∘∘∘
+    ∇ r←onWrite(ns name oldname nc src file);⎕TRAP;extn
+      r←1 ⍝ Do as you wish
      
-    ∇
-
-    ∇ r←onNew args;⎕TRAP
-      ⎕TRAP←0 'S' ⋄ ∘∘∘
+      :If nc=2 ⍝ A variable
      
+          :Select ⎕DR src
+     
+          :CaseList 80 160 320
+              :If 2=⍴⍴src ⋄ src←↓src
+              :Else ⋄ →0
+              :EndIf
+              extn←⊂'.charmat'
+     
+          :Case 326
+              :If (1≠⍴⍴src)∨(10|⎕DR¨src)∨.≠0 ⋄ →0 
+              :EndIf         
+              extn←⊂'.charvec'
+     
+          :EndSelect
+          
+          (⊂src) ⎕NPUT (∊(extn@3) ⎕NPARTS file) 1
+          r←0 ⍝ No further work required
+      :EndIf
     ∇
 
 :EndNamespace

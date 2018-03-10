@@ -1,4 +1,4 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name
+ {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -7,8 +7,12 @@
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
 
+ :If DEBUG=2
+     ⎕TRAP←0 'S' ⋄ ∘∘∘
+ :EndIf
+
  nosrc←0=≢src
- (ns name)←where
+ (ns name oldname)←3↑where,⊂''
  ns←⍬⍴ns
 
  (linked link)←0 ⍬
@@ -26,7 +30,8 @@
  :EndIf
 
  :If linked
-     :If 0<≢file←4⊃5179(ns.⌶)name         ⍝ Already saved in a file
+     :If 0<≢file←4⊃Utils.GetLinkInfo ns name ⍝ Already saved in a file
+     :AndIf 0=≢oldname
 
      :ElseIf ~link.flatten                ⍝ Not flattened
 
@@ -44,19 +49,30 @@
          :EndIf
      :EndIf
 
+     nc←⍬⍴ns.⎕NC name
      :If nosrc                       ⍝ Source not provided - find it
-         :Select nc←⍬⍴ns.⎕NC name
+         :Select nc
+         :Case 2
+             src←ns⍎name
          :CaseList 3 4
              src←ns.⎕NR name
          :Case 9
              src←⎕SRC ns⍎name
          :Else
-             ⎕←'AfterFix: Unable to file object of class ',(⍕nc) ⋄ →0
+             ⎕←'Fix: unable to handle ',(⍕ns),'.',name,' (⎕NC =',(⍕nc),')'
+             →0
          :EndSelect
      :EndIf
 
-     :If nosrc∧3=link.⎕NC'onWrite'
-         src←(link⍎onWrite)ns name src file
+     :If 2=⎕NC'_rename_temp' ⍝ // workaround for editor overwriting old file on rename
+     :AndIf (name oldname)≡(1⊃_rename_temp)[6 5]
+         (3⊃_rename_temp)⎕NPUT(2⊃_rename_temp)1 ⍝ Restore old file contents
+         ⎕EX'_rename_temp' ⍝ Now leesten carefully, for I will do zis only vunce
+     :EndIf
+
+     :If 3=⎕NC link.onWrite
+         →((⍎link.onWrite)ns name oldname nc src file)↓0
+         →(nc=2)⍴0 ⍝ We don't do variables
      :EndIf
 
      :Trap 0
@@ -68,7 +84,8 @@
          (⊂src)⎕NPUT file 1
      :Else
          old←0
-         ⎕←'AfterFix: Unable to write "',name,'" to file ',file
+         ⎕←'Fix: Unable to write "',name,'" to file ',file
+         ⎕TRAP←0 'S' ⋄ ∘∘∘
          ⎕←'     '⎕DMX
      :EndTrap
      :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
@@ -76,7 +93,8 @@
      :Trap 0
          2 ns.⎕FIX'file://',file
      :Else
-         ⎕←'AfterFix: Unable to re-fix "',name,'" from file ',file
+         ⎕←'Fix: Unable to re-fix "',name,'" from file ',file
+         ⎕TRAP←0 'S' ⋄ ∘∘∘
          ⎕←'     '⎕DMX
      :EndTrap
  :EndIf
