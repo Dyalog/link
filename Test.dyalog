@@ -1,0 +1,160 @@
+﻿:Namespace Test
+⍝ Test the ]link UCMD and utilities
+
+    ⎕IO←1 ⋄ ⎕ML←1
+
+    ∇ Log x
+      ⎕←x ⍝ This might get more sophisticated someday
+    ∇
+
+    ∇ assert expr;maxwait;end;timeout
+      ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
+      end←30000+3⊃⎕AI ⍝ 3s
+      timeout←0
+     
+      :While 0∊⍎expr
+          ⎕DL 0.1
+      :Until timeout←end<3⊃⎕AI
+     
+      'assertion failed'⎕SIGNAL timeout/11
+    ∇
+
+    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file
+     
+	     U←##.Utils    
+
+      {}⎕SE.UCMD'udebug on'
+      ⎕SE.Link.DEBUG←0 ⍝ 1 = Trace, 2 = Stop on entry
+     
+      :If 0≠⎕NC'⎕SE.Link.Links'
+      :AndIf 0≠≢⎕SE.Link.Links
+          Log'Please reset all links and try again.'
+          Log ⎕SE.UCMD'link'
+          →0
+      :EndIf
+     
+      folder←folder,(0=≢folder)/'/temp/linktest'
+      name←2⊃⎕NPARTS folder
+     
+      ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
+      #.⎕EX name
+      ns←⍎name #.⎕NS''
+     
+      ⎕SE.UCMD'link #.',name,' ',folder   
+      assert '1=≢⎕SE.Link.Links'
+      link←⊃⎕SE.Link.Links
+     
+      ⍝ Create a monadic function
+      (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
+      assert'foo≡ns.⎕NR ''foo'''
+      ⍝ Create a niladic / non-explicit function
+      (⊂nil←' nil' ' 2+2')⎕NPUT folder,'/nil.dyalog'
+      assert'nil≡ns.⎕NR ''nil'''
+     
+      ⍝ Create sub-folder
+      ⎕MKDIR folder,'/sub'
+      assert'9.1=ns.⎕NC ⊂''sub'''
+
+      ⍝ Put a copy of foo in the folder
+      (⊂foo)⎕NPUT folder,'/sub/foo.dyalog'
+      assert'foo≡ns.sub.⎕NR ''foo'''
+      
+      ⍝ Create a class with missing dependency
+      (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/aClass.dyalog'
+      assert'9=ns.sub.⎕NC ''aClass'''
+      assert'ac≡⎕SRC ns.sub.aClass'
+ 
+      ⍝ Now add the base class
+      (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/bClass.dyalog'
+      assert'9=ns.sub.⎕NC ''bClass'''
+      assert'bc≡⎕SRC ns.sub.bClass'
+      	  
+      ⍝ Check that the derived class works      
+      :Trap 0 ⋄ {}⎕NEW ns.sub.aClass
+      :Else ⋄ ⎕←'NB: Unable to instantiate aClass: ',⊃⎕DM
+      :EndTrap
+     
+      ⍝ Rename the sub-folder
+      (folder,'/bus')⎕NMOVE folder,'/sub'
+      assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
+      assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
+      ⍝ *** Known bug: functions in a renamed folder/namespace link to the old file names
+      :If ~∨/'/bus/foo.dyalog'⍷4⊃U.GetLinkInfo ns 'foo'
+          ⎕←'*** file links incorrect after namespace rename'
+      :EndIf
+      assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
+     
+      ⍝ Now copy a file containing a function
+      old←U.GetLinkInfo ns 'foo'
+      (folder,'/foo - copy.dyalog')⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste 
+      ⎕DL 1 ⍝ Allow FileSystemWatcher time to react
+      (folder,'/goo.dyalog')⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
+      ⎕DL 1 ⍝ Allow FileSystemWatcher some time to react
+      ⍝ Verify that the old function has NOT become linked to the new file
+      :If old≢new←U.GetLinkInfo ns 'foo'
+          ⎕←'*** foo defined by ',new,' - should be ',old
+      :EndIf
+     
+      ⍝ Now edit the new file so it does define 'foo'
+      tn←(folder,'/goo.dyalog')⎕NTIE 0
+      'g' ⎕NREPLACE tn 5 80 ⍝ (beware UTF-8 encoded file)
+      ⎕NUNTIE tn
+      ⍝ Validate that this did cause goo to arrive in the workspace
+      goo←' r←goo x' ' x x'
+      assert'goo≡ns.⎕NR ''goo'''
+     
+      ⍝ Now simulate changing goo using the editor and verify the file is updated
+      ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x'
+      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET (folder,''/goo.dyalog'') 1'   
+      
+      ⍝ Now test the Notify function - and verify the System Variable setting trick
+
+      link.fsw.Object.EnableRaisingEvents←0 ⍝ Disable notifications        
+      (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')⎕NPUT file←folder,'/bus/_SV.dyalog'
+      ⎕SE.Link.Notify 'created' file
+
+      assert'0=ns.bus.⎕IO'
+	     assert'1=ns.⎕IO'
+      
+      link.fsw.Object.EnableRaisingEvents←1 ⍝ Re-enable watcher
+      
+      ⍝ Now tear it all down again:
+      ⍝ First the sub-folder
+      2 ⎕NDELETE folder,'/bus'
+      assert'0=⎕NC ''ns.bus'''
+     
+      ⍝ The the functions, one by one
+      ⎕NDELETE folder,'/nil.dyalog'
+      assert'0=ns.⎕NC ''nil'''
+      ⎕NDELETE folder,'/foo.dyalog'
+      ⎕NDELETE folder,'/goo.dyalog'
+      assert '0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
+     
+     EXIT: ⍝ →EXIT to aborted test and clean up
+
+      ⎕SE.UCMD']link #.',name,' -reset'
+      assert'0=≢⎕SE.Link.Links'
+     
+      2 ⎕NDELETE folder    ⍝ 
+      assert'9=#.⎕NC name' ⍝ After ]link -reset this should not remove the namespace
+     
+      Log'Tests passed OK'
+    ∇
+
+
+    ∇ r←onRead args;⎕TRAP
+      ⎕TRAP←0 'S' ⋄ ∘∘∘
+     
+    ∇
+
+    ∇ r←onWrite args;⎕TRAP
+      ⎕TRAP←0 'S' ⋄ ∘∘∘
+     
+    ∇
+
+    ∇ r←onNew args;⎕TRAP
+      ⎕TRAP←0 'S' ⋄ ∘∘∘
+     
+    ∇
+
+:EndNamespace
