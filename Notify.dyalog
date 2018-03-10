@@ -32,7 +32,7 @@
              →0
          :EndIf
      :Else
-         ⎕←'*** onRead callback ',link.onRead,' failed: ',⊃⎕DMX.EM
+         ⎕←'*** onRead callback ',link.onRead,' failed: ',⎕DMX.EM
          ∘∘∘
      :EndTrap
  :EndIf

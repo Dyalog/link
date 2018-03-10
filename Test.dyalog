@@ -129,19 +129,21 @@
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
       ⍝ Then verify that modifying the file brings changes back
-      (⊂ns.cv←ns.cv,⊂'Line three')⎕NPUT (folder,'/cv.charvec') 1
-      (⊂↓ns.cm←↑ns.cv)⎕NPUT (folder,'/cm.charmat') 1
-      
+      (⊂ns.cv←ns.cv,⊂'Line three')⎕NPUT(folder,'/cv.charvec')1
+      (⊂↓ns.cm←↑ns.cv)⎕NPUT(folder,'/cm.charmat')1
+     
       assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
-      2 ⎕NDELETE folder,'/bus'
+
+      {⎕DL 0.5⊣⎕NDELETE folder,'/bus/',⍵,'.dyalog'}¨'aClass' 'bClass' '_SV' 'foo'
+      ⎕NDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
      
       ⍝ The variables
-      ⎕NDELETE folder,'/cv.charmat'
+      ⎕NDELETE folder,'/cv.charvec'
       ⎕NDELETE folder,'/cm.charmat'
       assert'0 0≡ns.⎕NC 2 2⍴''cmcv'''
      
@@ -168,9 +170,15 @@
     ∇ r←onRead(type file nsname);⎕TRAP;parts;data;extn
       r←1 ⍝ Carry on, Soldier!
       :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
-          data←(↑⍣(extn≡'.charmat'))⊃⎕NGET file 1
-          ⍎nsname,'.',(2⊃parts),'←data'
-          r←0 ⍝ We're done
+          :Select type
+          :Case 'deleted'  
+             (⍎nsname).⎕EX 2⊃parts  
+             r←0
+          :CaseList 'changed' 'renamed' 'created'
+              data←(↑⍣(extn≡'.charmat'))⊃⎕NGET file 1
+              ⍎nsname,'.',(2⊃parts),'←data'
+              r←0 ⍝ We're done
+          :EndSelect
       :EndIf
     ∇
 
@@ -188,13 +196,13 @@
               extn←⊂'.charmat'
      
           :Case 326
-              :If (1≠⍴⍴src)∨(10|⎕DR¨src)∨.≠0 ⋄ →0 
-              :EndIf         
+              :If (1≠⍴⍴src)∨(10|⎕DR¨src)∨.≠0 ⋄ →0
+              :EndIf
               extn←⊂'.charvec'
      
           :EndSelect
-          
-          (⊂src) ⎕NPUT (∊(extn@3) ⎕NPARTS file) 1
+     
+          (⊂src)⎕NPUT(∊(extn@3)⎕NPARTS file)1
           r←0 ⍝ No further work required
       :EndIf
     ∇
