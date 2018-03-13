@@ -11,7 +11,7 @@
 	      U←##.Utils
 		  
           :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure
-              ⎕SE.Link.Links←⍬ ⍝ Start with no links
+              ⎕SE.Link.Links←⍬         ⍝ Start with no links
               ⍝ Link namespaces will record switch values
               ⍝    and also contain fsw, the FileSystemWatcher object
           :EndIf
@@ -31,7 +31,8 @@
      
           ns←⊃Input.Arguments
           :If 0≠argcount←≢Input.Arguments    ⍝ ns provided
-              container←⎕RSI⊃⍨⎕SI⍳⊂'UCMD'    ⍝ ns is relative to where we were called from
+              container←⎕RSI⊃⍨⎕SI⍳⊂'UCMD'    ⍝ ns is relative to where we were called from 
+              
               :If (ns≡,'#')∨9=container.⎕NC ns
                   ns←container⍎ns
               :Else
@@ -161,7 +162,11 @@
           (name ns)←2↑i⊃ol
           {}5178(ns.⌶)⍕name
       :EndFor
-     
+                
+      :If 9=⎕NC 'link.fsw'
+          link.fsw.Object.EnableRaisingEvents←0
+      :EndIf                                   
+
       ⎕SE.Link.Links~←link
       r←'Link from ',(⍕link.ns),' to ',(⍕link.dir),' removed (',(⍕≢m),' names affected)'
     ∇

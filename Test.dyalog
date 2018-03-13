@@ -79,9 +79,9 @@
       (folder,'/bus')⎕NMOVE folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
-      ⍝ *** Known bug: functions in a renamed folder/namespace link to the old file names
+      ⍝ *** Known bug: functions in a renamed folder/namespace link to the old file names 
       :If ~∨/'/bus/foo.dyalog'⍷4⊃U.GetLinkInfo ns'foo'
-          ⎕←'*** file links incorrect after namespace rename'
+          ⎕←'*** NB https://github.com/mkromberg/link/issues/2 still not resolved'
       :EndIf
       assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
      
@@ -138,8 +138,7 @@
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
 
-      {⎕DL 0.5⊣⎕NDELETE folder,'/bus/',⍵,'.dyalog'}¨'aClass' 'bClass' '_SV' 'foo'
-      ⎕NDELETE folder,'/bus'
+      2 ⎕NDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
      
       ⍝ The variables

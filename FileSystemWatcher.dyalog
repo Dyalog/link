@@ -40,11 +40,16 @@
           Object←ref
         ∇
 
-        ∇ dispose
-          :Implements Destructor
+        ∇ do_dispose ref
           :Trap 0
-              Object.Dispose
+              ref.Dispose
           :EndTrap
+        ∇
+
+        ∇ dispose;tid
+          :Implements Destructor 
+          Object.EnableRaisingEvents←0
+          tid←do_dispose&Object
         ∇
 
     :EndClass
