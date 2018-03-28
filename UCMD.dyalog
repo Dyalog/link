@@ -57,7 +57,11 @@
           :Select argcount
           :CaseList 0 1 ⍝ ns only provided, or nothing: Report or Reset
               :If reset
-                  :If argcount≠1 ⋄ r←'-reset requires selection of a namespace'
+                  :If argcount=0  
+                     :If 0=⍴⎕SE.Link.Links ⋄ r←'Nothing to reset'
+                     :Else ⋄ r←⍪ResetLink¨l
+                     :EndIf
+                  :ElseIf argcount≠1 ⋄ r←'-reset requires selection of a namespace'
                   :Else ⋄ r←ResetLink ⍬⍴l
                   :EndIf
                   →0
@@ -155,7 +159,7 @@
      ⍝ Reset a link
      
       ol←objectLinks ⍬
-      m←⍸(2⊃¨ol)within link.ns
+      m←⍸(2⊃¨ol)within ⍎link.ns
       m←m[⍋3⊃¨ol[m]] ⍝ members first, classes last
      
       :For i :In m
