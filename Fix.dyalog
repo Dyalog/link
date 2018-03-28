@@ -1,4 +1,4 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname
+ {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -13,7 +13,7 @@
 
  nosrc←0=≢src
  (ns name oldname)←3↑where,⊂''
- ns←⍬⍴ns
+ z←ns←⍬⍴ns
 
  (linked link)←0 ⍬
 
@@ -21,12 +21,14 @@
  :AndIf 0≠≢⎕SE.Link.Links
      nss←⍎¨⎕SE.Link.Links.ns
      :Repeat
-         :If linked←ns∊nss
-             link←(nss⍳ns)⊃⎕SE.Link.Links
-         :Else
-             ns←ns.##
+         :If ~linked←z∊nss
+             linked←(z←z.##)∊nss
          :EndIf
-     :Until linked∨ns∊# ⎕SE
+     :Until linked∨z∊# ⎕SE
+     :If linked
+         link←(nss⍳z)⊃⎕SE.Link.Links
+     :EndIf
+
  :EndIf
 
  :If linked
