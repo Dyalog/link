@@ -1,4 +1,4 @@
- {r}←Notify args;type;path;oldpath;linked;link;i;folder;name;extn;U;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP
+ {r}←Notify args;type;path;oldpath;linked;link;i;folder;name;extn;U;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -99,15 +99,22 @@
      :EndIf
 
  :Case 'renamed'
-     :If U.IsDir path                                ⍝ of a folder?
+     :If U.IsDir path                              ⍝ of a folder?
      :AndIf 0=ns.⎕NC name                          ⍝ and new name is free and valid
          :If 9=ns.⎕NC oldname←∊1↓⎕NPARTS oldpath   ⍝ and old name looks like an existing namespace
              ns⍎name,'←',oldname                   ⍝ copy it
              (⍎(⍕ns),'.',name).⎕DF(⍕ns),'.',name   ⍝ give it a nice name
              ns.⎕EX oldname                        ⍝ expunge old
-             Log'Simple NS rename ',oldname,' → ',name
+             links←U.Normalise¨4⊃¨5177⌶⍬
+             links←(((≢oldpath)↑¨links)∊⊂oldpath)/links
+             links←(⊂path),¨(≢oldpath)↓¨links
+             :For link :In links
+                 Notify'changed'link
+             :EndFor
+
+             Log'NS rename ',oldname,' → ',name
          :Else                                    ⍝ no old ns
-             Log'Simple NS rename ',oldname,' (not found) → ',name
+             Log'NS rename ',oldname,' (not found) → ',name
          :EndIf
          →0
      :EndIf
