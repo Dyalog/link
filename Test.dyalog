@@ -19,8 +19,9 @@
       'assertion failed'⎕SIGNAL timeout/11
     ∇
 
-    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz
-     
+    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz;olddd
+      
+      olddd←5160⌶1 ⍝ Allow deferred dependency in classes
       U←##.Utils
      
       {}⎕SE.UCMD'udebug on'
@@ -80,7 +81,7 @@
       assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
       ⍝ *** Known bug: functions in a renamed folder/namespace link to the old file names 
-      :If ~∨/'/bus/foo.dyalog'⍷4⊃U.GetLinkInfo ns'foo'
+      :If ~∨/'/bus/foo.dyalog'⍷4⊃U.GetLinkInfo ns.bus 'foo'
           ⎕←'*** NB https://github.com/mkromberg/link/issues/2 still not resolved'
       :EndIf
       assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
@@ -162,6 +163,7 @@
       assert'9=#.⎕NC name' ⍝ After ]link -reset this should not remove the namespace
      
       Log'Tests passed OK'
+      {}5160⌶olddd
     ∇
 
    ⍝ Callback functions to implement .charmat & .charvec support
