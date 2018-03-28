@@ -4,7 +4,7 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    ∇ r←Run(Cmd Input);U;onWrite;onRead;onCreate;ns;dir;source;protect;make;watch;p;w;m;doNs;doDir;container;extn;flatten;quiet;reset;argcount;l;fsw;outfail;infail;linkDef;ix
+    ∇ r←Run(Cmd Input);U;onWrite;onRead;onCreate;ns;dir;source;protect;make;watch;p;w;m;doNs;doDir;container;extn;flatten;quiet;reset;argcount;l;fsw;outfail;infail;linkDef;ix;z
       :Select Cmd
       :Case 'Link'
      
@@ -15,7 +15,7 @@
               ⍝ Link namespaces will record switch values
               ⍝    and also contain fsw, the FileSystemWatcher object
           :EndIf
-          
+     
           source protect watch make←⊂¨'both'∘Input.Switch¨'source' 'protect' 'watch' 'make'
           protect←⊂'none'Input.Switch'protect' ⍝ /// while protect is not supported
           extn←'.dyalog'Input.Switch'extn'     ⍝ File extension to use
@@ -35,11 +35,20 @@
      
               :If (ns≡,'#')∨9=container.⎕NC ns
                   ns←container⍎ns
+              :ElseIf make∊'ns' 'both'
+                  :Trap 0
+                      z←(⊂'#.')~⍨{((⍸⍵='.')↑¨⊂⍵),⊂⍵}ns
+                      z←(0=container.⎕NC z)/z
+                      z container.⎕NS¨⊂''  
+                      ns←container⍎ns
+                  :Else
+                      →0⊣r←'Unable to create: ',ns
+                  :EndTrap
               :Else
                   →0⊣r←ns,' is not a namespace'
               :EndIf
           :EndIf
-          
+     
           l←⎕SE.Link.Links
           :If 1=argcount     ⍝ only ns provided
               :If 0=≢l
@@ -66,16 +75,16 @@
               :If 0<≢l
               :AndIf (⊂ns)∊⍎¨l.ns
                   →0⊣r←↑('A link already exists for ',(⍕ns),'- please use:')('      ]link ',(⍕ns),' -reset')
-              :EndIf    
-
-              :If ~⎕NEXISTS dir←U.Normalise 2⊃Input.Arguments
-                 :If make∊'dir' 'both'
-                  3 ⎕MKDIR dir
-                 :Else
-                  →0⊣r←'Directory not found: ',dir              
-                 :EndIf
               :EndIf
-
+     
+              :If ~⎕NEXISTS dir←U.Normalise 2⊃Input.Arguments
+                  :If make∊'dir' 'both'
+                      3 ⎕MKDIR dir
+                  :Else
+                      →0⊣r←'Directory not found: ',dir
+                  :EndIf
+              :EndIf
+     
               :If 0≡Input.Switch'source'
               :AndIf ∧/0≠(≢ns.⎕NL⍳10),≢⊃(⎕NINFO⍠1)dir,'/*'
                   →0⊣r←'-source must be specified when linking a non-empty namespace to a non-empty folder'

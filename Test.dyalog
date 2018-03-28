@@ -39,12 +39,12 @@
      
       ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
       #.⎕EX name
-      ns←⍎name #.⎕NS''
      
       cb←' -onRead=⎕SE.Link.Test.onRead -onWrite=⎕SE.Link.Test.onWrite'
       ⎕SE.UCMD'link #.',name,' ',folder,cb
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
+      ns←#⍎name
      
       ⍝ Create a monadic function
       (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
