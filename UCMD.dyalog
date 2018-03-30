@@ -304,7 +304,7 @@
           dir←⊃1 ⎕NPARTS dir            ⍝ normalise ─ '' means current dir
      
           Enclose←⊢ ⍝ ,¨@1,⊣            ⍝ Add ∇s to ⎕NR
-          Path←'/'⊣@('.'=⊢)dir,⊢        ⍝ Ns path → full path
+          Path←dir,'/'⊣@('.'=⊢)⊢        ⍝ Ns path → full path
           Path←Path,'/'extn⊃⍨⊣      ⍝ Append appropriate tail (⍺=1:dir; ⍺=2:file)
           Into←overwrite{ ⍝ Put vtv into file
               22::⍵                  ⍝ no file access
@@ -331,7 +331,7 @@
               0 0⊣src Into 2∘Path ⍵ ⍝ save as namespace and report OK
           }
      
-          nss←source.⎕NL ¯9.1                        ⍝ namespaces
+          nss←source.⎕NL ¯9.1 ¯9.4 ¯9.5              ⍝ namespaces
      
           No0←~∘0                                    ⍝ Remove fills
           DelRep←'∇'Enclose source.⎕NR               ⍝ ⎕NR with ∇s there
