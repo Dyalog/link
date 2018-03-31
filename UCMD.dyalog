@@ -238,7 +238,7 @@
               _←2 target.⎕FIX File ⍵
               ~⍺:⍬ ⍬
               d f e←⎕NPARTS ⍵
-              ##.FileSystemWatcher.Watch d(f,e)
+              ⍬(##.FileSystemWatcher.Watch d(f,e))
           }source
           source,←'/'                              ⍝ append missing slash
           list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'*' ⍝ recursive listing of everything
