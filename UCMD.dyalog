@@ -234,7 +234,12 @@
      
           File←detach{⍺⍺:⊃⎕NGET ⍵ 1 ⋄ 'file://',⍵} ⍝ Prepare file by getting source or prepending prefix
      
-          2≡1 ⎕NINFO source:0⍴⊂0⍴2 target.⎕FIX File source ⍝ if it is a file, just fix it
+          2≡1 ⎕NINFO source:watch{ ⍝ if it is a file, just fix it
+              _←2 target.⎕FIX File ⍵
+              ~⍺:⍬ ⍬
+              d f e←⎕NPARTS ⍵
+              ##.FileSystemWatcher.Watch d(f,e)
+          }source
           source,←'/'                              ⍝ append missing slash
           list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'*' ⍝ recursive listing of everything
      
