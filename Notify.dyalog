@@ -2,8 +2,9 @@
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
- :If DEBUG=2
+ :If DEBUG>0
      ⎕←args
+ :AndIf DEBUG>1
      ⎕TRAP←0 'S' ⋄ ∘∘∘
  :EndIf
 
@@ -11,7 +12,7 @@
  U←Utils
 
  (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
- (path oldpath)←U.Normalise¨path oldpath
+ (path oldpath)←{(0≠≢⍵)/U.Normalise ⍵}¨path oldpath
 
  linked←{0::⍬ ⋄ Utils.Normalise¨⎕SE.Link.Links.dir}⍬
  →((≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path)⍴0 ⍝ not linked => done
@@ -112,7 +113,7 @@
                  Notify'changed'link
              :EndFor
 
-             Log'NS rename ',oldname,' → ',name
+             Log'NS rename ',oldname,' → ',(⍕ns),'.',name
          :Else                                    ⍝ no old ns
              Log'NS rename ',oldname,' (not found) → ',name
          :EndIf
@@ -121,15 +122,20 @@
 
      oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
      :If 0≠≢⊃z←U.GetLinkInfo ns oldname           ⍝ old name *is* linked to this file
-         effect←1 ⋄ affected←(⍕ns),name
-         Log'(rename) ',affected,' → ',name
+         effect←1 ⋄ affected←(⍕ns),'.',name
+         Log'(rename) ',(⍕ns),'.',oldname,' → ',affected
 
      :Else ⍝ old name not linked to old file
          :If 0≠≢z←U.FindLinkInfo path
              affected←2⊃z
              Log'(rename): ',affected,' was previously linked to ',path
          :Else
-             Log'(rename): Unable to find changed object corresponding to ',path
+             :If 0≠≢name←U.GetName path
+                 effect←1 ⋄ affected←(⍕ns),'.',name
+                 Log'(rename): re-definition of ',affected,' from ',path
+             :Else
+                 Log'(rename): Unable to find changed object corresponding to ',path
+             :EndIf
          :EndIf
      :EndIf
 
@@ -193,7 +199,9 @@
                      2 ns.⎕FIX'file://',path
                  :EndIf
              :Case 22
-                 ⎕←'FileSystemWatcher: ',type,' reported to non-existant file ',path
+                 :If ~ 'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
+                 ⎕←'(',type,') reported to unreadable file ',path
+                 :EndIf
              :Else
                  ⎕←'Unable to fix file ',path
                  ⎕←'   '⎕DMX
