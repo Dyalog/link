@@ -7,7 +7,7 @@
     ∇ r←Run(Cmd Input);U;onWrite;onRead;onCreate;ns;dir;source;protect;make;watch;p;w;m;doNs;doDir;container;extn;flatten;quiet;reset;argcount;l;fsw;outfail;infail;linkDef;ix;z
       :Select Cmd
       :Case 'Link'
-     
+
           U←##.Utils
      
           :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure

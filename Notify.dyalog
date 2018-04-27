@@ -131,8 +131,16 @@
              Log'(rename): ',affected,' was previously linked to ',path
          :Else
              :If 0≠≢name←U.GetName path
-                 effect←1 ⋄ affected←(⍕ns),'.',name
-                 Log'(rename): re-definition of ',affected,' from ',path
+                 :If 0≠≢⊃z←U.GetLinkInfo ns name ⍝ but name inside is already linked
+                 :AndIf ⎕NEXISTS 4⊃z             ⍝ to a file which exists
+                    affected←(⍕ns),'.',name
+                    Log'(created): ignoring changed file ',path
+                    Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+                    →0
+                 :Else
+                    effect←1 ⋄ affected←(⍕ns),'.',name
+                    Log'(rename): re-definition of ',affected,' from ',path
+                 :EndIf
              :Else
                  Log'(rename): Unable to find changed object corresponding to ',path
              :EndIf
@@ -199,8 +207,8 @@
                      2 ns.⎕FIX'file://',path
                  :EndIf
              :Case 22
-                 :If ~ 'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
-                 ⎕←'(',type,') reported to unreadable file ',path
+                 :If ~'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
+                     ⎕←'(',type,') reported to unreadable file ',path
                  :EndIf
              :Else
                  ⎕←'Unable to fix file ',path
