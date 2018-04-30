@@ -1,23 +1,10 @@
 ﻿:Namespace Test
-⍝ Test the ]link UCMD and utilities
+⍝ Put the ]link UCMD and FileSystemWatcher through it's paces
+⍝ Call Run with a right argument containing a folder name which can be used for the test
+⍝ For example:
+⍝   Run 'c:\tmp\linktest'
 
     ⎕IO←1 ⋄ ⎕ML←1
-
-    ∇ Log x
-      ⎕←x ⍝ This might get more sophisticated someday
-    ∇
-
-    ∇ assert expr;maxwait;end;timeout
-      ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
-      end←30000+3⊃⎕AI ⍝ 3s
-      timeout←0
-     
-      :While 0∊⍎expr
-          ⎕DL 0.1
-      :Until timeout←end<3⊃⎕AI
-     
-      'assertion failed'⎕SIGNAL timeout/11
-    ∇
 
     ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz;olddd
       
@@ -163,6 +150,22 @@
           
       Log'Tests passed OK'
     ∇
+   
+    ∇ Log x
+      ⎕←x ⍝ This might get more sophisticated someday
+    ∇
+
+    ∇ assert expr;maxwait;end;timeout
+      ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
+      end←30000+3⊃⎕AI ⍝ 3s
+      timeout←0
+     
+      :While 0∊⍎expr
+          ⎕DL 0.1
+      :Until timeout←end<3⊃⎕AI
+     
+      'assertion failed'⎕SIGNAL timeout/11
+    ∇         
 
    ⍝ Callback functions to implement .charmat & .charvec support
 
