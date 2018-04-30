@@ -4,10 +4,10 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    ∇ r←Run(Cmd Input);U;onWrite;onRead;onCreate;ns;dir;source;protect;make;watch;p;w;m;doNs;doDir;container;extn;flatten;quiet;reset;argcount;l;fsw;outfail;infail;linkDef;ix;z
+    ∇ r←Run(Cmd Input);U;argcount;container;dir;doDir;doNs;extn;flatten;fsw;infail;isWin;ix;l;linkDef;m;make;ns;onRead;onWrite;outfail;p;protect;quiet;reset;source;w;watch;z
       :Select Cmd
       :Case 'Link'
-
+     
           U←##.Utils
      
           :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure
@@ -16,14 +16,21 @@
               ⍝    and also contain fsw, the FileSystemWatcher object
           :EndIf
      
-          source protect watch make←⊂¨'both'∘Input.Switch¨'source' 'protect' 'watch' 'make'
+          (source protect make)←⊂¨'both'∘Input.Switch¨'source' 'protect' 'make'
+          isWin←'Windows'≡7↑⊃'.'⎕WG'APLVersion'
+          watch←⊂('ns' 'both')[1+isWin]∘Input.Switch'watch' ⍝ Default to "both" under Windows, else "ns"
           protect←⊂'none'Input.Switch'protect' ⍝ /// while protect is not supported
           extn←'.dyalog'Input.Switch'extn'     ⍝ File extension to use
           flatten←0 Input.Switch'flatten'      ⍝ Whether to flatten the external folder structure
           quiet←~0 Input.Switch'prompt'        ⍝ do not prompt on external changes?
           reset←0 Input.Switch'reset'          ⍝ Whether to flatten the external folder structure
      
-          (onRead onWrite onCreate)←''∘Input.Switch¨'onRead' 'onWrite' 'onCreate'
+          (onRead onWrite)←''∘Input.Switch¨'onRead' 'onWrite'
+     
+          :If ~isWin
+          :AndIf (⊂watch)∊'both' 'dir'
+              →0⊣r←'Watching directories is only supported under Microsoft Windows'
+          :EndIf
      
           :If protect≢⊂'none'
               →0⊣r←'-protect not yet supported'
@@ -39,7 +46,7 @@
                   :Trap 0
                       z←(⊂'#.')~⍨{((⍸⍵='.')↑¨⊂⍵),⊂⍵}ns
                       z←(0=container.⎕NC z)/z
-                      z container.⎕NS¨⊂''  
+                      z container.⎕NS¨⊂''
                       ns←container⍎ns
                   :Else
                       →0⊣r←'Unable to create: ',ns
@@ -122,7 +129,7 @@
      
           (linkDef←⎕SE.⎕NS ⍬).⎕DF'[Link]'
           linkDef.(ns dir extn flatten protect watch fsw infail outfail)←((⍕ns)dir extn flatten protect watch fsw infail outfail)
-          linkDef.(onWrite onRead onCreate quiet)←onWrite onRead onCreate quiet
+          linkDef.(onWrite onRead quiet)←onWrite onRead quiet
           ⎕SE.Link.Links,←linkDef
      
           r←⍕⍪r
@@ -136,7 +143,7 @@
           r,←'General syntax:'('    ]',Cmd,' ns directory')
           r,←'E.g.'('    ]',Cmd,' #.utils.dates c:\devt\utils\dates')''
           r,←⊂'If only ns is provided, the only switch allowed is -reset is allowed'
-          r,←'If directory is not supplied and -reset not used, a report is displayed' ''  
+          r,←'If directory is not supplied and -reset not used, a report is displayed' ''
           r,←'For more extensive documentation, see https://github.com/Dyalog/link/blob/master/README.md' ''
           r,←⊂'Modifiers:'
           r,←⊂'    -source  ={     ns|dir|both}'
