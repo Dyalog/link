@@ -1,13 +1,18 @@
 # Linking Namespaces to Directories
+
+NB: This version of the documentation prepared for v17.0 beta 1, May 2nd 2018.
+
 Linking one or more namespaces in an active Dyalog workspace to corresponding directories in the file system makes it straightforward for users of Dyalog APL to store source code in Unicode text files while continuing to use an active APL session to interactively experiment with expressions and data, write and maintain code.
 
-Using textual source rather than binary saved workspaces allows the use of source code management and other tools manage software projects using APL.
+Using textual source rather than binary saved workspaces allows the use of popular source code management tools (like Git and GitHub) - and many other tools to manage software projects using APL.
 
 # The `]link` user command
-Version 17.0 of Dyalog APL installs the files found in the Github repository https://github.com/dyalog/link in a folder called "Link" below the main Dyalog folder. A user command named `]link` provides a simple user interface which allows the creation, listing and removal of links.
 
-The `]link` user command takes two arguments; the names of a namespace and of a directory in the file system. For example, the entire workspace can be linked to a single directory using:
+A standard installation of Dyalog APL Version 17.0 will include the files found in the Github repository https://github.com/dyalog/link, in a folder called "Link" below the main Dyalog folder. A user command named `]link` provides a simple user interface which allows the creation, listing and removal of links.
 
+The first use of the `]link` command will load the source code from the Link folder into the namespace `⎕SE.Link`.
+
+The `]link` user command takes two arguments; the names of the namespace and of the directory in the file system that are to be linked. For example, the entire workspace can be linked to a single directory using:
 ```
       ]link # /User/mkrom/MyApp
 ```
@@ -20,7 +25,11 @@ Under operating systems where Link is able to create a File System Watcher objec
 
 ## Modifiers
 
-To get accurate information about the version of `]link` that you have installed, type:
+A number of modifiers control the behaviour of Link. For example, the following command links a namespace to a folder, but also specifies that the link should be one way: changes made to the namespace should be copied to the folder but not vice versa (this is the default on non-Windows platforms):
+```
+      ]link #.dates /User/mkrom/Utils/Dates -watch=ns
+```
+If no arguments or modifiers are provided, a list of existing links will be displayed. To get accurate information about the version of `]link` that you have installed, type:
 
 ```
       ]link -?
@@ -38,15 +47,15 @@ To get accurate information about the version of `]link` that you have installed
 
 ## Un-handled Events
 
-Link detects changes in the workspace by attaching to the "EditorFix" callback from the editor - and uses a Microsoft.Net FileSystemWatcher object to monitor the directory (under Microsoft Windows only).
+Link detects changes in the workspace by attaching to the `EditorFix` callback from the editor. External changes are detected using a Microsoft.Net FileSystemWatcher object to monitor the linked directories (currently under Microsoft Windows only).
 
-If functions or operators are created using `⎕FX`, `⎕FIX` or in the case of dfns or dops assignment, no callback is triggered. You can inform the link mechanism of such a change by calling  
+If functions or operators are created using `⎕FX`, `⎕FIX` or in the case of dfns or dops assignment (`←`), no callback is triggered. You can inform the link mechanism of such a change by calling  
 ```
       ns [name [oldname]] ⎕SE.Link.Fix source
 ```
-Where `ns` is the namespace the fn or op has been defined in, optional arguments `name` and `oldname` are the new and (if it was renamed) old name. The right argument can be empty, in which case the definition will be picked up from the active workspace, or it can be the new source, in which case the fn or op will be redefined.
+Where `ns` is the namespace the fn or op has been defined in, optional arguments `name` and `oldname` are the new and (if it was renamed) old name. The right argument can be empty, in which case the definition will be picked up from the active workspace, or it can contain the new source, in which case the fn or op will be redefined.
 
-If an external change has been made to a file, and you want to make the link mechanism aware of this fact, for example if you are on a platform where FileSystemWatcher is unavailable, you can use:
+If an external change has been made to a file, was not handled automatically, and you want to make the link mechanism aware of the change (for example if you are on a platform where FileSystemWatcher is unavailable), you can use:
 ```
       ⎕SE.Link.Notify type path [oldpath]
 ```
