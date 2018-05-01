@@ -110,19 +110,22 @@
           ix←'[',(⍕1+≢⎕SE.Link.Links),']'
      
           :If source∊doNs
-              p w m←protect watch make∊¨⊂doDir
+              (p m)←protect make∊¨⊂doDir
+              w←watch∊doNs
               :If 0≠≢outfail←ns Export dir p w m extn flatten quiet
                   r,←('Failed to export ',(⍕≢outfail),' file(s) - see:')('      ⎕SE.Link.Links',ix,'.outfail')
               :EndIf
           :EndIf
      
           :If source∊doDir
-              p w m←protect watch make∊¨⊂doNs
+              (p m)←protect make∊¨⊂doNs
+              w←watch∊doDir              
               (infail fsw)←ns Import dir p w m extn flatten quiet
               :If 0≠≢infail
                   r,←('Failed to import ',(⍕≢infail),' file(s) - see:')('      ⎕SE.Link.Links',ix,'.infail')
               :EndIf
           :EndIf
+          
           :If 0=≢r
               r←⍬
           :EndIf

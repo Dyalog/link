@@ -8,6 +8,11 @@
 
     ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz;olddd
       
+     :If 'Windows'≢7↑⊃'.' ⎕WG 'APLVersion'
+        r←'Unable to run tests - Microsoft Windows is required to test the FileSystemWatcher'
+        →0
+     :EndIf
+     
       U←##.Utils
      
       {}⎕SE.UCMD'udebug on'
