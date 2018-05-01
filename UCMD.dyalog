@@ -18,7 +18,7 @@
      
           (source protect make)←⊂¨'both'∘Input.Switch¨'source' 'protect' 'make'
           isWin←'Windows'≡7↑⊃'.'⎕WG'APLVersion'
-          watch←⊂('ns' 'both')[1+isWin]∘Input.Switch'watch' ⍝ Default to "both" under Windows, else "ns"
+          watch←⊂((1+isWin)⊃'ns' 'both')∘Input.Switch'watch' ⍝ Default to "both" under Windows, else "ns"
           protect←⊂'none'Input.Switch'protect' ⍝ /// while protect is not supported
           extn←'.dyalog'Input.Switch'extn'     ⍝ File extension to use
           flatten←0 Input.Switch'flatten'      ⍝ Whether to flatten the external folder structure
