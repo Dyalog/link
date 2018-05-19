@@ -119,13 +119,13 @@
      
           :If source∊doDir
               (p m)←protect make∊¨⊂doNs
-              w←watch∊doDir              
+              w←watch∊doDir
               (infail fsw)←ns Import dir p w m extn flatten quiet
               :If 0≠≢infail
                   r,←('Failed to import ',(⍕≢infail),' file(s) - see:')('      ⎕SE.Link.Links',ix,'.infail')
               :EndIf
           :EndIf
-          
+     
           :If 0=≢r
               r←⍬
           :EndIf
@@ -160,6 +160,7 @@
           r,←⊂'    -prompt   Prompts user to verify all synchronisation (default=off, not recommended)'
           r,←⊂'    -reset    Removes an existing link (directory argument not required)'
           r,←⊂'    -make    ={none|ns|dir|both} (create any necessary namespaces or folders on link)'
+          r,←⊂'    -dev     =Load ]link itself in developer mode (linked to source files)'          
      
           r,←'' 'Switches defining hooks to pre-process synchronisation' ''
           r,←⊂'    -onRead   Function to call when an external change is detected'
