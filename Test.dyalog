@@ -6,7 +6,7 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz;olddd
+    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz;olddd;zoo;goofile;t;m
       
      :If 'Windows'≢7↑⊃'.' ⎕WG 'APLVersion'
         r←'Unable to run tests - Microsoft Windows is required to test the FileSystemWatcher'
@@ -25,7 +25,7 @@
           →0
       :EndIf
      
-      folder←folder,(0=≢folder)/'/temp/linktest'
+      folder←∊1 ⎕NPARTS folder,(0=≢folder)/'/temp/linktest' ⍝ Normalise
       name←2⊃⎕NPARTS folder
      
       ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
@@ -79,25 +79,37 @@
       ⍝ Now copy a file containing a function
       old←U.GetLinkInfo ns'foo'
       (folder,'/foo - copy.dyalog')⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
-      ⎕DL 1 ⍝ Allow FileSystemWatcher time to react
-      (folder,'/goo.dyalog')⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
+      ⎕DL 1 ⍝ Allow FileSystemWatcher time to react 
+      goofile←folder,'/goo.dyalog'
+      goofile ⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
       ⎕DL 1 ⍝ Allow FileSystemWatcher some time to react
       ⍝ Verify that the old function has NOT become linked to the new file
-      :If old≢new←U.GetLinkInfo ns'foo'
-          ⎕←'*** foo defined by ',new,' - should be ',old
-      :EndIf
+      assert 'old≡new←U.GetLinkInfo ns''foo'''
      
-      ⍝ Now edit the new file so it does define 'foo'
-      tn←(folder,'/goo.dyalog')⎕NTIE 0
+      ⍝ Now edit the new file so it "accidentally" defines 'zoo'
+      tn←goofile ⎕NTIE 0
+      'z'⎕NREPLACE tn 5 80 ⍝ (beware UTF-8 encoded file)
+      ⎕NUNTIE tn
+      ⍝ Validate that this did cause goo to arrive in the workspace
+      zoo←' r←zoo x' ' x x'
+      assert'zoo≡ns.⎕NR ''zoo'''
+
+      ⍝ Now edit the new file so it finally defines 'goo' 
+      tn←goofile ⎕NTIE 0
       'g'⎕NREPLACE tn 5 80 ⍝ (beware UTF-8 encoded file)
       ⎕NUNTIE tn
       ⍝ Validate that this did cause goo to arrive in the workspace
       goo←' r←goo x' ' x x'
-      assert'goo≡ns.⎕NR ''goo'''
-     
+      assert'goo≡ns.⎕NR ''goo''' 
+      ⍝ Also validate that zoo is now gone
+      assert'0=ns.⎕NC ''zoo'''
+      
       ⍝ Now simulate changing goo using the editor and verify the file is updated
-      ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x'
-      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET (folder,''/goo.dyalog'') 1'
+      ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'
+      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1' 
+      
+      ⎕SE.Link.Expunge 'ns.goo' ⍝ Test "expunge"
+      assert '0=⎕NEXISTS goofile' 
      
       ⍝ Now test the Notify function - and verify the System Variable setting trick
      
@@ -141,14 +153,19 @@
       ⎕NDELETE folder,'/nil.dyalog'
       assert'0=ns.⎕NC ''nil'''
       ⎕NDELETE folder,'/foo.dyalog'
-      ⎕NDELETE folder,'/goo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
      EXIT: ⍝ →EXIT to aborted test and clean up
-     
+      ⎕SE.Link.DEBUG←0
       ⎕SE.UCMD']link #.',name,' -reset'
-      assert'0=≢⎕SE.Link.Links'
-     
+      assert'0=≢⎕SE.Link.Links' 
+      
+      z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
+      :If ∨/m←((≢folder)↑¨z)∊⊂folder  
+         ⎕←'*** Links not cleared:'
+         ⎕←⍪m/z
+      :EndIf
+           
       2 ⎕NDELETE folder    ⍝
       assert'9=#.⎕NC name' ⍝ After ]link -reset this should not remove the namespace
       #.⎕EX name
@@ -162,7 +179,7 @@
 
     ∇ assert expr;maxwait;end;timeout
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
-      end←30000+3⊃⎕AI ⍝ 3s
+      end←3000+3⊃⎕AI ⍝ 3s
       timeout←0
      
       :While 0∊⍎expr
