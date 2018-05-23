@@ -61,7 +61,7 @@
      :EndIf
 
  :Case 'changed'               ⍝ Update to existing file?
-     :If 0≠≢z←4⊃U.GetLinkInfo ns name       ⍝ name already linked
+     :If 0≠≢z←4⊃U.GetLinkInfo ns name      ⍝ name already linked
      :AndIf name≡U.GetName path            ⍝ name matches file contents
      :AndIf (U.Normalise path)≡U.Normalise 4⊃z  ⍝ to the same file name
          effect←1 ⋄ affected←(⍕ns),name
@@ -72,7 +72,14 @@
              Log'(change): ',affected,' updated in ',path
          :EndIf    ⍝ ... but the file did not change
 
-     :Else ⍝ change to file with no current link	
+     :Else ⍝ apparent change to name with no current link	
+         :If 0≠≢z←U.GetFileInfo path ⍝ Paranoia: check if file defined another name
+             :If 1≠≢z ⋄ ∘∘∘ ⋄ :EndIf ⍝ Multiple names
+             z←⊃z
+         :AndIf 0≠(2⊃z).⎕NC ⍕1⊃z     ⍝ If the old name exists
+             (2⊃z).⎕EX ⍕1⊃z          ⍝ Expunge it
+         :EndIf
+
          :If U.IsDir path
              Log'(changed) ignored "change" to directory: ',path
              →0
@@ -86,8 +93,8 @@
              →0
          :EndIf
 
-         :If 0≠≢z←U.FindLinkInfo path                ⍝ Try to find an "affected" object
-             effect←1 ⋄ affected←2⊃z
+         :If 0≠≢z←U.GetFileInfo path                ⍝ Try to find an "affected" object
+             effect←1 ⋄ affected←(⍕ns),'.',name
              Log'(changed): ',affected,' was previously linked to ',path
          :ElseIf 0≠≢newname
              effect←1 ⋄ affected←(⍕ns),'.',newname   ⍝ So just accept it
@@ -126,20 +133,20 @@
          Log'(rename) ',(⍕ns),'.',oldname,' → ',affected
 
      :Else ⍝ old name not linked to old file
-         :If 0≠≢z←U.FindLinkInfo path
-             affected←2⊃z
+         :If 0≠≢z←U.GetFileInfo path
+             ∘∘∘ ⋄ affected←(⍕2⊃z),'.',⊃z
              Log'(rename): ',affected,' was previously linked to ',path
          :Else
              :If 0≠≢name←U.GetName path
                  :If 0≠≢⊃z←U.GetLinkInfo ns name ⍝ but name inside is already linked
                  :AndIf ⎕NEXISTS 4⊃z             ⍝ to a file which exists
-                    affected←(⍕ns),'.',name
-                    Log'(created): ignoring changed file ',path
-                    Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
-                    →0
+                     affected←(⍕ns),'.',name
+                     Log'(created): ignoring changed file ',path
+                     Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+                     →0
                  :Else
-                    effect←1 ⋄ affected←(⍕ns),'.',name
-                    Log'(rename): re-definition of ',affected,' from ',path
+                     effect←1 ⋄ affected←(⍕ns),'.',name
+                     Log'(rename): re-definition of ',affected,' from ',path
                  :EndIf
              :Else
                  Log'(rename): Unable to find changed object corresponding to ',path

@@ -33,7 +33,7 @@
 
  :If linked
      :If 0<≢file←4⊃Utils.GetLinkInfo ns name ⍝ Already saved in a file
-     :AndIf 0=≢oldname
+     :AndIf name≡oldname                  ⍝ Function not renamed
 
      :ElseIf ~link.flatten                ⍝ Not flattened
 
