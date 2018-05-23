@@ -33,18 +33,10 @@
     ⍝ Return link info or ⍬
       r←5179(ns.⌶)name
     ∇
-	
-    ∇ r←FindLinkInfo file;loaded;files;affected
-      ⍝ Find an object linked to a named file
-      ⍝ /// maybe cache this later for performance
-     
-      loaded←5177⌶⍬
-      files←Normalise¨4⊃¨loaded
-     
-      :If 0≠≢r←(files∊⊂file)/loaded
-          affected←Shortest Combine r←↑2↑¨r
-          r←(2⊃,r)affected    ⍝ return namespace and "affected" name
-      :EndIf
+
+    ∇ r←GetFileInfo file
+    ⍝ Return links to file
+      r←5174⌶file
     ∇
 	
     ∇ r←GetRefTo nsname;name
