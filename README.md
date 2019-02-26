@@ -1,3 +1,5 @@
+> ***This version is for building Dyalog APL 17.0. We recommended [the new Master branch `Link`](https://github.com/Dyalog/link).***
+
 # Linking Namespaces to Directories
 
 NB: This version of the documentation prepared for v17.0 beta 1, May 2nd 2018.
@@ -42,7 +44,7 @@ If no arguments or modifiers are provided, a list of existing links will be disp
 |extn||.dyalog|File extension considered to be APL source code|
 |flatten|on off|off|Loads everything into ns without creating sub-namespaces|
 |prompt|on off|off|Prompts user to verify all synchronisation (not recommended)|
-|reset|||Removes an existing link (dir argument not required)|        
+|reset|||Removes an existing link (dir argument not required)|
 |make|none ns dir both|both|create any necessary namespaces or folders during initialisation|
 
 ## Un-handled Events
