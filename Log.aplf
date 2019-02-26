@@ -1,0 +1,4 @@
+ {x}←Log x
+ :If U.debug≠0
+     ⎕←x
+ :EndIf

@@ -1,0 +1,20 @@
+ msg←Refresh ns
+ ;container;nsref;nsrefs;outFail;inFail;link
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+
+     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+     nsref←⍎ns
+     :If nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
+         link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+         {}Break nsref
+         DefaultOpts
+         msg←link Create nsref link.dir
+     :Else
+         msg←'Not linked: ',ns
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

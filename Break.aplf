@@ -1,0 +1,50 @@
+ msg←Break nss;names
+ ;ns;linked;broken;missing;mask;⎕IO;there;n;parents
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     :If ×⎕NC'⎕SE.Link.Links'
+         ⎕SE.Link.Links/⍨←0≠⎕NC ⎕SE.Link.Links.ns
+     :AndIf ×≢⎕SE.Link.Links
+         ⎕IO←1
+         there←⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD' ⍝ DO WE NEED TO DO THIS ELSEWHERE???
+         :If 2<10|⎕DR nss
+             nss←there{
+                 ''≢0⍴⍵:⍵
+                 9≠⍺.⎕NC ⍵::⍵
+                 ⍺⍎⍵
+             }¨nss
+         :Else
+             nss←there⍎nss
+         :EndIf
+         linked←⍎¨⎕SE.Link.Links.ns
+         broken←0⍴⊂''
+         missing←0⍴⊂''
+         n←0
+         :For ns :In nss
+             mask←linked≠ns
+             :If 0∊mask
+                 parents←⍕¨U.GetInfos'parent'
+                 names←parents,¨'.',¨U.GetInfos'name'
+                 n+←U.RemoveInfos names/⍨ns∘(⊃⍷)¨names
+                 ⎕SE.Link.Links/⍨←mask
+                 broken,←⊂ns
+             :Else
+                 missing,←⊂ns
+             :EndIf
+         :EndFor
+         msg←0⍴⊂''
+         :If ×≢broken
+             msg,←⊂'Unlinked ',(⍕n),' files:',U.List broken
+         :EndIf
+         :If ×≢missing
+             msg,←⊂'Not found:',U.List missing
+         :EndIf
+         msg←⊃{⍺,'; ',⍵}/msg
+     :Else
+         msg←'No active links'
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

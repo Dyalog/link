@@ -1,0 +1,18 @@
+ name←CaseCode name
+ ;bin;len;digits;⎕IO;path;ext
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     ⎕IO←0
+     (path name ext)←⎕NPARTS name
+     bin←name≠819⌶name
+     len←⌈3÷⍨≢bin
+     digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
+     digits↓⍨←+/∧\0=digits
+     name,←'-',⎕D[digits,0/⍨⍬≡digits]
+     path,←'/'⍴⍨×≢path
+     name←path,name,ext
+ :Else
+     U.Resignal 1
+ :EndTrap

@@ -1,0 +1,19 @@
+ files←GetFileName item
+ ;table;⎕IO;itemlist;filelist;roots;this;items
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     ⎕IO←0
+     items←⊆,item
+     items~¨←' '
+     roots←(⍳∘'.'↑⊢)¨items
+     this←'.',⍨⍕⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD'
+     items,¨⍨←/∘this¨~roots∊,¨'#' '⎕SE' '⎕DMX'
+     table←U.GetInfos ⍬
+     itemlist←{(⍕1⊃⍵),'.',⊃⍵}¨table
+     filelist←(3⊃¨table),⊂''
+     files←⊃⍣(1≥≡item)⊢filelist[itemlist⍳items]
+ :Else
+     U.Resignal 1
+ :EndTrap

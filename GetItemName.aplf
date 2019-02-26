@@ -1,0 +1,17 @@
+ items←GetItemName file
+ ;table;⎕IO;filelist;files;itemlist
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     ⎕IO←0
+     files←{∊1 ⎕NPARTS ⍵}¨⊆file
+     table←U.GetInfos⍬
+     filelist←{∊1 ⎕NPARTS 3⊃⍵}¨table
+     itemlist←(2↑¨table),⊂'' ''
+     items←itemlist[filelist⍳files]
+     items←{(⍕1⊃⍵),(×≢⊃⍵)/'.',⊃⍵}¨items
+     items←⊃⍣(1≥≡file)⊢items
+ :Else
+     U.Resignal 1
+ :EndTrap

@@ -1,0 +1,25 @@
+ msg←Import(ns dir)
+ ;opts;container;isChild;nsref;inFail;numFail
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     opts←⎕NS ⍬
+     opts.watch←'none'
+     opts.source←'dir'
+
+     (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
+     isChild←U.IsChild ns
+     nsref←⍎ns container.⎕NS ⍬
+
+     dir←U.WinSlash dir
+
+     inFail←⊃opts FixFiles nsref dir
+     msg←'Imported: ',ns,' ← ',dir
+     numFail←≢inFail
+     :If ×numFail
+         msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

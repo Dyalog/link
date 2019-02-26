@@ -1,0 +1,28 @@
+ msg←Remove items
+ ;roots;this;table;itemlist;filelist;files;mask
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+
+     :If ×≢items
+         items←⊆,items
+         items~¨←' '
+         roots←{⍵↑⍨⍵⍳'.'}¨items
+         this←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+         items,¨⍨←/∘this¨~roots∊,¨'#' '⎕SE' '⎕DMX'
+         table←U.GetInfos⍬
+         itemlist←{(⍕1⊃⍵),'.',⊃⍵}¨table
+         filelist←(3⊃¨table),⊂''
+         mask←items∊itemlist
+         files←filelist[itemlist⍳mask/items]
+         1 ⎕NDELETE files
+         ⎕EX items
+         msg←⊂'Removed:',∊' ',¨items
+         :If 0∊mask
+             msg,←⊂'Not linked:',∊' ',items/⍨~mask
+         :EndIf
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

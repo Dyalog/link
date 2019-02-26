@@ -1,0 +1,92 @@
+ (inFail fsw)←{opts}FixFiles(target source);⎕IO ⍝ Load items from files in folders
+ ;cands;candLengths;name;d;f;e;list;hideBit;hidden;files;dirs;order;paths;nss
+ ;File;RightExtn;Files;RemDir;Target
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     ⎕IO←1
+     opts←DefaultOpts'opts'⎕NS ⍬
+
+     source↓⍨←-U.Slash⊃⌽source                  ⍝ Remove slash from end
+     cands←⊃⎕NINFO⍠1⊢source,'*'                 ⍝ normalised source candidates
+     candLengths←≢¨cands                        ⍝ their lengths
+
+     source←cands⊃⍨candLengths⍳≢source          ⍝ first length-match
+     name←⊃⌽U.Parts source                      ⍝ name without path
+
+     File←{ ⍝ Prepare file by getting source or prepending prefix
+         'ns' 'both'∊⍨⊂opts.watch:'file://',⍵
+         ⊃⎕NGET ⍵ 1
+     }
+
+     :If 2≡1 ⎕NINFO source ⍝ if it is a file, just fix it
+         2 target.⎕FIX File source
+         :If 'dir' 'both'∊⍨opts.watch
+             d f e←⎕NPARTS source
+             inFail←⍬
+             fsw←FileSystemWatcher.Watch d(f,e)
+         :Else
+             inFail←fsw←⍬
+         :EndIf
+     :Else
+         source,←'/'                                     ⍝ append missing slash
+         list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'*'      ⍝ recursive listing of everything
+
+
+         hideBit←1=3⊃list                                ⍝ mask for hidden items
+         hidden←⊃list U.Where¨⊂hideBit                   ⍝ list of hidden (files and) folders
+         hidden,¨←'/'                                    ⍝ protect agains similarly named items
+         list←list U.Where¨⊂~hideBit                     ⍝ keep only visible items
+         list←list U.Where¨⊂~∨⌿hidden∘.U.Begins⊃list     ⍝ filter away things that come below hidden things
+         list↓⍨←¯1                                       ⍝ remove hideBit column
+
+         RightExtn←{opts.codeExtensions∊⍨⊂1↓⊃⌽⎕NPARTS ⍵} ⍝ Ends with specified extension?
+
+         Files←{⍵ U.Where RightExtn¨⍵}                   ⍝ Those that end with specified extension
+
+         files←Files⊃U.Where/2=@2⊢list                   ⍝ second column has 2 for files; first column is filename
+         dirs←⊃U.Where/1=@2⊢list                         ⍝ second column has 1 for dirs
+         dirs,¨←'/'                                      ⍝ give the dirs trailing slashes
+         list←dirs⍪files                                 ⍝ we need to process dirs before files
+         order←⍋9999999@{47=⍵}↑⎕UCS¨list                 ⍝ slashes after all chars
+         list←order⊃¨⊂list                               ⍝ sort the list
+
+         RemDir←{⍵↓⍨≢source}                             ⍝ Only path beginning at target source
+
+         paths←∪RemDir∘U.Path¨list                       ⍝ paths of all unique items
+         paths~←⊂''                                      ⍝ remove empty
+
+         :If ~opts.flatten                               ⍝ If we are not flattening, create nss
+             nss←U.DotSlash¨paths                        ⍝ all necessary namespaces
+             nss/⍨←(¯1=⎕NC nss)⍱('.'∊¨nss)               ⍝ keep only names that are neither invalid nor compound
+             target.⍎∘U.NsExpr¨(~opts.flatten)/nss       ⍝ create namespaces in target
+         :EndIf
+
+         Target←{'.'@U.Slash U.PadThis(~opts.flatten)/U.Path RemDir ⍵} ⍝ Determine target path
+
+         FixThere←{ ⍝ Fix the file ⍵ in the namespace ⍺
+             t←(1+opts.flatten)⊃(⍺.⍎Target ⍵)⍺ ⍝ final target
+             2 t.⎕FIX File ⍵                   ⍝ do it
+         }
+
+         TryFixThere←{      ⍝ Try to fix file there
+             6 11::⍵        ⍝ return name on failure
+             0⊣⍺ FixThere ⍵ ⍝ do it and return 0 on success
+         }
+         OnEach←{ ⍝ ¨ without prototype call on empty
+             0∊⍴⍵:⍬  ⍝ if empty return empty
+             ⍺←⊢     ⍝ ambivalent
+             ⍺ ⍺⍺¨⍵  ⍝ call
+         }
+         inFail←0~⍨target∘TryFixThere OnEach Files list ⍝ try it and return only failures
+      ⍝ return (list of failures) and (watcher reference or zilde)
+         :If 'dir' 'both'∊⍨⊂opts.watch
+             fsw←FileSystemWatcher.Watch(¯1↓source)(,'*')
+         :Else
+             fsw←⍬
+         :EndIf
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

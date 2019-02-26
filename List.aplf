@@ -1,0 +1,33 @@
+ list←{opts}List ns;prop;L
+ ;nss;lineages;there;ref
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     :If ×⎕NC'⎕SE.Link.Links'
+     :AndIf ×≢⎕SE.Link.Links
+         list←↑⎕SE.Link.Links.(ns dir)
+         :If ×≢ns
+             there←⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD'
+             ref←9∊⎕NC'ns'
+         :AndIf ref∨×there.⎕NC⍕ns
+             ns←⍕there⍎⍣(~ref)⊢ns
+             nss←⍕¨⎕SE.Link.Links.ns
+             list⌿⍨←ns∘(⊃⍷)¨nss
+         :EndIf
+         lineages←{⍕¨{∪(⊃⍵).##,⍵}⍣≡2⊃⍵}¨U.GetInfos ⍬
+         list,←+/lineages∘.∊⍨⊂¨⊣/list
+         list⍪⍨←'Namespace' 'Directory' 'Scripts'
+         :If ~900⌶⍬ ⍝ dyadic
+         :AndIf ⍎∘'extended'⍣(9∊⎕NC'opts')⊢opts
+             L←819⌶
+             :For prop :In ('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
+                 list,←(⊂↑prop),⎕SE.Link.Links⍎¨⊂L@1∊prop
+             :EndFor
+         :EndIf
+     :Else
+         list←'No active links'
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

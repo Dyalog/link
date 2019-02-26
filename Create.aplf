@@ -1,0 +1,75 @@
+ msg←{opts}Create(ns dir)
+ ;isWin;container;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     ⎕IO←1
+     '⎕SE.Link'⎕NS ⍬
+     :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure
+         ⎕SE.Link.Links←⍬         ⍝ Start with no links
+ ⍝ Link namespaces will record switch values
+ ⍝    and also contain fsw, the FileSystemWatcher object
+     :EndIf
+
+     msg←⍕⍬⊤⍬
+     opts←DefaultOpts'opts'⎕NS ⍬
+     (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
+
+     dir↓⍨←-'/\'∊⍨⊃⌽dir
+     :If ⎕NEXISTS dir
+         dir←⊃⊃⎕NINFO⍠1⊢dir
+     :Else
+         dir←∊1 ⎕NPARTS dir ⍝ normalise name
+     :EndIf
+
+     dir←U.WinSlash dir
+
+     :If ~U.isWindows
+     :AndIf (⊂opts.watch)∊'both' 'dir'
+         msg←'Watching directories is only supported under Microsoft Windows'
+     :ElseIf (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
+         msg←'Unavailable: ',ns
+     :ElseIf ×≢⎕SE.Link.Links⊣nsref←⍎ns container.⎕NS ⍬
+     :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
+         link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+         msg←'Already linked: ',U.Arrow link
+     :ElseIf {16::0 ⋄ 1⊣⎕SRC ⍵}nsref
+         msg←'Scipted: ',ns
+     :ElseIf ~⎕NEXISTS dir←∊1 ⎕NPARTS dir
+     :AndIf ~3 ⎕MKDIR dir
+         msg←'Directory not found: ',dir
+     :ElseIf 0≡opts.source
+     :AndIf ∧/0≠(≢nsref.⎕NL-⍳10),≢⊃(⎕NINFO⍠1)dir,'/*'
+         msg←'Source must be specified when linking a non-empty namespace to a non-empty directory'
+     :ElseIf opts.(flatten∧source≢'dir')
+         msg←'flatten≡1 requires source≡''dir'''
+     :Else
+
+  ⍝ We're all good; do it!
+         inFail←outFail←fsw←⍬
+         ix←'[',(⍕(0(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
+         msg←0⍴⊂''
+         :If 'ns' 'both'∊⍨⊂opts.source
+             outFail←opts WriteFiles nsref dir
+         :AndIf 0≠≢outFail
+             msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
+         :EndIf
+
+         :If 'dir' 'both'∊⍨⊂opts.source
+             (inFail fsw)←opts FixFiles nsref dir
+         :AndIf 0≠≢inFail
+             msg,←⊂(⍕≢inFail),' imports failed (⎕SE.Link.Links',ix,'.inFail)'
+         :EndIf
+
+         linkDef←⎕SE.⎕NS opts
+
+         'linkDef'⎕NS'ns' 'dir' 'inFail' 'outFail'
+         arrow←U.Arrow linkDef
+         linkDef.⎕DF 1⌽'][',arrow
+         ⎕SE.Link.Links,←linkDef
+         msg←⊃{⍺,'; ',⍵}/msg,⍨⊂'Linked: ',arrow
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

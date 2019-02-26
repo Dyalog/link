@@ -1,0 +1,131 @@
+﻿:Namespace U ⍝ Utilities
+
+    :Section Constants
+    isWindows←'Win'≡3↑⊃# ⎕WG'APLVersion'
+    ∇ d←debug
+      :If 0=⎕NC'##.DEBUG'
+          d←##.DEBUG←0
+      :Else
+          d←##.DEBUG
+      :EndIf
+    ∇
+    :EndSection
+
+    :Section Tacit necessary to avoid stack frame
+    Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'EN)('Message'(Message,⍺)))}
+    Check←→0⍴⍨¯1∊∘⎕NC'/'∘≠⊆⊢ ⍝ leave early if any bad name (yes, it should say "←→")
+    :EndSection
+
+    :Section Strings
+    Strip←{⍵↓⍨-'/'⍳⍨⌽⍵}
+    Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}
+    Slash←{⍵∊'/\'}                          ⍝ Mark slashes
+    Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
+    Path←{⍵↓⍨-'/'⍳⍨⌽⍵}                      ⍝ Until last slash
+    PadThis←{⍵,'⎕THIS'/⍨0=≢⍵}               ⍝ Default path to here
+    NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
+    Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
+    WinSlash←'\'@Slash⍣isWindows
+    DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
+    Nss←{,\'.',¨1↓U.Parts ⍵}                ⍝ Convert file path to ns path
+    Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
+    IsChild←(⍕¨# ⎕SE ⎕DMX)∘{~⍺∊⍨⊂⍵}
+    List←{∊{' ',⍕⍵}¨⍵}
+      Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
+          lr←'←→'/⍨2 2⊤'dir' 'ns' 'both'⍳⊂⍵.watch
+          ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
+      }
+    :EndSection
+
+    :Section Covers for I-beams and other built-ins
+    GetLinkInfo←{⍺.(5179⌶)⍵}   ⍝ Return link info or ⍬
+    Where←{⍵⌿⍺}                             ⍝ Filter as function
+    Norm←{∊1⎕NPARTS ⍵} 
+    GetFileInfo←{5174⌶⍵}     ⍝ Return links to file 
+
+      GetInfos←{
+          ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
+          ⍵∘⊃¨5177⌶⍬
+      }     
+
+      RemoveInfos←{
+          ⍺←⎕THIS
+          +/5178⌶¨⊆⍵
+      }          
+
+      OnEach←{ ⍝ ¨ without prototype call on empty
+          0∊⍴⍵:⍬ ⍝ if empty return empty
+          ⍺←⊢      ⍝ ambivalent
+          ⍺ ⍺⍺¨⍵ ⍝ call
+      }
+    :EndSection
+    
+    :Section Files
+    FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
+      
+      IsDir←{
+          22::0
+          1=1 ⎕NINFO ⍵
+      }
+
+      Into←{ ⍝ Put vtv into file
+          2⊃⍺:(##.CaseCode⊃⍺)0∇⍵
+          22::⍵                  ⍝ no file access
+          _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
+          0⊣⍵ 1 ⎕NPUT⍨⊂⍵         ⍝ overwrite
+      }
+
+    :EndSection
+
+    :Section Lookup
+      ContainerNs←{(rsi xsi)←⍺ ⋄ ns←⍵
+          326=⎕DR ns:#(⍕ns)
+          Norm←{ns←⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
+          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal ¯1∊⎕NC ns)
+          container←⊃⌽2⍴rsi↓⍨xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD'
+          container(Norm(⍕container),'.',ns)
+      }
+
+      Tail←{ ⍝ ⍺:opts; ⍵:nc
+          0∊⍵,''≢0⍴⍵:'/'
+          (types exts)←↓⍉⍺.typeExtensions
+          exts,¨⍨←'.'
+          exts,←⊂'dyalog'
+          exts⊂⍨⌊/types⍳⍵,⌊⍵
+      }
+
+    ∇ r←GetName file;code;ns
+    ⍝ Attempt to determine the name which will be defined by a file
+     
+      ns←(⎕NS'').⎕NS r←'' ⍝ Two levels of nesting to allow safe fixing of :Namespace/##.⎕IO←0/:EndNamespace
+      :Trap 0
+          2 ns.⎕FIX'file://',file
+          :If 1=≢r←ns.⎕NL-⍳10 ⋄ r←⊃r
+          :Else ⋄ r←''
+          :EndIf
+      :EndTrap
+    ∇
+
+    ∇ r←GetRefTo nsname;name;nc
+     ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
+      nc←⎕NC⊂name
+      :If 9=⌊nc      ⍝ if it is already there
+      :OrIf ~IsChild nsname ⍝ or a root
+          r←⍎nsname
+      :ElseIf ¯1=nc ⍝ Not a valid name, not worth trying
+          r←⍬
+      :Else
+          :Trap 0
+              :For name :In (¯1+⍸'.'=nsname,'.')↑¨nsname ⍝ growing paths
+                  :If 9.1≠nc ⍝ Not a namespace
+                      name ⎕NS''
+                  :EndIf
+              :EndFor
+          :Else
+              r←⍬
+          :EndTrap
+      :EndIf
+    ∇
+    :EndSection
+
+:EndNamespace

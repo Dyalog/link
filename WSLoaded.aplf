@@ -1,0 +1,7 @@
+ WSLoaded
+⍝ Action to be taken upon )LOAD or )CLEAR
+ :If ×⎕NC'Links'
+ :AndIf ×≢Links
+     Links/⍨←0≠⎕NC Links.ns
+     Links/⍨←⎕SE=⍎∘'##'⍣≡¨Links.ns
+ :EndIf
