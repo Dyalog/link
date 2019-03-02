@@ -10,7 +10,7 @@ In Dyalog APL version 17.0, `Link` must be manually be added to the existing ses
 
 ## Session that does *not* use the `WorkspaceLoaded` event
 
-1. Copy the **link** repository into **[DYALOG]**
+1. Copy the **link** repository contents into **[DYALOG]** so **startup.dyalog** ends up as **[DYALOG]/startup.dyalog**
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/RemoveLinks.dyalog'`
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/WSLoaded-clean.dyalog'`
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/BUILD_DYALOGSPACE.dyalog'`
@@ -19,8 +19,7 @@ In Dyalog APL version 17.0, `Link` must be manually be added to the existing ses
 
 ## 17.0 default session
 
-1. Copy the **Link** directory's files into **[DYALOG]/StartupSession/Link**
-1. Copy **Link/Install/startup.dyalog** into **[DYALOG]**
+1. Copy the **link** repository contents into **[DYALOG]** so **startup.dyalog** ends up as **[DYALOG]/startup.dyalog**
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/RemoveLinks.dyalog'`
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/WSLoaded-default.dyalog'`
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/BUILD_DYALOGSPACE.dyalog'`
@@ -29,7 +28,7 @@ In Dyalog APL version 17.0, `Link` must be manually be added to the existing ses
 
 ## Session that *does* use the `WorkspaceLoaded` event
 
-1. Copy the **Link** directory's files into **[DYALOG]/StartupSession/Link**
+1. Copy the **link** repository contents into **[DYALOG]** so **startup.dyalog** ends up as **[DYALOG]/startup.dyalog**
 1. Edit the callback function for the `WorkspaceLoaded` event (as reported by `{⎕ML←1⋄⊃⌽l⊃⍨⍵⍳⍨⊃¨l←'⎕SE'⎕WG'Event'}⊂'WorkspaceLoaded'`) to insert the following code at the very top (it must begin at line `[1]`) of the function:<pre>
  ;boot;Env
  boot←⎕AI{⎕IO←1 ⋄ ⍵≡4⊃# ⎕WG'APLVersion':0=4⊃⍺ ⋄ 15000≥3⊃⍺}'Development'
