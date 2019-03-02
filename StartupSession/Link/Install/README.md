@@ -17,13 +17,17 @@ In Dyalog APL version 17.0, `Link` must be manually be added to the existing ses
 1. Run `BUILD_DYALOGSPACE`
 1. Save the session
 
+Since SALT is not available, the `Link` user command group is also unavailable, and the only interface to `Link` will be through `⎕SE.Link`.
+
 ## 17.0 default session
 
-1. Copy the **link** repository contents into **[DYALOG]** so **startup.dyalog** ends up as **[DYALOG]/startup.dyalog**
+1. Copy the **link** repository contents into **[DYALOG]** so **startup.dyalog** ends up as **[DYALOG]/startup.dyalog**, confirming the overwriting of **[DYALOG/SALT/spice/Link.dyalog**.
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/RemoveLinks.dyalog'`
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/WSLoaded-default.dyalog'`
 1. `2⎕FIX'file://[DYALOG]/StartupSession/Link/Install/BUILD_DYALOGSPACE.dyalog'`
 1. Run `BUILD_DYALOGSPACE`
+1. Run `⎕SE.Dyalog.Callbacks.WSLoaded 1`
+1. Run `]UReset`
 1. Save the session
 
 ## Session that *does* use the `WorkspaceLoaded` event
@@ -43,3 +47,5 @@ In Dyalog APL version 17.0, `Link` must be manually be added to the existing ses
  :If ×⎕NC'⎕SE.Link.WSLoaded'
      ⎕SE.Link.WSLoaded
  :EndIf</pre>Be especially careful to catch all occurrences of things like `→`, `→0`, `:GoTo 0`, `:Return` etc. and redirect them to reach the above code before the callback function terminates.
+
+Availability of the `Link` user command group will depend on SALT being available.
