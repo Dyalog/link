@@ -19,7 +19,7 @@
          list,←+/lineages∘.∊⍨⊂¨⊣/list
          list⍪⍨←'Namespace' 'Directory' 'Scripts'
          :If ~900⌶⍬ ⍝ dyadic
-         :AndIf ⍎∘'extended'⍣(9∊⎕NC'opts')⊢opts
+         :AndIf 1≡⍎∘'extended'⍣(2∊⎕NC'opts.extended')⊢opts
              L←819⌶
              :For prop :In ('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
                  list,←(⊂↑prop),⎕SE.Link.Links⍎¨⊂L@1∊prop
