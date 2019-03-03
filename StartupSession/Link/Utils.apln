@@ -91,7 +91,7 @@
           (types exts)←↓⍉⍺.typeExtensions
           exts,¨⍨←'.'
           exts,←⊂'dyalog'
-          exts⊂⍨⌊/types⍳⍵,⌊⍵
+          exts⊃⍨⌊/types⍳⍵,⌊⍵
       }
 
     ∇ r←GetName file;code;ns
