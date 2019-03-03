@@ -72,8 +72,8 @@
           2⊃⍺:(##.CaseCode⊃⍺)0∇⍵
           22::⍵                  ⍝ no file access
           _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
-          0⊣⍵ 1 ⎕NPUT⍨⊂⍵         ⍝ overwrite
-      }
+          0⊣⍺[1]⎕NPUT ⍵ 1        ⍝ overwrite
+       }
 
     :EndSection
 
