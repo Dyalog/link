@@ -48,7 +48,7 @@ In the first three cases (where no more than one side has content), `Link` will 
 
 #### Workspace to filesystem
 
-We create a namespace in the workspace, and populate it with a couple of defined functions:
+We create a namespace in the workspace, and populate it with a couple of defined functions. We could use the Edit window, but for the clarity of this example, we will define the functions straight in the session:
 ```apl
       'stats'⎕NS⍬
       stats.⎕FX 'Root←{⍺←2' '⍵*÷⍺}'
@@ -93,7 +93,7 @@ Median←{
  }
 ```
 
-Closing the edit window (using the <kbd>Esc</kbs> key) silently creates the additional file:
+Closing the edit window (using the <kbd>Esc</kbs> key) silently creates an additional file:
 
 ```apl
       ⎕NINFO⍠1⊢'/tmp/stats/*'
