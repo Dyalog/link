@@ -67,13 +67,13 @@ The double arrow, `←→`, indicates that changes on both sides (namespace and 
 ```
 #### Filesystem to workspace
 
-Beginning with a new APL session, we can link a populated directory with any empty namespace, including the root, `#`:
+Beginning with a new APL session, we can link a populated directory with any non-existing or empty namespace:
 
 ```apl
       )CLEAR
 clear ws
-      ]LINK.Create # /tmp/stats
-Linked: # ←→ C:\tmp\stats
+      ]LINK.Create newstats /tmp/stats
+Linked: newstats ←→ C:\tmp\stats
 ```
 
 #### Adding more content
@@ -81,7 +81,7 @@ Linked: # ←→ C:\tmp\stats
 Now we want to add one more function, using the Edit window:
 
 ```apl
-      )ED stats.Median
+      )ED newstats.Median
 ```
 
 In the Edit window, we complete the function:
@@ -99,6 +99,3 @@ Closing the edit window (using the <kbd>Esc</kbs> key) silently creates an addit
       ⎕NINFO⍠1⊢'/tmp/stats/*'
   /tmp/stats/Mean.aplf  /tmp/stats/Median.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
 ```
-
-#### 
-
