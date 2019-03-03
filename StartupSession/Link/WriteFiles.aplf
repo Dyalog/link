@@ -61,6 +61,7 @@
      :Else ⍝ invalid type
          outFail←,⊂source
      :EndIf
+     outFail~←⊂⍬
  :Else
      U.Resignal 1
  :EndTrap
