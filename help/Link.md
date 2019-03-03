@@ -12,7 +12,7 @@ When creating an unscripted namespace, we recommend using `⎕NS` dyadically to 
 
 ## Syntax
 
-`Link` provides a set of utility functions (see the wiki for a list) in the namespace `⎕SE.Link`, and if SALT and user commands are enabled then, additionally, a `LINK` group of user commands are available.
+`Link` provides a set of utility functions (see [the wiki](https://github.com/Dyalog/link/wiki) for a list) in the namespace `⎕SE.Link`, and if SALT and user commands are enabled then, additionally, a `LINK` group of user commands are available.
 
 For performance and ease of debugging, we recommend avoiding the invocation of user commands under program control. Use the utility functions directly instead.
 
@@ -29,7 +29,7 @@ where `options` is a namespace with variables named according to the option they
 
 The corresponding user commands have the general syntax
 ```apl
-]CmdName arg1 [arg2] [-name[=value] ...]
+]LINK.CmdName arg1 [arg2] [-name[=value] ...]
 ```
 where `arg2`'s presence depends on the specific command, and `-name` is a flag enabling the specific option and `-name=value` sets the specific option to a specific value. The value of the two options requiring array values (`codeExtensions` and `typeExtensions`) are instead the *name* of a variable containing the need array.
 
@@ -46,6 +46,8 @@ In the first three cases (where no more than one side has content), `Link` will 
 
 ### Basic example
 
+#### Workspace to filesystem
+
 We create a namespace in the workspace, and populate it with a couple of defined functions:
 ```apl
       'stats'⎕NS⍬
@@ -53,4 +55,50 @@ We create a namespace in the workspace, and populate it with a couple of defined
       stats.⎕FX 'mean←Mean vals;sum' 'sum←+⌿,vals' 'mean←sum÷1⌈⍴,vals'
       stats.StdDev←{2 Root(+.×⍨÷⍴),⍵-Mean ⍵}
 ```
-We can no
+We can now establish our namespace on the disk as follows:
+```apl
+      ]LINK.Create stats /tmp/stats
+Linked: #.stats ←→ C:\tmp\stats
+```
+The double arrow, `←→`, indicates that changes on both sides (namespace and directory) will be synchronised to the other side:
+```apl
+      ⎕NINFO⍠1⊢'/tmp/stats/*'
+  /tmp/stats/Mean.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
+```
+#### Filesystem to workspace
+
+Beginning with a new APL session, we can link a populated directory with any empty namespace, including the root, `#`:
+
+```apl
+      )CLEAR
+clear ws
+      ]LINK.Create # /tmp/stats
+Linked: # ←→ C:\tmp\stats
+```
+
+#### Adding more content
+
+Now we want to add one more function, using the Edit window:
+
+```apl
+      )ED stats.Median
+```
+
+In the Edit window, we complete the function:
+
+```apl
+Median←{
+     asc←⍋vals←,⍵
+     Mean vals[asc[⌈2÷⍨0 1+⍴vals]]
+ }
+```
+
+Closing the edit window (using the <kbd>Esc</kbs> key) silently creates the additional file:
+
+```apl
+      ⎕NINFO⍠1⊢'/tmp/stats/*'
+  /tmp/stats/Mean.aplf  /tmp/stats/Median.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
+```
+
+#### 
+
