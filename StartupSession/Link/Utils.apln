@@ -40,18 +40,18 @@
     :Section Covers for I-beams and other built-ins
     GetLinkInfo←{⍺.(5179⌶)⍵}   ⍝ Return link info or ⍬
     Where←{⍵⌿⍺}                             ⍝ Filter as function
-    Norm←{∊1⎕NPARTS ⍵} 
-    GetFileInfo←{5174⌶⍵}     ⍝ Return links to file 
+    Norm←{∊1⎕NPARTS ⍵}
+    GetFileInfo←{5174⌶⍵}     ⍝ Return links to file
 
       GetInfos←{
           ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
           ⍵∘⊃¨5177⌶⍬
-      }     
+      }
 
       RemoveInfos←{
           ⍺←⎕THIS
           +/5178⌶¨⊆⍵
-      }          
+      }
 
       OnEach←{ ⍝ ¨ without prototype call on empty
           0∊⍴⍵:⍬ ⍝ if empty return empty
@@ -59,21 +59,21 @@
           ⍺ ⍺⍺¨⍵ ⍝ call
       }
     :EndSection
-    
+
     :Section Files
     FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
-      
+
       IsDir←{
           22::0
           1=1 ⎕NINFO ⍵
       }
 
       Into←{ ⍝ Put vtv into file
-          2⊃⍺:(##.CaseCode⊃⍺)0∇⍵
+          2⊃⍺:(##.CaseCode⊃⍺)0 ∇ ⍵
           22::⍵                  ⍝ no file access
           _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
           0⊣⍺[1]⎕NPUT ⍵ 1        ⍝ overwrite
-       }
+      }
 
     :EndSection
 
@@ -81,7 +81,7 @@
       ContainerNs←{(rsi xsi)←⍺ ⋄ ns←⍵
           326=⎕DR ns:#(⍕ns)
           Norm←{ns←⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
-          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal ¯1∊⎕NC ns)
+          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal ¯1∊{⎕NC'⍵'}ns)
           container←⊃⌽2⍴rsi↓⍨xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD'
           container(Norm(⍕container),'.',ns)
       }

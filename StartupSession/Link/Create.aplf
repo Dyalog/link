@@ -65,6 +65,7 @@
          linkDef←⎕SE.⎕NS opts
 
          'linkDef'⎕NS'ns' 'dir' 'inFail' 'outFail'
+         linkDef.fsw←fsw
          arrow←U.Arrow linkDef
          linkDef.⎕DF 1⌽'][',arrow
          ⎕SE.Link.Links,←linkDef
