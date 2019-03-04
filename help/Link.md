@@ -93,7 +93,7 @@ Median←{
  }
 ```
 
-Closing the edit window (using the <kbd>Esc</kbs> key) silently creates an additional file:
+Closing the edit window (using the <kbd>Esc</kbd> key) silently creates an additional file:
 
 ```apl
       ⎕NINFO⍠1⊢'/tmp/stats/*'
