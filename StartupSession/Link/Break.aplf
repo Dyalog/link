@@ -25,9 +25,9 @@
          :For ns :In nss
              mask←linked≠ns
              :If 0∊mask
-                 parents←⍕¨U.GetInfos'parent'
-                 names←parents,¨'.',¨U.GetInfos'name'
-                 n+←U.RemoveInfos names/⍨ns∘(⊃⍷)¨names
+                 parents←U.GetInfos'parent'
+                 names←parents('.'U.Join)¨U.GetInfos'name'
+                 n+←U.RemoveInfos names/⍨(⍕ns)∘(⊃⍷)¨names
                  ⎕SE.Link.Links/⍨←mask
                  broken,←⊂ns
              :Else
@@ -41,7 +41,7 @@
          :If ×≢missing
              msg,←⊂'Not found:',U.List missing
          :EndIf
-         msg←⊃{⍺,'; ',⍵}/msg
+         msg←⊃'; 'U.Join/msg
      :Else
          msg←'No active links'
      :EndIf

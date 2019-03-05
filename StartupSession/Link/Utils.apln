@@ -19,6 +19,7 @@
     :Section Strings
     Strip←{⍵↓⍨-'/'⍳⍨⌽⍵}
     Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}
+    Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join using ⍺⍺
     Slash←{⍵∊'/\'}                          ⍝ Mark slashes
     Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
     Path←{⍵↓⍨-'/'⍳⍨⌽⍵}                      ⍝ Until last slash
