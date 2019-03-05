@@ -23,12 +23,19 @@
      
       folder←∊1 ⎕NPARTS folder,(0=≢folder)/'/temp/linktest' ⍝ Normalise
       name←2⊃⎕NPARTS folder
-     
-      ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
+      :Trap 22
+          2 ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
+      :Case 22
+          ⎕←folder,' exists. Overwrite? [y|n] '
+          :If 'yYjJ1 '∊⍨⊃⍞~' '
+              2 ⎕NDELETE folder
+              3 ⎕MKDIR folder
+          :EndIf
+      :EndTrap
       #.⎕EX name
      
-      cb←' -onRead=⎕SE.Link.Test.onRead -onWrite=⎕SE.Link.Test.onWrite'
-      ⎕SE.UCMD'link #.',name,' ',folder,cb
+      cb←' -beforeread=⎕SE.Link.Test.onRead -beforewrite=⎕SE.Link.Test.onWrite'
+      ⎕SE.UCMD'link.create #.',name,' ',folder,cb
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
       ns←#⍎name
