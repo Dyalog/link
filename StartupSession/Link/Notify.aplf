@@ -21,7 +21,7 @@
      (folder name extn)←⎕NPARTS path
      U.Check name ⍝ invalid item name
 
-     regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.extn~'.' ⍝ convert glob to regex
+     regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.codeExtensions~'.' ⍝ convert glob to regex
      →0~regex ⎕S 2⊢extn~'.' ⍝ check extn
 
      folder←¯1↓folder ⍝ drop trailing /
@@ -41,15 +41,15 @@
 
      nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
 
-     :If 3=⎕NC link.onRead ⍝ user exit defined?
+     :If 3=⎕NC link.beforeRead ⍝ user exit defined?
          :Trap 0
              →((link⍎link.onRead)type path nsname)↓0 ⍝ return 1 to continue else 0
-             :If ~(type≡'deleted')∨(U.IsDir path)∨extn≡link.extn
+             :If ~(type≡'deleted')∨(U.IsDir path)∨(⊂extn)∊codeExtensions
                  Log'Ignoring due to extension: ',type,' of ',path
                  →0
              :EndIf
          :Else
-             ⎕←'*** onRead callback ',link.onRead,' failed: ',⎕DMX.EM
+             ⎕←'*** onRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
              ∘∘∘
          :EndTrap
      :EndIf
@@ -192,7 +192,8 @@
 
      :If effect∨'created'≡type
 
-         :If ~resp←link.quiet
+⍝ we're always quiet these days!
+         :If ~resp←1 ⍝ link.quiet
 
              dispPath←U.WinSlash Strip path
              dispNs←U.WinSlash⍕ns ⍝ / → \ on Windows
