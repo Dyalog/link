@@ -79,7 +79,7 @@
      :Case 'changed'               ⍝ Update to existing file?
          :If 0≠≢z←4⊃ns U.GetLinkInfo name      ⍝ name already linked
          :AndIf name≡U.GetName path            ⍝ name matches file contents
-         :AndIf (U.Normalise path)≡U.Normalise 4⊃z  ⍝ to the same file name
+         :AndIf (U.Norm path)≡U.Norm 4⊃z  ⍝ to the same file name
              effect←1 ⋄ affected←(⍕ns),name
              :If (7⊃z)≡U.FileHash path
                  Log'(change) ignored, checksum unchanged: ',path

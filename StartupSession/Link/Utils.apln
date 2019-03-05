@@ -109,7 +109,7 @@
 
     ∇ r←GetRefTo nsname;name;nc
      ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
-      nc←⎕NC⊂name
+      nc←⎕NC⊂nsname
       :If 9=⌊nc      ⍝ if it is already there
       :OrIf ~IsChild nsname ⍝ or a root
           r←⍎nsname
