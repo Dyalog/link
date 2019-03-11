@@ -1,7 +1,8 @@
-﻿:Namespace Link ⍝ V 2.02
+﻿:Namespace Link ⍝ V 2.03
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
-⍝ 2019 02 01 Adam: Help text
-⍝ 2019 02 18 Adam: ]List -extended
+⍝ 2018 02 01 Adam: Help text
+⍝ 2018 02 14 Adam: List -e
+⍝ 2019 03 11 Adam: Help text
 
     ⎕IO←1 ⋄ ⎕ML←1
 
@@ -13,7 +14,7 @@
       r,←'{"Name":"CaseCode",    "args":"file",   "Parse":"1L", "Desc":"Add case code to file name"},'
       r,←'{"Name":"Create",      "args":"ns dir", "Parse":"2L -source=ns dir both -watch=none ns dir both -flatten -casecode -codeextensions -forceextensions -forcefilenames -beforeread= -beforewrite= -typeextensions=","Desc":"Link a namespace to a directory"},'
       r,←'{"Name":"Export",      "args":"ns dir", "Parse":"2L", "Desc":"One-off save"},'
-      r,←'{"Name":"Expunge",     "args":"item",   "Parse":"1",  "Desc":"One-off save"},'
+      r,←'{"Name":"Expunge",     "args":"item",   "Parse":"1",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",   "Parse":"1",  "Desc":"Get name of file linked to item"},'
       r,←'{"Name":"GetItemName", "args":"file",   "Parse":"1L", "Desc":"Get name of item linked to file"},'
       r,←'{"Name":"Import",      "args":"ns dir", "Parse":"2L", "Desc":"One-off load"},'
@@ -24,41 +25,50 @@
       r/⍨←×⎕NC'⎕SE.Link'
     ∇
 
-    ∇ r←level Help cmd;args;list;info;Means
-      list←List
-      info←list⊃⍨list.Name⍳⊢/'.'(≠⊆⊢)cmd
-      Means←{
-          term←⍺~' '
-          has←∨/term⍷info⍎'args' 'Parse'⊃⍨1+'-'∊⍺
-          has/,/'  '∘,¨⍺ ⍵
-      }
+    ∇ r←level Help cmd;info;Means;m;mods;myMods;myModI;myModS;a;modVals;modTxts;argTxts;myArgs;myArgI;myArgss;args;myArgS
+      info←{⍵⊃⍨⍵.Name⍳⊢/'.'(≠⊆⊢)cmd}List
+     
+      m←⍉⍪'' '' ''
+      m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
+      m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
+      m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
+      m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
+      m⍪←'-extension' '=<ext>' 'file extension of created file if different from default for the name class'
+      m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
+      m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
+      m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
+      m⍪←'-source' '={ns|dir|both}' 'which source is authoritative if both are populated'
+      m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
+      m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
+      (mods modVals modTxts)←↓⍉m
+      myMods←'-\w+'⎕S'&'⊢info.Parse
+      myModI←⊂mods⍳myMods
+      myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
+     
+      a←⍉⍪'' ''
+      a⍪←'ns' 'target namespace of link'
+      a⍪←'dir' 'target directory of link'
+      a⍪←'file' 'filename where item source is stored'
+      a⍪←'item' 'name of APL item to process'
+      (args argTxts)←↓⍉a
+      myArgs←'-\w+'⎕S'&'⊢info.args
+      myArgI←⊂args⍳myArgs
+      myArgS←∊'(\[?)(\w+)(\]?)'⎕S' \1<\2>\3'⊢info.args
+     
       r←⊂info.Desc
-      r,←⊂'    ]LINK.',cmd,' ',info.args
+      r,←⊂'    ]LINK.',cmd,myArgS,myModS
       r,←⊂''
       :If 0=level
           r,←⊂']LINK.',cmd,' -??  ⍝ for argument and modifier details'
       :Else
           r,←⊂''
-          r,←'ns  'Means'target namespace of link'
-          r,←'dir 'Means'target directory of link'
-          r,←'file'Means'filename where item source is stored'
-          r,←'item'Means'name of APL item to process'
+          r,←' +$'⎕R''↓¯1⌽⍕myArgI⌷args,⍪argTxts
           r,←⊂''
-          r,←'-beforeread     'Means'name of function to call before reading a file'
-          r,←'-beforewrite    'Means'name of function to call before writing a file'
-          r,←'-casecode       'Means'add octal suffixes to preserve capitalisation on systems that ignore case'
-          r,←'-codeextensions 'Means'name of vector of file extensions to be considered code'
-          r,←'-extension      'Means'file extension of created file if different from default for the name class'
-          r,←'-extended       'Means'also show various option settings'
-          r,←'-flatten        'Means'merge items from all subdirectories into target directory'
-          r,←'-forceextensions'Means'rename existing files so they adhere to the type specific file extensions'
-          r,←'-forcefilenames 'Means'rename existing files so their names match their contents'
-          r,←'-source         'Means'which source is authoritative ("ns" or "dir" or "both") if both are populated'
-          r,←'-typeextensions 'Means'name of two-column matrix with name classes and extensions'
+          r,←' +$'⎕R''↓¯1⌽⍕myModI⌷modTxts,⍨⍪mods,¨modVals
           r,←⊂''
       :EndIf
       r/⍨←~'' ''⍷r
-      r,←⊂']FILE.Open https://github.com/abrudz/Link/wiki/Link.',cmd,'  ⍝ for full documentation'
+      r,←⊂']FILE.Open https://github.com/Dyalog/link/wiki/Link.',cmd,'  ⍝ for full documentation'
     ∇
 
     ∇ r←Run(cmd args);opts;name;lc;names;L;ârgs;ôpts
@@ -68,7 +78,7 @@
           ôpts←{⍵ ⋄ ⍺⍺}
       :Else
           'opts'⎕NS ⍬
-          names←'watch' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extension' 'flatten' 'forceExtensions' 'forceFileNames' 'source' 'typeExtensions'
+          names←'watch' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extension' 'flatten' 'forceExtensions' 'forceFileNames' 'source' 'typeExtensions' 'extended'
           :For name :In names
               lc←L name
               :If ×args.⎕NC lc
