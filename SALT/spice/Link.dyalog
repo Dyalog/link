@@ -58,7 +58,7 @@
           r,←⊂''
       :EndIf
       r/⍨←~'' ''⍷r
-      r,←⊂']FILE.Open https://github.com/abrudz/Link/wiki/Link.',cmd,'  ⍝ for full documentation'
+      r,←⊂']FILE.Open https://github.com/Dyalog/Link/wiki/Link.',cmd,'  ⍝ for full documentation'
     ∇
 
     ∇ r←Run(cmd args);opts;name;lc;names;L;ârgs;ôpts
