@@ -1,25 +1,25 @@
-﻿:Namespace Link ⍝ V 2.03
+﻿:Namespace Link ⍝ V 2.05
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
-⍝ 2019 03 11 Adam: Help text
+⍝ 2019 03 14 Adam: help text
 
     ⎕IO←1 ⋄ ⎕ML←1
 
     ∇ r←List
       ⍝ Name, group, short description and parsing rules
-      r←'['
-      r,←'{"Name":"Add",         "args":"item",   "Parse":"1 -extension=", "Desc":"Add item to linked namespace"},'
-      r,←'{"Name":"Break",       "args":"ns",     "Parse":"1",  "Desc":"Stop namespace from being linked"},'
-      r,←'{"Name":"CaseCode",    "args":"file",   "Parse":"1L", "Desc":"Add case code to file name"},'
-      r,←'{"Name":"Create",      "args":"ns dir", "Parse":"2L -source=ns dir both -watch=none ns dir both -flatten -casecode -codeextensions -forceextensions -forcefilenames -beforeread= -beforewrite= -typeextensions=","Desc":"Link a namespace to a directory"},'
-      r,←'{"Name":"Export",      "args":"ns dir", "Parse":"2L", "Desc":"One-off save"},'
-      r,←'{"Name":"Expunge",     "args":"item",   "Parse":"1",  "Desc":"Erase item and associated file"},'
-      r,←'{"Name":"GetFileName", "args":"item",   "Parse":"1",  "Desc":"Get name of file linked to item"},'
-      r,←'{"Name":"GetItemName", "args":"file",   "Parse":"1L", "Desc":"Get name of item linked to file"},'
-      r,←'{"Name":"Import",      "args":"ns dir", "Parse":"2L", "Desc":"One-off load"},'
-      r,←'{"Name":"List",        "args":"[ns]",   "Parse":"1S -extended", "Desc":"List link(s) with name count(s)"},'
-      r,←'{"Name":"Refresh",     "args":"ns",     "Parse":"1  -source=ns dir both", "Desc":"Resynchronise including items created without editor"},'
+      r←'['                                                                      
+      r,←'{"Name":"Add",         "args":"item",    "Parse":"1 -extension=", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
+      r,←'{"Name":"Break",       "args":"ns1",     "Parse":"1",  "Desc":"Break link between namespace and corresponding directory"},'
+      r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'                                                                                                                                  
+      r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir both -watch=none ns dir both -flatten -casecode -codeextensions -forceextensions -forcefilenames -beforeread= -beforewrite= -typeextensions=","Desc":"Link a namespace with a directory (create one or both if absent)"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
+      r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
+      r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      r,←'{"Name":"List",        "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
+      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Fully synchronise namespace-directory content"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'
@@ -33,7 +33,8 @@
       m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
       m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
       m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
-      m⍪←'-extension' '=<ext>' 'file extension of created file if different from default for the name class'
+      m⍪←'-extended' '' 'include additional properties for each link'
+      m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
       m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
       m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
@@ -46,14 +47,20 @@
       myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
      
       a←⍉⍪'' ''
-      a⍪←'ns' 'target namespace of link'
-      a⍪←'dir' 'target directory of link'
-      a⍪←'file' 'filename where item source is stored'
-      a⍪←'item' 'name of APL item to process'
+      a⍪←'ns' 'namespace to be linked'
+      a⍪←'ns0' 'source namespace'
+      a⍪←'ns1' 'linked namespace'
+      a⍪←'ns2' 'target namespace'
+      a⍪←'dir' 'directory to be linked'
+      a⍪←'dir0' 'source directory'
+      a⍪←'dir2' 'target directory'
+      a⍪←'file' 'name of file where item source is stored'
+      a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
+      a⍪←'item' 'name of APL item'
       (args argTxts)←↓⍉a
-      myArgs←'-\w+'⎕S'&'⊢info.args
+      myArgs←'\w+'⎕S'&'⊢info.args
       myArgI←⊂args⍳myArgs
-      myArgS←∊'(\[?)(\w+)(\]?)'⎕S' \1<\2>\3'⊢info.args
+      myArgS←∊'(\[?)(\pL+)\d?(\]?)'⎕S' \1<\2>\3'⊢info.args
      
       r←⊂info.Desc
       r,←⊂'    ]LINK.',cmd,myArgS,myModS
@@ -62,7 +69,7 @@
           r,←⊂']LINK.',cmd,' -??  ⍝ for argument and modifier details'
       :Else
           r,←⊂''
-          r,←' +$'⎕R''↓¯1⌽⍕myArgI⌷args,⍪argTxts
+          r,←'^  (\pL+)\d?' ' +$'⎕R'  <\1>' ''↓¯1⌽⍕myArgI⌷args,⍪argTxts
           r,←⊂''
           r,←' +$'⎕R''↓¯1⌽⍕myModI⌷modTxts,⍨⍪mods,¨modVals
           r,←⊂''
