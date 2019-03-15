@@ -12,7 +12,7 @@
           nargs,←⊂args.OldFullPath
       :EndIf
      
-      {}⎕SE.Link.Notify nargs
+      ⎕SE.Link.Notify nargs
     ∇
     ∇ r←Watch args;⎕USING;path;filter;watcher
      ⍝ args: path filter

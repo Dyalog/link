@@ -1,4 +1,4 @@
- {r}←Notify args
+ {r}←Notify args;dir
  ;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
@@ -7,46 +7,44 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     U.Check←→0⍴⍨¯1∊∘⎕NC'/'∘≠⊆⊢
-
-     r←⍬
+     r←⍬⊤⍬
 
      (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
      (path oldpath)←{(0≠≢⍵)/U.Norm ⍵}¨path oldpath
 
      linked←{0::⍬ ⋄ U.Norm¨⎕SE.Link.Links.dir}⍬
-     →((≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path)⍴0 ⍝ not linked => done
+     END U.If(≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path ⍝ not linked => done
      link←i⊃⎕SE.Link.Links
 
      (folder name extn)←⎕NPARTS path
-     U.Check name ⍝ invalid item name
+     END U.Check name ⍝ invalid item name
 
+     dir←U.IsDir path
      regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.codeExtensions~'.' ⍝ convert glob to regex
-     →0~regex ⎕S 2⊢extn~'.' ⍝ check extn
+     END U.If dir⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir nor matching extn
 
      folder←¯1↓folder ⍝ drop trailing /
 
      nsname←(1+≢link.dir)↓folder
-     U.Check nsname/⍨link.flatten
+     END U.Check nsname/⍨link.flatten
      ((nsname='/')/nsname)←'.'
 
       ⍝ check visibility
-     Ancestry←(⊣,'/',⊢)\'/'(≠⊆⊢)∘⊃1∘⎕NPARTS
-     above←≢Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
+     above←≢U.Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
      :Trap 0 ⍝ no access
-         →0/⍨∨/6 ⎕NINFO(above↓Ancestry name),⊂path
+         END U.If∨/6 ⎕NINFO(above↓U.Ancestry name),⊂path
      :Else
-         →0
+         →END
      :EndTrap
 
      nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
 
      :If 3=⎕NC link.beforeRead ⍝ user exit defined?
          :Trap 0
-             →((link⍎link.onRead)type path nsname)↓0 ⍝ return 1 to continue else 0
+             END U.If(link⍎link.onRead)type path nsname ⍝ return 1 to continue else 0
              :If ~(type≡'deleted')∨(U.IsDir path)∨(⊂extn)∊codeExtensions
                  Log'Ignoring due to extension: ',type,' of ',path
-                 →0
+                 →END
              :EndIf
          :Else
              ⎕←'*** onRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
@@ -56,7 +54,7 @@
 
      :If 0=≢ns←U.GetRefTo nsname ⍝ We're going to need a ref to it
          Log'Unable to create namespace ',nsname
-         →0 ⍝ might as well give up now
+         →END ⍝ might as well give up now
      :EndIf
 
      effect←0
@@ -73,7 +71,7 @@
              affected←(⍕ns),'.',name
              Log'(created): ignoring new file ',path
              Log'           attempts to redefine ',affected,' which is linked to ',z
-             →0
+             →END
          :EndIf
 
      :Case 'changed'               ⍝ Update to existing file?
@@ -83,7 +81,7 @@
              effect←1 ⋄ affected←(⍕ns),name
              :If (7⊃z)≡U.FileHash path
                  Log'(change) ignored, checksum unchanged: ',path
-                 →0
+                 →END
              :Else
                  Log'(change): ',affected,' updated in ',path
              :EndIf    ⍝ ... but the file did not change
@@ -95,7 +93,7 @@
                      ⎕←'   Best course of action is:'
                      ⎕←'      ]Link ',(⍕link.ns),' -reset'
                      ⎕←'      ]Link ',(⍕link.ns),' ',link.dir
-                     →0
+                     →END
                  :EndIf ⍝ Multiple names
                  z←⊃z
              :AndIf 0≠(2⊃z).⎕NC⍕1⊃z     ⍝ If the old name exists
@@ -104,7 +102,7 @@
 
              :If U.IsDir path
                  Log'(changed) ignored "change" to directory: ',path
-                 →0
+                 →END
              :EndIf
 
              :If name≢newname←U.GetName path             ⍝ repeated in create
@@ -112,7 +110,7 @@
                  affected←(⍕ns),'.',name
                  Log'(created): ignoring changed file ',path
                  Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
-                 →0
+                 →END
              :EndIf
 
              :If 0≠≢z←U.GetFileInfo path                ⍝ Try to find an "affected" object
@@ -123,7 +121,7 @@
                  Log'(changed): fixing ',affected,' from ',path
              :Else
                  Log'(changed): No APL object found in ',path
-                 →0
+                 →END
              :EndIf
 
          :EndIf
@@ -146,7 +144,7 @@
              :Else                                    ⍝ no old ns
                  Log'NS rename ',oldname,' (not found) → ',name
              :EndIf
-             →0
+             →END
          :EndIf
 
          oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
@@ -165,7 +163,7 @@
                          affected←(⍕ns),'.',name
                          Log'(created): ignoring changed file ',path
                          Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
-                         →0
+                         →END
                      :Else
                          effect←1 ⋄ affected←(⍕ns),'.',name
                          Log'(rename): re-definition of ',affected,' from ',path
@@ -247,6 +245,7 @@
              :EndIf
          :EndIf
      :EndIf
+END:
  :Else
      U.Resignal 1
  :EndTrap

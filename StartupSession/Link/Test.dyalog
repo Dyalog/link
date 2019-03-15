@@ -1,10 +1,12 @@
-﻿:Namespace Test
+﻿:Require file://Utils.apln
+:Namespace Test
 ⍝ Put the ]link UCMD and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
 ⍝   Run 'c:\tmp\linktest'
+    
     ⎕IO←1 ⋄ ⎕ML←1
-    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;U;link;file;cb;z;zzz;olddd;zoo;goofile;t;m
+    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m
      
       :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
           r←'Unable to run tests - Microsoft Windows is required to test the FileSystemWatcher'
@@ -17,7 +19,8 @@
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please reset all links and try again.'
-          Log ⎕SE.UCMD'link'
+          Log ⎕SE.UCMD'link.list'
+          Log'      ⎕SE.Link.(Break Links.ns)'
           →0
       :EndIf
      
