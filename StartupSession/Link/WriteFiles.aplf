@@ -30,7 +30,7 @@
      :If nc=0 ⍝ undef
      :ElseIf nc∊okFn
          outFail←0⍴⊂0⍴AbsSaveFn source ⍝ single fn/op
-     :ElseIf nc∊okNs
+     :ElseIf (nc∊okNs)∨(nc∊9.2)∧source≡# ⍝ # is reported as an instance (9.2)
 
          SaveNs←{ ⍝ Save namespace whether scripted or not
              0=≡⍵:0                ⍝ prototype means

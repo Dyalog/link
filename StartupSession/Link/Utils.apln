@@ -12,7 +12,7 @@
     :EndSection
 
     :Section Tacit necessary to avoid stack frame
-    Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'EN)('Message'(Message,⍺)))}
+    Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('Message'(Message,⍺)))}
     Check←→{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name (yes, it should say "←→")
     If←→⍴⍨
     :EndSection
@@ -85,7 +85,7 @@
       ContainerNs←{(rsi xsi)←⍺ ⋄ ns←⍵
           326=⎕DR ns:#(⍕ns)
           Norm←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
-          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal ¯1∊{⎕NC'⍵'}ns)
+          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal {(¯1∊⎕NC'⍵')∧⍵≢,'#'}ns)
           container←⊃⌽2⍴rsi↓⍨xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD'
           container(Norm(⍕container),'.',ns)
       }
