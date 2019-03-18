@@ -77,7 +77,7 @@
      :Case 'changed'               ⍝ Update to existing file?
          :If 0≠≢z←4⊃ns U.GetLinkInfo name      ⍝ name already linked
          :AndIf name≡U.GetName path            ⍝ name matches file contents
-         :AndIf (U.Norm path)≡U.Norm 4⊃z  ⍝ to the same file name
+         :AndIf (U.Norm path)≡U.Norm z         ⍝ to the same file name
              effect←1 ⋄ affected←(⍕ns),name
              :If (7⊃z)≡U.FileHash path
                  Log'(change) ignored, checksum unchanged: ',path
@@ -91,8 +91,8 @@
                  :If 1≠≢z
                      ⎕←'WARNING: user changed name of edited item - ]Link lost track!'
                      ⎕←'   Best course of action is:'
-                     ⎕←'      ]Link ',(⍕link.ns),' -reset'
-                     ⎕←'      ]Link ',(⍕link.ns),' ',link.dir
+                     ⎕←'      ]Link.Break ',(⍕link.ns)'
+                     ⎕←'      ]Link.Create ',(⍕link.ns),' ',link.dir
                      →END
                  :EndIf ⍝ Multiple names
                  z←⊃z
