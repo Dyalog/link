@@ -79,6 +79,13 @@
           0⊣⍺[1]⎕NPUT ⍵ 1        ⍝ overwrite
       }
 
+      ApplyOldExtn←{ ⍝ Correct new extension to .dyalog if old source exists
+          (dir name ext)←⎕NPARTS ⍵
+          ext≡'.dyalog':⍵
+          alt←dir,name,'.dyalog'
+          (⎕NEXISTS alt):alt
+      }
+
     :EndSection
 
     :Section Lookup
