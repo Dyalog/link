@@ -22,6 +22,7 @@
          del←(0≠≢4⊃src)∧0=≢4⊃⍺ U.GetLinkInfo ⍵ ⍝ There was source and now there is none
          r⊣⎕NDELETE⍣del⊢4⊃src
      }¨⊆names
+     :Trap 517 ⋄ ⎕SIGNAL 517 ⋄ :EndTrap ⍝ Flush association table
  :Else
      U.Resignal 1
  :EndTrap
