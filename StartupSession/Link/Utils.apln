@@ -84,6 +84,7 @@
           ext≡'.dyalog':⍵
           alt←dir,name,'.dyalog'
           (⎕NEXISTS alt):alt
+          ⍵
       }
 
     :EndSection
@@ -93,7 +94,8 @@
           326=⎕DR ns:#(⍕ns)
           Norm←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
           '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal {(¯1∊⎕NC'⍵')∧⍵≢,'#'}ns)
-          container←⊃⌽2⍴rsi↓⍨xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD'
+          n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
+          container←⊃n↓rsi
           container(Norm(⍕container),'.',ns)
       }
 

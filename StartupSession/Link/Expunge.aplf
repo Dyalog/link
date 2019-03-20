@@ -19,7 +19,7 @@
          src←⍺ U.GetLinkInfo ⍵
          r←⍺.⎕EX ⍵
 
-         del←(0≢4⊃src)∧0=≢4⊃⍺ U.GetLinkInfo ⍵ ⍝ There was source and now there is none
+         del←(0≠≢4⊃src)∧0=≢4⊃⍺ U.GetLinkInfo ⍵ ⍝ There was source and now there is none
          r⊣⎕NDELETE⍣del⊢4⊃src
      }¨⊆names
  :Else

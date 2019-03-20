@@ -77,20 +77,20 @@
       (folder,'/bus')⎕NMOVE folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
-      :If ~∨/'/bus/foo.dyalog'⍷4⊃ns.bus U.GetLinkInfo'foo'
+      :If ~∨/'/bus/foo.dyalog'⍷4⊃ns.bus ##.U.GetLinkInfo'foo'
           ⎕←'*** NB https://github.com/mkromberg/link/issues/2 still not resolved'
       :EndIf
       assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
      
       ⍝ Now copy a file containing a function
-      old←ns U.GetLinkInfo'foo'
+      old←ns ##.U.GetLinkInfo'foo'
       (folder,'/foo - copy.dyalog')⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
       ⎕DL 1 ⍝ Allow FileSystemWatcher time to react
       goofile←folder,'/goo.dyalog'
       goofile ⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
       ⎕DL 1 ⍝ Allow FileSystemWatcher some time to react
       ⍝ Verify that the old function has NOT become linked to the new file
-      assert'old≡new←ns U.GetLinkInfo ''foo'''
+      assert'old≡new←ns ##.U.GetLinkInfo ''foo'''
      
       ⍝ Now edit the new file so it "accidentally" defines 'zoo'
       tn←goofile ⎕NTIE 0
@@ -194,22 +194,26 @@
     ∇
    ⍝ Callback functions to implement .charmat & .charvec support
     ∇ r←onRead(type file nsname);⎕TRAP;parts;data;extn
-      r←1 ⍝ Carry on, Soldier!
+      r←1 ⍝ Link should carry on; we're not handling this one 
+
       :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
-          :Select type
+          :Select type   
+
           :Case 'deleted'
               (⍎nsname).⎕EX 2⊃parts
-              r←0
+              r←0 ⍝ We're done; Link doesn't need to do any more  
+
           :CaseList 'changed' 'renamed' 'created'
               data←(↑⍣(extn≡'.charmat'))⊃⎕NGET file 1
               ⍎nsname,'.',(2⊃parts),'←data'
-              r←0 ⍝ We're done
+              r←0 ⍝ As above
+
           :EndSelect
       :EndIf
     ∇
     ∇ r←onWrite(ns name oldname nc src file);⎕TRAP;extn
-      r←1 ⍝ Do as you wish
-     
+      r←1 ⍝ Link should carry on; we're not handling this one
+           
       :If nc=2 ⍝ A variable
      
           :Select ⎕DR src
@@ -228,7 +232,7 @@
           :EndSelect
      
           (⊂src)⎕NPUT(∊(extn@3)⎕NPARTS file)1
-          r←0 ⍝ No further work required
+          r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
     ∇
 :EndNamespace
