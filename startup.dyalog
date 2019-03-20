@@ -72,7 +72,7 @@
      :EndFor
      {}AutoStatus as
      ok←1
-     :Trap 517 ⋄ ⎕SIGNAL 517 ⋄ :EndTrap ⍝ flush association tables
+     :Trap 0 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ flush association tables
  :Else
      ok←0
  :EndTrap

@@ -45,7 +45,7 @@
      :Else
          msg←'No active links'
      :EndIf
-     :Trap 517 ⋄ ⎕SIGNAL 517 ⋄ :EndTrap ⍝ Flush association table
+     :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table
   :Else
      U.Resignal 1
  :EndTrap
