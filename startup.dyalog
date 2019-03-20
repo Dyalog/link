@@ -1,6 +1,6 @@
  {ok}←startup
  ;⎕IO;⎕ML ⍝ sysvars
- ;Env;Dir;Path;NoSlash;Fix;AutoStatus ⍝ fns
+ ;Env;Dir;Path;NoSlash;FixEach;AutoStatus ⍝ fns
  ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as ⍝ vars
 
  :Trap 0
@@ -9,14 +9,17 @@
      AutoStatus←2036⌶
      Env←{2 ⎕NQ #'GetEnvironment'⍵}
      NoSlash←{⍵↓⍨-'/\'∊⍨⊃⌽⍵} ⍝ remove trailing (back)slash
-     Fix←{ ⍝ cover for ⎕FIX
-         0::⍺{
-             Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
-             0::⍺ Fail ⍵
-             ⎕DMX.(EN ENX)≡11 121:⍺.⎕FIX'file://',⍵ ⍝ re-try anonymous ns
-             ⍺ Fail ⍵
-         }⍵
-         ×≢⍵:2 ⍺.⎕FIX'file://',⍵ ⍝ fix there
+     FixEach←{ ⍝ cover for ⎕FIX
+         0=≢⍵:⍬⊤⍬
+         ⍬⊤⍺{
+             0::⍺{
+                 Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
+                 0::⍺ Fail ⍵
+                 ⎕DMX.(EN ENX)≡11 121:⍺.(5178⌶∘⍕⎕FIX)'file://',⍵ ⍝ re-try anonymous ns
+                 ⍺ Fail ⍵
+             }⍵
+             ×≢⍵:2 ⍺.(5178⌶¨∘⊆⎕FIX)'file://',⍵ ⍝ fix there
+         }¨⍵
      }
      Path←{
          ×≢⍵:⍵(≠⊆⊣)':;'⊃⍨1+win ⍝ split on OS separator
@@ -58,17 +61,18 @@
      :For path root :InEach paths roots
          :For dir :In path
              files←2 Dir dir
-             root Fix¨files
+             root FixEach files
              dirs←1 Dir dir
              :For subdir :In 2⊃¨⎕NPARTS dirs
                  ref←⍎subdir root.⎕NS ⍬
                  files←2 Dir dir,subdir
-                 ref Fix¨files
+                 ref FixEach files
              :EndFor
          :EndFor
      :EndFor
      {}AutoStatus as
      ok←1
+     :Trap 517 ⋄ ⎕SIGNAL 517 ⋄ :EndTrap ⍝ flush association tables
  :Else
      ok←0
  :EndTrap
