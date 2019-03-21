@@ -3,9 +3,11 @@
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
+ :Select U.debug
+ :Case 1 ⋄ ⎕←'Notify'args
+ :Case 2 ⋄ ⎕←'Notify'args ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndSelect
+
  :Trap DEBUG↓0
      r←⍬⊤⍬
 
@@ -20,28 +22,31 @@
      END U.Check name ⍝ invalid item name
 
      dir←U.IsDir path
-     regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.codeExtensions~'.' ⍝ convert glob to regex
-     END U.If dir⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir nor matching extn
-                           
+     regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
+     END U.If (~(0=≢extn)∧type≡'deleted')∧dir⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir nor matching extn (unless deleting folder)
+
      folder←¯1↓folder ⍝ drop trailing /
 
      nsname←(1+≢link.dir)↓folder
      END U.Check nsname/⍨link.flatten
      ((nsname='/')/nsname)←'.'
 
-      ⍝ check visibility
-     above←≢U.Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
-     :Trap 0 ⍝ no access
-         END U.If∨/6 ⎕NINFO(above↓U.Ancestry name),⊂path
-     :Else
-         →END
-     :EndTrap
+     :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
+     ⍝ check visibility
+         above←≢U.Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
+
+         :Trap 0 ⍝ no access
+             END U.If∨/6 ⎕NINFO(above↓U.Ancestry name),⊂path
+         :Else
+             →END
+         :EndTrap
+     :EndIf
 
      nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
 
      :If 3=⎕NC link.beforeRead ⍝ user exit defined?
          :Trap DEBUG↓0
-             END U.If ~(link⍎link.beforeRead)type path nsname ⍝ return 1 to continue else 0
+             END U.If~(link⍎link.beforeRead)type path nsname ⍝ return 1 to continue else 0
              :If ~(type≡'deleted')∨(U.IsDir path)∨(⊂1↓extn)∊link.codeExtensions
                  Log'Ignoring due to extension: ',type,' of ',path
                  →END

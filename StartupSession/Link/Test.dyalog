@@ -6,8 +6,9 @@
 ⍝   Run 'c:\tmp\linktest'
     
     ⎕IO←1 ⋄ ⎕ML←1
-    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m
+    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start
      
+     start←⎕AI[3]
       :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
           r←'Unable to run tests - Microsoft Windows is required to test the FileSystemWatcher'
           →0
@@ -31,14 +32,18 @@
       :Case 22
           ⎕←folder,' exists. Overwrite? [y|n] '
           :If 'yYjJ1 '∊⍨⊃⍞~' '
-              2 ⎕NDELETE folder
+              2 ⎕NDELETE folder ⋄ ⎕DL 1
               3 ⎕MKDIR folder
           :EndIf
       :EndTrap
       #.⎕EX name
-     
-      cb←' -beforeread=⎕SE.Link.Test.onRead -beforewrite=⎕SE.Link.Test.onWrite'
-      ⎕SE.UCMD'link.create #.',name,' ',folder,cb
+      
+      opts←⎕NS ''  
+      opts.beforeRead←'⎕SE.Link.Test.onRead'
+      opts.beforeWrite←'⎕SE.Link.Test.onWrite'
+      opts.customExtensions←'charmat' 'charvec'
+      opts ⎕SE.Link.Create ('#.',name) folder
+
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
       ns←#⍎name
@@ -77,9 +82,7 @@
       (folder,'/bus')⎕NMOVE folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
-      :If ~∨/'/bus/foo.dyalog'⍷4⊃ns.bus ##.U.GetLinkInfo'foo'
-          ⎕←'*** NB https://github.com/mkromberg/link/issues/2 still not resolved'
-      :EndIf
+      assert '∨/''/bus/foo.dyalog''⍷4⊃ns.bus ##.U.GetLinkInfo''foo'''
       assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
      
       ⍝ Now copy a file containing a function
@@ -96,7 +99,7 @@
       tn←goofile ⎕NTIE 0
       'z'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
       ⎕NUNTIE tn
-      ⍝ Validate that this did cause goo to arrive in the workspace
+      ⍝ Validate that this did cause zoo to arrive in the workspace
       zoo←' r←zoo x' ' x x'
       assert'zoo≡ns.⎕NR ''zoo'''
      
@@ -137,16 +140,16 @@
       assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
-      ⍝ Then verify that modifying the file brings changes back
-      (⊂ns.cv←ns.cv,⊂'Line three')⎕NPUT(folder,'/cv.charvec')1
-      (⊂↓ns.cm←↑ns.cv)⎕NPUT(folder,'/cm.charmat')1
+      ⍝ Then verify that modifying the file brings changes back     
+      (⊂cv←ns.cv,⊂'Line three')⎕NPUT(folder,'/cv.charvec')1
+      (⊂↓cm←↑ns.cv)⎕NPUT(folder,'/cm.charmat')1
      
-      assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
-      assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
+      assert'cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
+      assert'cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
-     
+
       2 ⎕NDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
      
@@ -163,7 +166,7 @@
      
      EXIT: ⍝ →EXIT to aborted test and clean up
       ⎕SE.Link.DEBUG←0
-      ⎕SE.UCMD']link #.',name,' -reset'
+      ⎕SE.Link.Break '#.',name
       assert'0=≢⎕SE.Link.Links'
      
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
@@ -176,7 +179,7 @@
       assert'9=#.⎕NC name' ⍝ After ]link -reset this should not remove the namespace
       #.⎕EX name
      
-      Log'Tests passed OK'
+      Log'Tests passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.' ⎕WG 'APLVersion'
     ∇
     ∇ Log x
       ⎕←x ⍝ This might get more sophisticated someday
@@ -214,7 +217,7 @@
     ∇ r←onWrite(ns name oldname nc src file);⎕TRAP;extn
       r←1 ⍝ Link should carry on; we're not handling this one
            
-      :If nc=2 ⍝ A variable
+      :If 2=⌊nc ⍝ A variable
      
           :Select ⎕DR src
      
