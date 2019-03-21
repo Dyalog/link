@@ -1,5 +1,4 @@
-﻿:Require file://Utils.apln
-:Namespace Test
+﻿:Namespace Test
 ⍝ Put the ]link UCMD and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:

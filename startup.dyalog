@@ -5,7 +5,7 @@
 
  :Trap 0
      ⎕IO←⎕ML←1
-
+	 
      AutoStatus←2036⌶
      Env←{2 ⎕NQ #'GetEnvironment'⍵}
      NoSlash←{⍵↓⍨-'/\'∊⍨⊃⌽⍵} ⍝ remove trailing (back)slash
@@ -15,10 +15,10 @@
              0::⍺{
                  Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
                  0::⍺ Fail ⍵
-                 ⎕DMX.(EN ENX)≡11 121:⍺.(5178⌶∘⍕⎕FIX)'file://',⍵ ⍝ re-try anonymous ns
+                 ⎕DMX.(EN ENX)≡11 121:2 ⍺.⎕FIX ⊃⎕NGET ⍵ 1 ⍝ re-try anonymous ns
                  ⍺ Fail ⍵
              }⍵
-             ×≢⍵:2 ⍺.(5178⌶¨∘⊆⎕FIX)'file://',⍵ ⍝ fix there
+             ×≢⍵:2 ⍺.⎕FIX ⊃⎕NGET ⍵ 1 ⍝ fix there
          }¨⍵
      }
      Path←{
