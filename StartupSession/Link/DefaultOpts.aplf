@@ -1,8 +1,6 @@
  {opts}←DefaultOpts opts
  ;Default;⎕IO
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
+
  :Trap DEBUG↓0
      ⎕IO←1
      'opts'⎕NS ⍬
