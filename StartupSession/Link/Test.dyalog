@@ -227,7 +227,7 @@
               extn←⊂'.charmat'
      
           :Case 326
-              :If (1≠⍴⍴src)∨(10|⎕DR¨src)∨.≠0 ⋄ →0
+              :If (1≠⍴⍴src)∨~∧/(10|⎕DR¨src)∊0 2 ⋄ →0
               :EndIf
               extn←⊂'.charvec'
      
