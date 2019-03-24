@@ -14,6 +14,7 @@
 
      nosrc←0=≢src
      (ns name oldname)←3↑where,'' ''
+     oldname,←(0=≢oldname)/name ⍝ oldname not specified
      ns←⍎⍣(''≡0⍴∊ns)⊢ns
      z←ns←⍬⍴ns
 
@@ -33,14 +34,15 @@
 
      :EndIf
 
-     :If linked
+     :If linked     
+         file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
          :If 0≠≢src
            :Trap 0 ⋄ z←2 ns.⎕FIX src
            :Else ⋄ U.Resignal 1
            :EndTrap
          :EndIf
          nc←ns.⎕NC⊂,name
-         :If 0<≢file←4⊃ns U.GetLinkInfo name ⍝ Already saved in a file
+         :If 0<≢file                          ⍝ Already saved in a file?
          :AndIf name≡oldname                  ⍝ Function not renamed
              file←∊{name}¨@2⍣link.forceFilenames{link U.Tail nc}¨@3⍣link.forceExtensions ⎕NPARTS file
              ⍝ Interpreter will do everything needed here
@@ -61,7 +63,7 @@
          :Else                                ⍝ New name in "flattened" link
 
              :If 3=(⍎link.ns).⎕NC link.beforeWrite         ⍝ User exit to determine file name?
-                 →(0=≢file←(link.ns⍎link.beforeWrite)ns name)⍴0 ⍝ Return file name or '' to abort
+                 →(0=≢file←(link.ns⍎link.beforeWrite)ns name oldname nc src file link 1)⍴0 ⍝ Return file name or '' to abort
              :Else
                  ⎕←'Fix: unable to determine file name for "',name'"'
                           ⍝ /// could use folder browser under Windows
@@ -88,9 +90,8 @@
              ⎕EX'_rename_temp' ⍝ Now leesten carefully, for I will do zis only vunce
          :EndIf
 
-             ⍝ NOT SURE THIS IS RIGHT. SEE ALSO ABOVE ↑↑↑
          :If 3=link.(⎕NC beforeWrite)
-             →((⍎link.beforeWrite)ns name oldname nc src file)↓0
+             →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
              →(2=⌊nc)⍴0 ⍝ We don't do variables
          :EndIf
 
