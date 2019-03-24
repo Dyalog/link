@@ -51,8 +51,8 @@
       }
 
       RemoveInfos←{
-          ⍺←⎕THIS
-          +/5178⌶¨⊆⍵
+          +/⍺ {9.4=⎕NC ⊂⍵:1⊣⍺.⎕FIX ⎕SRC ⍎⍵
+          5178⌶⍵}¨⍵
       }
 
       OnEach←{ ⍝ ¨ without prototype call on empty

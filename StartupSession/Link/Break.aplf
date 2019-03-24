@@ -27,7 +27,7 @@
              :If 0∊mask
                  parents←U.GetInfos'parent'
                  names←parents('.'U.Join)¨U.GetInfos'name'
-                 n+←U.RemoveInfos names/⍨(⍕ns)∘(⊃⍷)¨names
+                 n+←ns U.RemoveInfos names/⍨(⍕ns)∘(⊃⍷)¨names
                  ⎕SE.Link.Links/⍨←mask
                  broken,←⊂ns
              :Else
