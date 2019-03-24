@@ -1,7 +1,7 @@
  {ok}←startup
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus ⍝ fns
- ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as ⍝ vars
+ ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -15,10 +15,10 @@
              0::⍺{
                  Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
                  0::⍺ Fail ⍵
-                 ⎕DMX.(EN ENX)≡11 121:5178 ⍺.⌶ ⍕2 ⍺.⎕FIX 'file://',⍵ ⍝ re-try anonymous ns
+                 ⎕DMX.(EN ENX)≡11 121:2 ⍺.⎕FIX 'file://',⍵ ⍝ re-try anonymous ns
                  ⍺ Fail ⍵
              }⍵
-             ×≢⍵:5178 ⍺.⌶¨{(⍕¨2⊃¨⍵),¨'.',¨⍕¨1⊃¨⍵}5177 ⍺.⌶ ⍕2 ⍺.⎕FIX 'file://',⍵ ⍝ fix there
+             ×≢⍵:2 ⍺.⎕FIX 'file://',⍵ ⍝ fix there
          }¨⍵
      }
      Path←{
@@ -66,7 +66,12 @@
              :For subdir :In 2⊃¨⎕NPARTS dirs
                  ref←⍎subdir root.⎕NS ⍬
                  files←2 Dir dir,subdir
+                 oldlinks←5177⌶⍬
                  ref FixEach files
+                 :If ~4=1(⎕NINFO⍠'Follow' 0)dir,subdir ⍝ if folder is NOT a symbolic link
+                     new←(5177⌶⍬)~oldlinks
+                     z←5178 (2⊃¨new).⌶ 1⊃¨new ⍝ remove all newly created links
+                 :EndIf
              :EndFor
          :EndFor
      :EndFor
