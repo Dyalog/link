@@ -23,7 +23,7 @@
 
      dir←U.IsDir path
      regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
-     END U.If (~(0=≢extn)∧type≡'deleted')∧dir⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir nor matching extn (unless deleting folder)
+     END U.If(~(0=≢extn)∧type≡'deleted')∧dir⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir nor matching extn (unless deleting folder)
 
      folder←¯1↓folder ⍝ drop trailing /
 
@@ -93,14 +93,17 @@
 
          :Else ⍝ apparent change to name with no current link
              :If 0≠≢z←U.GetFileInfo path ⍝ Paranoia: check if file defined another name
-                 :If 1≠≢z
+                 :If 1≠≢z                ⍝ Defined MORE than one name
+                 :AndIf 1≠+/9=3⊃¨z       ⍝ not just a single class or namespace
+                 :AndIf 1≥+/0=5⊃¨z       ⍝ more than one thing defined at line 0
+                     ⎕TRAP←0 'S' ⋄ ∘∘∘
                      ⎕←'WARNING: user changed name of edited item - ]Link lost track!'
                      ⎕←'   Best course of action is:'
                      ⎕←'      ]Link.Break ',(⍕link.ns)
                      ⎕←'      ]Link.Create ',(⍕link.ns),' ',link.dir
                      →END
                  :EndIf ⍝ Multiple names
-                 z←⊃z
+                 z←({⍵⍳⌊/⍵}5⊃¨z)⊃z      ⍝ Pick first name defined in source
              :AndIf 0≠(2⊃z).⎕NC⍕1⊃z     ⍝ If the old name exists
                  (2⊃z).⎕EX⍕1⊃z          ⍝ Expunge it
              :EndIf
