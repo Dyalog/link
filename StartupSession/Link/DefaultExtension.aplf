@@ -1,4 +1,0 @@
-DefaultExtension←{
-(link nc)←⍵
-1↓link U.Tail nc
-}

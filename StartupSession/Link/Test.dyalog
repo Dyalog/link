@@ -63,8 +63,8 @@
       CleanUp folder name
     ∇
 
-    ⍝ Callback functions to implement determining target folder for flattened link
     ∇ r←onFlatWrite args;⎕TRAP;ns;name;oldname;nc;src;file;link;nameq;ext;z
+    ⍝ Callback functions to implement determining target folder for flattened link
       (ns name oldname nc src file link nameq)←8↑args
      
       r←1           ⍝ Link should proceed and complete the operation
@@ -77,7 +77,7 @@
       :Else            ⍝ a new function
           ⍝ A real application exit might prompt the user to pick a folder
           ⍝   in the QA example we look to a global variable
-          ext←⎕SE.Link.DefaultExtension link nc        ⍝ Ask for correct extension for the name class
+          ext←⎕SE.Link.TypeExtension link nc        ⍝ Ask for correct extension for the name class
           r←link.dir,'/',FLAT_TARGET,'/',name,'.',ext  ⍝ Return the file name
       :EndIf
     ∇

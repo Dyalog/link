@@ -1,0 +1,5 @@
+TypeExtension←{
+⍝ Return type extension to use for ⎕NC ⍵ in Link defined by ⍺
+(link nc)←⍵
+1↓link U.Tail nc
+}
