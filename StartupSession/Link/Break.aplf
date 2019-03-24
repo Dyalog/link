@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
      :If ×⎕NC'⎕SE.Link.Links'
-         ⎕SE.Link.Links/⍨←0≠⎕NC ⎕SE.Link.Links.ns
+         ⎕SE.Link.Links/⍨←{0::1 ⋄ 0≠⎕NC ⎕SE.Link.Links.ns}⍬
      :AndIf ×≢⎕SE.Link.Links
          ⎕IO←1
          there←⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD' ⍝ DO WE NEED TO DO THIS ELSEWHERE???
