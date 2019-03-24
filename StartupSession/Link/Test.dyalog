@@ -1,48 +1,98 @@
 ﻿:Namespace Test
-⍝ Put the ]link UCMD and FileSystemWatcher through it's paces
+⍝ Put the Link system and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
 ⍝   Run 'c:\tmp\linktest'
-    
-    ⎕IO←1 ⋄ ⎕ML←1
-    ∇ r←Run folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start
-     
-     start←⎕AI[3]
-      :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
-          r←'Unable to run tests - Microsoft Windows is required to test the FileSystemWatcher'
-          →0
-      :EndIf
-     
-      {}⎕SE.UCMD'udebug on'
-      ⎕SE.Link.DEBUG←0 ⍝ 1 = Trace, 2 = Stop on entry
-     
-      :If 0≠⎕NC'⎕SE.Link.Links'
-      :AndIf 0≠≢⎕SE.Link.Links
-          Log'Please reset all links and try again.'
-          Log ⎕SE.UCMD'link.list'
-          Log'      ⎕SE.Link.(Break Links.ns)'
-          →0
-      :EndIf
-     
-      folder←∊1 ⎕NPARTS folder,(0=≢folder)/'/temp/linktest' ⍝ Normalise
-      name←2⊃⎕NPARTS folder
-      :Trap 22
-          2 ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
-      :Case 22
-          ⎕←folder,' exists. Overwrite? [y|n] '
-          :If 'yYjJ1 '∊⍨⊃⍞~' '
-              2 ⎕NDELETE folder ⋄ ⎕DL 1
-              3 ⎕MKDIR folder
-          :EndIf
-      :EndTrap
-      #.⎕EX name
-      
-      opts←⎕NS ''  
-      opts.beforeRead←'⎕SE.Link.Test.onRead'
-      opts.beforeWrite←'⎕SE.Link.Test.onWrite'
-      opts.customExtensions←'charmat' 'charvec'
-      opts ⎕SE.Link.Create ('#.',name) folder
 
+    ⎕IO←1 ⋄ ⎕ML←1
+
+    ∇ r←Run folder;start
+     ⍝ Run all the Link Tests. If no folder name provided, default to /temp/linktest
+     
+      start←⎕AI[3]
+     
+      →(0=≢folder←Setup folder)⍴0
+     
+      r←test_basic folder
+      r←test_flattened folder
+     ⍝ r←test_ucmds folder ⍝ /// to be written: test for calling user commands
+     
+      Log'Tests passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.'⎕WG'APLVersion'
+    ∇
+
+    ∇ r←test_flattened folder;name;main;dup;opts;ns;goofile;dupfile;foo;foofile
+     ⍝ Test the flattened scenario
+     
+      r←0
+      #.⎕EX name←2⊃⎕NPARTS folder
+     
+      3 ⎕MKDIR folder
+      ⎕MKDIR folder,'/app'
+      ⎕MKDIR folder,'/utils'
+     
+      (⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
+      (⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
+     
+      opts←⎕NS''
+      opts.(flatten source)←1 'dir'
+      opts.beforeWrite←'⎕SE.Link.Test.onFlatWrite'
+      opts ⎕SE.Link.Create('#.',name)folder
+     
+      ns←#⍎name
+     
+      assert'''dup'' ''main'' ≡ ns.⎕NL ¯3'           ⍝ Validate both fns are in root namespace
+      assert'2 2≡ns.main'                            ⍝ Check that main function works
+     
+      dup,←⊂' ⍝ Modified dup'
+      ns'dup'⎕SE.Link.Fix dup                        ⍝ Redefine existing function dup
+      assert'dup≡⊃⎕NGET dupfile 1'
+     
+      goofile←folder,'/app/goo.aplf'
+      FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
+     
+      ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'       ⍝ Add a new function
+      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
+      ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
+
+      foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
+      assert 'foo≡⊃⎕NGET foofile 1'                  ⍝ Validate file has the right contents      
+
+      ⎕NDELETE foofile  
+      assert '''dup'' ''goo'' ''main''≡ns.⎕nl -3'
+     
+      CleanUp folder name
+    ∇
+
+    ⍝ Callback functions to implement determining target folder for flattened link
+    ∇ r←onFlatWrite args;⎕TRAP;ns;name;oldname;nc;src;file;link;nameq;ext;z
+      (ns name oldname nc src file link nameq)←8↑args
+     
+      r←1           ⍝ Link should proceed and complete the operation
+      →(0=nameq)⍴0  ⍝ We only need to respond to requests for a file name
+     
+      :If name≢oldname ⍝ copy / rename of an existing function
+          r←4⊃5179 ns.⌶ name           ⍝ ask for existing link info for oldname
+      :AndIf 0≠≢r                      ⍝ we could find info for oldname
+          r←∊((⊂name)@2) ⎕NPARTS r     ⍝ just substitute the name
+      :Else            ⍝ a new function
+          ⍝ A real application exit might prompt the user to pick a folder
+          ⍝   in the QA example we look to a global variable
+          ext←⎕SE.Link.DefaultExtension link nc        ⍝ Ask for correct extension for the name class
+          r←link.dir,'/',FLAT_TARGET,'/',name,'.',ext  ⍝ Return the file name
+      :EndIf
+    ∇
+
+    ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start
+     
+      r←0
+      #.⎕EX name←2⊃⎕NPARTS folder
+     
+      opts←⎕NS''
+      opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
+      opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
+      opts.customExtensions←'charmat' 'charvec'
+      opts ⎕SE.Link.Create('#.',name)folder
+     
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
       ns←#⍎name
@@ -81,7 +131,7 @@
       (folder,'/bus')⎕NMOVE folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
-      assert '∨/''/bus/foo.dyalog''⍷4⊃ns.bus ##.U.GetLinkInfo''foo'''
+      assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus ##.U.GetLinkInfo''foo'''
       assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
      
       ⍝ Now copy a file containing a function
@@ -139,7 +189,7 @@
       assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
-      ⍝ Then verify that modifying the file brings changes back     
+      ⍝ Then verify that modifying the file brings changes back
       (⊂cv←ns.cv,⊂'Line three')⎕NPUT(folder,'/cv.charvec')1
       (⊂↓cm←↑ns.cv)⎕NPUT(folder,'/cm.charmat')1
      
@@ -148,7 +198,7 @@
      
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
-
+     
       2 ⎕NDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
      
@@ -164,8 +214,47 @@
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
      EXIT: ⍝ →EXIT to aborted test and clean up
+      CleanUp folder name
+    ∇
+
+    ∇ r←Setup folder
+      r←'' ⍝ Run will abort if empty
+      :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
+          ⎕←'Unable to run Link.Tests - Microsoft Windows is required to test the FileSystemWatcher'
+          →0
+      :EndIf
+     
+      {}⎕SE.UCMD'udebug on'
+      ⎕SE.Link.DEBUG←0 ⍝ 1 = Trace, 2 = Stop on entry
+     
+      :If 0≠⎕NC'⎕SE.Link.Links'
+      :AndIf 0≠≢⎕SE.Link.Links
+          Log'Please reset all links and try again.'
+          Log ⎕SE.UCMD'link.list'
+          Log'      ⎕SE.Link.(Break Links.ns)'
+          →0
+      :EndIf
+     
+      folder←∊1 ⎕NPARTS folder,(0=≢folder)/'/temp/linktest' ⍝ Normalise
+     
+      :Trap 22
+          2 ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
+      :Case 22
+          ⎕←folder,' exists. Clean it out? [y|n] '
+          :If 'yYjJ1 '∊⍨⊃⍞~' '
+              2 ⎕NDELETE folder ⋄ ⎕DL 1
+              3 ⎕MKDIR folder
+          :EndIf
+      :EndTrap
+     
+      r←folder
+    ∇
+
+    ∇ CleanUp(folder name);z;m
+    ⍝ Tidy up after test
+     
       ⎕SE.Link.DEBUG←0
-      ⎕SE.Link.Break '#.',name
+      ⎕SE.Link.Break'#.',name
       assert'0=≢⎕SE.Link.Links'
      
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
@@ -174,15 +263,14 @@
           ⎕←⍪m/z
       :EndIf
      
-      2 ⎕NDELETE folder    ⍝
-      assert'9=#.⎕NC name' ⍝ After ]link -reset this should not remove the namespace
+      3 ⎕NDELETE folder    ⍝
       #.⎕EX name
-     
-      Log'Tests passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.' ⎕WG 'APLVersion'
     ∇
+
     ∇ Log x
       ⎕←x ⍝ This might get more sophisticated someday
     ∇
+
     ∇ assert expr;maxwait;end;timeout
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
       end←3000+3⊃⎕AI ⍝ 3s
@@ -194,28 +282,32 @@
      
       'assertion failed'⎕SIGNAL timeout/11
     ∇
+
    ⍝ Callback functions to implement .charmat & .charvec support
-    ∇ r←onRead(type file nsname);⎕TRAP;parts;data;extn
-      r←1 ⍝ Link should carry on; we're not handling this one 
-
+    ∇ r←onBasicRead args;type;file;nsname;⎕TRAP;parts;data;extn
+      (type file nsname)←3↑args
+      r←1 ⍝ Link should carry on; we're not handling this one
+     
       :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
-          :Select type   
-
+          :Select type
+     
           :Case 'deleted'
               (⍎nsname).⎕EX 2⊃parts
-              r←0 ⍝ We're done; Link doesn't need to do any more  
-
+              r←0 ⍝ We're done; Link doesn't need to do any more
+     
           :CaseList 'changed' 'renamed' 'created'
               data←(↑⍣(extn≡'.charmat'))⊃⎕NGET file 1
               ⍎nsname,'.',(2⊃parts),'←data'
               r←0 ⍝ As above
-
+     
           :EndSelect
       :EndIf
     ∇
-    ∇ r←onWrite(ns name oldname nc src file);⎕TRAP;extn
+
+    ∇ r←onBasicWrite args;ns;name;oldname;nc;src;file;⎕TRAP;extn;link;nameq
+      (ns name oldname nc src file link nameq)←8↑args
       r←1 ⍝ Link should carry on; we're not handling this one
-           
+     
       :If 2=⌊nc ⍝ A variable
      
           :Select ⎕DR src
@@ -237,4 +329,5 @@
           r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
     ∇
+
 :EndNamespace
