@@ -6,21 +6,29 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    ∇ r←Run folder;start
+    ∇ r←{test_filter} Run folder;start;pause_tests;tests;z;test
      ⍝ Run all the Link Tests. If no folder name provided, default to /temp/linktest
-     
-      start←⎕AI[3]
+      
+      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t' ⎕nl ¯3 ⍝ by default: run all tests 
+      pause_tests←0                             ⍝ no manual testing
+
+      :If 0≠⎕NC 'test_filter'
+          pause_tests←(⊂'pause')∊test_filter
+          tests←(∨⌿1∊¨test_filter ∘.⍷ tests)/tests
+      :EndIf
      
       →(0=≢folder←Setup folder)⍴0
+
+      start←⎕AI[3]
+
+      :For test :In tests
+         z←(⍎test) folder
+      :EndFor
      
-      r←test_basic folder
-      r←test_flattened folder
-     ⍝ r←test_ucmds folder ⍝ /// to be written: test for calling user commands
-     
-      Log'Tests passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.'⎕WG'APLVersion'
+      r←(⍕≢tests),' test[s] passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.'⎕WG'APLVersion'
     ∇
 
-    ∇ r←test_flattened folder;name;main;dup;opts;ns;goofile;dupfile;foo;foofile
+    ∇ r←test_flattened folder;name;main;dup;opts;ns;goofile;dupfile;foo;foofile;z
      ⍝ Test the flattened scenario
      
       r←0
@@ -36,7 +44,7 @@
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
       opts.beforeWrite←'⎕SE.Link.Test.onFlatWrite'
-      opts ⎕SE.Link.Create('#.',name)folder
+      z←opts ⎕SE.Link.Create('#.',name)folder
      
       ns←#⍎name
      
@@ -55,7 +63,9 @@
       ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
 
       foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
-      assert 'foo≡⊃⎕NGET foofile 1'                  ⍝ Validate file has the right contents      
+      assert 'foo≡⊃⎕NGET foofile 1'                  ⍝ Validate file has the right contents 
+      
+      PauseTest folder   
 
       ⎕NDELETE foofile  
       assert '''dup'' ''goo'' ''main''≡ns.⎕nl -3'
@@ -83,7 +93,6 @@
     ∇
 
     ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start
-     
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
@@ -91,7 +100,7 @@
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
       opts.customExtensions←'charmat' 'charvec'
-      opts ⎕SE.Link.Create('#.',name)folder
+      z←opts ⎕SE.Link.Create('#.',name)folder
      
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
@@ -195,7 +204,9 @@
      
       assert'cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
-     
+      
+      PauseTest folder
+
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
      
@@ -254,7 +265,7 @@
     ⍝ Tidy up after test
      
       ⎕SE.Link.DEBUG←0
-      ⎕SE.Link.Break'#.',name
+      z←⎕SE.Link.Break'#.',name
       assert'0=≢⎕SE.Link.Links'
      
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
@@ -269,6 +280,18 @@
 
     ∇ Log x
       ⎕←x ⍝ This might get more sophisticated someday
+    ∇
+    
+    ∇ PauseTest folder;z
+     :If 2=⎕NC 'pause_tests'
+     :AndIf pause_tests=1 
+         ⎕←4(↑⍤1)↑(((≢folder)↑¨4⊃¨z)∊⊂folder)/z←5177⌶⍬    
+         ⎕←''
+         ⎕←'*** ',(2⊃⎕SI),' paused. To continue,'
+         ⎕←'      →RESUME'
+         RESUME ⎕STOP 'PauseTest'
+     RESUME:
+     :EndIf
     ∇
 
     ∇ assert expr;maxwait;end;timeout
