@@ -1,5 +1,5 @@
- {r}←Notify args;dir
- ;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex
+ {r}←Notify args
+ ;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -22,8 +22,9 @@
      END U.Check name ⍝ invalid item name
 
      dir←U.IsDir path
+     array←(U.LCase extn)≡link U.Tail 2
      regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
-     END U.If(~(0=≢extn)∧type≡'deleted')∧dir⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir nor matching extn (unless deleting folder)
+     END U.If(~(0=≢extn)∧type≡'deleted')∧(array∨dir)⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir or apla nor matching extn (unless deleting folder)
 
      folder←¯1↓folder ⍝ drop trailing /
 
@@ -47,7 +48,7 @@
      :If 3=⎕NC link.beforeRead ⍝ user exit defined?
          :Trap DEBUG↓0
              END U.If~(link⍎link.beforeRead)type path nsname ⍝ return 1 to continue else 0
-             :If ~(type≡'deleted')∨(U.IsDir path)∨(⊂1↓extn)∊link.codeExtensions
+             :If ~(type≡'deleted')∨array∨(U.IsDir path)∨(⊂1↓extn)∊link.codeExtensions
                  Log'Ignoring due to extension: ',type,' of ',path
                  →END
              :EndIf
@@ -113,7 +114,7 @@
                  →END
              :EndIf
 
-             :If name≢newname←U.GetName path             ⍝ repeated in create
+             :If (~array)∧name≢newname←U.GetName path    ⍝ repeated in create
              :AndIf 0≠≢⊃z←ns U.GetLinkInfo newname       ⍝ name inside is already linked
                  affected←(⍕ns),'.',name
                  Log'(created): ignoring changed file ',path
@@ -124,7 +125,7 @@
              :If 0≠≢z←U.GetFileInfo path                ⍝ Try to find an "affected" object
                  effect←1 ⋄ affected←(⍕ns),'.',name
                  Log'(changed): ',affected,' was previously linked to ',path
-             :ElseIf 0≠≢newname
+             :ElseIf array∨0≠≢newname
                  effect←1 ⋄ affected←(⍕ns),'.',newname   ⍝ So just accept it
                  Log'(changed): fixing ',affected,' from ',path
              :Else
@@ -135,9 +136,9 @@
          :EndIf
 
      :Case 'renamed'
-         :If U.IsDir path                              ⍝ of a folder?
-         :AndIf 0=ns.⎕NC name                          ⍝ and new name is free and valid
-             :If 9=ns.⎕NC oldname←∊1↓⎕NPARTS oldpath   ⍝ and old name looks like an existing namespace
+         :If U.IsDir path                        ⍝ of array or folder?
+         :AndIf 0=ns.⎕NC name                    ⍝ and new name is free and valid
+             :If (9-7×array)=ns.⎕NC oldname←∊1↓⎕NPARTS oldpath ⍝ and old name looks like an existing namespace
                  ns⍎name,'←',oldname                   ⍝ copy it
                  (⍎(⍕ns),'.',name).⎕DF(⍕ns),'.',name   ⍝ give it a nice name
                  ns.⎕EX oldname                        ⍝ expunge old
@@ -156,7 +157,7 @@
          :EndIf
 
          oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
-         :If 0≠≢⊃z←ns U.GetLinkInfo oldname           ⍝ old name *is* linked to this file
+         :If array∨0≠≢⊃z←ns U.GetLinkInfo oldname     ⍝ array or old name *is* linked to this file
              effect←1 ⋄ affected←(⍕ns),'.',name
              Log'(rename) ',(⍕ns),'.',oldname,' → ',affected
 
@@ -231,6 +232,12 @@
          :EndIf
 
          :If 1=resp
+             :If array∧type≡'renamed'
+             :AndIf 2=ns.⎕NC oldname
+             :AndIf (1⊃⎕NPARTS oldpath)≡(1⊃⎕NPARTS path)
+                 ns.⎕EX oldname
+             :EndIf
+
              :If (⊂type)∊'renamed' 'deleted'
                  ⎕EX affected
              :EndIf
@@ -239,7 +246,10 @@
                  :Trap 0
                      :If U.IsDir path
                          name ns.⎕NS''   ⍝ create namespace
-                     :Else               ⍝ file
+                     :ElseIf array        ⍝ array
+                         z←U.Deserialise⊃⎕NGET path 1
+                         ⍎(⍕ns),'.',name,'←z'
+                     :Else               ⍝ try ⎕FIX
                          2 ns.⎕FIX'file://',path
                      :EndIf
                  :Case 22

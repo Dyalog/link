@@ -1,4 +1,4 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext
+ {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -7,9 +7,9 @@
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
 
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
+ stop←(~(⊂'EditorFix')∊⎕SI)∧U.debug=2
+ (stop/1+⊃⎕LC)⎕STOP⊃⎕SI
+
  :Trap DEBUG↓0
 
      nosrc←0=≢src
@@ -34,12 +34,12 @@
 
      :EndIf
 
-     :If linked     
+     :If linked
          file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
          :If 0≠≢src
-           :Trap 0 ⋄ z←2 ns.⎕FIX src
-           :Else ⋄ U.Resignal 1
-           :EndTrap
+             :Trap 0 ⋄ z←2 ns.⎕FIX src
+             :Else ⋄ U.Resignal 1
+             :EndTrap
          :EndIf
          nc←ns.⎕NC⊂,name
          :If 0<≢file                          ⍝ Already saved in a file?
@@ -92,7 +92,10 @@
 
          :If 3=link.(⎕NC beforeWrite)
              →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
-             →(2=⌊nc)⍴0 ⍝ We don't do variables
+         :EndIf
+
+         :If array←2=⌊nc
+             src←↓U.Serialise src
          :EndIf
 
          :Trap 0
@@ -109,12 +112,14 @@
          :EndTrap
          :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
 
-         :Trap 0
-             2 ns.⎕FIX'file://',file
-         :Else
-             ⎕←'*** Fix: Unable to re-fix "',name,'" from file ',file
-             ⎕←'     '⎕DMX
-         :EndTrap
+         :If ~array
+             :Trap 0
+                 2 ns.⎕FIX'file://',file
+             :Else
+                 ⎕←'*** Fix: Unable to re-fix "',name,'" from file ',file
+                 ⎕←'     '⎕DMX
+             :EndTrap
+         :EndIf
      :EndIf
  :Else
      U.Resignal 1

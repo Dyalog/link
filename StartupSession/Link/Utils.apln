@@ -20,6 +20,7 @@
     :Section Strings
     Strip←{⍵↓⍨-'/'⍳⍨⌽⍵}
     Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}
+    LCase←{819⌶⍵}
     Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join using ⍺⍺
     Slash←{⍵∊'/\'}                          ⍝ Mark slashes
     Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
@@ -51,8 +52,8 @@
       }
 
       RemoveInfos←{
-          +/⍺ {9.4=⎕NC ⊂⍵:1⊣⍺.⎕FIX ⎕SRC ⍎⍵
-          5178⌶⍵}¨⍵
+          +/⍺{9.4=⎕NC⊂⍵:1⊣⍺.⎕FIX ⎕SRC⍎⍵
+              5178⌶⍵}¨⍵
       }
 
       OnEach←{ ⍝ ¨ without prototype call on empty
@@ -93,7 +94,7 @@
       ContainerNs←{(rsi xsi)←⍺ ⋄ ns←⍵
           326=⎕DR ns:#(⍕ns)
           Norm←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
-          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal {(¯1∊⎕NC'⍵')∧⍵≢,'#'}ns)
+          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal{(¯1∊⎕NC'⍵')∧⍵≢,'#'}ns)
           n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
           container←⊃n↓rsi
           container(Norm(⍕container),'.',ns)
@@ -139,6 +140,164 @@
           :EndTrap
       :EndIf
     ∇
+    :EndSection
+
+    :Section APLA
+
+      Deserialise←{ ⍝ Convert text to array
+          ⍺←1 ⍝ 1=execute expression; 0=return expression
+          ⎕IO←0
+          SEP←'⋄',⎕UCS 10 13
+     
+          Unquot←{(⍺⍺ ⍵)×~≠\''''=⍵}
+          SepMask←∊∘SEP Unquot
+          ParenLev←+\(×¯3+7|¯3+'([{)]}'∘⍳)Unquot
+     
+          Paren←1⌽')(',⊢
+          Split←{1↓¨⍺⍺⊂Over(1∘,)⍵}
+     
+          Over←{(⍵⍵ ⍺)⍺⍺(⍵⍵ ⍵)}
+          EachIfAny←{0=≢⍵:⍵ ⋄ ⍺ ⍺⍺¨⍵}
+          EachNonempty←{⍺ ⍺⍺ EachIfAny Over((×≢¨⍵~¨' ')/⊢)⍵}
+     
+          Parse←{
+              0=≢⍵:''
+              bot←0=⍺
+              (2≤≢⍵)>∨/¯1↓bot:⍺ SubParse ⍵
+              p←bot×SepMask ⍵
+              ∨/p:∊{1=≢⍵:',⊂',⍵ ⋄ ⍵}⍺(Paren ∇)EachNonempty Over(p Split)⍵
+              p←2(1,>/∨¯1↓0,</)bot
+              ∨/1↓p:∊(p⊂⍺)∇¨p⊂⍵
+              ⍵
+          }
+     
+          ErrIfEmpty←{⍵⊣'Empty array'⎕SIGNAL 11/⍨0=≢⍵}
+     
+          SubParse←{
+              ('})]'⍳⊃⌽⍵)≠('{(['⍳⊃⍵):'Bad bracketing'⎕SIGNAL 2
+              (a w)←(1↓¯1∘↓)¨(⍺-1)⍵
+              '['=⊃⍵:Paren'↑1/¨',Paren ErrIfEmpty a Parse w ⍝ high-rank
+              ':'∊(1=⍺)/⍵:a Namespace w ⍝ ns
+              '('=⊃⍵:Paren{⍵,'⎕NS⍬'/⍨0=≢⍵}a Parse w ⍝ vector/empty ns
+              ⍵ ⍝ dfn
+          }
+     
+          ParseLine←{
+              c←⍵⍳':'
+              1≥≢(c↓⍵)~' ':'Missing value'⎕SIGNAL 6
+              name←c↑⍵
+              ¯1=⎕NC name:'Invalid name'⎕SIGNAL 2
+              name(name,'←',⍺ Parse Over((c+1)↓⊢)⍵)
+          }
+     
+          Namespace←{
+              p←(0=⍺)×SepMask ⍵
+              (names assns)←↓⍉↑⍺ ParseLine EachNonempty Over(p Split)⍵
+              ∊'({'(assns,¨'⋄')'⎕NS,¨⊆'(' '''∘,¨names,¨'''')'}⍬)'
+          }
+     
+          w←↓⍣(2=≢⍴⍵)⊢⍵                ⍝ mat?
+          w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w ⍝ vtv?
+          pl←ParenLev w
+          ∨/0>pl:'Unmatched brackets'⎕SIGNAL 2
+          ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
+          ⍎⍣⍺⊢pl Parse w
+      }
+
+
+    ∇ text←Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ ⍝ Convert Array to text
+      ⎕IO←1
+      DblQuot←(,¨'^''$')⎕R'(''' '&&' ''')'⍠'Mode' 'D'⍕
+      MkEsc←{
+          stop←~⍵.Lengths[3]
+          nums←⍕⎕UCS ⍵.Match↓⍨-~stop
+          ''',',stop↓'(⎕UCS ',nums,stop↓'),''',⊃⌽⍵.Match
+      }
+      Esc←'([\x00-\x1F\x80-\xA0]+)(.?)'⎕R MkEsc⍠'Mode' 'D'
+      DelQQ←'^(\()'''',' ',''''(\))$'⎕R'\1'
+      Quot←DelQQ∘Esc∘DblQuot∘⍕⍤1
+      Encl←{(l↑⍺⍺),(¯1⊖l↑w),')]'['(['⍳⍺⍺]↑⍨-l←2+≢w←⎕FMT ⍵}
+      Brack←{(⎕FMT'['Encl⍤2)⍣⍺⍺⊢⍵}
+      SubMat←{(¯2+≢⍴⍵)Brack ⍺⍺ ⍵}
+      Dia←{1⌽')(',' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
+      :If 0=≡array ⍝ simple scalar
+          :Select 10|⎕DR array
+          :CaseList 0 2  ⍝ char
+              :If (⎕UCS array)∊0,(⍳31),127+⍳33
+                  text←1⌽')(⎕UCS ',⍕⎕UCS array
+              :Else
+                  text←'''',array,''''
+              :EndIf
+          :CaseList 6    ⍝ ref
+              :If ⎕NULL≡array
+                  text←'⎕NULL'
+              :Else
+                  text←'('
+                  :For name :In array.⎕NL-⍳9
+                      :Select array.⎕NC⊂name
+                      :CaseList 2.1 2.2 2.3 2.6 ⍝ var
+                          text,←⊂⎕FMT(name,':')(Serialise array⍎name)
+                      :CaseList 3.2 4.2 ⍝ dfn/dop
+                          text,←⊂↑('^( ',name,')←')⎕R'\1:'@1 array.⎕NR name
+                      :CaseList 9+0.1×⍳9
+                          text,←⊂(name,':')(Serialise array⍎name)
+                      :Else
+                          'Unsupported array'⎕SIGNAL 11
+                      :EndSelect
+                  :EndFor
+                  text←⎕FMT⍪text,')'
+              :EndIf
+          :Else ⍝ num
+              text←⍕array
+          :EndSelect
+      :ElseIf ⍬≡⍴array ⍝ enclosure
+          text←⎕FMT'⊂'(Serialise⊃array)
+      :ElseIf 0=≢array ⍝ no major cells
+          :Select array
+          :Case ⍬
+              text←'⍬'
+          :Case ''
+              text←''''''
+          :Else
+              text←(⍕⍴array),'⍴⊂',Dia Serialise⊃array
+          :EndSelect
+      :ElseIf 1=≢⍴array ⍝ non-empty vec
+          :If 326=⎕DR array ⍝ heterovec
+              text←'('Encl⍪Dia∘Serialise¨array
+          :Else ⍝ simple vec
+              :If 2|⎕DR array ⍝ numvec
+                  text←⍕array
+              :Else ⍝ charvec
+                  text←Quot array
+              :EndIf
+              :If 1=≢array
+                  text←'('text,'⋄)'
+              :EndIf
+          :EndIf
+          text←⎕FMT⍣(1≡≢array)⊢text
+      :ElseIf 0∊¯1↓⍴array ⍝ early 0 length
+          zero←¯1+0⍳⍨⍴array
+          trailshape←zero↓⍴array
+          content←(⍕trailshape),'⍴⊂',Dia Serialise⊃array
+          text←zero Brack(1,⍨zero↑⍴array)⍴⊂content
+      :Else ⍝ high-rank
+          :Select 10|⎕DR array
+          :CaseList 0 2 ⍝ charmat
+              text←Quot SubMat array
+          :Case 6  ⍝ heteromat
+              text←⍪Dia∘Serialise¨↓array
+          :Else ⍝ nummat
+              :If ⍬≡array
+              :ElseIf (1↑⍨-≢⍴array)≡0=⍴array
+                  text←('⍬'⍴⍨1,⍨¯1↓⍴)SubMat array
+              :Else
+                  text←Serialise⍤1 SubMat array
+              :EndIf
+          :EndSelect
+          text←'['Encl text
+      :EndIf
+    ∇
+
     :EndSection
 
 :EndNamespace

@@ -92,7 +92,7 @@
       :EndIf
     ∇
 
-    ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start
+    ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start;otfile
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
@@ -111,7 +111,30 @@
       assert'foo≡ns.⎕NR ''foo'''
       ⍝ Create a niladic / non-explicit function
       (⊂nil←' nil' ' 2+2')⎕NPUT folder,'/nil.dyalog'
-      assert'nil≡ns.⎕NR ''nil'''
+      assert'nil≡ns.⎕NR ''nil'''    
+      
+      ⍝ Create an array       
+      (⊂'[''one'' 1' '''two'' 2]') ⎕NPUT folder,'/one2.apla' 
+      assert '(2 2⍴''one'' 1 ''two'' 2)≡{0::⍵ ⋄ ns.one2}⍬'
+      
+      ⍝ Rename the array
+      otfile←folder,'/onetwo.apla'
+      ⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla') ⎕NTIE 0
+      assert '(2 2⍴''one'' 1 ''two'' 2)≡{0::⍵ ⋄ ns.onetwo}⍬' 
+      assert '0=⎕NC ''ns.one2'''
+
+      ⍝ Update the array       
+      (⊂'[''one'' 1' '''two'' 2' '''three'' 3]' ) ⎕NPUT otfile 1
+      assert '(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo'
+                     
+      ⍝ Update file using Link.Fix
+      ns.onetwo←⌽ns.onetwo
+      ns'onetwo'⎕SE.Link.Fix ''
+      assert 'ns.onetwo≡##.U.Deserialise ⊃⎕NGET otfile 1'
+
+      ⍝ Erase the array       
+      ⎕NDELETE otfile
+      assert '0=⎕NC ''ns.onetwo'''
      
       ⍝ Create sub-folder
       ⎕MKDIR folder,'/sub'
@@ -342,7 +365,7 @@
               extn←⊂'.charmat'
      
           :Case 326
-              :If (1≠⍴⍴src)∨~∧/(10|⎕DR¨src)∊0 2 ⋄ →0
+              :If (1≠⍴⍴src)∨~∧/,(10|⎕DR¨src)∊0 2 ⋄ →0
               :EndIf
               extn←⊂'.charvec'
      
