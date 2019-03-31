@@ -68,8 +68,8 @@
                  files←2 Dir dir,subdir
                  oldlinks←5177⌶⍬
                  ref FixEach files
-                 :If ~4=1(⎕NINFO⍠'Follow' 0)dir,subdir ⍝ if folder is NOT a symbolic link
-                     new←(5177⌶⍬)~oldlinks
+                 :If 4≠1(⎕NINFO⍠'Follow' 0)dir,subdir ⍝ if folder is NOT a symbolic link
+                     new←(5177⌶⍬)~oldlinks    ⍝ list new links
                      z←5178 (2⊃¨new).⌶ 1⊃¨new ⍝ remove all newly created links
                  :EndIf
              :EndFor
