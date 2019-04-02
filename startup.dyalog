@@ -1,35 +1,36 @@
  {ok}←startup
  ;⎕IO;⎕ML ⍝ sysvars
- ;Env;Dir;Path;NoSlash;FixEach;AutoStatus ⍝ fns
+ ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
  ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
-	
+
      AutoStatus←2036⌶
      Env←{2 ⎕NQ #'GetEnvironment'⍵}
      NoSlash←{⍵↓⍨-'/\'∊⍨⊃⌽⍵} ⍝ remove trailing (back)slash
+     Cut←{⎕ML←3 ⋄ ⍵⊂⍨⍺≠⍵}
      FixEach←{ ⍝ cover for ⎕FIX
          0=≢⍵:⍬⊤⍬
          ⍬⊤⍺{
              0::⍺{
                  Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
                  0::⍺ Fail ⍵
-                 ⎕DMX.(EN ENX)≡11 121:2 ⍺.⎕FIX 'file://',⍵ ⍝ re-try anonymous ns
+                 ⎕DMX.(EN ENX)≡11 121:2 ⍺.⎕FIX'file://',⍵ ⍝ re-try anonymous ns
                  ⍺ Fail ⍵
              }⍵
-             ×≢⍵:2 ⍺.⎕FIX 'file://',⍵ ⍝ fix there
+             ×≢⍵:2 ⍺.⎕FIX'file://',⍵ ⍝ fix there
          }¨⍵
      }
      Path←{
-         ×≢⍵:⍵(≠⊆⊣)':;'⊃⍨1+win ⍝ split on OS separator
+         ×≢⍵:⍵ Cut⍨':;'⊃⍨1+win ⍝ split on OS separator
          defaults,¨⊂⍺
      }
      Dir←{ ⍝ ⍺=1:dirs; ⍺=2:files
          pats←⍺⊃(,⊂'/*')('/*.dyalog' '/*.apl?')
          pats,¨⍨←⊂NoSlash ⍵
-         ~∨/⎕NEXISTS⍠1⊢pats:0⍴⊂''
-         (names types)←⊃,¨/0 1 ⎕NINFO⍠1⊢pats
+         ~∨/⎕NEXISTS ⎕OPT 1⊢pats:0⍴⊂''
+         (names types)←⊃,¨/0 1 ⎕NINFO ⎕OPT 1⊢pats
          {(⊂⍋⍵)⌷⍵}names/⍨types=⍺
      }
 
@@ -43,7 +44,7 @@
              verSpec←{
                  ⍵:NoSlash 2⊃4070⌶⍬ ⍝ win only: version specific folder in user docs folder
                  home←NoSlash Env'HOME'
-                 num←∊2↑'.'(≠⊆⊢)ver
+                 num←∊2↑'.'Cut ver
                  uc←'UC'/⍨80 82=⎕DR'' ⍝ unicode/classic
                  bits←¯2↑'32',{⍵↓⍨⍵⍳'-'}os
                  home,'/dyalog.',num,'.files'
@@ -68,9 +69,9 @@
                  files←2 Dir dir,subdir
                  oldlinks←5177⌶⍬
                  ref FixEach files
-                 :If 4≠1(⎕NINFO⍠'Follow' 0)dir,subdir ⍝ if folder is NOT a symbolic link
+                 :If 4≠1(⎕NINFO ⎕OPT'Follow' 0)dir,subdir ⍝ if folder is NOT a symbolic link
                      new←(5177⌶⍬)~oldlinks    ⍝ list new links
-                     z←5178 (2⊃¨new).⌶ 1⊃¨new ⍝ remove all newly created links
+                     z←5178(2⊃¨new).⌶1⊃¨new ⍝ remove all newly created links
                  :EndIf
              :EndFor
          :EndFor
