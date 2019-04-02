@@ -92,7 +92,7 @@
       :EndIf
     ∇
 
-    ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start;otfile
+    ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start;otfile;value
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
@@ -115,30 +115,35 @@
       
       ⍝ Create an array       
       (⊂'[''one'' 1' '''two'' 2]') ⎕NPUT folder,'/one2.apla' 
-      assert '(2 2⍴''one'' 1 ''two'' 2)≡{0::⍵ ⋄ ns.one2}⍬'
+      assert '(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
       
       ⍝ Rename the array
       otfile←folder,'/onetwo.apla'
       ⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla') ⎕NTIE 0
-      assert '(2 2⍴''one'' 1 ''two'' 2)≡{0::⍵ ⋄ ns.onetwo}⍬' 
+      assert '(2 2⍴''one'' 1 ''two'' 2)≡ns.onetwo' 
       assert '0=⎕NC ''ns.one2'''
 
       ⍝ Update the array       
       (⊂'[''one'' 1' '''two'' 2' '''three'' 3]' ) ⎕NPUT otfile 1
-      assert '(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo'
-                     
+      assert '(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo' 
+      
       ⍝ Update file using Link.Fix
       ns.onetwo←⌽ns.onetwo
       ns'onetwo'⎕SE.Link.Fix ''
       assert 'ns.onetwo≡##.U.Deserialise ⊃⎕NGET otfile 1'
 
-      ⍝ Erase the array       
-      ⎕NDELETE otfile
-      assert '0=⎕NC ''ns.onetwo'''
-     
       ⍝ Create sub-folder
       ⎕MKDIR folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''sub'''
+
+      ⍝ Move array to sub-folder
+      value←ns.onetwo  
+      ⎕NUNTIE (new←folder,'/sub/one2.apla') ⎕NRENAME tn←otfile ⎕NTIE 0
+      assert 'value≡ns.sub.one2'
+
+      ⍝ Erase the array       
+      ⎕NDELETE new
+      assert '0=⎕NC ''ns.sub.one2'''     
      
       ⍝ Put a copy of foo in the folder
       (⊂foo)⎕NPUT folder,'/sub/foo.dyalog'
@@ -322,7 +327,7 @@
       end←3000+3⊃⎕AI ⍝ 3s
       timeout←0
      
-      :While 0∊⍎expr
+      :While 0∊{0::0 ⋄ ⍎⍵}expr
           ⎕DL 0.1
       :Until timeout←end<3⊃⎕AI
      
