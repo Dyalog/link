@@ -16,7 +16,7 @@
              0::⍺{
                  Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
                  0::⍺ Fail ⍵
-                 ⎕DMX.(EN ENX)≡11 121:2 ⍺.⎕FIX'file://',⍵ ⍝ re-try anonymous ns
+                 ⎕DMX.(EN ENX)≡11 121:⍺.⎕FIX'file://',⍵ ⍝ re-try anonymous ns
                  ⍺ Fail ⍵
              }⍵
              ×≢⍵:2 ⍺.⎕FIX'file://',⍵ ⍝ fix there
