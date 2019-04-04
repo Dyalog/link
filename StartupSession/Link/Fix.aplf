@@ -61,12 +61,22 @@
              file←U.ApplyOldExtn file
 
          :Else                                ⍝ New name in "flattened" link
-
+             
              :If 3=(⍎link.ns).⎕NC link.beforeWrite         ⍝ User exit to determine file name?
                  →(0=≢file←(link.ns⍎link.beforeWrite)ns name oldname nc src file link 1)⍴0 ⍝ Return file name or '' to abort
+             :ElseIf oldname≡name ⍝ New function, not from old one
+                 file←link.dir,'/',name,link U.Tail nc
+                 :If ×DEBUG
+                     ⎕←'New file for new function: ',file
+                 :EndIf
              :Else
-                 ⎕←'Fix: unable to determine file name for "',name'"'
-                          ⍝ /// could use folder browser under Windows
+                 (⊂ns.⎕NR oldname)⎕NPUT file 1 ⍝ Repair damage done by editor
+                 ⍝ remove 
+                 2 ns.⎕FIX 'file://',file ⍝ Necessary with FSW?
+                 file←∊(⊂name)@2⎕NPARTS file
+                 :If ×DEBUG
+                     ⎕←'New file for renamed function: ',file
+                 :EndIf
              :EndIf
          :EndIf
 

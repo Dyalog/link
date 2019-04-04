@@ -84,7 +84,7 @@
          :If 0≠≢z←4⊃ns U.GetLinkInfo name      ⍝ name already linked
          :AndIf name≡U.GetName path            ⍝ name matches file contents
          :AndIf (U.Norm path)≡U.Norm z         ⍝ to the same file name
-             effect←1 ⋄ affected←(⍕ns),name
+             effect←1 ⋄ affected←(⍕ns),'.',name
              :If (7⊃z)≡U.FileHash path
                  Log'(change) ignored, checksum unchanged: ',path
                  →END
