@@ -13,16 +13,17 @@
      dir,←'/'/⍨~'/\'∊⍨⊃⌽dir ⍝ append trailing slash if missing
      dir←⊃1 ⎕NPARTS dir     ⍝ normalise ─ '' means current dir
 
-     Path←{ ⍝ Ns path → full path
-         ⍺←'/'
-         tail←opts U.Tail ⍺
-         tail,⍨'/'@{'.'=⍵}dir,⍵  ⍝ append appropriate tail and convert / to .
+     Path←{ ⍝ name → full file path
+     ⍝ ⍵ ←→ name
+     ⍝ ⍺ ←→ nameclass
+         body←CaseCode⍣opts.caseCode⊢⍵ ⍝ case code?
+         dir,body,opts U.Tail ⍺        ⍝ full file path with appropriate tail
      }
 
      AbsSaveFn←{ ⍝ Save single fn into target
          nr←source.⎕NR ⍵
          nc←⊃source.⎕NC ⍵
-         nr opts.caseCode U.Into U.ApplyOldExtn nc Path ⍵↑⍨1-'.'⍳⍨⌽⍵ ⍝ Item name without ns path
+         nr U.Into U.ApplyOldExtn nc Path ⍵↑⍨1-'.'⍳⍨⌽⍵ ⍝ Item name without ns path
      }
 
      nc←{⎕NC⊂,'⍵'}source
@@ -38,19 +39,19 @@
              16::0 ⍵               ⍝ problem: no script
              src←⎕SRC source.⍎⍵    ⍝ get source from its location
              22::⍵ 0               ⍝ failed: no file access
-             nc←⊃source.⎕NC ⍵
-             0 0⊣src opts.caseCode U.Into U.ApplyOldExtn nc Path ⍵ ⍝ save as namespace and report OK
+             nc←⊃source.⎕NC⊂,⍵
+             0 0⊣src U.Into U.ApplyOldExtn nc Path ⍵ ⍝ save as namespace and report OK
          }
 
          nss←source.⎕NL-okNs
 
          SaveFn←{  ⍝ Save function there
              nr←source.⎕NR ⍵
-             nc←⊃source.⎕NC ⍵
-             nr opts.caseCode U.Into U.ApplyOldExtn nc Path ⍵
+             nc←⊃source.⎕NC⊂,⍵
+             nr U.Into U.ApplyOldExtn nc Path ⍵
          }
          (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
-         paths←Path U.OnEach unscripted                 ⍝ needed dirs
+         paths←0 Path U.OnEach unscripted               ⍝ needed dirs
          ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
          fns←source.⎕NL-okFn                            ⍝ tradfn, dfn, tradop, dop
          failed,←0~¨⍨SaveFn U.OnEach fns                ⍝ try to save the functions

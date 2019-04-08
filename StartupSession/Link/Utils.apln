@@ -74,10 +74,9 @@
       }
 
       Into←{ ⍝ Put vtv into file
-          2⊃⍺:(##.CaseCode⊃⍺)0 ∇ ⍵
           22::⍵                  ⍝ no file access
           _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
-          0⊣⍺[1]⎕NPUT ⍵ 1        ⍝ overwrite
+          0⊣(⊂⍺)⎕NPUT ⍵ 1        ⍝ overwrite
       }
 
       ApplyOldExtn←{ ⍝ Correct new extension to .dyalog if old source exists
@@ -101,10 +100,10 @@
       }
 
       Tail←{ ⍝ ⍺:opts; ⍵:nc
-          0∊⍵,''≢0⍴⍵:'/'
+          0=⍵:'/'
           (types exts)←↓⍉⍺.typeExtensions
-          exts,¨⍨←'.'
           exts,←⊂'dyalog'
+          exts,¨⍨←'.'
           exts⊃⍨⌊/types⍳⍵,⌊⍵
       }
 
