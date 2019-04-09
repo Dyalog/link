@@ -247,7 +247,7 @@
                      :If U.IsDir path
                          name ns.⎕NS''   ⍝ create namespace
                      :ElseIf array        ⍝ array
-                         z←APLAN.Deserialise⊃⎕NGET path 1
+                         z←Deserialise⊃⎕NGET path 1
                          ⍎(⍕ns),'.',name,'←z'
                      :Else               ⍝ try ⎕FIX
                          2 ns.⎕FIX'file://',path
