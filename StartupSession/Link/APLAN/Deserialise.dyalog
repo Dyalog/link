@@ -1,4 +1,4 @@
-﻿ Deserialise←{ ⍝ Convert text to array
+ Deserialise←{ ⍝ Convert text to array
      ⍺←1 ⍝ 1=execute expression; 0=return expression
      q←''''
      ⎕IO←0
@@ -48,7 +48,7 @@
      Namespace←{
          p←(0=⍺)×SepMask ⍵
          (names assns)←↓⍉↑⍺ ParseLine EachNonempty Over(p Split)⍵
-         ∊'({'(assns,¨'⋄')'⎕NS,¨⊆'(' 'q∘,¨names,¨q)'}⍬)'
+         ∊'({'(assns,¨'⋄')'⎕NS'('(, '∘,¨q,¨names,¨⊂q')')'}⍬)'
      }
 
      w←↓⍣(2=≢⍴⍵)⊢⍵                ⍝ mat?

@@ -23,27 +23,10 @@ This takes an array and returns a character vector of matrix representing the ar
 ```apl
 Serialise 2 2⍴⍳4
 Serialise ⎕fix ':namespace' 'a←{(+⌿⍵)÷≢⍵}' 'b←42' ':endnamespace'
-Serialise '(1 2 3)(4 5)'
+Serialise (1 2 3)(4 5)
 ```
 
 An optional left argumen of `1` may be specified to force return of a vector by using `⋄` to fuse lines.
-
-### `∆NS`
-
-Extends `⎕NS` to allow a two-element right argument of names and values:
-
-```apl
-myns←∆NS ('name1' 'name2')(7 42)
-'myns'∆NS ('name3' 'name4')('apl' 'dyalog')
-```
-
-### `∆NSinverse`
-
-Takes a ref or name of a namespace and returns a two-element vector of names and values.
-```
-∆NSinverse myns
-∆NSinverse 'myns'
-```
 
 ### `Array`
 
@@ -79,7 +62,7 @@ The notation extends strand notation as follows:
 
 A diamond (`⋄`) inside a parenthesis causes the parenthesis to represent a vector where each diamond-delimited phrase represents an element.  
  `(1 2 ⋄ 3 4 5)` is equivalent to `(1 2)(3 4 5)`
- 
+
 A colon (`:`) inside a parenthesis causes the parenthesis to represent a namespace where each diamond-delimited phrase represents a name:value pair.  
  `(ans:42)` is equivalent to `⎕JSON'{"ans":42}'` (except for the display form)
 
