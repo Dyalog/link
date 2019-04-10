@@ -1,4 +1,4 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array
+ {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array;oldfile
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -7,8 +7,9 @@
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
 
- stop←(~(⊂'EditorFix')∊⎕SI)∧U.debug=2
- (stop/1+⊃⎕LC)⎕STOP⊃⎕SI
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
 
  :Trap DEBUG↓0
 
@@ -35,7 +36,7 @@
      :EndIf
 
      :If linked
-         file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
+         oldfile←file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
          :If 0≠≢src
              :Trap 0 ⋄ z←2 ns.⎕FIX src
              :Else ⋄ U.Resignal 1
@@ -61,7 +62,6 @@
              file←U.ApplyOldExtn file
 
          :Else                                ⍝ New name in "flattened" link
-             
              :If 3=(⍎link.ns).⎕NC link.beforeWrite         ⍝ User exit to determine file name?
                  →(0=≢file←(link.ns⍎link.beforeWrite)ns name oldname nc src file link 1)⍴0 ⍝ Return file name or '' to abort
              :ElseIf oldname≡name ⍝ New function, not from old one
@@ -69,14 +69,16 @@
                  :If ×DEBUG
                      ⎕←'New file for new function: ',file
                  :EndIf
-             :Else
-                 (⊂ns.⎕NR oldname)⎕NPUT file 1 ⍝ Repair damage done by editor
-                 ⍝ remove 
-                 2 ns.⎕FIX 'file://',file ⍝ Necessary with FSW?
-                 file←∊(⊂name)@2⎕NPARTS file
-                 :If ×DEBUG
-                     ⎕←'New file for renamed function: ',file
-                 :EndIf
+             :EndIf
+         :EndIf
+
+         :If (0≠≢oldfile)∧oldname≢name
+             (⊂ns.⎕NR oldname)⎕NPUT oldfile 1 ⍝ Repair damage done by editor
+                 ⍝ remove
+             2 ns.⎕FIX'file://',oldfile ⍝ Necessary with FSW?
+             file←∊(⊂name)@2 ⎕NPARTS file
+             :If ×DEBUG
+                 ⎕←'New file for renamed function: ',file
              :EndIf
          :EndIf
 
