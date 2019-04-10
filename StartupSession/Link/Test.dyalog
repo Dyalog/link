@@ -14,7 +14,7 @@
 
       :If 0≠⎕NC 'test_filter'
           pause_tests←(⊂'pause')∊test_filter
-          tests←(∨⌿1∊¨test_filter ∘.⍷ tests)/tests
+          tests←(1∊¨test_filter∘⍷¨ tests)/tests
       :EndIf
      
       →(0=≢folder←Setup folder)⍴0
@@ -130,7 +130,7 @@
       ⍝ Update file using Link.Fix
       ns.onetwo←⌽ns.onetwo
       ns'onetwo'⎕SE.Link.Fix ''
-      assert 'ns.onetwo≡##.U.Deserialise ⊃⎕NGET otfile 1'
+      assert 'ns.onetwo≡##.Deserialise ⊃⎕NGET otfile 1'
 
       ⍝ Create sub-folder
       ⎕MKDIR folder,'/sub'
