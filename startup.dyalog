@@ -1,7 +1,7 @@
  {ok}←startup
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
- ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z ⍝ vars
+ ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -32,6 +32,10 @@
          ~∨/⎕NEXISTS ⎕OPT 1⊢pats:0⍴⊂''
          (names types)←⊃,¨/0 1 ⎕NINFO ⎕OPT 1⊢pats
          {(⊂⍋⍵)⌷⍵}names/⍨types=⍺
+     }
+     NJoin←{
+         tail←⍺↑⍨-1⌊≢⍺
+         ⍵,⍨⍺,'/'↓⍨∧/tail∊'/',win/'\:'
      }
 
      (os ver)←2↑# ⎕WG'APLVersion'
@@ -66,10 +70,11 @@
              dirs←1 Dir dir
              :For subdir :In 2⊃¨⎕NPARTS dirs
                  ref←⍎subdir root.⎕NS ⍬
-                 files←2 Dir dir,subdir
+                 fulldir←dir NJoin subdir
+                 files←2 Dir fulldir
                  oldlinks←5177⌶⍬
                  ref FixEach files
-                 :If 4≠1(⎕NINFO ⎕OPT'Follow' 0)dir,subdir ⍝ if folder is NOT a symbolic link
+                 :If 4≠1(⎕NINFO ⎕OPT'Follow' 0)fulldir ⍝ if folder is NOT a symbolic link
                      new←(5177⌶⍬)~oldlinks    ⍝ list new links
                      z←5178(2⊃¨new).⌶1⊃¨new ⍝ remove all newly created links
                  :EndIf
@@ -82,3 +87,4 @@
  :Else
      ok←0
  :EndTrap
+⍝∇⍣§C:\Program Files\Dyalog\Dyalog APL-64 17.1 Unicode\startup.dyalog§0§ 2019 4 16 15 16 16 536 §èIéHû§0
