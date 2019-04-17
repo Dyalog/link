@@ -1,1 +1,1 @@
- EditorFix←{1⊣⍬Fix⍨3↑3↓⍵}
+ EditorFix←{1⊣⍵[4 6 5] Fix ⍬}
