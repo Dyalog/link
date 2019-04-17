@@ -2,6 +2,6 @@
 ⍝ Action to be taken upon )LOAD or )CLEAR
  :If ×⎕NC'Links'
  :AndIf ×≢Links
-     Links/⍨←0≠⎕NC Links.ns
+ :AndIf ×≢Links←(0≠⎕NC Links.ns)/Links
      Links/⍨←⎕SE=⍎∘'##'⍣≡¨Links.ns
  :EndIf
