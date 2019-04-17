@@ -87,4 +87,3 @@
  :Else
      ok←0
  :EndTrap
-⍝∇⍣§C:\Program Files\Dyalog\Dyalog APL-64 17.1 Unicode\startup.dyalog§0§ 2019 4 16 15 16 16 536 §èIéHû§0
