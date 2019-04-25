@@ -12,7 +12,7 @@ ok←1
      :Trap 0
          ⍎⊃2 ⎕FIX'file://',{×≢⍵:⍵ ⋄ '/startup.dyalog',⍨Env'DYALOG'}Env'DYALOGSTARTUP'
      :Else
-         ⍞←⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',3⊃⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃DM)
+         ⍞←⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃DM)
          ok←0
      :EndTrap
  :EndIf
