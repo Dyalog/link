@@ -31,7 +31,7 @@
      :Trap 0
          (⎕NS ⍬).(⍎⎕FX)⊃⎕NGET({×≢⍵:⍵ ⋄ '/startup.dyalog',⍨Env'DYALOG'}Env'DYALOGSTARTUP')1
      :Else
-         ⍞←⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',3⊃⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃DM)
+         ⍞←⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃DM)
      :EndTrap
 
     ⍝ This code used to be divided into subfns but for sanity sake it is all together now.
