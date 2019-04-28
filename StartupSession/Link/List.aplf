@@ -17,7 +17,7 @@
          :EndIf
          lineages←{⍕¨{∪(⊃⍵).##,⍵}⍣≡2⊃⍵}¨U.GetInfos ⍬
          list,←+/lineages∘.∊⍨⊂¨⊣/list
-         list⍪⍨←'Namespace' 'Directory' 'Scripts'
+         list⍪⍨←'Namespace' 'Directory' 'Items'
          :If ~900⌶⍬ ⍝ dyadic
          :AndIf 1≡⍎∘'extended'⍣(2∊⎕NC'opts.extended')⊢opts
              L←819⌶
