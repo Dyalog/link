@@ -4,7 +4,7 @@
 
 ## Scope
 
-By default, `Link` will update files with changes made in a Dyalog Edit window (not not through `←`, `⎕NS`, `⎕FX`, `⎕FIX` or the APL line "del" editor). Under Microsoft Windows, it will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is planned for other operating systems in the near future.
+By default, `Link` will update files with changes made in a Dyalog Edit window (but not through `←`, `⎕NS`, `⎕FX`, `⎕FIX` or the APL line "del" editor). Under Microsoft Windows, it will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is planned for other operating systems in the near future.
 
 Variables (`⎕NC` of 2.1) and functions/operators without a text source (`⎕NC` of 3.3 or 4.3, namely derived functions, trains and covers for primitives) are not currently supported outside defined functions and scripted objects, but support for these is planned in the near future.
 
@@ -28,10 +28,10 @@ where `options` is a namespace with variables named according to the option they
 ### User commands
 
 The corresponding user commands have the general syntax
-```apl
+```
 ]LINK.CmdName arg1 [arg2] [-name[=value] ...]
 ```
-where `arg2`'s presence depends on the specific command, and `-name` is a flag enabling the specific option and `-name=value` sets the specific option to a specific value. The value of the two options requiring array values (`codeExtensions` and `typeExtensions`) are instead the *name* of a variable containing the need array.
+where `arg2`'s presence depends on the specific command, and `-name` is a flag enabling the specific option and `-name=value` sets the specific option to a specific value. The value of the two options requiring array values (`codeExtensions` and `typeExtensions`) are instead the *name* of a variable containing the needed array.
 
 ## Usage
 
@@ -42,7 +42,7 @@ In most cases, it is unnecessary to use any custom options. `Link` will infer wh
 1. The namespace has content but the directory is empty or doesn't exist
 1. The namespace has content and the directory has content
 
-In the first three cases (where no more than one side has content), `Link` will export/import any content to the other side, and set up tracking of future changes. In the last case, the `source` option must be specified as `ns`, `dir`, or `none` , and the selected side's content will overwrite the other side. Use this with caution!
+In the first three cases (where no more than one side has content), `Link` will export/import any content to the other side, and set up tracking of future changes. In the last case, the `source` option must be specified as `ns`, `dir`, or `none` , and the selected side's content will overwrite the other side. **Use this with caution!**
 
 ### Basic example
 
