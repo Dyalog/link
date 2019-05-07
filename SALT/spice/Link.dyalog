@@ -1,8 +1,9 @@
-﻿:Namespace Link ⍝ V 2.05
+﻿:Namespace Link ⍝ V 2.06
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
 ⍝ 2019 03 14 Adam: help text
+⍝ 2019 05 07 Adam: disable ]CaseCode
 
     ⎕IO←1 ⋄ ⎕ML←1
 
@@ -11,7 +12,7 @@
       r←'['                                                                      
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1 -extension=", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
       r,←'{"Name":"Break",       "args":"ns1",     "Parse":"1",  "Desc":"Break link between namespace and corresponding directory"},'
-      r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'                                                                                                                                  
+      ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'                                                                                                                                  
       r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir both -watch=none ns dir both -flatten -casecode -codeextensions -forceextensions -forcefilenames -beforeread= -beforewrite= -typeextensions=","Desc":"Link a namespace with a directory (create one or both if absent)"},'
       r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
