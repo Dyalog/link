@@ -6,7 +6,8 @@
      'opts'⎕NS ⍬
      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
 
-     'watch' 'source'Default'both'
+     'source'Default'both'
+     'watch'Default (1+U.isWindows)⊃'ns' 'both'
 
      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames'Default 0
 
