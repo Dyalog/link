@@ -51,16 +51,30 @@
           ⍵∘⊃¨5177⌶⍬
       }
 
-      RemoveInfos←{
-          +/⍺{9.4=⎕NC⊂⍵:1⊣⍺.⎕FIX ⎕SRC⍎⍵
-              5178⌶⍵}¨⍵
-      }
+    ∇ r←RemoveFileLinksIn rootns;all;allrefs;urefs;mask;t;remove
+     ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
+     ⍝ Return number of links broken
+     
+      allrefs←2⊃¨all←5177⌶⍬
+      t←urefs←∪allrefs
+      mask←(≢urefs)⍴0
+     
+      :Repeat
+          mask∨←t∊rootns ⍝ Have we reached rootns?
+          t←t.##         ⍝ Move all pointers up to parent
+      :Until ∧/t∊# ⎕SE   ⍝ Continue until everything is "root"
+     
+      :If 0≠r←≢remove←(allrefs∊mask/urefs)/all ⍝ links to be removed
+          r←+/5178⌶¨(⍕¨2⊃¨remove),¨'.',¨⍕¨1⊃¨remove
+      :EndIf
+    ∇
 
       OnEach←{ ⍝ ¨ without prototype call on empty
           0∊⍴⍵:⍬ ⍝ if empty return empty
           ⍺←⊢      ⍝ ambivalent
           ⍺ ⍺⍺¨⍵ ⍝ call
       }
+
     :EndSection
 
     :Section Files

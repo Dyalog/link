@@ -25,9 +25,7 @@
          :For ns :In nss
              mask←linked≠ns
              :If 0∊mask
-                 parents←U.GetInfos'parent'
-                 names←parents('.'U.Join)¨U.GetInfos'name'
-                 n+←ns U.RemoveInfos names/⍨(⍕ns)∘(⊃⍷)¨names
+                 n+←U.RemoveFileLinksIn ns
                  ⎕SE.Link.Links/⍨←mask
                  broken,←⊂ns
              :Else
@@ -36,7 +34,7 @@
          :EndFor
          msg←0⍴⊂''
          :If ×≢broken
-             msg,←⊂'Unlinked ',(⍕n),' files:',U.List broken
+             msg,←⊂'Unlinked ',(⍕n),' items:',U.List broken
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List missing
