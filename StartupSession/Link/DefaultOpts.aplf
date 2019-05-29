@@ -3,7 +3,7 @@
 
  :Trap DEBUG↓0
      ⎕IO←1
-     'opts'⎕NS ⍬
+     :If 0=⎕NC 'opts' ⋄ 'opts'⎕NS ⍬ ⋄ :EndIf     
      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
 
      'source'Default'both'
