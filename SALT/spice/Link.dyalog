@@ -99,7 +99,7 @@
       ârgs←args.Arguments
      ⍝ Simulate calling directly from the original ns
       :With ##.THIS  ⍝ We know THIS has been set for us
-          r←(⊃ôpts)(⎕SE.Link⍎cmd)ârgs
+          r←(⍬∘⍴ôpts)(⎕SE.Link⍎cmd)ârgs
       :EndWith
     ∇
 
