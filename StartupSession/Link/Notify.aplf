@@ -23,7 +23,7 @@
      END U.Check name ⍝ invalid item name
 
      dir←U.IsDir path
-     array←(U.LCase extn)≡link U.Tail 2
+     array←(U.LCase extn)≡link U.Tail 2 ⍝ does ext match ext for array (2=⎕NC)?
      regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
      END U.If(~(0=≢extn)∧type≡'deleted')∧(array∨dir)⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir or apla nor matching extn (unless deleting folder)
 
