@@ -12,17 +12,21 @@
          1⊣⎕SRC⍎⍵
      }
 
-     Links/⍨←0≠⎕NC ⍕¨Links.ns
-     refs←⍎¨Links.ns
-     r←container{
-         UnscriptedNs ⍵:⍺.⎕EX ⍵⊣Links/⍨←refs≠⍎⍺.⍵
-         src←⍺ U.GetLinkInfo ⍵
-         r←⍺.⎕EX ⍵
+     :If ×≢Links
+         Links/⍨←0≠⎕NC⍕¨Links.ns
+         refs←⍎¨Links.ns
+         r←container{
+             UnscriptedNs ⍵:⍺.⎕EX ⍵⊣Links/⍨←refs≠⍎⍺.⍵
+             src←⍺ U.GetLinkInfo ⍵
+             r←⍺.⎕EX ⍵
 
-         del←(0≠≢4⊃src)∧0=≢4⊃⍺ U.GetLinkInfo ⍵ ⍝ There was source and now there is none
-         r⊣⎕NDELETE⍣del⊢4⊃src
-     }¨⊆names
-     :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table
+             del←(0≠≢4⊃src)∧0=≢4⊃⍺ U.GetLinkInfo ⍵ ⍝ There was source and now there is none
+             r⊣⎕NDELETE⍣del⊢4⊃src
+         }¨⊆names
+         :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table
+     :Else
+         container.⎕EX names
+     :EndIf
  :Else
      U.Resignal 1
  :EndTrap
