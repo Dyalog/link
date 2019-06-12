@@ -1,10 +1,10 @@
- msg←Import(ns dir)
+ msg←{opts}Import(ns dir)
  ;opts;container;isChild;nsref;inFail;numFail
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     opts←⎕NS ⍬
+     'opts'⎕NS⍣(900⌶⍬)⍪'' ⍝ monadic?
      opts.watch←'none'
      opts.source←'dir'
 
