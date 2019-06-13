@@ -6,23 +6,23 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    ∇ r←{test_filter} Run folder;start;pause_tests;tests;z;test
+    ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test
      ⍝ Run all the Link Tests. If no folder name provided, default to /temp/linktest
-      
-      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t' ⎕nl ¯3 ⍝ by default: run all tests 
+     
+      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ by default: run all tests
       pause_tests←0                             ⍝ no manual testing
-
-      :If 0≠⎕NC 'test_filter'
+     
+      :If 0≠⎕NC'test_filter'
           pause_tests←(⊂'pause')∊test_filter
-          tests←(1∊¨test_filter∘⍷¨ tests)/tests
+          tests←(1∊¨test_filter∘⍷¨tests)/tests
       :EndIf
      
       →(0=≢folder←Setup folder)⍴0
-
+     
       start←⎕AI[3]
-
+     
       :For test :In tests
-         z←(⍎test) folder
+          z←(⍎test)folder
       :EndFor
      
       r←(⍕≢tests),' test[s] passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.'⎕WG'APLVersion'
@@ -61,14 +61,14 @@
       ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'       ⍝ Add a new function
       assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
       ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
-
+     
       foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
-      assert 'foo≡⊃⎕NGET foofile 1'                  ⍝ Validate file has the right contents 
-      
-      PauseTest folder   
-
-      ⎕NDELETE foofile  
-      assert '''dup'' ''goo'' ''main''≡ns.⎕nl -3'
+      assert'foo≡⊃⎕NGET foofile 1'                  ⍝ Validate file has the right contents
+     
+      PauseTest folder
+     
+      ⎕NDELETE foofile
+      assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3'
      
       CleanUp folder name
     ∇
@@ -81,15 +81,89 @@
       →(0=nameq)⍴0  ⍝ We only need to respond to requests for a file name
      
       :If name≢oldname ⍝ copy / rename of an existing function
-          r←4⊃5179 ns.⌶ name           ⍝ ask for existing link info for oldname
+          r←4⊃5179 ns.⌶name           ⍝ ask for existing link info for oldname
       :AndIf 0≠≢r                      ⍝ we could find info for oldname
-          r←∊((⊂name)@2) ⎕NPARTS r     ⍝ just substitute the name
+          r←∊((⊂name)@2)⎕NPARTS r     ⍝ just substitute the name
       :Else            ⍝ a new function
           ⍝ A real application exit might prompt the user to pick a folder
           ⍝   in the QA example we look to a global variable
           ext←⎕SE.Link.TypeExtension link nc        ⍝ Ask for correct extension for the name class
           r←link.dir,'/',FLAT_TARGET,'/',name,'.',ext  ⍝ Return the file name
       :EndIf
+    ∇
+
+    ∇ r←test_import folder;name;foo;cm;cv;ns;z
+      r←0
+      #.⎕EX name←2⊃⎕NPARTS folder
+     
+      3 ⎕MKDIR folder∘,¨'/sub/sub1' '/sub/sub2'
+      
+      ⍝ make some content
+      (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
+      (⊂cv←'Line 1' 'Line two')∘⎕NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'
+      cm←↑cv
+      (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/sub/sub2/one2.apla'
+      (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/bClass.dyalog'
+      (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/aClass.dyalog'
+     
+      opts←⎕NS''
+      opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
+      opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
+      ⍝opts.customExtensions←'charmat' 'charvec'
+      z←opts ⎕SE.Link.Import('#.',name)folder
+      assert'0=≢⎕SE.Link.Links'
+     
+      ns←#⍎name
+     
+      assert'foo≡ns.⎕NR''foo'''
+⍝ Import does not support custom types at this time
+⍝      assert'cm≡ns.cm'
+⍝      assert'cv≡ns.cv'
+     
+      assert'9.1=ns.⎕NC''sub'' ''sub.sub1'' ''sub.sub2'''
+      assert'ns.sub.sub2.one2≡2 2⍴''one'' 1 ''two'' 2'
+     
+      assert'9.4=ns.sub.sub2.⎕NC''aClass'' ''bClass'''
+      assert'ac≡⎕SRC ns.sub.sub2.aClass'
+      assert'bc≡⎕SRC ns.sub.sub2.bClass'
+      ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.sub.sub2.aClass'
+     
+      ⍝ make sure there is no link
+      ns'foo'⎕SE.Link.Fix' r←foo x' ' r←x x x'
+      assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
+     
+      (⊂' r←foo x' ' r←x x x x')⎕NPUT(folder,'/foo.dyalog')1
+      assert'(ns.⎕NR''foo'')≢⊃⎕NGET folder,''/foo.dyalog'''
+     
+      ⎕SE.Link.Expunge'ns.sub.sub1'
+      assert'⎕NEXISTS folder,''/sub/sub1'''
+     
+      ⎕EX'ns' ⋄ #.⎕EX name
+     
+      opts.flatten←1
+      z←opts ⎕SE.Link.Import('#.',name)folder
+      ns←#⍎name
+      assert'0=≢⎕SE.Link.Links'
+      assert'0=≢ns.⎕NL-9.1'
+     
+⍝ Import does not support custom types at this time
+⍝      assert'cm≡ns.cm'
+⍝      assert'cv≡ns.cv'
+     
+      assert'ns.one2≡2 2⍴''one'' 1 ''two'' 2'
+     
+      assert'9.4=ns.⎕NC''aClass'' ''bClass'''
+      assert'ac≡⎕SRC ns.aClass'
+      assert'bc≡⎕SRC ns.bClass'
+      ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
+     
+      PauseTest folder
+     
+      ⍝ Now tear it all down again:
+      2 ⎕NDELETE folder
+      assert'9=⎕NC ''ns'''
+     
+      #.⎕EX name
     ∇
 
     ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start;otfile;value
@@ -111,39 +185,39 @@
       assert'foo≡ns.⎕NR ''foo'''
       ⍝ Create a niladic / non-explicit function
       (⊂nil←' nil' ' 2+2')⎕NPUT folder,'/nil.dyalog'
-      assert'nil≡ns.⎕NR ''nil'''    
-      
-      ⍝ Create an array       
-      (⊂'[''one'' 1' '''two'' 2]') ⎕NPUT folder,'/one2.apla' 
-      assert '(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
-      
+      assert'nil≡ns.⎕NR ''nil'''
+     
+      ⍝ Create an array
+      (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/one2.apla'
+      assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
+     
       ⍝ Rename the array
       otfile←folder,'/onetwo.apla'
-      ⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla') ⎕NTIE 0
-      assert '(2 2⍴''one'' 1 ''two'' 2)≡ns.onetwo' 
-      assert '0=⎕NC ''ns.one2'''
-
-      ⍝ Update the array       
-      (⊂'[''one'' 1' '''two'' 2' '''three'' 3]' ) ⎕NPUT otfile 1
-      assert '(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo' 
-      
+      ⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla')⎕NTIE 0
+      assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.onetwo'
+      assert'0=⎕NC ''ns.one2'''
+     
+      ⍝ Update the array
+      (⊂'[''one'' 1' '''two'' 2' '''three'' 3]')⎕NPUT otfile 1
+      assert'(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo'
+     
       ⍝ Update file using Link.Fix
       ns.onetwo←⌽ns.onetwo
-      ns'onetwo'⎕SE.Link.Fix ''
-      assert 'ns.onetwo≡##.Deserialise ⊃⎕NGET otfile 1'
-
+      ns'onetwo'⎕SE.Link.Fix''
+      assert'ns.onetwo≡##.Deserialise ⊃⎕NGET otfile 1'
+     
       ⍝ Create sub-folder
       ⎕MKDIR folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''sub'''
-
+     
       ⍝ Move array to sub-folder
-      value←ns.onetwo  
-      ⎕NUNTIE (new←folder,'/sub/one2.apla') ⎕NRENAME tn←otfile ⎕NTIE 0
-      assert 'value≡ns.sub.one2'
-
-      ⍝ Erase the array       
+      value←ns.onetwo
+      ⎕NUNTIE(new←folder,'/sub/one2.apla')⎕NRENAME tn←otfile ⎕NTIE 0
+      assert'value≡ns.sub.one2'
+     
+      ⍝ Erase the array
       ⎕NDELETE new
-      assert '0=⎕NC ''ns.sub.one2'''     
+      assert'0=⎕NC ''ns.sub.one2'''
      
       ⍝ Put a copy of foo in the folder
       (⊂foo)⎕NPUT folder,'/sub/foo.dyalog'
@@ -232,9 +306,9 @@
      
       assert'cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
-      
+     
       PauseTest folder
-
+     
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
      
@@ -256,33 +330,40 @@
       CleanUp folder name
     ∇
 
-    ∇ r←Setup folder
+    ∇ r←Setup folder;tries
       r←'' ⍝ Run will abort if empty
       :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
           ⎕←'Unable to run Link.Tests - Microsoft Windows is required to test the FileSystemWatcher'
           →0
       :EndIf
      
-      {}⎕SE.UCMD'udebug on'
-      ⎕SE.Link.DEBUG←0 ⍝ 1 = Trace, 2 = Stop on entry
+      {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
+      ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
      
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
-          Log'Please reset all links and try again.'
+          Log'Please break all links and try again.'
           Log ⎕SE.UCMD'link.list'
-          Log'      ⎕SE.Link.(Break Links.ns)'
+          Log'      ⎕SE.Link.(Break Links.ns) ⍝ to break all links'
           →0
       :EndIf
      
       folder←∊1 ⎕NPARTS folder,(0=≢folder)/'/temp/linktest' ⍝ Normalise
      
       :Trap 22
-          2 ⎕MKDIR folder ⍝ 2 ⎕NDELETE folder
+          2 ⎕MKDIR folder
       :Case 22
           ⎕←folder,' exists. Clean it out? [y|n] '
           :If 'yYjJ1 '∊⍨⊃⍞~' '
-              2 ⎕NDELETE folder ⋄ ⎕DL 1
-              3 ⎕MKDIR folder
+              tries←0
+     TryAgain: :Trap 19 22
+                  3 ⎕NDELETE folder
+                  ⎕DL 1
+                  2 ⎕MKDIR folder
+              :Else
+                  tries+←1
+                  →TryAgain/⍨tries≤5
+              :EndTrap
           :EndIf
       :EndTrap
      
@@ -309,20 +390,20 @@
     ∇ Log x
       ⎕←x ⍝ This might get more sophisticated someday
     ∇
-    
+
     ∇ PauseTest folder;z
-     :If 2=⎕NC 'pause_tests'
-     :AndIf pause_tests=1 
-         ⎕←4(↑⍤1)↑(((≢folder)↑¨4⊃¨z)∊⊂folder)/z←5177⌶⍬    
-         ⎕←''
-         ⎕←'*** ',(2⊃⎕SI),' paused. To continue,'
-         ⎕←'      →RESUME'
-         RESUME ⎕STOP 'PauseTest'
+      :If 2=⎕NC'pause_tests'
+      :AndIf pause_tests=1
+          ⎕←4(↑⍤1)↑(((≢folder)↑¨4⊃¨z)∊⊂folder)/z←5177⌶⍬
+          ⎕←''
+          ⎕←'*** ',(2⊃⎕SI),' paused. To continue,'
+          ⎕←'      →RESUME'
+          RESUME ⎕STOP'PauseTest'
      RESUME:
-     :EndIf
+      :EndIf
     ∇
 
-    ∇ assert expr;maxwait;end;timeout
+    ∇ {msg}assert expr;maxwait;end;timeout
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
       end←3000+3⊃⎕AI ⍝ 3s
       timeout←0
@@ -331,7 +412,10 @@
           ⎕DL 0.1
       :Until timeout←end<3⊃⎕AI
      
-      'assertion failed'⎕SIGNAL timeout/11
+      :If 900⌶⍬
+          msg←'assertion failed'
+      :EndIf
+      (msg,': ',expr)⎕SIGNAL timeout/11
     ∇
 
    ⍝ Callback functions to implement .charmat & .charvec support
