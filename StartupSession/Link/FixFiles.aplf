@@ -1,12 +1,12 @@
- (inFail fsw)←{opts}FixFiles(target source);⎕IO ⍝ Load items from files in folders
+ (inFail fsw)←{opts}FixFiles(target source);⎕IO;exts ⍝ Load items from files in folders
  ;cands;candLengths;name;d;f;e;list;hideBit;hidden;files;dirs;order;paths;nss
- ;File;RightExtn;Files;RemDir;Target
+ ;RightExtn;Files;RemDir;Target;Fix
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-     'opts' ⎕NS ⍬
+     'opts'⎕NS ⍬
      opts←DefaultOpts opts
 
      source↓⍨←-U.Slash⊃⌽source                  ⍝ Remove slash from end
@@ -16,13 +16,8 @@
      source←cands⊃⍨candLengths⍳≢source          ⍝ first length-match
      name←⊃⌽U.Parts source                      ⍝ name without path
 
-     File←{ ⍝ Prepare file by getting source or prepending prefix
-         'ns' 'both'∊⍨⊂opts.watch:'file://',⍵
-         ⊃⎕NGET ⍵ 1
-     }
-
      :If 2≡1 ⎕NINFO source ⍝ if it is a file, just fix it
-         2 target.⎕FIX File source
+         target QFix source opts
          :If 'dir' 'both'∊⍨opts.watch
              d f e←⎕NPARTS source
              inFail←⍬
@@ -42,11 +37,12 @@
          list←list U.Where¨⊂~∨⌿hidden∘.U.Begins⊃list     ⍝ filter away things that come below hidden things
          list↓⍨←¯1                                       ⍝ remove hideBit column
 
-         RightExtn←{opts.codeExtensions∊⍨⊂1↓⊃⌽⎕NPARTS ⍵} ⍝ Ends with specified extension?
+         RightExtn←{⍺∊⍨⊂1↓⊃⌽⎕NPARTS ⍵}                   ⍝ Ends with specified extension?
 
-         Files←{⍵ U.Where RightExtn¨⍵}                   ⍝ Those that end with specified extension
+         Files←{⍵ U.Where ⍺∘RightExtn¨⍵}                 ⍝ Those that end with specified extension
+         exts←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all the interesting extensions
 
-         files←Files⊃U.Where/2=@2⊢list                   ⍝ second column has 2 for files; first column is filename
+         files←exts Files⊃U.Where/2=@2⊢list              ⍝ second column has 2 for files; first column is filename
          dirs←⊃U.Where/1=@2⊢list                         ⍝ second column has 1 for dirs
          dirs,¨←'/'                                      ⍝ give the dirs trailing slashes
          list←dirs⍪files                                 ⍝ we need to process dirs before files
@@ -59,16 +55,16 @@
          paths~←⊂''                                      ⍝ remove empty
 
          :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-             nss←U.DotSlash¨paths                        ⍝ all necessary namespaces
-             nss/⍨←(¯1=⎕NC nss)⍱('.'∊¨nss)               ⍝ keep only names that are neither invalid nor compound
-             target.⍎∘U.NsExpr¨(~opts.flatten)/nss       ⍝ create namespaces in target
+             nss←U.DotSlash¨paths/⍨~'.'∊¨paths           ⍝ transform simple dirs into nss
+             nss/⍨←¯1≠⎕NC nss                            ⍝ keep only names that are valid
+             target.⍎∘U.NsExpr¨nss/⍨~opts.flatten        ⍝ create nss in target if struct is preserved
          :EndIf
 
          Target←{'.'@U.Slash U.PadThis(~opts.flatten)/U.Path RemDir ⍵} ⍝ Determine target path
 
          FixThere←{ ⍝ Fix the file ⍵ in the namespace ⍺
              t←(1+opts.flatten)⊃(⍺.⍎Target ⍵)⍺ ⍝ final target
-             2 t.⎕FIX File ⍵                   ⍝ do it
+             t QFix ⍵ opts                     ⍝ do it
          }
 
          TryFixThere←{      ⍝ Try to fix file there
@@ -80,7 +76,7 @@
              ⍺←⊢     ⍝ ambivalent
              ⍺ ⍺⍺¨⍵  ⍝ call
          }
-         inFail←0~⍨target∘TryFixThere OnEach Files list ⍝ try it and return only failures
+         inFail←0~⍨target∘TryFixThere OnEach exts Files list ⍝ try it and return only failures
       ⍝ return (list of failures) and (watcher reference or zilde)
          :If 'dir' 'both'∊⍨⊂opts.watch
              fsw←FileSystemWatcher.Watch(¯1↓source)(,'*')

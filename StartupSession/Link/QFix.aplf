@@ -1,0 +1,17 @@
+ {name}←target QFix(src opts);ext ⍝ cover for {2}⎕FIX
+ ⍝ takes target ns as left arg
+
+ (name ext)←1↓⎕NPARTS src
+ :If ext≡2 U.Tail⍨DefaultOpts ⎕NS ⍬ ⍝ array
+     name↑⍨←¯1+name⍳'-' ⍝ chop case-code
+     src←⊃⎕NGET src 1
+     :Trap 0 ⍝ must give array, not fn or nothing
+         {}target⍎name,'←',0 Deserialise src
+     :Else
+         ⎕SIGNAL('EN' 11)('Message' 'There were errors processing the script ("cannot determine value")')
+     :EndTrap
+ :ElseIf 'ns' 'both'∊⍨⊂opts.watch ⍝ linked non-array
+     name←2 target.⎕FIX'file://',src
+ :Else ⍝ unlinked non-array
+     name←2 target.⎕FIX⊃⎕NGET src 1
+ :EndIf
