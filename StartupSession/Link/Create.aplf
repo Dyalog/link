@@ -13,7 +13,7 @@
      :EndIf
 
      msg←⍕⍬⊤⍬
-     'opts' ⎕NS ⍬ ⍝ In case it was not provided
+     'opts'⎕NS ⍬ ⍝ In case it was not provided
      opts←DefaultOpts opts
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
 
@@ -31,6 +31,12 @@
          msg←'Watching directories is only supported under Microsoft Windows'
      :ElseIf (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
          msg←'Unavailable: ',ns
+     :ElseIf opts.source≡'dir'
+     :AndIf ~⎕NEXISTS dir
+         msg←'Source not found: ',dir
+     :ElseIf opts.source≡'ns'
+     :AndIf 0=⎕NC ns
+         msg←'Source not found: ',ns
      :ElseIf ×≢⎕SE.Link.Links⊣nsref←⍎ns container.⎕NS ⍬
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
