@@ -45,8 +45,14 @@
          dirs←⊃U.Where/1=@2⊢list                         ⍝ second column has 1 for dirs
          dirs,¨←'/'                                      ⍝ give the dirs trailing slashes
          list←dirs⍪files                                 ⍝ we need to process dirs before files
-         order←⍋9999999@{47=⍵}↑⎕UCS¨list                 ⍝ slashes after all chars
+         order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨list      ⍝ slashes after all chars and quads before all
          list←order⊃¨⊂list                               ⍝ sort the list
+         order←⍋+/¨'/'=list                              ⍝ in "descending" order into folders: (must process parent folders first)
+         list←order⊃¨⊂list                               ⍝ sort the list
+
+         :If 'quadVars' '.apln'≡1↓⎕NPARTS⊃list           ⍝ Temporary ACRE work-around
+             2 target.⎕FIX'file://',⊃list
+         :EndIf
 
          RemDir←{⍵↓⍨≢source}                             ⍝ Only path beginning at target source
 
