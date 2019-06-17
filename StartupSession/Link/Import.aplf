@@ -7,18 +7,23 @@
      'opts'⎕NS⍣(900⌶⍬)⍪'' ⍝ monadic?
      opts.watch←'none'
      opts.source←'dir'
-
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-     isChild←U.IsChild ns
-     nsref←⍎ns container.⎕NS ⍬
+     :If (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
+         msg←'Unable to import to namespace: ',ns
+     :ElseIf ~⎕NEXISTS dir
+         msg←'Source directory not found: ',dir
+     :Else
+         isChild←U.IsChild ns
+         nsref←⍎ns container.⎕NS ⍬
 
-     dir←U.WinSlash dir
+         dir←U.WinSlash dir
 
-     inFail←⊃opts FixFiles nsref dir
-     msg←'Imported: ',ns,' ← ',dir
-     numFail←≢inFail
-     :If ×numFail
-         msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail
+         inFail←⊃opts FixFiles nsref dir
+         msg←'Imported: ',ns,' ← ',dir
+         numFail←≢inFail
+         :If ×numFail
+             msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail
+         :EndIf
      :EndIf
  :Else
      U.Resignal 1

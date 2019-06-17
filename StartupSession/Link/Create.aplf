@@ -30,13 +30,13 @@
      :AndIf (⊂opts.watch)∊'both' 'dir'
          msg←'Watching directories is only supported under Microsoft Windows'
      :ElseIf (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
-         msg←'Unavailable: ',ns
+         msg←'Unable to link to namespace: ',ns
      :ElseIf opts.source≡'dir'
      :AndIf ~⎕NEXISTS dir
-         msg←'Source not found: ',dir
+         msg←'Source directory not found: ',dir
      :ElseIf opts.source≡'ns'
      :AndIf 0=⎕NC ns
-         msg←'Source not found: ',ns
+         msg←'Source namespace not found: ',ns
      :ElseIf ×≢⎕SE.Link.Links⊣nsref←⍎ns container.⎕NS ⍬
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref

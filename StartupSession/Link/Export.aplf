@@ -10,21 +10,25 @@
 
      msg←⍕⍬⊤⍬
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-     isChild←U.IsChild ns
-     dir↓⍨←-'/\'∊⍨⊃⌽dir
-     :If ⎕NEXISTS dir
-         dir←⊃⊃⎕NINFO⍠1⊢dir
+     :If 0=⎕NC ns
+         msg←'Source namespace not found: ',ns
      :Else
-         dir←∊1 ⎕NPARTS dir ⍝ normalise name
-     :EndIf
+         isChild←U.IsChild ns
+         dir↓⍨←-'/\'∊⍨⊃⌽dir
+         :If ⎕NEXISTS dir
+             dir←⊃⊃⎕NINFO⍠1⊢dir
+         :Else
+             dir←∊1 ⎕NPARTS dir ⍝ normalise name
+         :EndIf
 
-     dir←U.WinSlash dir
+         dir←U.WinSlash dir
 
-     outFail←opts WriteFiles(⍎ns)dir
-     msg←'Exported: ',ns,' → ',dir
-     numFail←≢outFail
-     :If ×numFail
-         msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓1 ⎕JSON⍕¨outFail
+         outFail←opts WriteFiles(⍎ns)dir
+         msg←'Exported: ',ns,' → ',dir
+         numFail←≢outFail
+         :If ×numFail
+             msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓1 ⎕JSON⍕¨outFail
+         :EndIf
      :EndIf
  :Else
      U.Resignal 1

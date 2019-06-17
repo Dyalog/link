@@ -92,12 +92,33 @@
       :EndIf
     ∇
 
-    ∇ r←test_import folder;name;foo;cm;cv;ns;z
+      assertMsg←{
+          msg←⍎⍵
+          ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
+      }
+
+    ∇ r←test_failures folder;opts;name
+      r←0
+      #.⎕EX name←2⊃⎕NPARTS folder
+     
+      'not found'assertMsg'⎕SE.Link.Export''#.',name,'.ns_not_here'' ''',folder,''''
+      'not found'assertMsg'⎕SE.Link.Import''#.',name,''' ''',folder,'/dir_not_here'''
+     
+      opts←⎕NS''
+      opts.source←'ns'
+      'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,'.ns_not_here'' ''',folder,''''
+     
+      opts←⎕NS''
+      opts.source←'dir'
+      'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,''' ''',folder,'/dir_not_here'''
+    ∇
+
+    ∇ r←test_import folder;name;foo;cm;cv;ns;z;opts
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
       3 ⎕MKDIR folder∘,¨'/sub/sub1' '/sub/sub2'
-      
+     
       ⍝ make some content
       (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
       (⊂cv←'Line 1' 'Line two')∘⎕NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'

@@ -6,7 +6,7 @@
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-     'opts'⎕NS ⍬
+     'opts'⎕NS⍣(900⌶⍬)⍪'' ⍝ monadic?
      opts←DefaultOpts opts
 
      source↓⍨←-U.Slash⊃⌽source                  ⍝ Remove slash from end
@@ -18,7 +18,7 @@
 
      :If 2≡1 ⎕NINFO source ⍝ if it is a file, just fix it
          target QFix source opts
-         :If 'dir' 'both'∊⍨opts.watch
+         :If 'dir' 'both'∊⍨⊂opts.watch
              d f e←⎕NPARTS source
              inFail←⍬
              fsw←FileSystemWatcher.Watch d(f,e)
@@ -28,7 +28,6 @@
      :Else
          source,←'/'                                     ⍝ append missing slash
          list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'*'      ⍝ recursive listing of everything
-
 
          hideBit←1=3⊃list                                ⍝ mask for hidden items
          hidden←⊃list U.Where¨⊂hideBit                   ⍝ list of hidden (files and) folders
