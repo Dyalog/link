@@ -3,7 +3,7 @@
 
  (name ext)←1↓⎕NPARTS src
  :If ext≡2 U.Tail⍨DefaultOpts ⎕NS ⍬ ⍝ array
-     name↑⍨←¯1+name⍳'-' ⍝ chop case-code
+     name←StripCaseCode name
      src←⊃⎕NGET src 1
      :Trap 0 ⍝ must give array, not fn or nothing
          {}target⍎name,'←',0 Deserialise src
