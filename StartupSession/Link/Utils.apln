@@ -41,10 +41,11 @@
     :EndSection
 
     :Section Covers for I-beams and other built-ins
-    GetLinkInfo←{⍺.(5179⌶)⍵}   ⍝ Return link info or ⍬
-    Where←{⍵⌿⍺}                             ⍝ Filter as function
+    GetLinkInfo←{⍺.(5179⌶)⍵}         ⍝ Return link info or ⍬
+    ForEach←{⍺←⊢ ⋄ 0∊⍴⍵:⍵ ⋄ ⍺ ⍺⍺¨⍵}  ⍝ Apply to each if any
+    Where←{⍵⌿⍺}                      ⍝ Filter as function
     Norm←{∊1⎕NPARTS ⍵}
-    GetFileInfo←{5174⌶⍵}     ⍝ Return links to file
+    GetFileInfo←{5174⌶⍵}             ⍝ Return links to file
 
       GetInfos←{
           ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
