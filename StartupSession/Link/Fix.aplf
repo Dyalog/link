@@ -91,8 +91,7 @@
              :Case 9
                  src←⎕SRC ns⍎name
              :Else
-                 ⎕←'Fix: unable to handle ',(⍕ns),'.',name,' (⎕NC =',(⍕nc),')'
-                 →0
+                 1 U.Resignal⍨' *** Fix: unable to handle ',(⍕ns),'.',name,' (⎕NC =',(⍕nc),')'
              :EndSelect
          :EndIf
 
@@ -107,7 +106,11 @@
          :EndIf
 
          :If array←2=⌊nc
-             src←↓Serialise src
+             :Trap 11
+                 src←,↓Serialise src
+             :Else
+                 'Unsupported array'U.Resignal 1
+             :EndTrap
          :EndIf
 
          :Trap 0
@@ -119,8 +122,8 @@
              (⊂src)⎕NPUT file 1
          :Else
              old←0
-             ⎕←'*** Fix: Unable to write "',name,'" to file ',file
-             ⎕←'     '⎕DMX
+             :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
+             1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
          :EndTrap
          :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
 
@@ -128,8 +131,7 @@
              :Trap 0
                  2 ns.⎕FIX'file://',file
              :Else
-                 ⎕←'*** Fix: Unable to re-fix "',name,'" from file ',file
-                 ⎕←'     '⎕DMX
+                 1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
              :EndTrap
          :EndIf
      :EndIf
