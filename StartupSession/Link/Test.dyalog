@@ -28,13 +28,27 @@
       r←(⍕≢tests),' test[s] passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.'⎕WG'APLVersion'
     ∇
 
+    ∇ {r}←{x}(F Retry c)y;n
+      :If 900⌶⍬
+          x←⊢
+      :EndIf
+      :For n :In ⍳c
+          :Trap 0
+              r←x F y
+              :Return
+          :Else
+              ⎕SIGNAL(n=c)/⊂⎕DMX.(('EN'EN)('Message' 'Message'))
+          :EndTrap
+      :EndFor
+    ∇
+
     ∇ r←test_flattened folder;name;main;dup;opts;ns;goofile;dupfile;foo;foofile;z
      ⍝ Test the flattened scenario
      
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
-      3 ⎕MKDIR folder
+      3 ⎕MKDIR Retry 5⊢folder
       ⎕MKDIR folder,'/app'
       ⎕MKDIR folder,'/utils'
      
@@ -351,7 +365,7 @@
       CleanUp folder name
     ∇
 
-    ∇ r←Setup folder;tries
+    ∇ r←Setup folder
       r←'' ⍝ Run will abort if empty
       :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
           ⎕←'Unable to run Link.Tests - Microsoft Windows is required to test the FileSystemWatcher'
@@ -376,15 +390,7 @@
       :Case 22
           ⎕←folder,' exists. Clean it out? [y|n] '
           :If 'yYjJ1 '∊⍨⊃⍞~' '
-              tries←0
-     TryAgain: :Trap 19 22
-                  3 ⎕NDELETE folder
-                  ⎕DL 1
-                  2 ⎕MKDIR folder
-              :Else
-                  tries+←1
-                  →TryAgain/⍨tries≤5
-              :EndTrap
+              {2 ⎕MKDIR ⍵⊣⎕DL 1⊣3 ⎕NDELETE ⍵}Retry 5⊢folder
           :EndIf
       :EndTrap
      
