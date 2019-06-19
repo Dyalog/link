@@ -1,4 +1,9 @@
- StripCaseCode←{ ⍝ Remove case code from one or more filenames
-     1=≡,⍵:∊{⍵/⍨∧\'-'≠⍵}¨@2 ⎕NPARTS ⍵
-     ∇¨⍵
+ StripCaseCode←{ ⍝ Change case coded filenames into plain filenames
+     ⎕IO←0
+     1<|≡⍵:∇¨⍵
+
+     (p f e)←⎕NPARTS ⍵
+     (n c)←2↑'-'(≠⊆⊢)f
+     a←⌽,⍉2 2 2⊤⎕D⍳c∩⎕D
+     p,e,⍨n U.Case⍨a↑⍨≢n
  }
