@@ -39,10 +39,10 @@
               ref.Dispose
           :EndTrap
         ∇
-        ∇ dispose;tid
+        ∇ dispose
           :Implements Destructor
           Object.EnableRaisingEvents←0
-          tid←do_dispose&Object
+          do_dispose Object
         ∇
     :EndClass
 :EndNamespace

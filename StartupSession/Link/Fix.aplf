@@ -36,6 +36,19 @@
      :EndIf
 
      :If linked
+
+         :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
+              :If 0=≢src
+                  →0 ⍝ Just notification, probably editor callback. No more to do.
+              :Else
+                :Select ns.⎕NC name
+                :Case 2 ⋄ 'Fix of arrays not currently supported' ⎕SIGNAL 11
+                :CaseList 3 4 ⋄ ns.⎕FX src
+                :Else ⋄ ns.⎕FIX src
+                :EndSelect
+              :EndIf
+         :EndIf
+
          oldfile←file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
          :If 0≠≢src
              :Trap 0 ⋄ z←2 ns.⎕FIX src

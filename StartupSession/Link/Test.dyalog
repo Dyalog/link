@@ -371,7 +371,8 @@
           ⎕←'Unable to run Link.Tests - Microsoft Windows is required to test the FileSystemWatcher'
           →0
       :EndIf
-     
+
+      :If 0=⎕NC '⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
       {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
       ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
      
