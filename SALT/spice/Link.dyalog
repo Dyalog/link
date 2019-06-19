@@ -1,4 +1,4 @@
-﻿:Namespace Link ⍝ V 2.08
+﻿:Namespace Link ⍝ V 2.09
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
@@ -10,10 +10,10 @@
     ⎕IO←1 ⋄ ⎕ML←1
 
     :Section Globals for Run
-    OPTS←'opts'
-    ARGS←'args.Arguments'
-    CMD←'cmd'
-    RSLT←'←'
+      ⍝ OPTS←opts
+      ⍝ ARGS←args.Arguments
+      ⍝ CMD←cmd
+      ⍝ RSLT←...
     :EndSection
 
     ∇ r←List
