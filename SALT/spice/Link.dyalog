@@ -1,19 +1,27 @@
-﻿:Namespace Link ⍝ V 2.07
+﻿:Namespace Link ⍝ V 2.08
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
 ⍝ 2019 03 14 Adam: help text
 ⍝ 2019 05 07 Adam: disable ]CaseCode
 ⍝ 2019 05 31 MKrom: Fix ⎕ML sensitivity
+⍝ 2019 06 19 Adam: Avoid special-cased vars in caller
 
     ⎕IO←1 ⋄ ⎕ML←1
 
+    :Section Globals for Run
+    OPTS←'opts'
+    ARGS←'args.Arguments'
+    CMD←'cmd'
+    RSLT←'←'
+    :EndSection
+
     ∇ r←List
       ⍝ Name, group, short description and parsing rules
-      r←'['                                                                      
+      r←'['
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1 -extension=", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
       r,←'{"Name":"Break",       "args":"ns1",     "Parse":"1",  "Desc":"Break link between namespace and corresponding directory"},'
-      ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'                                                                                                                                  
+      ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
       r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir both -watch=none ns dir both -flatten -casecode -codeextensions -forceextensions -forcefilenames -beforeread= -beforewrite= -typeextensions=","Desc":"Link a namespace with a directory (create one or both if absent)"},'
       r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
@@ -80,11 +88,11 @@
       r,←⊂']FILE.Open https://github.com/Dyalog/link/wiki/Link.',cmd,'  ⍝ for full documentation'
     ∇
 
-    ∇ r←Run(cmd args);opts;name;lc;names;L;ârgs;ôpts
+    ∇ r←Run(cmd args);opts;name;lc;names;L
       L←819⌶
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
       :If 1=1 2⊃⎕SE.Link.⎕AT cmd
-          ôpts←{⍵ ⋄ ⍺⍺}
+          opts←⊢
       :Else
           'opts'⎕NS ⍬
           names←'watch' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extension' 'flatten' 'forceExtensions' 'forceFileNames' 'source' 'typeExtensions' 'extended'
@@ -95,13 +103,16 @@
                   name opts.{⍎⍺,'←⍵'}##.THIS⍎⍣(∨/'Extensions'⍷name)⍎'args.',lc
               :EndIf
           :EndFor
-          ôpts←,opts
       :EndIf
-      ârgs←args.Arguments
+     ⍝ Set up GLOBALS in this ucmd ns:
+      OPTS←opts
+      ARGS←args.Arguments
+      CMD←cmd
      ⍝ Simulate calling directly from the original ns
       :With ##.THIS  ⍝ We know THIS has been set for us
-          r←(⍬∘⍴ôpts)(⎕SE.Link⍎cmd)ârgs
+          ⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS) ⍝ dot our way home
       :EndWith
+      r←RSLT ⍝ fetch result from global
     ∇
 
 :EndNamespace
