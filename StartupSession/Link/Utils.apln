@@ -20,6 +20,7 @@
     :Section Strings
     Strip←{⍵↓⍨-'/'⍳⍨⌽⍵}
     Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}
+    Case←{⍺(819⌶)¨⍵}
     LCase←{819⌶⍵}
     Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join using ⍺⍺
     Slash←{⍵∊'/\'}                          ⍝ Mark slashes
