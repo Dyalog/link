@@ -1,5 +1,5 @@
- list←{opts}List ns;prop;L
- ;nss;lineages;there;ref
+ list←{opts}List ns
+ ;nss;lineages;there;ref;infos;prop;L
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -15,7 +15,12 @@
              nss←⍕¨⎕SE.Link.Links.ns
              list⌿⍨←ns∘(⊃⍷)¨nss
          :EndIf
-         lineages←{⍕¨{∪(⊃⍵).##,⍵}⍣≡2⊃⍵}¨U.GetInfos ⍬
+         infos←U.GetInfos ⍬
+         :If ×≢infos
+             lineages←{⍕¨{∪(⊃⍵).##,⍵}⍣≡2⊃⍵}¨infos
+         :Else
+             lineages←0⍴⊂0⍴⊂''
+         :EndIf
          list,←+/lineages∘.∊⍨⊂¨⊣/list
          list⍪⍨←'Namespace' 'Directory' 'Items'
          :If ~900⌶⍬ ⍝ dyadic
