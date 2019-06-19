@@ -41,7 +41,9 @@
         ∇
         ∇ dispose
           :Implements Destructor
-          Object.EnableRaisingEvents←0
+          :Trap 90 ⍝ object may have been destroyed by )OFF
+              Object.EnableRaisingEvents←0
+          :EndTrap
           do_dispose Object
         ∇
     :EndClass
