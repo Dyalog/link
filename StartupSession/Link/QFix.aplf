@@ -6,7 +6,7 @@
      name←StripCaseCode name
      src←⊃⎕NGET src 1
      :Trap 0 ⍝ must give array, not fn or nothing
-         {}target⍎name,'←',0 Deserialise src
+         name target.{⍎⍺,'←⍵'}Deserialise src
      :Else
          ⎕SIGNAL('EN' 11)('Message' 'There were errors processing the script ("cannot determine value")')
      :EndTrap
