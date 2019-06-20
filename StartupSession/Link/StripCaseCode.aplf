@@ -1,7 +1,7 @@
  StripCaseCode←{ ⍝ Change case coded filenames into plain filenames
      ⎕IO←0
      1<|≡⍵:∇¨⍵
-
+     ~'-'∊⍵:⍵ ⍝ no case code?
      (p f e)←⎕NPARTS ⍵
      (n c)←2↑'-'(≠⊆⊢)f
      a←⌽,⍉2 2 2⊤⎕D⍳c∩⎕D
