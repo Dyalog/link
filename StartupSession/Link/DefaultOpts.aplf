@@ -3,10 +3,10 @@
 
  :Trap DEBUG↓0
      ⎕IO←1
-     :If 0=⎕NC 'opts' ⋄ 'opts'⎕NS ⍬ ⋄ :EndIf     
+     :If 0=⎕NC 'opts' ⋄ 'opts'⎕NS ⍬ ⋄ :EndIf
      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
 
-     'source'Default'both'
+     'source'Default'dir'
      'watch'Default (1+U.isWindows)⊃'ns' 'both'
 
      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames'Default 0
