@@ -1,4 +1,9 @@
  {ok}←startup
+⍝ This is a boot strapping function run when APL starts.
+⍝ At this point, it only loads Link from text files into ⎕SE, but will be the basis for much more functionality in the future.
+⍝ Please do not rely on the current behaviour of this function, as it may change without warning.
+⍝ For more information about Link, see https://github.com/dyalog/link/wiki
+
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
  ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir ⍝ vars
