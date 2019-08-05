@@ -7,13 +7,13 @@
 
  ;⎕ML ⍝ sysvars
  ;Env;Set;Norm;Signal ⍝ fns
- ;nixdir;nixfile;file;pat;msg;dir;envvar;regkey ⍝ vars
+ ;defdir;deffile;file;pat;msg;dir;envvar;regkey ⍝ vars
 
  ⎕ML←1
 
  regkey←envvar←'DYALOG_SERIAL' ⍝ envvar/registry key
- nixfile←'serial'              ⍝ *nix default file name
- nixdir←'/.dyalog'             ⍝ *nix default location under $HOME
+ deffile←'serial'              ⍝ default file name
+ defdir←'/.dyalog'             ⍝ default location under $HOME
 
  msg←'unregistered'        ⍝ what to use to indicate unregistered
  pat←'^\d{1,6}$|^',msg,'$' ⍝ what constitutes a valid serial number
@@ -38,13 +38,13 @@
              Signal'Could not write to registry using .NET'
          :EndTrap
 
-     :Else ⍝ *nix
+     :Else
          file←Env'DYALOG_SERIALFILE'
          :If ×≢file
              dir←⊃⎕NPARTS file
          :Else
-             dir←nixdir,⍨Env'HOME'
-             file←dir,'/',nixfile
+             dir←defdir,⍨Env'HOME'
+             file←dir,'/',deffile
          :EndIf
          :Trap 0
              3 ⎕MKDIR dir
