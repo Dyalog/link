@@ -33,7 +33,7 @@
     DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
     Nss←{,\'.',¨1↓U.Parts ⍵}                ⍝ Convert file path to ns path
     Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
-    IsChild←(⍕¨# ⎕SE ⎕DMX)∘{~⍺∊⍨⊂⍵}
+    IsChild←(⍕¨# ⎕SE ⎕DMX)∘{~⍺∊⍨⊂,⍕⍵}
     List←{∊{' ',⍕⍵}¨⍵}
       Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
           lr←'←→'/⍨2 2⊤'dir' 'ns' 'both'⍳⊂⍵.watch
