@@ -1,4 +1,4 @@
- old←Serial new
+﻿ old←Serial new
  ⍝ This sets/queries the current serial number on all platforms
  ⍝       Serial ⍬ returns current serial number
  ⍝       Serial 123456 sets serial number to 123456
@@ -37,6 +37,8 @@
          :Else
              Signal'Could not write to registry using .NET'
          :EndTrap
+         old,←'; is now ' '; remains '⊃⍨1+old≡new
+         old,←new
 
      :Else
          file←Env'DYALOG_SERIALFILE'
@@ -52,10 +54,10 @@
          :Else
              Signal'Could not write serial number file "',file,'"'
          :EndTrap
+         old,←'; will be ' '; remains '⊃⍨1+old≡new
+         old,←new,' for new sessions'
 
      :EndIf
-     old,←'; is now ' '; is still '⊃⍨1+old≡new
-     old,←new
      old,⍨←'Was '
  :Else ⍝ Just report
      old,⍨←'Is '
