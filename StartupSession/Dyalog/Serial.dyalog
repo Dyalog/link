@@ -5,9 +5,9 @@
  ⍝       Serial 'unregistered' removes the current serial number
  ⍝ Contact sales@dyalog.com to obtain a serial number
 
- ;⎕ML ⍝ sysvars
+ ;⎕ML;⎕USING ⍝ sysvars
  ;Env;Set;Norm;Signal ⍝ fns
- ;defdir;deffile;file;pat;msg;dir;envvar;regkey ⍝ vars
+ ;defdir;deffile;file;pat;msg;dir;envvar;regkey;dyalog ⍝ vars
 
  ⎕ML←1
 
@@ -31,12 +31,14 @@
      Signal←⎕SIGNAL{('EN'(10×⎕EN))('EM'(⎕EM ⎕EN))('Message'⍵)}
 
      :If 'Win'≡3↑⊃# ⎕WG'APLVersion' ⍝ Windows
-         Set←{⎕USING←'Microsoft' ⋄ Win32.Registry.SetValue(⊃4070⌶⍬)⍺ ⍵} ⍝ ask APL where it gets its registry values from
+         dyalog←⊃4070⌶⍬ ⍝ ask APL where it gets its registry values from
          :Trap 0
-             regkey Set new
+             ⎕USING←'Microsoft'
+             Win32.Registry.SetValue dyalog regkey new
          :Else
-             Signal'Could not write to registry using .NET'
+             Signal'Could not write "',new,'" to the registry key "',dyalog,'\',regkey,'"'
          :EndTrap
+
          old,←'; is now ' '; remains '⊃⍨1+old≡new
          old,←new
 
@@ -52,8 +54,9 @@
              3 ⎕MKDIR dir
              file 1 ⎕NPUT⍨⊂new
          :Else
-             Signal'Could not write serial number file "',file,'"'
+             Signal'Could not write "',new,'" to the file "',file,'"'
          :EndTrap
+
          old,←'; will be ' '; remains '⊃⍨1+old≡new
          old,←new,' for new sessions'
 
