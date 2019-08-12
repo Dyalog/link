@@ -35,6 +35,10 @@
     Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
     IsChild←(⍕¨# ⎕SE ⎕DMX)∘{~⍺∊⍨⊂,⍕⍵}
     List←{∊{' ',⍕⍵}¨⍵}
+      QFixIfExists←{
+          ⎕NEXISTS⊃⍵:_←⍺ ##.QFix ⍵
+          _←⍬
+      }
       Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
           lr←'←→'/⍨2 2⊤'dir' 'ns' 'both'⍳⊂⍵.watch
           ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
@@ -43,7 +47,7 @@
 
     :Section Covers for I-beams and other built-ins
     GetLinkInfo←{⍺.(5179⌶)⍵}         ⍝ Return link info or ⍬
-    ForEach←{⍺←⊢ ⋄ 0∊⍴⍵:⍵ ⋄ ⍺ ⍺⍺¨⍵}  ⍝ Apply to each if any
+    ForEach←{0∊⍴⍵:⍵ ⋄ ×⎕NC'⍺':⍺ ⍺⍺¨⍵ ⋄ ⍺⍺¨⍵} ⍝ Apply to each if any
     Where←{⍵⌿⍺}                      ⍝ Filter as function
     Norm←{∊1⎕NPARTS ⍵}
     GetFileInfo←{5174⌶⍵}             ⍝ Return links to file

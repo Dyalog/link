@@ -32,13 +32,14 @@
       :If 900⌶⍬
           x←⊢
       :EndIf
-      :For n :In ⍳c
+      :For n :In ⍳⊃c
           :Trap 0
               r←x F y
               :Return
           :Else
               ⎕SIGNAL(n=c)/⊂⎕DMX.(('EN'EN)('Message' 'Message'))
           :EndTrap
+          ⎕DL⊃1↓c
       :EndFor
     ∇
 
@@ -48,9 +49,9 @@
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
-      3 ⎕MKDIR Retry 5⊢folder
-      ⎕MKDIR folder,'/app'
-      ⎕MKDIR folder,'/utils'
+      3 ⎕MKDIR Retry 5 0.1⊢folder
+      3 ⎕MKDIR folder,'/app'
+      3 ⎕MKDIR folder,'/utils'
      
       (⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
       (⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
@@ -131,7 +132,7 @@
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
-      3 ⎕MKDIR folder∘,¨'/sub/sub1' '/sub/sub2'
+      3 ⎕MKDIR Retry 5⊢folder∘,¨'/sub/sub1' '/sub/sub2'
      
       ⍝ make some content
       (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
@@ -371,8 +372,8 @@
           ⎕←'Unable to run Link.Tests - Microsoft Windows is required to test the FileSystemWatcher'
           →0
       :EndIf
-
-      :If 0=⎕NC '⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
+     
+      :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
       {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
       ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
      

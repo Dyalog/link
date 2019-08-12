@@ -41,29 +41,31 @@
          Files←{⍵ U.Where ⍺∘RightExtn¨⍵}                 ⍝ Those that end with specified extension
          exts←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all the interesting extensions
 
-         files←exts Files⊃U.Where/2=@2⊢list              ⍝ second column has 2 for files; first column is filename
-         dirs←⊃U.Where/1=@2⊢list                         ⍝ second column has 1 for dirs
-         dirs,¨←'/'                                      ⍝ give the dirs trailing slashes
-         list←dirs⍪files                                 ⍝ we need to process dirs before files
-         order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨list      ⍝ slashes after all chars and quads before all
-         list←order⊃¨⊂list                               ⍝ sort the list
-         order←⍋+/¨'/'=list                              ⍝ in "descending" order into folders: (must process parent folders first)
-         list←order⊃¨⊂list                               ⍝ sort the list
+         files←exts Files⊃U.Where/2=@2⊢list               ⍝ second column has 2 for files; first column is filename
+         dirs←⊃U.Where/1=@2⊢list                          ⍝ second column has 1 for dirs
+         dirs,¨←'/'                                       ⍝ give the dirs trailing slashes
+         list←dirs⍪files                                  ⍝ we need to process dirs before files
+         order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨list       ⍝ slashes after all chars and quads before all
+         list←order⊃¨⊂list                                ⍝ sort the list
+         order←⍋+/¨'/'=list                               ⍝ in "descending" order into folders: (must process parent folders first)
+         list←order⊃¨⊂list                                ⍝ sort the list
 
-         :If 'quadVars' '.apln'≡1↓⎕NPARTS⊃list           ⍝ Temporary ACRE work-around
-             2 target.⎕FIX'file://',⊃list
-         :EndIf
+         RemDir←{⍵↓⍨≢source}                              ⍝ Only path beginning at target source
 
-         RemDir←{⍵↓⍨≢source}                             ⍝ Only path beginning at target source
+         paths←∪RemDir∘U.Path¨list                        ⍝ paths of all unique items
+         paths~←⊂''                                       ⍝ remove empty
 
-         paths←∪RemDir∘U.Path¨list                       ⍝ paths of all unique items
-         paths~←⊂''                                      ⍝ remove empty
-
-         :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-             nss←U.DotSlash¨paths/⍨~'.'∊¨paths           ⍝ transform simple dirs into nss
+         target U.QFixIfExists(source,'quadVars.apln')opts
+         :If ~opts.flatten                                ⍝ If we are not flattening, create nss
+             nss←U.DotSlash¨paths/⍨~'.'∊¨paths            ⍝ transform simple dirs into nss
              nss←StripCaseCode nss
-             nss/⍨←¯1≠⎕NC nss                            ⍝ keep only names that are valid
-             {}target.⍎∘U.NsExpr U.ForEach nss           ⍝ create nss in target if struct is preserved
+             nss/⍨←¯1≠⎕NC nss                             ⍝ keep only names that are valid
+             nss{
+                 ref←⍎target⍎U.NsExpr ⍺                   ⍝ create ns
+                 ref U.QFixIfExists ⍵ opts                ⍝ set sysvars?
+             }U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ create nss in target if struct is preserved
+         :Else
+             U.QFixIfExists U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ set sysvars?
          :EndIf
 
          Target←{'.'@U.Slash U.PadThis(~opts.flatten)/U.Path RemDir ⍵} ⍝ Determine target path

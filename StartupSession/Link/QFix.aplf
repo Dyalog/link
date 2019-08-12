@@ -11,7 +11,11 @@
          ⎕SIGNAL('EN' 11)('Message' 'There were errors processing the script ("cannot determine value")')
      :EndTrap
  :ElseIf 'ns' 'both'∊⍨⊂opts.watch ⍝ linked non-array
-     name←2 target.⎕FIX'file://',src
+     :Trap 11 ⍝ fail
+         name←2 target.⎕FIX'file://',src
+     :Else
+         {}target.⎕FIX⍣(121=⎕DMX.ENX)⊢'file://',src ⍝ unnamed?
+     :EndTrap
  :Else ⍝ unlinked non-array
      name←2 target.⎕FIX⊃⎕NGET src 1
  :EndIf
