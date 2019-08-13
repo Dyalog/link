@@ -47,7 +47,10 @@
     Where←{⍵⌿⍺}                      ⍝ Filter as function
     Norm←{∊1⎕NPARTS ⍵}
     GetFileInfo←{5174⌶⍵}             ⍝ Return links to file
-    GetFile←{⊃⎕NGET⍠'ContentType' 'APLCode' ⊢⍵1}
+      GetFile←{
+          11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
+          ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
+      }
       QFixIfExists←{
           ⎕NEXISTS⊃⍵:_←⍺ ##.QFix ⍵
           _←⍬
