@@ -13,8 +13,9 @@
      :EndIf
 
      msg←⍕⍬⊤⍬
-     'opts'⎕NS ⍬ ⍝ In case it was not provided
-     opts←DefaultOpts opts
+
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
 
      dir↓⍨←-'/\'∊⍨⊃⌽dir

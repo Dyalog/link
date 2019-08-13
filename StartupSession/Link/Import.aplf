@@ -4,7 +4,9 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     'opts'⎕NS⍣(900⌶⍬)⍪'' ⍝ monadic?
+
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+
      opts.watch←'none'
      opts.source←'dir'
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns

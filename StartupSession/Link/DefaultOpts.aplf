@@ -3,15 +3,17 @@
 
  :Trap DEBUG↓0
      ⎕IO←1
-     :If 0=⎕NC 'opts' ⋄ 'opts'⎕NS ⍬ ⋄ :EndIf
+
+     opts←Deserialise⍣(''≡0⍴opts)⊢opts ⍝ pseudo array notation
+
      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
 
      'source'Default'dir'
-     'watch'Default (1+U.isWindows)⊃'ns' 'both'
+     'watch'Default(1+U.isWindows)⊃'ns' 'both'
 
      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames'Default 0
 
-     'beforeWrite' 'beforeRead' 'customExtensions' Default''
+     'beforeWrite' 'beforeRead' 'customExtensions'Default''
 
      'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
      opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'

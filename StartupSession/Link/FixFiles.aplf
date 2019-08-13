@@ -6,8 +6,8 @@
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-     'opts'⎕NS⍣(900⌶⍬)⍪'' ⍝ monadic?
-     opts←DefaultOpts opts
+
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
      source↓⍨←-U.Slash⊃⌽source                  ⍝ Remove slash from end
      cands←⊃⎕NINFO⍠1⊢source,'*'                 ⍝ normalised source candidates

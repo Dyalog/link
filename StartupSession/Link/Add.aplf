@@ -4,8 +4,11 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-      ⎕IO←1
-     Default←(⍎'opts'⎕NS ⍬){0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
+     ⎕IO←1
+
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+
+     Default←opts{0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
      'filename'Default''
      items←⊆,items
      items~¨←' '

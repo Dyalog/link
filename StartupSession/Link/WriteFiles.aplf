@@ -7,8 +7,7 @@
  :EndIf
  :Trap DEBUG↓0
 
-     'opts' ⎕NS ⍬
-     opts←DefaultOpts opts
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
      dir,←'/'/⍨~'/\'∊⍨⊃⌽dir ⍝ append trailing slash if missing
      dir←⊃1 ⎕NPARTS dir     ⍝ normalise ─ '' means current dir
