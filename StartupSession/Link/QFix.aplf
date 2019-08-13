@@ -4,7 +4,7 @@
  (name ext)←1↓⎕NPARTS src
  :If ext≡2 U.Tail⍨DefaultOpts ⎕NS ⍬ ⍝ array
      name←StripCaseCode name
-     src←⊃⎕NGET src 1
+     src←U.GetFile src
      :Trap 0 ⍝ must give array, not fn or nothing
          name target.{⍎⍺,'←⍵'}Deserialise src
      :Else
@@ -17,5 +17,9 @@
          {}target.⎕FIX⍣(121=⎕DMX.ENX)⊢'file://',src ⍝ unnamed?
      :EndTrap
  :Else ⍝ unlinked non-array
-     name←2 target.⎕FIX⊃⎕NGET src 1
+     :Trap 11 ⍝ fail
+         name←2 target.⎕FIX U.GetFile src
+     :Else
+         {}target.⎕FIX⍣(121=⎕DMX.ENX)U.GetFile src
+     :EndTrap
  :EndIf

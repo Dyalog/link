@@ -198,69 +198,34 @@
      :EndSelect
 
      :If effect∨'created'≡type
-
-⍝ we're always quiet these days!
-         :If ~resp←1 ⍝ link.quiet
-
-             dispPath←U.WinSlash Strip path
-             dispNs←U.WinSlash⍕ns ⍝ / → \ on Windows
-             cap←'Namespace-Directory Synchroniser'
-
-             :If type≡'renamed'
-                 text←⊂'"',(U.WinSlash oldpath),'" has been renamed to "',(U.WinSlash path),'". Would you like to synchronise?'
-             :Else
-                 text←⊂'"',(U.WinSlash path),'" has been ',type,'. Would you like to synchronise?'
-             :EndIf
-
-             :Select type
-
-             :Case 'created'
-                 text,←''('If you choose Yes, the contents of the file will be established in "',dispNs,'".')
-                 text,←''('If you choose No, "',dispNs,'" will be out of sync with "',dispPath,'".')
-             :Case 'changed'
-                 text,←''('If you choose Yes, "',affected,'" will be updated.')
-                 text,←''('If you choose No, "',dispNs,'" will be out of sync with "',dispPath,'".')
-             :Case 'renamed'
-                 text,←''('If you choose Yes, "',affected,'" will be re-mapped.')
-                 text,←''('If you choose No, "',dispNs,'" will be mapped to a file which may no longer exist.')
-             :Case 'deleted'
-                 text,←''('If you choose Yes, "',affected,'" will be DELETED!')
-                 text,←''('If you choose No, "',dispNs,'" will contain items that are not on in the "',dispPath,'".')
-             :EndSelect
-
-             resp←⎕SE.SALTU.msgBox cap text'Query'
+         :If array∧type≡'renamed'
+         :AndIf 2=ns.⎕NC oldname
+         :AndIf (1⊃⎕NPARTS oldpath)≡(1⊃⎕NPARTS path)
+             ns.⎕EX oldname
          :EndIf
 
-         :If 1=resp
-             :If array∧type≡'renamed'
-             :AndIf 2=ns.⎕NC oldname
-             :AndIf (1⊃⎕NPARTS oldpath)≡(1⊃⎕NPARTS path)
-                 ns.⎕EX oldname
-             :EndIf
+         :If (⊂type)∊'renamed' 'deleted'
+             ⎕EX affected
+         :EndIf
 
-             :If (⊂type)∊'renamed' 'deleted'
-                 ⎕EX affected
-             :EndIf
-
-             :If type≢'deleted'
-                 :Trap 0
-                     :If U.IsDir path
-                         name ns.⎕NS''   ⍝ create namespace
-                     :ElseIf array        ⍝ array
-                         z←Deserialise⊃⎕NGET path 1
-                         ⍎(⍕ns),'.',name,'←z'
-                     :Else               ⍝ try ⎕FIX
-                         2 ns.⎕FIX'file://',path
-                     :EndIf
-                 :Case 22
-                     :If ~'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
-                         ⎕←'(',type,') reported to unreadable file ',path
-                     :EndIf
-                 :Else
-                     ⎕←'Unable to fix file ',path
-                     ⎕←'   '⎕DMX
-                 :EndTrap
-             :EndIf
+         :If type≢'deleted'
+             :Trap 0
+                 :If U.IsDir path
+                     name ns.⎕NS''   ⍝ create namespace
+                 :ElseIf array        ⍝ array
+                     z←Deserialise U.GetFile path
+                     ⍎(⍕ns),'.',name,'←z'
+                 :Else               ⍝ try ⎕FIX
+                     ns QFix path link
+                 :EndIf
+             :Case 22
+                 :If ~'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
+                     ⎕←'(',type,') reported to unreadable file ',path
+                 :EndIf
+             :Else
+                 ⎕←'Unable to fix file ',path
+                 ⎕←'   '⎕DMX
+             :EndTrap
          :EndIf
      :EndIf
 END:

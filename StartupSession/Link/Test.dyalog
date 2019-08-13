@@ -460,7 +460,7 @@
               r←0 ⍝ We're done; Link doesn't need to do any more
      
           :CaseList 'changed' 'renamed' 'created'
-              data←(↑⍣(extn≡'.charmat'))⊃⎕NGET file 1
+              data←↑⍣(extn≡'.charmat')##.U.GetFile file
               ⍎nsname,'.',(2⊃parts),'←data'
               r←0 ⍝ As above
      
