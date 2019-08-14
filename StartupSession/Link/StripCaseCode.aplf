@@ -3,7 +3,9 @@
      1<|≡⍵:∇¨⍵
      ~'-'∊⍵:⍵ ⍝ no case code?
      (p f e)←⎕NPARTS ⍵
-     (n c)←2↑'-'(≠⊆⊢)f
+     s←'-'(≠⊆⊢)f
+     2≠≢s:⍵ ⍝ too many sections
+     (n c)←s
      0∊c∊⎕D:⍵ ⍝ not a proper case code
      a←⌽,⍉2 2 2⊤⎕D⍳c∩⎕D
      p,e,⍨n U.Case⍨a↑⍨≢n
