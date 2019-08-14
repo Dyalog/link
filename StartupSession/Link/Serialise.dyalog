@@ -78,11 +78,11 @@
          text←zero Brack(1,⍨zero↑⍴array)⍴⊂content
 ⍝ Special-case "tables"
      :ElseIf 2=≢⍴array ⍝ matrix
-     :andif (⊂≢⊆)array ⍝ nested
+     :AndIf (⊂≢⊆)array ⍝ nested
      :AndIf 2≤≢array   ⍝ 2-row
      :AndIf ~326∊drs←⎕DR¨array  ⍝ simple, non-ref'y items
      :AndIf ∧/,1≥≢∘⍴¨array ⍝ scal/vec items
-     :AndIf ~∨/(∊~2|drs)∊⎕UCS 127 133 0,⍳31 ⍝ ctrl chars
+     :AndIf ~∨/(⎕UCS∊(,~2|drs)/,array)∊127 133 0,⍳31 ⍝ ctrl chars
          items←{
              ⍬≡⍵:'⍬'
              r←⍕⍵
