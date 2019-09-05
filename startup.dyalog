@@ -71,14 +71,14 @@
      :For path root :InEach paths roots
          :For dir :In path
              files←2 Dir dir
-             root FixEach files
+             {}root FixEach files
              dirs←1 Dir dir
              :For subdir :In 2⊃¨⎕NPARTS dirs
                  ref←⍎subdir root.⎕NS ⍬
                  fulldir←dir NJoin subdir
                  files←2 Dir fulldir
                  oldlinks←5177⌶⍬
-                 ref FixEach files
+                 {}ref FixEach files
                  :If 4≠1(⎕NINFO ⎕OPT'Follow' 0)fulldir ⍝ if folder is NOT a symbolic link
                      new←(5177⌶⍬)~oldlinks    ⍝ list new links
                      z←5178(2⊃¨new).⌶1⊃¨new ⍝ remove all newly created links
