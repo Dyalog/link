@@ -10,6 +10,7 @@
      :If nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
          {}Break nsref
+         link.source←'both'
          msg←link Create nsref link.dir
      :Else
          msg←'Not linked: ',ns
