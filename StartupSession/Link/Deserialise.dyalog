@@ -51,8 +51,10 @@
          ∊'({'(assns,¨'⋄')'⎕NS'('(, '∘,¨q,¨names,¨⊂q')')'}⍬)'
      }
 
-     w←↓⍣(2=≢⍴⍵)⊢⍵                ⍝ mat?
-     w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w ⍝ vtv?
+     w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ mat?
+     w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ vtv?
+     w←'''[^'']+''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
+
      pl←ParenLev w
      ∨/0>pl:'Unmatched brackets'⎕SIGNAL 2
      ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
