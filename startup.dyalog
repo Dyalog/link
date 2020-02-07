@@ -64,8 +64,8 @@
          }win
      :EndIf
 
-     paths←'/StartupSession/' '/StartupWorkspace/'Path¨envVars
-     roots←⎕SE #
+     paths←1⍴'/StartupSession/' '/StartupWorkspace/'Path¨envVars ⍝ "1⍴" disables ws
+     roots←1⍴⎕SE #                                               ⍝ "1⍴" disables #
 
      as←AutoStatus 0
      :For path root :InEach paths roots
