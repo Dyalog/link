@@ -70,8 +70,8 @@
      as←AutoStatus 0
      :For path root :InEach paths roots
          :For dir :In path
-             files←2 Dir dir
-             {}root FixEach files
+             ⍝ files←2 Dir dir      ⍝ disabled non-dir items in root
+             ⍝ {}root FixEach files ⍝ disabled non-dir items in root
              dirs←1 Dir dir
              :For subdir :In 2⊃¨⎕NPARTS dirs
                  ref←⍎subdir root.⎕NS ⍬
