@@ -1,11 +1,28 @@
 :Namespace Hooks
     ⎕ML←1 ⋄ ⎕IO←1
 
-    ∇ f←chksum ⍝ Cache hashing function
-      f←⍎'dfns'(⊢⊣⎕CY⍨)⊃⎕SI ⍝ import to replace, then return
-    ∇
-
-    Handle←{9 chksum⍤1⊢⍵} ⍝ Create hash up to 9 digits
+      Handle←{ ⍝ Generate hash using dfns.chksum
+          9{⎕IO ⎕ML←0 1                     ⍝ Simple ⍺-digit checksum.
+     
+              bvec←{                              ⍝ byte-vector.
+                  sub←{(⍴⍵)bvec,⍵}                ⍝ bvec of sub-item.
+                  0∊⍴⍵:⍺ pref sub⊃⍵               ⍝ null:      prototypical item.
+                  (⍺≡⍬)∧isref⊃⍵:⍬                 ⍝ ref:       ignored.
+                  ⍵≡,⎕NULL:⍬                      ⍝ ⎕null:     ignored.
+                  6=10|⎕DR ⍵:⍺ pref↑,/sub¨⍵       ⍝ nested:    cat of sub-vectors.
+                  11=⎕DR ⍵:⍺ pref ⍵               ⍝ boolean:   items of array.
+                  2|⎕DR ⍵:⍺ pref bytes ⍵          ⍝ numeric:   bytes of array.
+                  ⍺ pref bytes ⎕UCS ⍵             ⍝ character: unicode indices.
+              }
+     
+              isref←{9=⎕NC'⍵'}                    ⍝ namespace reference.
+              bytes←{256|83 ⎕DR ⍵}                ⍝ data bytes.
+              pref←{(bytes ⍺,¯1),⍵}               ⍝ prefixed shape vector.
+              wsum←{⍵+.×1+⍳⍴⍵}                    ⍝ weighted sum.
+     
+              ⍺←6 ⋄ (10*⍺)|wsum(⍴⍵)bvec,⍵         ⍝ ⍺-digit weighted sum of byte-vector.
+          }⍤1⊢⍵
+      }
 
     ∇ {handle}←Register efp ⍝ ... prioritised callback
       ⍝ Argument must be (event fn priority) or matrix of such rows
