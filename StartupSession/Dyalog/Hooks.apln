@@ -2,7 +2,7 @@
     ⎕ML←1 ⋄ ⎕IO←1
 
       Handle←{ ⍝ Generate hash using dfns.chksum
-          9{⎕IO ⎕ML←0 1                     ⍝ Simple ⍺-digit checksum.
+          9{⎕IO ⎕ML←0 1                           ⍝ Simple ⍺-digit checksum.
      
               bvec←{                              ⍝ byte-vector.
                   sub←{(⍴⍵)bvec,⍵}                ⍝ bvec of sub-item.
@@ -10,11 +10,10 @@
                   (⍺≡⍬)∧isref⊃⍵:⍬                 ⍝ ref:       ignored.
                   ⍵≡,⎕NULL:⍬                      ⍝ ⎕null:     ignored.
                   6=10|⎕DR ⍵:⍺ pref↑,/sub¨⍵       ⍝ nested:    cat of sub-vectors.
-                  11=⎕DR ⍵:⍺ pref ⍵               ⍝ boolean:   items of array.
-                  2|⎕DR ⍵:⍺ pref bytes ⍵          ⍝ numeric:   bytes of array.
-                  ⍺ pref bytes ⎕UCS ⍵             ⍝ character: unicode indices.
+                  ⍺ pref bytes ifdr(11∘≠)⎕UCS ifdr(2∘|)⍵     ⍝ bytes of array.
               }
      
+              ifdr←{⍺⍺⍣(⍵⍵ ⎕DR ⍵)⊢⍵}             ⍝ apply fn for all other types
               isref←{9=⎕NC'⍵'}                    ⍝ namespace reference.
               bytes←{256|83 ⎕DR ⍵}                ⍝ data bytes.
               pref←{(bytes ⍺,¯1),⍵}               ⍝ prefixed shape vector.
@@ -35,8 +34,11 @@
               →ERROR
           :EndTrap
      
-      :ElseIf (,3)≡⍴efp ⍝ 3-element vec
-      :AndIf '' ''≡0⌿¨2↑efp ⍝ first 2 must be strings
+      :ElseIf ~326∊⎕DR¨efp ⍝no refs
+      :AndIf 0 0 1≡2|⎕DR¨efp ⍝ char char num
+      :AndIf 1∧.≥≢∘⍴¨efp ⍝ all scal/vecs
+      :AndIf 1∧.≤≢¨efp ⍝ all non-empty
+          efp←,¨efp
           Init event←⊃efp
           ⍎event,'←Norm ',event,'⍪1↓efp'
           handle←Handle efp
@@ -64,7 +66,7 @@
           removed←,⍣(⍬≡⍴handle)⊢removed
      
       :Else
-          ⎕SIGNAL⊂('EN' 11)('Message' 'Handle must be integer(s)')
+          ⎕SIGNAL⊂('EN' 11)('Message' 'Handle(s) must be numeric')
       :EndIf
     ∇
 
@@ -105,7 +107,7 @@
      
       :If 2=|≡event
           :Trap 11
-              hooks←⊃⍪⌿(⊂,Registered)¨event
+              hooks←⊃⍪⌿Registered¨event
           :Else
               →ERROR
           :EndTrap
