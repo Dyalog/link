@@ -56,7 +56,7 @@
                  num←∊2↑'.'Cut ver
                  uc←'UC'/⍨80 82=⎕DR'' ⍝ unicode/classic
                  bits←¯2↑'32',{⍵↓⍨⍵⍳'-'}os
-                 home,'/dyalog.',num,'.files'
+                 home,'/dyalog.',num,uc,bits,'.files'
              }⍵
              user←⊃⎕NPARTS verSpec ⍝ /../
              verAgno←user,'dyalog.files' 'Dyalog APL Files'⊃⍨1+⍵
