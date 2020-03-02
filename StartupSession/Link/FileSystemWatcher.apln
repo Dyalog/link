@@ -3,9 +3,7 @@
     ∇ WatchEvent(obj args);nargs
      ⍝ Callback for System.IO.FileSystemWatcher instance
   ⍝     Passes info on to ⎕SE.Link.Notify for processing
-     
       {}2501⌶0 ⍝ kill thread on exit
-     
       nargs←⊂819⌶⍕args.ChangeType             ⍝ type: created|changed|deleted|renamed
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
@@ -14,10 +12,10 @@
      
       ⎕SE.Link.Notify nargs
     ∇
-    ∇ r←Watch args;⎕USING;path;filter;watcher
+    ∇ r←Watch args;⎕USING;path;filter;watcher;dotnetcore
      ⍝ args: path filter
-     
-      ⎕USING←',System.dll'
+      dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
+      ⎕USING←',System',(~dotnetcore)/'.dll'
       watcher←⎕NEW System.IO.FileSystemWatcher
       watcher.(Path Filter)←args
       watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'

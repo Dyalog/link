@@ -1,5 +1,6 @@
  msg←{opts}Create(ns dir)
  ;isWin;container;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
+ ;dotnetcore;canwatch
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -12,9 +13,19 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
+    :Trap 0
+        dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
+        :If canwatch←dotnetcore∨U.isWindows
+           ⎕USING←',System',(~dotnetcore)/'.dll'
+           canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
+        :EndIf
+    :Else
+        canwatch←0
+    :EndTrap
+
      msg←⍕⍬⊤⍬
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←canwatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
 
@@ -27,9 +38,9 @@
 
      dir←U.WinSlash dir
 
-     :If ~U.isWindows
+     :If ~canwatch
      :AndIf (⊂opts.watch)∊'both' 'dir'
-         msg←'Watching directories is only supported under Microsoft Windows'
+         msg←'Watching directories is only supported if .NET is available'
      :ElseIf (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
          msg←'Unable to link to namespace: ',ns
      :ElseIf opts.source≡'dir'
