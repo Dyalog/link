@@ -1,9 +1,9 @@
  {r}←Notify args
- ;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
+ ;startai;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
-
+ startai←⎕AI
  :Select U.debug
  :Case 1 ⋄ ⎕←'Notify'args
  :Case 2 ⋄ ⎕←'Notify'args ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -232,3 +232,11 @@ END:
  :Else
      U.Resignal 1
  :EndTrap
+
+:Trap 0
+    :If U.debug≠0
+        ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
+    :EndIf
+:Else
+    ⎕←'The impossible happened:' (↑⎕DM)
+:EndTrap
