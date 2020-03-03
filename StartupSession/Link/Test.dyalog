@@ -7,7 +7,9 @@
     ⎕IO←1 ⋄ ⎕ML←1
 
     ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test
-     ⍝ Run all the Link Tests. If no folder name provided, default to /temp/linktest
+     ⍝ Run all the Link Tests. If no folder name provided, default to
+     ⍝ Windows: /temp/linktest
+     ⍝    else: ~/temp/linktest
      
       tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ by default: run all tests
       pause_tests←0                             ⍝ no manual testing
@@ -366,10 +368,12 @@
       CleanUp folder name
     ∇
 
-    ∇ r←Setup folder
+    ∇ r←Setup folder;dotnetcore;windows
       r←'' ⍝ Run will abort if empty
-      :If 'Windows'≢7↑⊃'.'⎕WG'APLVersion'
-          ⎕←'Unable to run Link.Tests - Microsoft Windows is required to test the FileSystemWatcher'
+
+      dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'        
+      :If ~dotnetcore∨windows←'Windows'≡7↑⊃'.'⎕WG'APLVersion'
+          ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0
       :EndIf
      
@@ -385,7 +389,7 @@
           →0
       :EndIf
      
-      folder←∊1 ⎕NPARTS folder,(0=≢folder)/'/temp/linktest' ⍝ Normalise
+      folder←∊1 ⎕NPARTS folder,(0=≢folder)/(1+windows)⊃'linktest' '/temp/linktest' ⍝ Normalise
      
       :Trap 22
           2 ⎕MKDIR folder

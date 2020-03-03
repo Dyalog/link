@@ -1,17 +1,25 @@
 ﻿:Namespace FileSystemWatcher
     (⎕IO ⎕ML)←1 1
-    ∇ WatchEvent(obj args);nargs
+
+    ∇ WatchEvent(obj args);ct;nargs
      ⍝ Callback for System.IO.FileSystemWatcher instance
-  ⍝     Passes info on to ⎕SE.Link.Notify for processing
-      {}2501⌶0 ⍝ kill thread on exit
-      nargs←⊂819⌶⍕args.ChangeType             ⍝ type: created|changed|deleted|renamed
+     ⍝ Passes info on to ⎕SE.Link.Notify for processing
+      
+      ⍝ {}2501⌶0 ⍝ kill thread on exit
+      :If 83=⎕DR ct←args.ChangeType           ⍝ numeric: .NET Core Bridge
+          nargs←(1 2 4 8⍳ct)⌷'created' 'deleted' 'changed' 'renamed' ''
+      :Else                                   ⍝ object: .NET Framework Bridge
+          nargs←⊂819⌶⍕ct
+      :EndIf
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
      
+  
       ⎕SE.Link.Notify nargs
     ∇
+
     ∇ r←Watch args;⎕USING;path;filter;watcher;dotnetcore
      ⍝ args: path filter
       dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
