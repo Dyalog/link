@@ -68,10 +68,12 @@
       t←urefs←∪allrefs
       mask←(≢urefs)⍴0
      
-      :Repeat
-          mask∨←t∊rootns ⍝ Have we reached rootns?
-          t←t.##         ⍝ Move all pointers up to parent
-      :Until ∧/t∊# ⎕SE   ⍝ Continue until everything is "root"
+      :If 0≠≢t
+          :Repeat
+              mask∨←t∊rootns ⍝ Have we reached rootns?
+              t←t.##         ⍝ Move all pointers up to parent
+          :Until ∧/t∊# ⎕SE   ⍝ Continue until everything is "root"
+      :EndIf
      
       :If 0≠r←≢remove←(allrefs∊mask/urefs)/all ⍝ links to be removed
           r←+/5178⌶¨(⍕¨2⊃¨remove),¨'.',¨⍕¨1⊃¨remove
