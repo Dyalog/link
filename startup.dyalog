@@ -6,7 +6,7 @@
 
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
- ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir ⍝ vars
+ ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -79,10 +79,15 @@
                  files←2 Dir fulldir
                  oldlinks←5177⌶⍬
                  {}ref FixEach files
-                 :If 4≠1(⎕NINFO ⎕OPT'Follow' 0)fulldir ⍝ if folder is NOT a symbolic link
+                 :Select dskl←Env'DYALOGSTARTUPKEEPLINK' ⍝ proper link or just import?
+                 :Case ,'1'
+                 :CaseList ''(,'0')
                      new←(5177⌶⍬)~oldlinks    ⍝ list new links
                      z←5178(2⊃¨new).⌶1⊃¨new ⍝ remove all newly created links
-                 :EndIf
+                 :Else
+                     ⍞←'Configuration parameter DYALOGSTARTUPKEEPLINK is "',dskl,'" but must be "0" or "1". Press Enter.'
+                     {}⍞ ⋄ ⎕OFF 1
+                 :EndSelect
              :EndFor
          :EndFor
      :EndFor
