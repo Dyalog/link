@@ -1,0 +1,3 @@
+ OnAfterFix←{ ⍝ Thin cover in preparation for Link 3.0
+     ⍵[4 6 5]⎕SE.Link.Fix ⍬
+ }
