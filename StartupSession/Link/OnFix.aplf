@@ -1,3 +1,4 @@
  OnFix←{ ⍝ Thin cover in preparation for Link 3.0
-     ⍵[4 6 5]⎕SE.Link.Sync ⍬
+     3=⎕NC'⎕SE.Link.Sync':⍵[4 6 5]⎕SE.Link.Sync ⍬
+     1
  }
