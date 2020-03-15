@@ -13,8 +13,8 @@
 
     :Section Tacit necessary to avoid stack frame
     Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('Message'(Message,⍺)))}
-    Check←→{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name (yes, it should say "←→")
-    If←→⍴⍨
+    Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
+    If←⍴⍨
     :EndSection
 
     :Section Strings
