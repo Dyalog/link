@@ -1,4 +1,4 @@
- msg←Break nss;names
+  msg←Break nss;names;link
  ;ns;linked;broken;missing;mask;⎕IO;there;n;parents
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -26,6 +26,10 @@
              mask←linked≠ns
              :If 0∊mask
                  n+←U.RemoveFileLinksIn ns
+                 link←(mask⍳0)⊃Links
+                 :If 0≠link.⎕NC'fsw'
+                     FileSystemWatcher.Break link.fsw
+                 :EndIf
                  ⎕SE.Link.Links/⍨←mask
                  broken,←⊂ns
              :Else
@@ -44,6 +48,6 @@
          msg←'No active links'
      :EndIf
      :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table
-  :Else
+ :Else
      U.Resignal 1
  :EndTrap

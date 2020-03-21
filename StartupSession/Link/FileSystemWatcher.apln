@@ -1,75 +1,97 @@
 ﻿:Namespace FileSystemWatcher
     (⎕IO ⎕ML)←1 1
+    FSWQ←'⎕SE.Link.FileSystemWatcher.QUEUE' ⍝ FSW Queue Object name prefix
 
     ∇ NotifyEvent args
      ⍝ Process File System Watcher events, redirected via a timer
 
      :Select 2⊃args
      :Case 140  ⍝ Timer; do nothing for now
-     :Case 7777 ⍝ Notify
+     :Case 7777 ⍝ Re-queued Notify event
          ⎕SE.Link.Notify 3⊃args
+     :Case 7778 ⍝ We have been asked to go away
+         ⎕EX 1⊃args ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
      :EndSelect
     ∇
 
-    ∇ Notify nargs
-     ⎕NQ 'QUEUE' 7777 nargs
-    ∇
-    
-    ∇ WatchEvent(obj args);ct;nargs
+     ∇ WatchEvent(obj args);ct;nargs
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
       
-      ⍝ {}2501⌶0 ⍝ kill thread on exit
-      :If 83=⎕DR ct←args.ChangeType           ⍝ numeric: .NET Core Bridge
+      {}2501⌶0 ⍝ kill thread on exit
+      :If 83=⎕DR ct←args.ChangeType           ⍝ /// numeric: experimental .NET Core Bridge
           nargs←(1 2 4 8⍳ct)⌷'created' 'deleted' 'changed' 'renamed' ''
-      :Else                                   ⍝ object: .NET Framework Bridge
+      :Else                                   ⍝ object: .NET Framework Bridge (and final .NET Core Bridge)
           nargs←⊂819⌶⍕ct
       :EndIf
+
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
      
-      Notify nargs
+      ⎕NQ (⊃⎕WN ⎕SE.Link.FileSystemWatcher) 7777 nargs ⍝ Any queue will do
+  
+     ⍝ Do not call ⎕SE.Link.Notify directly because the .NET FSW callback would then take too long
+     ⍝ Instead, we immediately return from the .NET callback and process the event a split second later
+     ∇
+ 
+    ∇r←Watch args;tid;q
+    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in Link.Links[i]
+
+     q←FSWQ,⍕tid←WatcherThread&args
+     :While 0=⎕NC q
+        ⎕DL 0.05
+     :EndWhile
+     r←⎕NEW WrappedQueue (q tid)
     ∇
 
-    ∇ r←Watch args;⎕USING;path;filter;watcher;dotnetcore
+    ∇ Break queue;timer;tid;fsw
+   ⍝ Cleanly shut down a wrapped file system watcher
+
+     (timer tid)←queue.(QUEUE TID)
+     :If tid∊⎕TNUMS
+     :AndIf 9=⎕NC timer
+        ⎕NQ timer 7778 ⍝ Tell it to go away
+        ⎕DL 0.5
+        :If tid∊⎕TNUMS
+            ⎕TRAP←0 'S' ⋄ ∘∘∘ ⍝ thread won't go
+        :EndIf
+     :EndIf
+
+    ∇
+
+    ∇ WatcherThread args;⎕USING;path;filter;watcher;dotnetcore;tid;q
+     ⍝ Run a thread which creates a FileSystemWatcher event and handles
      ⍝ args: path filter
 
       dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
-      {z←⍵ ⎕WC'Timer'('Event'(140 7777)'NotifyEvent')('Interval' 10000)
-      ⎕DQ ⍵}&'QUEUE' ⍝ Launch a thread to dequeue it
-       ⍝ /// Need code somewhere to kill the thread and the timer again
       ⎕USING←',System',(~dotnetcore)/'.dll'
-      watcher←⎕NEW System.IO.FileSystemWatcher
-      watcher.(Path Filter)←args
-      watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
-      watcher.IncludeSubdirectories←1
-      watcher.EnableRaisingEvents←1
-     
-      r←⎕NEW Disposable watcher ⍝ wrap a destructor around it
-      r.⎕DF 1⌽'][',##.U.WinSlash⊃args
-    ∇
+      :Disposable watcher←⎕NEW System.IO.FileSystemWatcher
+          watcher.(Path Filter)←args
+          watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
+          watcher.IncludeSubdirectories←1
+         
+          (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(140 7777 7778)'NotifyEvent')('Interval' 10000)('Data' watcher)
 
+          watcher.EnableRaisingEvents←1
+          ⎕DQ q ⍝ Launch a thread to dequeue it 
+      :EndDisposable
+    ∇
     
-    :Class Disposable
-        :Field Public Object
-        ∇ make ref
+    :Class WrappedQueue
+        :Field Public QUEUE
+        :Field Public TID
+
+        ∇ make (queue tid)
           :Access Public
           :Implements Constructor
-          Object←ref
+          (QUEUE TID)←queue tid          
         ∇
-        ∇ do_dispose ref
-          :Trap 0
-              ref.Dispose
-          :EndTrap
-        ∇
-        ∇ dispose
+
+        ∇ EndQueue
           :Implements Destructor
-          :Trap 90 ⍝ object may have been destroyed by )OFF
-              Object.EnableRaisingEvents←0
-          :EndTrap
-          do_dispose Object
+          ⍝ ⎕NQ QUEUE 7778         
         ∇
     :EndClass
 :EndNamespace

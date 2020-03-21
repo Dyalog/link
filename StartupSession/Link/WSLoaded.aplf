@@ -5,3 +5,5 @@
  :AndIf ×≢Links←(0≠⎕NC Links.ns)/Links
      Links/⍨←⎕SE=⍎∘'##'⍣≡¨Links.ns
  :EndIf
+
+⎕SE.Link.FileSystemWatcher.(⎕EX 'Q' ⎕NL 9) ⍝ Expunge old filesystemwatcher queue objects
