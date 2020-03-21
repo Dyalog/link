@@ -6,6 +6,29 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
+ ∇{flag}NDELETE file;type;name;names;types;n;t
+  ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
+  :If 0=⎕NC'flag' ⋄ flag←0 ⋄ :EndIf
+
+  :Select flag
+  :Case 0 ⋄ ⎕NDELETE file
+  :Case 2 ⍝ Recursive
+     (name type)←0 1 ⎕NINFO file
+     :If type=1 ⍝ Directory
+         (names types)←0 1(⎕NINFO⍠1)file,'/*'
+         :For (n t) :InEach names types
+             :If t=1 ⋄ 2 NDELETE n ⍝ Subdirectory
+             :Else ⋄ ⎕NDELETE n  ⋄ ⎕DL 0.01 ⍝ Better be a file
+             :EndIf
+         :EndFor
+     :EndIf
+     ⎕NDELETE name ⋄ ⎕DL 0.01
+ :Else ⋄ 'Larg must be 0 or 2'⎕SIGNAL 11
+ :EndSelect
+
+
+    ∇
+
     ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test
      ⍝ Run all the Link Tests. If no folder name provided, default to
      ⍝ Windows: /temp/linktest
@@ -84,7 +107,7 @@
      
       PauseTest folder
      
-      ⎕NDELETE foofile
+      NDELETE foofile
       assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3'
      
       CleanUp folder name
@@ -198,7 +221,7 @@
       PauseTest folder
      
       ⍝ Now tear it all down again:
-      2 ⎕NDELETE folder
+      2 NDELETE folder
       assert'9=⎕NC ''ns'''
      
       #.⎕EX name
@@ -254,7 +277,7 @@
       assert'value≡ns.sub.one2'
      
       ⍝ Erase the array
-      ⎕NDELETE new
+      NDELETE new
       assert'0=⎕NC ''ns.sub.one2'''
      
       ⍝ Put a copy of foo in the folder
@@ -320,14 +343,16 @@
      
       ⍝ Now test the Notify function - and verify the System Variable setting trick
      
-      link.fsw.Object.EnableRaisingEvents←0 ⍝ Disable notifications
+       fsw←(⍕link.fsw.QUEUE) ⎕WG 'Data'
+       fsw.EnableRaisingEvents←0 ⍝ Disable notifications
+
       (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')⎕NPUT file←folder,'/bus/_SV.dyalog'
       ⎕SE.Link.Notify'created'file
      
       assert'0=ns.bus.⎕IO'
       assert'1=ns.⎕IO'
      
-      link.fsw.Object.EnableRaisingEvents←1 ⍝ Re-enable watcher
+      fsw.EnableRaisingEvents←1 ⍝ Re-enable watcher
      
       ⍝ Now test whether exits implement ".charmat" support
       ⍝ First, write vars in the workspace to file'
@@ -350,18 +375,18 @@
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
      
-      2 ⎕NDELETE folder,'/bus'
+      2 NDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
      
       ⍝ The variables
-      ⎕NDELETE folder,'/cv.charvec'
-      ⎕NDELETE folder,'/cm.charmat'
+      NDELETE folder,'/cv.charvec'
+      NDELETE folder,'/cm.charmat'
       assert'0 0≡ns.⎕NC 2 2⍴''cmcv'''
      
       ⍝ The the functions, one by one
-      ⎕NDELETE folder,'/nil.dyalog'
+      NDELETE folder,'/nil.dyalog'
       assert'0=ns.⎕NC ''nil'''
-      ⎕NDELETE folder,'/foo.dyalog'
+      NDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
      EXIT: ⍝ →EXIT to aborted test and clean up
