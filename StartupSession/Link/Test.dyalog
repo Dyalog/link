@@ -235,7 +235,9 @@
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
       opts.customExtensions←'charmat' 'charvec'
+      opts.watch←'both'
       z←opts ⎕SE.Link.Create('#.',name)folder
+      z ⎕SIGNAL (0=≢⎕SE.Link.Links)/11
      
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
