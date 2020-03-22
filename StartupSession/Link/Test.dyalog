@@ -6,27 +6,36 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
- ∇{flag}NDELETE file;type;name;names;types;n;t
-  ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
-  :If 0=⎕NC'flag' ⋄ flag←0 ⋄ :EndIf
+    ∇{flag}NDELETE file;type;name;names;types;n;t
+     ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
+     :If 0=⎕NC'flag' ⋄ flag←0 ⋄ :EndIf
 
-  :Select flag
-  :Case 0 ⋄ ⎕NDELETE file
-  :Case 2 ⍝ Recursive
-     (name type)←0 1 ⎕NINFO file
-     :If type=1 ⍝ Directory
-         (names types)←0 1(⎕NINFO⍠1)file,'/*'
-         :For (n t) :InEach names types
-             :If t=1 ⋄ 2 NDELETE n ⍝ Subdirectory
-             :Else ⋄ ⎕NDELETE n  ⋄ ⎕DL 0.01 ⍝ Better be a file
-             :EndIf
-         :EndFor
+     :Select flag
+     :Case 0 ⋄ ⎕NDELETE file
+     :Case 2 ⍝ Recursive
+        (name type)←0 1 ⎕NINFO file
+         :If type=1 ⍝ Directory
+            (names types)←0 1(⎕NINFO⍠1)file,'/*'
+            :For (n t) :InEach names types
+               :If t=1 ⋄ 2 NDELETE n ⍝ Subdirectory
+               :Else ⋄ ⎕NDELETE n  ⋄ ⎕DL 0.01 ⍝ Better be a file
+               :EndIf
+            :EndFor
+         :EndIf
+         ⎕NDELETE name ⋄ ⎕DL 0.01
+     :Else ⋄ 'Larg must be 0 or 2'⎕SIGNAL 11
+     :EndSelect
+    ∇
+
+    ∇ text NPUT args;file;bytes;tn;overwrite
+     ⍝ Cover for ⎕NPUT 
+     (file overwrite)←2↑(⊆args),1
+     bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
+     :If (⎕NEXISTS file)∧overwrite 
+        tn←file ⎕NTIE 0 ⋄ 0 ⎕NRESIZE tn ⋄ bytes ⎕NAPPEND tn ⋄ ⎕NUNTIE tn ⋄ ⎕DL 0.01
+     :Else
+       tn←file ⎕NCREATE 0 ⋄ bytes ⎕NAPPEND tn ⋄ ⎕NUNTIE tn ⋄ ⎕DL 0.01
      :EndIf
-     ⎕NDELETE name ⋄ ⎕DL 0.01
- :Else ⋄ 'Larg must be 0 or 2'⎕SIGNAL 11
- :EndSelect
-
-
     ∇
 
     ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test
@@ -160,12 +169,12 @@
       3 ⎕MKDIR Retry 5⊢folder∘,¨'/sub/sub1' '/sub/sub2'
      
       ⍝ make some content
-      (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
-      (⊂cv←'Line 1' 'Line two')∘⎕NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'
+      (⊂foo←' r←foo x' ' x x')NPUT folder,'/foo.dyalog'
+      (⊂cv←'Line 1' 'Line two')∘NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'
       cm←↑cv
-      (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/sub/sub2/one2.apla'
-      (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/bClass.dyalog'
-      (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/aClass.dyalog'
+      (⊂'[''one'' 1' '''two'' 2]')NPUT folder,'/sub/sub2/one2.apla'
+      (⊂bc←':Class bClass' ':EndClass')NPUT folder,'/sub/sub2/bClass.dyalog'
+      (⊂ac←':Class aClass : bClass' ':EndClass')NPUT folder,'/sub/sub2/aClass.dyalog'
      
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
@@ -193,7 +202,7 @@
       ns'foo'⎕SE.Link.Fix' r←foo x' ' r←x x x'
       assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
      
-      (⊂' r←foo x' ' r←x x x x')⎕NPUT(folder,'/foo.dyalog')1
+      (⊂' r←foo x' ' r←x x x x')NPUT(folder,'/foo.dyalog')1
       assert'(ns.⎕NR''foo'')≢⊃⎕NGET folder,''/foo.dyalog'''
      
       ⎕SE.Link.Expunge'ns.sub.sub1'
@@ -244,14 +253,14 @@
       ns←#⍎name
      
       ⍝ Create a monadic function
-      (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
+      (⊂foo←' r←foo x' ' x x')NPUT folder,'/foo.dyalog'
       assert'foo≡ns.⎕NR ''foo'''
       ⍝ Create a niladic / non-explicit function
-      (⊂nil←' nil' ' 2+2')⎕NPUT folder,'/nil.dyalog'
+      (⊂nil←' nil' ' 2+2')NPUT folder,'/nil.dyalog'
       assert'nil≡ns.⎕NR ''nil'''
      
       ⍝ Create an array
-      (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/one2.apla'
+      (⊂'[''one'' 1' '''two'' 2]')NPUT folder,'/one2.apla'
       assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
      
       ⍝ Rename the array
@@ -261,7 +270,7 @@
       assert'0=⎕NC ''ns.one2'''
      
       ⍝ Update the array
-      (⊂'[''one'' 1' '''two'' 2' '''three'' 3]')⎕NPUT otfile 1
+      (⊂'[''one'' 1' '''two'' 2' '''three'' 3]')NPUT otfile 1
       assert'(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo'
      
       ⍝ Update file using Link.Fix
@@ -283,16 +292,16 @@
       assert'0=⎕NC ''ns.sub.one2'''
      
       ⍝ Put a copy of foo in the folder
-      (⊂foo)⎕NPUT folder,'/sub/foo.dyalog'
+      (⊂foo)NPUT folder,'/sub/foo.dyalog'
       assert'foo≡ns.sub.⎕NR ''foo'''
      
       ⍝ Create a class with missing dependency
-      (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/aClass.dyalog'
+      (⊂ac←':Class aClass : bClass' ':EndClass')NPUT folder,'/sub/aClass.dyalog'
       assert'9=ns.sub.⎕NC ''aClass'''
       assert'ac≡⎕SRC ns.sub.aClass'
      
       ⍝ Now add the base class
-      (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/bClass.dyalog'
+      (⊂bc←':Class bClass' ':EndClass')NPUT folder,'/sub/bClass.dyalog'
       assert'9=ns.sub.⎕NC ''bClass'''
       assert'bc≡⎕SRC ns.sub.bClass'
      
@@ -348,7 +357,7 @@
        fsw←(⍕link.fsw.QUEUE) ⎕WG 'Data'
        fsw.EnableRaisingEvents←0 ⍝ Disable notifications
 
-      (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')⎕NPUT file←folder,'/bus/_SV.dyalog'
+      (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')NPUT file←folder,'/bus/_SV.dyalog'
       ⎕SE.Link.Notify'created'file
      
       assert'0=ns.bus.⎕IO'
@@ -366,8 +375,8 @@
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
       ⍝ Then verify that modifying the file brings changes back
-      (⊂cv←ns.cv,⊂'Line three')⎕NPUT(folder,'/cv.charvec')1
-      (⊂↓cm←↑ns.cv)⎕NPUT(folder,'/cm.charmat')1
+      (⊂cv←ns.cv,⊂'Line three')NPUT(folder,'/cv.charvec')1
+      (⊂↓cm←↑ns.cv)NPUT(folder,'/cm.charmat')1
      
       assert'cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
@@ -520,7 +529,7 @@
      
           :EndSelect
      
-          (⊂src)⎕NPUT(∊(extn@3)⎕NPARTS file)1
+          (⊂src)NPUT(∊(extn@3)⎕NPARTS file)1
           r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
     ∇
