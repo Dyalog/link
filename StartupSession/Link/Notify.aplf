@@ -1,5 +1,5 @@
  {r}←Notify args
- ;startai;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
+ ;startai;type;path;oldpath;oldfolder;oldextn;oldnsname;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -20,6 +20,7 @@
      link←i⊃⎕SE.Link.Links
 
      (folder name extn)←⎕NPARTS path
+     (oldfolder oldname oldextn)←⎕NPARTS oldpath
      →END U.Check name ⍝ invalid item name
 
      dir←U.IsDir path
@@ -30,8 +31,10 @@
      folder←¯1↓folder ⍝ drop trailing /
 
      nsname←(1+≢link.dir)↓folder
+     oldnsname←(1+≢link.dir)↓oldfolder
      →END U.Check nsname/⍨link.flatten
      ((nsname='/')/nsname)←'.'
+     ((oldnsname='/')/oldnsname)←'.'
 
      :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
      ⍝ check visibility
@@ -45,6 +48,7 @@
      :EndIf
 
      nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
+     oldnsname←link.ns,(~link.flatten)/((0≠≢oldnsname)/'.'),oldnsname ⍝ target namespace
 
      :If 3=⎕NC link.beforeRead ⍝ user exit defined?
          :Trap DEBUG↓0
@@ -158,8 +162,8 @@
 
          oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
          :If array∨0≠≢⊃z←ns U.GetLinkInfo oldname     ⍝ array or old name *is* linked to this file
-             effect←1 ⋄ affected←(⍕ns),'.',name
-             Log'(rename) ',(⍕ns),'.',oldname,' → ',affected
+             effect←1 ⋄ affected←(⍕oldnsname),'.',oldname
+             Log'(rename) ',affected,' → ',(⍕ns),'.',name
 
          :Else ⍝ old name not linked to old file
              :If 0≠≢z←U.GetFileInfo path
