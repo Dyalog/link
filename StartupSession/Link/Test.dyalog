@@ -17,7 +17,7 @@
          :If type=1 ⍝ Directory
             (names types)←0 1(⎕NINFO⍠1)file,'/*'
             :For (n t) :InEach names types
-               :If t=1 ⋄ 2 NDELETE n ⍝ Subdirectory
+               :If t=1 ⋄ 2 NDELETE n          ⍝ Subdirectory
                :Else ⋄ ⎕NDELETE n  ⋄ ⎕DL 0.01 ⍝ Better be a file
                :EndIf
             :EndFor

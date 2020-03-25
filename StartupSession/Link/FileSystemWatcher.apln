@@ -62,7 +62,8 @@
     ∇
 
     ∇ WatcherThread args;⎕USING;path;filter;watcher;dotnetcore;tid;q
-     ⍝ Run a thread which creates a FileSystemWatcher event and handles
+     ⍝ Run a thread which creates a FileSystemWatcher object
+     ⍝ ... and makes sure there is a ⎕DQ to allow processing of events
      ⍝ args: path filter
 
       dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
@@ -75,7 +76,7 @@
           (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(140 7777 7778)'NotifyEvent')('Interval' 10000)('Data' watcher)
 
           watcher.EnableRaisingEvents←1
-          ⎕DQ q ⍝ Launch a thread to dequeue it 
+          ⎕DQ q ⍝ Wait here; q will be ⎕EX'd by Link.Break
       :EndDisposable
     ∇
     
