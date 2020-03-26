@@ -18,7 +18,8 @@
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
       
-      {}2501⌶0 ⍝ kill thread on exit
+      ⍝ {}2501⌶0 ⍝ kill thread on exit - triggers mantis 17628
+      {}2502⌶0  ⍝ discard parked thread - workaround mantis 17628
       :If 83=⎕DR ct←args.ChangeType           ⍝ /// numeric: experimental .NET Core Bridge
           nargs←(1 2 4 8⍳ct)⌷'created' 'deleted' 'changed' 'renamed' ''
       :Else                                   ⍝ object: .NET Framework Bridge (and final .NET Core Bridge)
