@@ -38,7 +38,7 @@
      :EndIf
     ∇
 
-    ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test
+    ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test;dnv;aplv
      ⍝ Run all the Link Tests. If no folder name provided, default to
      ⍝ Windows: /temp/linktest
      ⍝    else: ~/temp/linktest
@@ -58,8 +58,10 @@
       :For test :In tests
           z←(⍎test)folder
       :EndFor
-     
-      r←(⍕≢tests),' test[s] passed OK in ',(1⍕1000÷⍨⎕AI[3]-start),' seconds under ',⍕'.'⎕WG'APLVersion'
+      
+      dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major '.' MajorRevision)}''
+      aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG 'APLVersion'
+      r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv
     ∇
 
     ∇ {r}←{x}(F Retry c)y;n
