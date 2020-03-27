@@ -6,7 +6,7 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    USE_ISOLATES←0   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
+    USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
 
@@ -504,7 +504,7 @@
 
     ∇ {msg}assert expr;maxwait;end;timeout
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
-      end←3000+3⊃⎕AI ⍝ 3s
+      end←10000+3⊃⎕AI ⍝ 3s
       timeout←0
      
       :While 0∊{0::0 ⋄ ⍎⍵}expr
