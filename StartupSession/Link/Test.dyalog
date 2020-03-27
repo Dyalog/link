@@ -70,7 +70,7 @@
      
       UnSetup folder
      
-      dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'MajorRevision)}''
+      dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
       r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv
     ∇
@@ -464,6 +464,7 @@
 
     ∇ UnSetup folder
       :If USE_ISOLATES
+          z←4=#.SLAVE.(2+2) ⍝ Make sure it finished what it was doing
           {}#.isolate.Reset 0
           ⎕EX'#.SLAVE'
       :EndIf
