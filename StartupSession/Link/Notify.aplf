@@ -38,10 +38,10 @@
 
      :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
      ⍝ check visibility
-         above←≢U.Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
+         above←¯1+≢U.Ancestry link.dir
 
          :Trap 0 ⍝ no access
-             →END U.If∨/6 ⎕NINFO(above↓U.Ancestry name),⊂path
+             →END U.If∨/6 ⎕NINFO above↓U.Ancestry path
          :Else
              →END
          :EndTrap

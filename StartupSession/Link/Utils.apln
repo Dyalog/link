@@ -89,7 +89,7 @@
     :EndSection
 
     :Section Files
-    Ancestry←{'/'Join\'/'(≠⊆⊢)⊃1⎕NPARTS⍵}
+    Ancestry←{((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}
 
     FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
 
