@@ -128,7 +128,7 @@
      
       PauseTest folder
      
-      _←#.SLAVE.⎕NDELETE foofile
+      _←QNDELETE foofile
       assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3'
      
       CleanUp folder name
@@ -242,7 +242,7 @@
       PauseTest folder
      
       ⍝ Now tear it all down again:
-      _←2 #.SLAVE.⎕NDELETE folder
+      _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
      
       #.⎕EX name
@@ -302,7 +302,7 @@
       assert'value≡ns.sub.one2'
      
       ⍝ Erase the array
-      _←#.SLAVE.⎕NDELETE new
+      _←QNDELETE new
       assert'0=⎕NC ''ns.sub.one2'''
      
       ⍝ Put a copy of foo in the folder
@@ -398,18 +398,18 @@
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
      
-      _←2 #.SLAVE.⎕NDELETE folder,'/bus'
+      _←2 QNDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus'''
      
       ⍝ The variables
-      _←#.SLAVE.⎕NDELETE folder,'/cv.charvec'
-      _←#.SLAVE.⎕NDELETE folder,'/cm.charmat'
+      _←QNDELETE folder,'/cv.charvec'
+      _←QNDELETE folder,'/cm.charmat'
       assert'0 0≡ns.⎕NC 2 2⍴''cmcv'''
      
       ⍝ The the functions, one by one
-      _←#.SLAVE.⎕NDELETE folder,'/nil.dyalog'
+      _←QNDELETE folder,'/nil.dyalog'
       assert'0=ns.⎕NC ''nil'''
-      _←#.SLAVE.⎕NDELETE folder,'/foo.dyalog'
+      _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
      EXIT: ⍝ →EXIT to aborted test and clean up
@@ -454,10 +454,10 @@
           :EndIf
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
           #.SLAVE←#.isolate.New'' 
-          QNDELETE←{⍺←⊢ ⋄ #.SLAVE.⎕NDELETE ⍵}
+          QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
       :Else
           #.SLAVE←#.⎕NS''
-          QNDELETE←{⍺←⊢ ⋄ NDELETE ⍵}
+          QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
       :EndIf
      
       r←folder
