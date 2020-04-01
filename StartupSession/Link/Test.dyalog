@@ -12,9 +12,10 @@
 
     ASSERT_ERROR←1   ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
 
-    ∇ {flag}NDELETE file;type;name;names;types;n;t
+    ∇ {r}←{flag}NDELETE file;type;name;names;types;n;t
      ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
      ⍝ Superseeded by #.SLAVE.⎕NDELETE
+      r←1
       :If 0=⎕NC'flag' ⋄ flag←0 ⋄ :EndIf
      
       :Select flag
@@ -34,11 +35,11 @@
       :EndSelect
     ∇
 
-    ∇ text NPUT args;file;bytes;tn;overwrite
+    ∇ {r}←text NPUT args;file;bytes;tn;overwrite
      ⍝ Cover for ⎕NPUT
      ⍝ Superseeded by #.SLAVE.⎕NPUT
       (file overwrite)←2↑(⊆args),1
-      bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
+      r←≢bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
       :If (⎕NEXISTS file)∧overwrite
           tn←file ⎕NTIE 0 ⋄ 0 ⎕NRESIZE tn ⋄ bytes ⎕NAPPEND tn ⋄ ⎕NUNTIE tn ⋄ ⎕DL 0.01
       :Else
