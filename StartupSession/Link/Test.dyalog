@@ -12,7 +12,6 @@
 
     ASSERT_ERROR←1   ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
 
-
     ∇ {flag}NDELETE file;type;name;names;types;n;t
      ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
      ⍝ Superseeded by #.SLAVE.⎕NDELETE
@@ -72,7 +71,7 @@
      
       dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-      r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv
+      r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv,USE_ISOLATES/' (using isolate)'
     ∇
 
     ∇ {r}←{x}(F Retry c)y;n
@@ -424,8 +423,8 @@
       :If ~dotnetcore∨windows←'Windows'≡7↑⊃'.'⎕WG'APLVersion'
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0
-      :EndIf
-     
+      :EndIf           
+      
       :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
       {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
       ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
@@ -454,9 +453,11 @@
               #.⎕CY'isolate'
           :EndIf
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
-          #.SLAVE←#.isolate.New''
+          #.SLAVE←#.isolate.New'' 
+          QNDELETE←{⍺←⊢ ⋄ #.SLAVE.⎕NDELETE ⍵}
       :Else
           #.SLAVE←#.⎕NS''
+          QNDELETE←{⍺←⊢ ⋄ NDELETE ⍵}
       :EndIf
      
       r←folder

@@ -86,7 +86,6 @@
           :While 0≠≢⎕SE.Link.FileSystemWatcher.ACTIVETIDS              
               ⎕DL 0.1 ⍝ Avoid deadlock with active callback on :EndDisposable
           :EndWhile
-          'Watcher thread shutdown delay: ',⎕AI[3]-start
       :EndDisposable
     ∇
     
