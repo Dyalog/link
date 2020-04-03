@@ -14,11 +14,10 @@
      :EndIf
 
     :Trap 0
-        dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
-        :If canwatch←dotnetcore∨U.isWindows
-           ⎕USING←',System',(~dotnetcore)/'.dll'
-           canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
-        :EndIf
+        ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
+        dotnetcore←(~U.isWindows)∨(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
+        ⎕USING←',System',(~dotnetcore)/'.dll'
+        canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
     :Else
         canwatch←0
     :EndTrap

@@ -19,7 +19,7 @@
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
       
-      {}2501⌶0 ⍝ kill thread on exit - triggers mantis 17628
+      {}2501⌶0
 
       ACTIVETIDS←(ACTIVETIDS∩⎕TNUMS),⎕TID
       :If 83=⎕DR ct←args.ChangeType           ⍝ /// numeric: experimental .NET Core Bridge
@@ -47,7 +47,7 @@
      :While 0=⎕NC q
         ⎕DL 0.05
      :EndWhile
-     r←⎕NEW WrappedQueue (q tid)
+     (r←⎕NS '').(QUEUE TID)←q tid ⍝ No longer use WrappedQueue
     ∇
 
     ∇ Break queue;timer;tid;fsw
@@ -69,7 +69,8 @@
      ⍝ ... and makes sure there is a ⎕DQ to allow processing of events
      ⍝ args: path filter
 
-      dotnetcore←(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
+     ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
+      dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
       ⎕USING←',System',(~dotnetcore)/'.dll'
       :Disposable watcher←⎕NEW System.IO.FileSystemWatcher
           watcher.(Path Filter)←args
@@ -81,11 +82,7 @@
           watcher.EnableRaisingEvents←1
           ⎕DQ q ⍝ Wait here; q will be ⎕EX'd by Link.Break
           watcher.EnableRaisingEvents←0
-          
-          start←⎕AI[3]
-          :While 0≠≢⎕SE.Link.FileSystemWatcher.ACTIVETIDS              
-              ⎕DL 0.1 ⍝ Avoid deadlock with active callback on :EndDisposable
-          :EndWhile
+
       :EndDisposable
     ∇
     
