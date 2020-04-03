@@ -40,10 +40,12 @@
       ACTIVETIDS~←⎕TID
      ∇
  
-    ∇r←Watch args;tid;q
+    ∇r←Watch args;tid;q;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in Link.Links[i]
-
+    
+     z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
      q←FSWQ,⍕tid←WatcherThread&args
+     z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting  
      :While 0=⎕NC q
         ⎕DL 0.05
      :EndWhile
@@ -51,7 +53,7 @@
     ∇
 
     ∇ Break queue;timer;tid;fsw
-   ⍝ Cleanly shut down a wrapped file system watcher
+    ⍝ Cleanly shut down a wrapped file system watcher
 
      (timer tid)←queue.(QUEUE TID)
      :If tid∊⎕TNUMS
