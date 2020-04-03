@@ -215,7 +215,7 @@
       ns'foo'⎕SE.Link.Fix' r←foo x' ' r←x x x'
       assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
      
-      _←(⊂' r←foo x' ' r←x x x x')#.SLAVE.⎕NPUT(folder,'/foo.dyalog')1
+      _←(⊂' r←foo x' ' r←x x x x')QNPUT(folder,'/foo.dyalog')1
       assert'(ns.⎕NR''foo'')≢⊃#.SLAVE.⎕NGET folder,''/foo.dyalog'''
      
       ⎕SE.Link.Expunge'ns.sub.sub1'
@@ -266,14 +266,14 @@
       ns←#⍎name
      
       ⍝ Create a monadic function
-      _←(⊂foo←' r←foo x' ' x x')#.SLAVE.⎕NPUT folder,'/foo.dyalog'
+      _←(⊂foo←' r←foo x' ' x x')QNPUT folder,'/foo.dyalog'
       assert'foo≡ns.⎕NR ''foo'''
       ⍝ Create a niladic / non-explicit function
-      _←(⊂nil←' nil' ' 2+2')#.SLAVE.⎕NPUT folder,'/nil.dyalog'
+      _←(⊂nil←' nil' ' 2+2')QNPUT folder,'/nil.dyalog'
       assert'nil≡ns.⎕NR ''nil'''
      
       ⍝ Create an array
-      _←(⊂'[''one'' 1' '''two'' 2]')#.SLAVE.⎕NPUT folder,'/one2.apla'
+      _←(⊂'[''one'' 1' '''two'' 2]')QNPUT folder,'/one2.apla'
       assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
      
       ⍝ Rename the array
@@ -284,7 +284,7 @@
       assert'0=⎕NC ''ns.one2'''
      
       ⍝ Update the array
-      _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')#.SLAVE.⎕NPUT otfile 1
+      _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT otfile 1
       assert'(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo'
      
       ⍝ Update file using Link.Fix
@@ -307,16 +307,16 @@
       assert'0=⎕NC ''ns.sub.one2'''
      
       ⍝ Put a copy of foo in the folder
-      _←(⊂foo)#.SLAVE.⎕NPUT folder,'/sub/foo.dyalog'
+      _←(⊂foo)QNPUT folder,'/sub/foo.dyalog'
       assert'foo≡ns.sub.⎕NR ''foo'''
      
       ⍝ Create a class with missing dependency
-      _←(⊂ac←':Class aClass : bClass' ':EndClass')#.SLAVE.⎕NPUT folder,'/sub/aClass.dyalog'
+      _←(⊂ac←':Class aClass : bClass' ':EndClass')QNPUT folder,'/sub/aClass.dyalog'
       assert'9=ns.sub.⎕NC ''aClass'''
       assert'ac≡⎕SRC ns.sub.aClass'
      
       ⍝ Now add the base class
-      _←(⊂bc←':Class bClass' ':EndClass')#.SLAVE.⎕NPUT folder,'/sub/bClass.dyalog'
+      _←(⊂bc←':Class bClass' ':EndClass')QNPUT folder,'/sub/bClass.dyalog'
       assert'9=ns.sub.⎕NC ''bClass'''
       assert'bc≡⎕SRC ns.sub.bClass'
      
@@ -388,8 +388,8 @@
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
       ⍝ Then verify that modifying the file brings changes back
-      _←(⊂cv←ns.cv,⊂'Line three')#.SLAVE.⎕NPUT(folder,'/cv.charvec')1
-      _←(⊂↓cm←↑ns.cv)#.SLAVE.⎕NPUT(folder,'/cm.charmat')1
+      _←(⊂cv←ns.cv,⊂'Line three')QNPUT(folder,'/cv.charvec')1
+      _←(⊂↓cm←↑ns.cv)QNPUT(folder,'/cm.charmat')1
      
       assert'cm≡↑⊃#.SLAVE.⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃#.SLAVE.⎕NGET (folder,''/cv.charvec'') 1'
