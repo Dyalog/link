@@ -60,6 +60,17 @@
           ⍵∘⊃¨5177⌶⍬
       }
 
+    ∇(canwatch dotnetcore)←CanWatch dummy;⎕USING
+     :Trap 0
+        ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
+        dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
+        ⎕USING←',System',(~dotnetcore)/'.dll'
+        canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
+     :Else
+        canwatch←dotnetcore←0
+     :EndTrap
+    ∇
+
     ∇ r←RemoveFileLinksIn rootns;all;allrefs;urefs;mask;t;remove
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken

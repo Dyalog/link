@@ -417,11 +417,12 @@
       CleanUp folder name
     ∇
 
-    ∇ r←Setup folder;dotnetcore;windows
+    ∇ r←Setup folder;canwatch;dotnetcore
       r←'' ⍝ Run will abort if empty
      
-      dotnetcore←(,'1')≡2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_NETCORE'
-      :If ~dotnetcore∨windows←'Windows'≡7↑⊃'.'⎕WG'APLVersion'
+      (canwatch dotnetcore)←##.U.CanWatch ''
+
+      :If ~canwatch
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0
       :EndIf           
@@ -438,7 +439,7 @@
           →0
       :EndIf
      
-      folder←∊1 ⎕NPARTS folder,(0=≢folder)/(1+windows)⊃'linktest' '/temp/linktest' ⍝ Normalise
+      folder←∊1 ⎕NPARTS folder,(0=≢folder)/(1+##.U.isWindows)⊃'linktest' '/temp/linktest' ⍝ Normalise
      
       :Trap 22
           2 ⎕MKDIR folder
@@ -456,9 +457,11 @@
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
           #.SLAVE←#.isolate.New'' 
           QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
+          QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵}
       :Else
           #.SLAVE←#.⎕NS''
           QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
+          QNPUT←{⍺ NPUT ⍵}
       :EndIf
      
       r←folder
