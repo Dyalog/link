@@ -79,7 +79,7 @@
           watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
           watcher.IncludeSubdirectories←1
          
-          (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(140 7777 7778)'NotifyEvent')('Interval' 10000)('Data' watcher)
+          (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(140 7777 7778)'NotifyEvent')('Interval' 1000)('Data' watcher)
 
           watcher.EnableRaisingEvents←1
           ⎕DQ q ⍝ Wait here; q will be ⎕EX'd by Link.Break
