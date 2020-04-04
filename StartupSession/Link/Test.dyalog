@@ -302,7 +302,7 @@
       value←ns.onetwo
       ⍝⎕NUNTIE(new←folder,'/sub/one2.apla')⎕NRENAME tn←otfile ⎕NTIE 0
       _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
-      assert'value≡ns.sub.one2'
+      assert'value≡ns.sub.one2' 'ns.sub.one2←value'
      
       ⍝ Erase the array
       _←QNDELETE new
@@ -510,7 +510,7 @@
       :EndIf
     ∇
 
-    ∇ {msg}assert args;clean;expr;maxwait;end;timeout
+    ∇ {msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
       
       (expr clean)←2↑(⊆args),⊂''
@@ -526,20 +526,20 @@
       :EndIf
       :If ~timeout ⋄ :Return ⋄ :EndIf
      
-
+      txt←msg,': ',expr,' at ',(2⊃⎕SI),'[',(⍕2⊃⎕LC),']'
       :If ×≢clean ⍝ Was a recovery expression provided?
           ⍎clean
       :AndIf ~0∊{0::0 ⋄ ⍎⍵}expr ⍝ Did it work?
-          ⎕←'*** Warning: ',msg,': ',expr
+          ⎕←'*** Warning: ',txt
           ⎕←'***    recovered via ',clean
           :Return
       :EndIf
 
       ⍝ No recovery, or recovery failed        
       :If ASSERT_ERROR
-          (msg,': ',expr)⎕SIGNAL 11
+          txt ⎕SIGNAL 11
       :Else ⍝ Just muddle on, not recommended!
-          ⎕←(msg,': ',expr)
+          ⎕←txt
       :EndIf
     ∇
 
