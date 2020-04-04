@@ -268,10 +268,10 @@
      
       ⍝ Create a monadic function
       _←(⊂foo←' r←foo x' ' x x')QNPUT folder,'/foo.dyalog'
-      assert'foo≡ns.⎕NR ''foo'''
+      assert'foo≡ns.⎕NR ''foo''' 'ns.⎕FX ↑foo'
       ⍝ Create a niladic / non-explicit function
       _←(⊂nil←' nil' ' 2+2')QNPUT folder,'/nil.dyalog'
-      assert'nil≡ns.⎕NR ''nil'''
+      assert'nil≡ns.⎕NR ''nil''' 'ns.⎕FX ↑nil'
      
       ⍝ Create an array
       _←(⊂'[''one'' 1' '''two'' 2]')QNPUT folder,'/one2.apla'
@@ -329,10 +329,10 @@
      
       ⍝ Rename the sub-folder
       _←(folder,'/bus')#.SLAVE.⎕NMOVE folder,'/sub'
-      assert'9.1=ns.⎕NC ⊂''bus'''              ⍝ bus is a namespace
-      assert'3=ns.bus.⎕NC ''foo'''             ⍝ bus.foo is a function
+      assert'9.1=ns.⎕NC ⊂''bus''' '''ns.bus'' ⎕NS '''''                         ⍝ bus is a namespace
+      assert'3=ns.bus.⎕NC ''foo''' '2 ns.bus.⎕FIX ''file://'',folder,''/bus/foo.dyalog''' ⍝ bus.foo is a function
       assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus ##.U.GetLinkInfo''foo'''
-      assert'0=ns.⎕NC ''sub'''                 ⍝ sub is gone
+      assert'0=ns.⎕NC ''sub''' '⎕EX ''ns.sub''' ⍝ sub is gone
      
       ⍝ Now copy a file containing a function
       old←ns ##.U.GetLinkInfo'foo'
@@ -342,7 +342,7 @@
       _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
       ⎕DL 1 ⍝ Allow FileSystemWatcher some time to react
       ⍝ Verify that the old function has NOT become linked to the new file
-      assert'old≡new←ns ##.U.GetLinkInfo ''foo'''
+      assert'old≡new←ns ##.U.GetLinkInfo ''foo''' '5178⌶''ns.foo'''
      
       ⍝ Now edit the new file so it "accidentally" defines 'zoo'
       tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn     ⍝ (beware UTF-8 encoded file)
@@ -402,7 +402,7 @@
       ⍝ First the sub-folder
      
       _←2 QNDELETE folder,'/bus'
-      assert'0=⎕NC ''ns.bus'''
+      assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
      
       ⍝ The variables
       _←QNDELETE folder,'/cv.charvec'
