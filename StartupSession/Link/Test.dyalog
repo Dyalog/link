@@ -10,7 +10,7 @@
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
 
-    ASSERT_ERROR←1   ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
+    ASSERT_ERROR←1 ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
 
     ∇ {r}←{flag}NDELETE file;type;name;names;types;n;t
      ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
@@ -37,7 +37,8 @@
 
     ∇ {r}←text NPUT args;file;bytes;tn;overwrite
      ⍝ Cover for ⎕NPUT
-     ⍝ Superseeded by #.SLAVE.⎕NPUT
+     ⍝ Superseeded by #.SLAVE.⎕NPUT when USE_ISOLATES←1
+
       (file overwrite)←2↑(⊆args),1
       r←≢bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
       :If (⎕NEXISTS file)∧overwrite
@@ -130,7 +131,7 @@
       PauseTest folder
      
       _←QNDELETE foofile
-      assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3'
+      assert '''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
      
       CleanUp folder name
     ∇
@@ -280,8 +281,9 @@
       otfile←folder,'/onetwo.apla'
       ⍝⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla')⎕NTIE 0
       _←otfile #.SLAVE.⎕NMOVE folder,'/one2.apla'
-      assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.onetwo'
-      assert'0=⎕NC ''ns.one2'''
+      z←(2 2⍴'one' 1 'two' 2)
+      assert 'z≡ns.onetwo' 'ns.onetwo←z'
+      assert '0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
      
       ⍝ Update the array
       _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT otfile 1
@@ -294,7 +296,7 @@
      
       ⍝ Create sub-folder
       _←#.SLAVE.⎕MKDIR folder,'/sub'
-      assert'9.1=ns.⎕NC ⊂''sub'''
+      assert'9.1=ns.⎕NC ⊂''sub''' '''ns.sub'' ⎕NS '''''
      
       ⍝ Move array to sub-folder
       value←ns.onetwo
@@ -508,8 +510,10 @@
       :EndIf
     ∇
 
-    ∇ {msg}assert expr;maxwait;end;timeout
+    ∇ {msg}assert args;clean;expr;maxwait;end;timeout
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
+      
+      (expr clean)←2↑(⊆args),⊂''
       end←10000+3⊃⎕AI ⍝ 3s
       timeout←0
      
@@ -517,14 +521,24 @@
           ⎕DL 0.1
       :Until timeout←end<3⊃⎕AI
      
-      :If 900⌶⍬
+      :If 900⌶⍬ ⍝ Monadiv
           msg←'assertion failed'
       :EndIf
       :If ~timeout ⋄ :Return ⋄ :EndIf
      
+
+      :If ×≢clean ⍝ Was a recovery expression provided?
+          ⍎clean
+      :AndIf ~0∊{0::0 ⋄ ⍎⍵}expr ⍝ Did it work?
+          ⎕←'*** Warning: ',msg,': ',expr
+          ⎕←'***    recovered via ',clean
+          :Return
+      :EndIf
+
+      ⍝ No recovery, or recovery failed        
       :If ASSERT_ERROR
           (msg,': ',expr)⎕SIGNAL 11
-      :Else
+      :Else ⍝ Just muddle on, not recommended!
           ⎕←(msg,': ',expr)
       :EndIf
     ∇
