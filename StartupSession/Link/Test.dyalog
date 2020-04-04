@@ -126,13 +126,14 @@
       ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
      
       foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
-      assert'foo≡⊃⎕NGET foofile 1'                  ⍝ Validate file has the right contents
-     
+      assert'foo≡⊃⎕NGET foofile 1'                   ⍝ Validate file has the right contents
+      assert 'foofile≡4⊃5179⌶''ns.foo'''             ⍝   ... and foo is linked to the right file
+
       PauseTest folder
-     
-      _←QNDELETE foofile
+      
+      _←⎕NDELETE foofile
       assert '''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
-     
+      
       CleanUp folder name
     ∇
 
@@ -287,7 +288,9 @@
      
       ⍝ Update the array
       _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT otfile 1
-      assert'(3 2⍴''one'' 1 ''two'' 2 ''three'' 3)≡ns.onetwo'
+      value←(3 2⍴'one' 1 'two' 2 'three' 3)
+      assert'value≡ns.onetwo' 'ns.onetwo←value'
+
      
       ⍝ Update file using Link.Fix
       ns.onetwo←⌽ns.onetwo
@@ -306,7 +309,7 @@
      
       ⍝ Erase the array
       _←QNDELETE new
-      assert'0=⎕NC ''ns.sub.one2'''
+      assert'0=⎕NC ''ns.sub.one2''' '⎕EX ''ns.sub.one2'''
      
       ⍝ Put a copy of foo in the folder
       _←(⊂foo)QNPUT folder,'/sub/foo.dyalog'
@@ -422,6 +425,7 @@
     ∇ r←Setup folder;canwatch;dotnetcore
       r←'' ⍝ Run will abort if empty
      
+      ⎕PW⌈←300
       (canwatch dotnetcore)←##.U.CanWatch ''
 
       :If ~canwatch
