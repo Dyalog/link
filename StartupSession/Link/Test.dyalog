@@ -415,9 +415,9 @@
      
       ⍝ The variables
       _←QNDELETE folder,'/cv.charvec'
-      assert'0≡ns.⎕NC ''cv''' 'ns.⎕EX ''cv'''
+      assert'0=ns.⎕NC ''cv''' 'ns.⎕EX ''cv'''
       _←QNDELETE folder,'/cm.charmat'
-      assert'0≡ns.⎕NC ''cm''' 'ns.⎕EX ''cm'''
+      assert'0=ns.⎕NC ''cm''' 'ns.⎕EX ''cm'''
      
       ⍝ The the functions, one by one
       _←QNDELETE folder,'/nil.dyalog'
