@@ -48,7 +48,7 @@
       :EndIf
     ∇
 
-    ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test;dnv;aplv
+    ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test;dnv;aplv;opts
      ⍝ Run all the Link Tests. If no folder name provided, default to
      ⍝ Windows: /temp/linktest
      ⍝    else: ~/temp/linktest
@@ -73,7 +73,8 @@
      
       dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-      r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv,USE_ISOLATES/' (using isolate)'
+      opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),')'
+      r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv,opts
     ∇
 
     ∇ {r}←{x}(F Retry c)y;n
@@ -372,7 +373,12 @@
      
       ⍝ Now test the Notify function - and verify the System Variable setting trick
      
-      fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
+      :If 9=⎕NC 'link.fsw.QUEUE'
+          fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
+      :Else
+          fsw←link.fsw
+      :EndIf
+
       fsw.EnableRaisingEvents←0 ⍝ Disable notifications
      
       (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')NPUT file←folder,'/bus/_SV.dyalog'
