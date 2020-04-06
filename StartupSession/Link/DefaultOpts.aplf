@@ -1,7 +1,7 @@
  {opts}←{canwatch} DefaultOpts opts
  ;Default;⎕IO
 
- :If 0=⎕NC 'canwatch' ⋄ canwatch←U.isWindows ⋄ :EndIf
+ :If 0=⎕NC 'canwatch' ⋄ canwatch←0 ⋄ :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
 
