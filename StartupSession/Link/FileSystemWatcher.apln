@@ -4,16 +4,20 @@
 
     USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.FileSystemWatcher.QUEUE' ⍝ FSW Queue Object name prefix
+    TimerEvent←140
+    NotifyEvent←7777
+    CloseEvent←7778
+    Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
     
-    ∇ NotifyEvent args
-     ⍝ Process File System Watcher events, redirected via a timer
+    ∇ RequeuedEvent args
+     ⍝ Process events redirected via the timer
 
      :Select 2⊃args
-     :Case 140  ⍝ Timer; do nothing for now
-     :Case 7777 ⍝ Re-queued Notify event
+     :Case TimerEvent  ⍝ Timer; do nothing for now
+     :Case NotifyEvent ⍝ Re-queued Notify event
          ⎕SE.Link.Notify 3⊃args
-     :Case 7778 ⍝ We have been asked to go away
-         ⎕EX 1⊃args ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
+     :Case CloseEvent  ⍝ We have been asked to go away
+         ⎕EX 1⊃args    ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
      :EndSelect
     ∇
 
@@ -23,27 +27,31 @@
       
       {}2501⌶0 ⍝ Reap the thread on exit
 
-      nargs←⊂819⌶⍕args.ChangeType
+      nargs←⊂##.U.LCase ⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
      
       :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
-          ⎕NQ (⊃⎕WN ⎕SE.Link.FileSystemWatcher) 7777 nargs ⍝ Any queue will do 
+          ⎕NQ (⊃'Timer' ⎕WN ⎕SE.Link.FileSystemWatcher) NotifyEvent nargs ⍝ Any queue will do 
       :Else      ⍝ Make direct calls to Notify
           ⎕SE.Link.Notify nargs 
       :EndIf
      ∇
  
-    ∇r←Watch args;tid;q;z
+    ∇r←Watch args;tid;q;z;end
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in Link.Links[i]
     
      :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
         z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
         q←FSWQ,⍕tid←WatcherThread&args
         z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting  
+        end←Timeout+3⊃⎕AI
         :While 0=⎕NC q     ⍝ Wait for thread to create the Timer object
+           :If end<3⊃⎕AI 
+               'WatcherThread did not create Timer object' ⎕SIGNAL 11
+           :EndIf
            ⎕DL 0.05
         :EndWhile
         (r←⎕NS '').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
@@ -54,7 +62,7 @@
      :EndIf
     ∇
 
-    ∇ Break fsw;timer;tid;fsw
+    ∇ Break fsw;timer;tid;fsw;end
     ⍝ Cleanly shut down a file system watcher
     ⍝   Called on Links[i].fsw by ⎕SE.Link.Break
 
@@ -62,11 +70,14 @@
         (timer tid)←fsw.(QUEUE TID)
         :If tid∊⎕TNUMS
         :AndIf 9=⎕NC timer
-           ⎕NQ timer 7778 ⍝ Tell it to go away
-           ⎕DL 0.5
-           :If tid∊⎕TNUMS
-               ⎕TRAP←0 'S' ⋄ ∘∘∘ ⍝ ⎕DQ thread won't go
-           :EndIf
+           ⎕NQ timer CloseEvent ⍝ Tell it to go away
+           end←Timeout+3⊃⎕AI
+           :While tid∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
+              :If end<3⊃⎕AI 
+                  ('WatcherThread ',(⍕tid),' did not die on request') ⎕SIGNAL 11
+              :EndIf
+               ⎕DL 0.05
+           :EndWhile
         :EndIf
      :Else ⍝ fsw should be a real FSW object
          fsw.Dispose
@@ -91,7 +102,8 @@
      ⍝ ... and ensures it is disposed of
       
       :Disposable watcher←MakeWatcher args
-          (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(140 7777 7778)'NotifyEvent')('Interval' 1000)('Data' watcher)
+          (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(TimerEvent NotifyEvent CloseEvent)'RequeuedEvent')('Interval' 1000)('Data' watcher)
+          ⍝ 'Data' for testing purposes.
           watcher.EnableRaisingEvents←1
           ⎕DQ q ⍝ Wait here; q will be ⎕EX'd by Link.Break
           watcher.EnableRaisingEvents←0
