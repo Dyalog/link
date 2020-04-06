@@ -65,7 +65,7 @@
                  ref U.QFixIfExists ⍵ opts                ⍝ set sysvars?
              }U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ create nss in target if struct is preserved
          :Else
-             U.QFixIfExists U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ set sysvars?
+             {target U.QFixIfExists ⍵ opts} U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ set sysvars?
          :EndIf
 
          Target←{'.'@U.Slash U.PadThis(~opts.flatten)/U.Path RemDir ⍵} ⍝ Determine target path

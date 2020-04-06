@@ -1,9 +1,9 @@
  {r}←Notify args
- ;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
+ ;startai;type;path;oldpath;oldfolder;oldextn;oldnsname;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
-
+ startai←⎕AI
  :Select U.debug
  :Case 1 ⋄ ⎕←'Notify'args
  :Case 2 ⋄ ⎕←'Notify'args ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -16,39 +16,43 @@
      (path oldpath)←{(0≠≢⍵)/U.Norm ⍵}¨path oldpath
 
      linked←{0::⍬ ⋄ U.Norm¨⎕SE.Link.Links.dir}⍬
-     END U.If(≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path ⍝ not linked => done
+     →END U.If(≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path ⍝ not linked => done
      link←i⊃⎕SE.Link.Links
 
      (folder name extn)←⎕NPARTS path
-     END U.Check name ⍝ invalid item name
+     (oldfolder oldname oldextn)←⎕NPARTS oldpath
+     →END U.Check name ⍝ invalid item name
 
      dir←U.IsDir path
      array←(U.LCase extn)≡link U.Tail 2 ⍝ does ext match ext for array (2=⎕NC)?
      regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
-     END U.If(~(0=≢extn)∧type≡'deleted')∧(array∨dir)⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir or apla nor matching extn (unless deleting folder)
+     →END U.If(~(0=≢extn)∧type≡'deleted')∧(array∨dir)⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir or apla nor matching extn (unless deleting folder)
 
      folder←¯1↓folder ⍝ drop trailing /
 
      nsname←(1+≢link.dir)↓folder
-     END U.Check nsname/⍨link.flatten
+     oldnsname←(1+≢link.dir)↓oldfolder
+     →END U.Check nsname/⍨link.flatten
      ((nsname='/')/nsname)←'.'
+     ((oldnsname='/')/oldnsname)←'.'
 
      :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
      ⍝ check visibility
-         above←≢U.Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
+         above←¯1+≢U.Ancestry link.dir
 
          :Trap 0 ⍝ no access
-             END U.If∨/6 ⎕NINFO(above↓U.Ancestry name),⊂path
+             →END U.If∨/6 ⎕NINFO above↓U.Ancestry path
          :Else
              →END
          :EndTrap
      :EndIf
 
      nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
+     oldnsname←link.ns,(~link.flatten)/((0≠≢oldnsname)/'.'),oldnsname ⍝ target namespace
 
      :If 3=⎕NC link.beforeRead ⍝ user exit defined?
          :Trap DEBUG↓0
-             END U.If~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
+             →END U.If~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
              :If ~(type≡'deleted')∨array∨(U.IsDir path)∨(⊂1↓extn)∊link.codeExtensions
                  Log'Ignoring due to extension: ',type,' of ',path
                  →END
@@ -158,8 +162,8 @@
 
          oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
          :If array∨0≠≢⊃z←ns U.GetLinkInfo oldname     ⍝ array or old name *is* linked to this file
-             effect←1 ⋄ affected←(⍕ns),'.',name
-             Log'(rename) ',(⍕ns),'.',oldname,' → ',affected
+             effect←1 ⋄ affected←(⍕oldnsname),'.',oldname
+             Log'(rename) ',affected,' → ',(⍕ns),'.',name
 
          :Else ⍝ old name not linked to old file
              :If 0≠≢z←U.GetFileInfo path
@@ -229,6 +233,11 @@
          :EndIf
      :EndIf
 END:
+     :If U.debug≠0
+         ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
+     :EndIf
+
  :Else
      U.Resignal 1
  :EndTrap
+
