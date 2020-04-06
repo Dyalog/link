@@ -1,9 +1,13 @@
- WSLoaded
+ WSLoaded;keep;kill;i
 ⍝ Action to be taken upon )LOAD or )CLEAR
  :If ×⎕NC'Links'
  :AndIf ×≢Links
  :AndIf ×≢Links←(0≠⎕NC Links.ns)/Links
-     Links/⍨←⎕SE=⍎∘'##'⍣≡¨Links.ns
+     kill←⍸~keep←⎕SE=⍎∘'##'⍣≡¨Links.ns
+     :For i :In kill
+         :If 0≠Links[i].⎕NC'fsw.QUEUE'
+             ⎕EX Links[1].fsw.QUEUE ⍝ Kill TIMER object
+         :EndIf
+     :EndFor
+     Links/⍨←keep
  :EndIf
-
-⎕SE.Link.FileSystemWatcher.(⎕EX 'Q' ⎕NL 9) ⍝ Expunge old filesystemwatcher queue objects

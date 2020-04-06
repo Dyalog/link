@@ -1,8 +1,10 @@
 ﻿:Namespace FileSystemWatcher
-    (⎕IO ⎕ML)←1 1
-    FSWQ←'⎕SE.Link.FileSystemWatcher.QUEUE' ⍝ FSW Queue Object name prefix
-    USE_NQ←1                                ⍝ Set to 0 to make direct calls to Notify
 
+    (⎕IO ⎕ML)←1 1
+
+    USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
+    FSWQ←'⎕SE.Link.FileSystemWatcher.QUEUE' ⍝ FSW Queue Object name prefix
+    
     ∇ NotifyEvent args
      ⍝ Process File System Watcher events, redirected via a timer
 
@@ -37,14 +39,15 @@
     ∇r←Watch args;tid;q;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in Link.Links[i]
     
-     :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
+     :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
         z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
         q←FSWQ,⍕tid←WatcherThread&args
         z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting  
-        :While 0=⎕NC q
+        :While 0=⎕NC q     ⍝ Wait for thread to create the Timer object
            ⎕DL 0.05
         :EndWhile
         (r←⎕NS '').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
+
      :Else ⍝ Make direct calls to Notify: return the FSW object
         r←MakeWatcher args  
         r.EnableRaisingEvents←1
@@ -62,16 +65,16 @@
            ⎕NQ timer 7778 ⍝ Tell it to go away
            ⎕DL 0.5
            :If tid∊⎕TNUMS
-               ⎕TRAP←0 'S' ⋄ ∘∘∘ ⍝ thread won't go
+               ⎕TRAP←0 'S' ⋄ ∘∘∘ ⍝ ⎕DQ thread won't go
            :EndIf
         :EndIf
-     :Else ⍝ Hopefully, fsw is a real FSW object
+     :Else ⍝ fsw should be a real FSW object
          fsw.Dispose
      :EndIf
     ∇
 
     ∇ watcher←MakeWatcher args;dotnetcore;⎕USING
-     ⍝ Return a FfileSystemWatcher object
+     ⍝ Return a FileSystemWatcher object
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
     
       dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
@@ -84,7 +87,8 @@
 
     ∇ WatcherThread args;q
      ⍝ Run a thread which creates a FileSystemWatcher object
-     ⍝ ... and makes sure there is a ⎕DQ to allow processing of events
+     ⍝ ... makes sure there is a ⎕DQ to allow processing of events
+     ⍝ ... and ensures it is disposed of
       
       :Disposable watcher←MakeWatcher args
           (q←FSWQ,⍕⎕TID) ⎕WC'Timer'('Event'(140 7777 7778)'NotifyEvent')('Interval' 1000)('Data' watcher)

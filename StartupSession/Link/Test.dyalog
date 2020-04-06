@@ -292,7 +292,6 @@
       value←(3 2⍴'one' 1 'two' 2 'three' 3)
       assert'value≡ns.onetwo' 'ns.onetwo←value'
 
-     
       ⍝ Update file using Link.Fix
       ns.onetwo←⌽ns.onetwo
       ns'onetwo'⎕SE.Link.Fix''
@@ -304,7 +303,6 @@
      
       ⍝ Move array to sub-folder
       value←ns.onetwo
-      ⍝⎕NUNTIE(new←folder,'/sub/one2.apla')⎕NRENAME tn←otfile ⎕NTIE 0
       _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
       assert'value≡ns.sub.one2' 'ns.sub.one2←value'
      
@@ -333,28 +331,28 @@
      
       ⍝ Rename the sub-folder
       _←(folder,'/bus')#.SLAVE.⎕NMOVE folder,'/sub'
-      assert'9.1=ns.⎕NC ⊂''bus''' '''ns.bus'' ⎕NS '''''                         ⍝ bus is a namespace
+      assert'9.1=ns.⎕NC ⊂''bus''' '''ns.bus'' ⎕NS '''''     ⍝ bus is a namespace
       assert'3=ns.bus.⎕NC ''foo''' '2 ns.bus.⎕FIX ''file://'',folder,''/bus/foo.dyalog''' ⍝ bus.foo is a function
-      assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus ##.U.GetLinkInfo''foo'''
-      assert'0=ns.⎕NC ''sub''' '⎕EX ''ns.sub''' ⍝ sub is gone
+      assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus ##.U.GetLinkInfo''foo''' ⍝ check connection is registered
+      assert'0=ns.⎕NC ''sub''' '⎕EX ''ns.sub'''             ⍝ sub is gone
      
       ⍝ Now copy a file containing a function
       old←ns ##.U.GetLinkInfo'foo'
       _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
-      ⎕DL 1 ⍝ Allow FileSystemWatcher time to react
+      ⎕DL 0.5 ⍝ Allow FileSystemWatcher time to react
       goofile←folder,'/goo.dyalog'
       _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
-      ⎕DL 1 ⍝ Allow FileSystemWatcher some time to react
-      ⍝ Verify that the old function has NOT become linked to the new file
+      ⎕DL 0.5 ⍝ Allow FileSystemWatcher some time to react
+      ⍝ Verify that the old function is still linked to the original file
       assert'old≡new←ns ##.U.GetLinkInfo ''foo''' '5178⌶''ns.foo'''
      
-      ⍝ Now edit the new file so it "accidentally" defines 'zoo'
-      tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn     ⍝ (beware UTF-8 encoded file)
+      ⍝ Now edit the new file so it defines 'zoo'
+      tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn ⍝ (beware UTF-8 encoded file)
       ⍝ Validate that this did cause zoo to arrive in the workspace
       zoo←' r←zoo x' ' x x'
       assert'zoo≡ns.⎕NR ''zoo'''
      
-      ⍝ Now edit the new file so it finally defines 'goo'
+      ⍝ Finally edit the new file so it finally defines 'goo'
       tn←goofile ⎕NTIE 0
       'g'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
       ⎕NUNTIE tn
@@ -367,7 +365,8 @@
       ⍝ Now simulate changing goo using the editor and verify the file is updated
       ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'
       assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
-     
+      assert'goofile≡4⊃5179⌶''ns.goo''' ⍝ Ensure link registered
+
       ⎕SE.Link.Expunge'ns.goo' ⍝ Test "expunge"
       assert'0=⎕NEXISTS goofile'
      
