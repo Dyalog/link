@@ -60,15 +60,15 @@
           ⍵∘⊃¨5177⌶⍬
       }
 
-    ∇(canwatch dotnetcore)←CanWatch dummy;⎕USING
-     :Trap 0
+    ∇ (canwatch dotnetcore)←CanWatch dummy;⎕USING
+      :Trap 0
         ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
-        dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ '.' 'GetEnvironment' 'DYALOG_NETCORE'
-        ⎕USING←',System',(~dotnetcore)/'.dll'
-        canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
-     :Else
-        canwatch←dotnetcore←0
-     :EndTrap
+          dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_NETCORE'
+          ⎕USING←',System',(~dotnetcore)/'.dll'
+          canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
+      :Else
+          canwatch←dotnetcore←0
+      :EndTrap
     ∇
 
     ∇ r←RemoveFileLinksIn rootns;all;allrefs;urefs;mask;t;remove
@@ -126,14 +126,19 @@
     :EndSection
 
     :Section Lookup
-      ContainerNs←{(rsi xsi)←⍺ ⋄ ns←⍵
-          326=⎕DR ns:#(⍕ns)
-          Norm←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
-          '#⎕'∊⍨⊃ns:#(Norm ns⊣' *** Invalid target'Resignal{(¯1∊⎕NC'⍵')∧⍵≢,'#'}ns)
+    ∇ (container text)←rsi_xsi ContainerNs ns;n;Norm;rsi;xsi
+      (rsi xsi)←rsi_xsi
+      Norm←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
+      :If 326=⎕DR ns
+          (container text)←#(⍕ns)
+      :ElseIf '#⎕'∊⍨⊃ns
+          (container text)←#(Norm ns⊣' *** Invalid target'Resignal{(¯1∊⎕NC'⍵')∧ns≢,'#'}ns)
+      :Else
           n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
           container←⊃n↓rsi
-          container(Norm(⍕container),'.',ns)
-      }
+          text←Norm(⍕container),'.',ns
+      :EndIf
+    ∇
 
       Tail←{ ⍝ ⍺:opts; ⍵:nc
           0=⍵:'/'
