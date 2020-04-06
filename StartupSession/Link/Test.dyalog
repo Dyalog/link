@@ -49,9 +49,7 @@
     ∇
 
     ∇ r←{test_filter}Run folder;start;pause_tests;tests;z;test;dnv;aplv;opts
-     ⍝ Run all the Link Tests. If no folder name provided, default to
-     ⍝ Windows: /temp/linktest
-     ⍝    else: ~/temp/linktest
+     ⍝ Run all the Link Tests. If no folder name provided, default to (739⌶0),'/linktest'
      
       tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ by default: run all tests
       pause_tests←0                             ⍝ no manual testing
@@ -451,7 +449,7 @@
           →0
       :EndIf
      
-      folder←∊1 ⎕NPARTS folder,(0=≢folder)/(1+##.U.isWindows)⊃'linktest' '/temp/linktest' ⍝ Normalise
+      folder←∊1 ⎕NPARTS folder,(0=≢folder)/(739⌶0),'/linktest'
      
       :Trap 22
           2 ⎕MKDIR folder
