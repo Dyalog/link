@@ -84,7 +84,7 @@
               r←x F y
               :Return
           :Else
-              ⎕SIGNAL(n=c)/⊂⎕DMX.(('EN'EN)('Message' 'Message'))
+              ⎕SIGNAL(n=c)/⊂⎕DMX.(('EN'EN)('Message'Message))
           :EndTrap
           ⎕DL⊃1↓c
       :EndFor
