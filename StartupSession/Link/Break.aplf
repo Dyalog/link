@@ -25,11 +25,11 @@
          :For ns :In nss
              mask←linked≠ns
              :If 0∊mask
-                 n+←U.RemoveFileLinksIn ns
                  link←(mask⍳0)⊃Links
                  :If 0≠link.⎕NC'fsw'
                      FileSystemWatcher.Break link.fsw
                  :EndIf
+                 n+←U.RemoveFileLinksIn ns
                  ⎕SE.Link.Links/⍨←mask
                  broken,←⊂ns
              :Else
