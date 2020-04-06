@@ -233,10 +233,11 @@
          :EndIf
      :EndIf
 END:
+     :If U.debug≠0
+         ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
+     :EndIf
+
  :Else
      U.Resignal 1
  :EndTrap
 
- :If U.debug≠0
-     ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
- :EndIf
