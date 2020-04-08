@@ -126,17 +126,17 @@
     :EndSection
 
     :Section Lookup
-    ∇ (container text)←rsi_xsi ContainerNs ns;n;Norm;rsi;xsi
+    ∇ (container text)←rsi_xsi ContainerNs ns;n;NormNs;rsi;xsi
       (rsi xsi)←rsi_xsi
-      Norm←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
+      NormNs←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
       :If 326=⎕DR ns
           (container text)←#(⍕ns)
       :ElseIf '#⎕'∊⍨⊃ns
-          (container text)←#(Norm ns⊣' *** Invalid target'Resignal{(¯1∊⎕NC'⍵')∧ns≢,'#'}ns)
+          (container text)←#(NormNs ns⊣' *** Invalid target'Resignal{(¯1∊⎕NC'⍵')∧ns≢,'#'}ns)
       :Else
           n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
           container←⊃n↓rsi
-          text←Norm(⍕container),'.',ns
+          text←NormNs(⍕container),'.',ns
       :EndIf
     ∇
 

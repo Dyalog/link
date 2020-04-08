@@ -12,6 +12,8 @@
 
     ASSERT_ERROR←1 ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
 
+    STOP_TESTS←0  ⍝ Can be used in a failing thread to stop the action
+
     ∇ {r}←{flag}NDELETE file;type;name;names;types;n;t
      ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
      ⍝ Superseeded by #.SLAVE.⎕NDELETE
@@ -366,7 +368,7 @@
       assert'goofile≡4⊃5179⌶''ns.goo''' ⍝ Ensure link registered
 
       ⎕SE.Link.Expunge'ns.goo' ⍝ Test "expunge"
-      assert'0=⎕NEXISTS goofile'
+      assert'0=⎕NEXISTS goofile' 
      
       ⍝ Now test the Notify function - and verify the System Variable setting trick
      
@@ -521,6 +523,11 @@
     ∇ {msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
       
+      :If STOP_TESTS
+          ⎕←'STOP_TESTS detected...'
+          (1+⊃⎕LC) ⎕STOP 'assert'
+      :EndIf
+
       (expr clean)←2↑(⊆args),⊂''
       end←10000+3⊃⎕AI ⍝ 3s
       timeout←0

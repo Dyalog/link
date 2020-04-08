@@ -1,4 +1,4 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array;oldfile
+{linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array;oldfile
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -7,148 +7,151 @@
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
 
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
+:If U.debug=2
+    (1+⊃⎕LC)⎕STOP⊃⎕SI
+:EndIf
 
- :Trap DEBUG↓0
+:Trap DEBUG↓0
+    →('EditorFix'≡⊃⌽⎕SI)/NOHOLD ⍝ Can't hold in a high-priority callback
+    :Hold 'Notify'
+NOHOLD:
+        nosrc←0=≢src
+        (ns name oldname)←3↑where,'' ''
+        oldname,←(0=≢oldname)/name ⍝ oldname not specified
+        name,←(0=≢name)/oldname ⍝ name not specified
+        ns←⍎⍣(''≡0⍴∊ns)⊢ns
+        z←ns←⍬⍴ns
 
-     nosrc←0=≢src
-     (ns name oldname)←3↑where,'' ''
-     oldname,←(0=≢oldname)/name ⍝ oldname not specified
-     name,←(0=≢name)/oldname ⍝ name not specified
-     ns←⍎⍣(''≡0⍴∊ns)⊢ns
-     z←ns←⍬⍴ns
+        (linked link)←0 ⍬
 
-     (linked link)←0 ⍬
+        :If 0≠⎕NC'⎕SE.Link.Links'
+        :AndIf 0≠≢⎕SE.Link.Links
+            nss←⍎¨⎕SE.Link.Links.ns
+            :Repeat
+                :If ~linked←z∊nss
+                    linked←(z←z⍎'##')∊nss
+                :EndIf
+            :Until linked∨z∊# ⎕SE ⎕DMX
+            :If linked
+                link←(nss⍳z)⊃⎕SE.Link.Links
+            :EndIf
 
-     :If 0≠⎕NC'⎕SE.Link.Links'
-     :AndIf 0≠≢⎕SE.Link.Links
-         nss←⍎¨⎕SE.Link.Links.ns
-         :Repeat
-             :If ~linked←z∊nss
-                 linked←(z←z⍎'##')∊nss
-             :EndIf
-         :Until linked∨z∊# ⎕SE ⎕DMX
-         :If linked
-             link←(nss⍳z)⊃⎕SE.Link.Links
-         :EndIf
+        :EndIf
 
-     :EndIf
+        :If linked
 
-     :If linked
+            :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
+                :If 0=≢src
+                    →0 ⍝ Just notification, probably editor callback. No more to do.
+                :Else
+                    :Select ns.⎕NC name
+                    :Case 2 ⋄ 'Fix of arrays not currently supported' ⎕SIGNAL 11
+                    :CaseList 3 4 ⋄ ns.⎕FX src
+                    :Else ⋄ ns.⎕FIX src
+                    :EndSelect
+                :EndIf
+            :EndIf
 
-         :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
-              :If 0=≢src
-                  →0 ⍝ Just notification, probably editor callback. No more to do.
-              :Else
-                :Select ns.⎕NC name
-                :Case 2 ⋄ 'Fix of arrays not currently supported' ⎕SIGNAL 11
-                :CaseList 3 4 ⋄ ns.⎕FX src
-                :Else ⋄ ns.⎕FIX src
-                :EndSelect
-              :EndIf
-         :EndIf
-
-         oldfile←file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
-         :If 0≠≢src
-             :Trap 0 ⋄ z←2 ns.⎕FIX src
-             :Else ⋄ U.Resignal 1
-             :EndTrap
-         :EndIf
-         nc←ns.⎕NC⊂,name
-         :If 0<≢file                          ⍝ Already saved in a file?
-         :AndIf name≡oldname                  ⍝ Function not renamed
-             file←∊{name}¨@2⍣link.forceFilenames{link U.Tail nc}¨@3⍣link.forceExtensions ⎕NPARTS file
+            oldfile←file←4⊃ns U.GetLinkInfo name         ⍝ Grab file info before ⎕FIX might destroy it
+            :If 0≠≢src
+                :Trap 0 ⋄ z←2 ns.⎕FIX src
+                :Else ⋄ U.Resignal 1
+                :EndTrap
+            :EndIf
+            nc←ns.⎕NC⊂,name
+            :If 0<≢file                          ⍝ Already saved in a file?
+            :AndIf name≡oldname                  ⍝ Function not renamed
+                file←∊{name}¨@2⍣link.forceFilenames{link U.Tail nc}¨@3⍣link.forceExtensions ⎕NPARTS file
              ⍝ Interpreter will do everything needed here
-         :ElseIf ~link.flatten                ⍝ Not flattened
+            :ElseIf ~link.flatten                ⍝ Not flattened
 
-             file←(≢link.ns)↓⍕ns              ⍝ Add sub.namespace structure
-             ((file='.')/file)←'/'            ⍝ Convert dots to /
-             file←link.dir,file               ⍝ Add link directory
-             file,←'/',name
-             ext←3⊃⎕NPARTS file
-             :If link.forceExtensions∨0=≢ext
-             :OrIf ~⎕NEXISTS file
-                 ext←link U.Tail nc
-             :EndIf
-             file,←ext                        ⍝ And the object name
-             file←U.ApplyOldExtn file
+                file←(≢link.ns)↓⍕ns              ⍝ Add sub.namespace structure
+                ((file='.')/file)←'/'            ⍝ Convert dots to /
+                file←link.dir,file               ⍝ Add link directory
+                file,←'/',name
+                ext←3⊃⎕NPARTS file
+                :If link.forceExtensions∨0=≢ext
+                :OrIf ~⎕NEXISTS file
+                    ext←link U.Tail nc
+                :EndIf
+                file,←ext                        ⍝ And the object name
+                file←U.ApplyOldExtn file
 
-         :Else                                ⍝ New name in "flattened" link
-             :If 3=(⍎link.ns).⎕NC link.beforeWrite         ⍝ User exit to determine file name?
-                 →(0=≢file←(link.ns⍎link.beforeWrite)ns name oldname nc src file link 1)⍴0 ⍝ Return file name or '' to abort
-             :ElseIf oldname≡name ⍝ New function, not from old one
-                 file←link.dir,'/',name,link U.Tail nc
-                 :If ×DEBUG
-                     ⎕←'New file for new function: ',file
-                 :EndIf
-             :EndIf
-         :EndIf
+            :Else                                ⍝ New name in "flattened" link
+                :If 3=(⍎link.ns).⎕NC link.beforeWrite         ⍝ User exit to determine file name?
+                    →(0=≢file←(link.ns⍎link.beforeWrite)ns name oldname nc src file link 1)⍴0 ⍝ Return file name or '' to abort
+                :ElseIf oldname≡name ⍝ New function, not from old one
+                    file←link.dir,'/',name,link U.Tail nc
+                    :If ×DEBUG
+                        ⎕←'New file for new function: ',file
+                    :EndIf
+                :EndIf
+            :EndIf
 
-         :If (0≠≢oldfile)∧oldname≢name
-             (⊂ns.⎕NR oldname)⎕NPUT oldfile 1 ⍝ Repair damage done by editor
+            :If (0≠≢oldfile)∧oldname≢name
+                (⊂ns.⎕NR oldname)⎕NPUT oldfile 1 ⍝ Repair damage done by editor
                  ⍝ remove
-             2 ns.⎕FIX'file://',oldfile ⍝ Necessary with FSW?
-             file←∊(⊂name)@2 ⎕NPARTS file
-             :If ×DEBUG
-                 ⎕←'New file for renamed function: ',file
-             :EndIf
-         :EndIf
+                2 ns.⎕FIX'file://',oldfile ⍝ Necessary with FSW?
+                file←∊(⊂name)@2 ⎕NPARTS file
+                :If ×DEBUG
+                    ⎕←'New file for renamed function: ',file
+                :EndIf
+            :EndIf
 
-         :If nosrc                       ⍝ Source not provided - find it
-             :Select ⌊nc
-             :Case 2
-                 src←ns⍎name
-             :CaseList 3 4
-                 src←ns.⎕NR name
-             :Case 9
-                 src←⎕SRC ns⍎name
-             :Else
-                 1 U.Resignal⍨' *** Fix: unable to handle ',(⍕ns),'.',name,' (⎕NC =',(⍕nc),')'
-             :EndSelect
-         :EndIf
+            :If nosrc                       ⍝ Source not provided - find it
+                :Select ⌊nc
+                :Case 2
+                    src←ns⍎name
+                :CaseList 3 4
+                    src←ns.⎕NR name
+                :Case 9
+                    src←⎕SRC ns⍎name
+                :Else
+                    1 U.Resignal⍨' *** Fix: unable to handle ',(⍕ns),'.',name,' (⎕NC =',(⍕nc),')'
+                :EndSelect
+            :EndIf
 
-         :If 2=⎕NC'_rename_temp' ⍝ // workaround for editor overwriting old file on rename
-         :AndIf (name oldname)≡(1⊃_rename_temp)[6 5]
-             (3⊃_rename_temp)⎕NPUT(2⊃_rename_temp)1 ⍝ Restore old file contents
-             ⎕EX'_rename_temp' ⍝ Now leesten carefully, for I will do zis only vunce
-         :EndIf
+            :If 2=⎕NC'_rename_temp' ⍝ // workaround for editor overwriting old file on rename
+            :AndIf (name oldname)≡(1⊃_rename_temp)[6 5]
+                (3⊃_rename_temp)⎕NPUT(2⊃_rename_temp)1 ⍝ Restore old file contents
+                ⎕EX'_rename_temp' ⍝ Now leesten carefully, for I will do zis only vunce
+            :EndIf
 
-         :If 3=link.(⎕NC beforeWrite)
-             →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
-         :EndIf
+            :If 3=link.(⎕NC beforeWrite)
+                →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
+            :EndIf
 
-         :If array←2=⌊nc
-             :Trap 11
-                 src←,↓Serialise src
-             :Else
-                 'Unsupported array'U.Resignal 1
-             :EndTrap
-         :EndIf
+            :If array←2=⌊nc
+                :Trap 11
+                    src←,↓Serialise src
+                :Else
+                    'Unsupported array'U.Resignal 1
+                :EndTrap
+            :EndIf
 
-         :Trap 0
-             :If fsw←0≠⎕NC⊂'link.fsw.Object.EnableRaisingEvents'
-                 old←link.fsw.Object.EnableRaisingEvents
-                 link.fsw.Object.EnableRaisingEvents←0
-             :EndIf
-             3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
-             (⊂src)⎕NPUT file 1
-         :Else
-             old←0
-             :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
-             1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
-         :EndTrap
-         :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
+            :Trap 0
+                :If fsw←0≠⎕NC⊂'link.fsw.Object.EnableRaisingEvents'
+                    old←link.fsw.Object.EnableRaisingEvents
+                    link.fsw.Object.EnableRaisingEvents←0
+                :EndIf
+                3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
+                (⊂src)⎕NPUT file 1
+            :Else
+                old←0
+                :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
+                1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
+            :EndTrap
+            :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
 
-         :If ~array
-             :Trap 0
-                 2 ns.⎕FIX'file://',file
-             :Else
-                 1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
-             :EndTrap
-         :EndIf
-     :EndIf
- :Else
-     U.Resignal 1
- :EndTrap
+            :If ~array
+                :Trap 0
+                    2 ns.⎕FIX'file://',file
+                :Else
+                    1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
+                :EndTrap
+            :EndIf
+        :EndIf
+    :EndHold ⍝ 'Notify'
+:Else
+    U.Resignal 1
+:EndTrap

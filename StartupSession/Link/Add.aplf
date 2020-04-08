@@ -1,39 +1,39 @@
- msg←{opts}Add items;Default
- ;item;ns;name;roots;this;added;unfound;⎕IO
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
- :Trap DEBUG↓0
-     ⎕IO←1
+msg←{opts}Add items;Default
+;item;ns;name;roots;this;added;unfound
+:If U.debug=2
+    (1+⊃⎕LC)⎕STOP⊃⎕SI
+:EndIf
+:Trap DEBUG↓0
+    :Hold 'Notify'
+        opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-
-     Default←opts{0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
-     'filename'Default''
-     items←⊆,items
-     items~¨←' '
-     roots←{⍵↑⍨⍵⍳'.'}¨items
-     this←'.',⍨⍕⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-     items,¨⍨←/∘this¨~roots∊,¨'#' '⎕SE' '⎕DMX'
-     added←0⍴⊂''
-     unfound←0⍴⊂''
-     :For item :In items
-         :If ×≢⎕NC item
-             (ns name)←item⊆⍨⌽≤\⌽item≠'.'
-             ns name Fix''
-             added,←⊂item
-         :Else
-             unfound,←⊂item
-         :EndIf
-     :EndFor
-     msg←0⍴⊂''
-     :If ×≢added
-         msg,←⊂'Added:',∊' ',¨added
-     :EndIf
-     :If ×≢unfound
-         msg,←⊂'Not found:',∊' ',¨unfound
-     :EndIf
-     msg←↑msg
- :Else
-     U.Resignal 1
- :EndTrap
+        Default←opts{0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
+        'filename'Default''
+        items←⊆,items
+        items~¨←' '
+        roots←{⍵↑⍨⍵⍳'.'}¨items
+        this←'.',⍨⍕⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+        items,¨⍨←/∘this¨~roots∊,¨'#' '⎕SE' '⎕DMX'
+        added←0⍴⊂''
+        unfound←0⍴⊂''
+        :For item :In items
+            :If ×≢⎕NC item
+                (ns name)←item⊆⍨⌽≤\⌽item≠'.'
+                ns name Fix''
+                added,←⊂item
+            :Else
+                unfound,←⊂item
+            :EndIf
+        :EndFor
+        msg←0⍴⊂''
+        :If ×≢added
+            msg,←⊂'Added:',∊' ',¨added
+        :EndIf
+        :If ×≢unfound
+            msg,←⊂'Not found:',∊' ',¨unfound
+        :EndIf
+        msg←↑msg
+    :EndHold ⍝ 'Notify'
+:Else
+    U.Resignal 1
+:EndTrap

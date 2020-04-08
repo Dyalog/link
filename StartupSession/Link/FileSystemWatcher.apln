@@ -80,7 +80,7 @@
               :EndWhile
           :EndIf
       :Else ⍝ fsw should be a real FSW object
-          :If 0≠⎕NC'fsw.Dispose'
+          :If 0≠⎕NC⊂'fsw.Dispose'
               fsw.Dispose
           :EndIf
       :EndIf

@@ -1,5 +1,5 @@
  {r}←Notify args
- ;startai;type;path;oldpath;oldfolder;oldextn;oldnsname;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
+ ;recur;startai;type;path;oldpath;oldfolder;oldextn;oldnsname;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -10,6 +10,8 @@
  :EndSelect
 
  :Trap DEBUG↓0
+     recur←{+/⍵∊1↑⍵}⎕XSI
+     :Hold 'Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
      r←⍬⊤⍬
 
      (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
@@ -236,7 +238,7 @@ END:
      :If U.debug≠0
          ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
      :EndIf
-
+     :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1
  :EndTrap
