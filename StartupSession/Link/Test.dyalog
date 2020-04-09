@@ -40,7 +40,7 @@
     ∇ {r}←text NPUT args;file;bytes;tn;overwrite
      ⍝ Cover for ⎕NPUT
      ⍝ Superseeded by #.SLAVE.⎕NPUT when USE_ISOLATES←1
-
+     
       (file overwrite)←2↑(⊆args),1
       r←≢bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
       :If (⎕NEXISTS file)∧overwrite
@@ -92,7 +92,7 @@
       :EndFor
     ∇
 
-    ∇ r←test_flattened folder;name;main;dup;opts;ns;goofile;dupfile;foo;foofile;z;_
+    ∇ r←test_flattened folder;name;main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
      ⍝ Test the flattened scenario
      
       r←0
@@ -102,8 +102,8 @@
       {}3 ⎕MKDIR folder,'/app'
       {}3 ⎕MKDIR folder,'/utils'
      
-      (⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
-      (⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
+      _←(⊂main←' r←main' 'r←dup 2')QNPUT folder,'/app/main.aplf'        ⍝ One "application" function
+      _←(⊂dup←' r←dup x' 'r←x x')QNPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
      
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
@@ -118,23 +118,27 @@
       dup,←⊂' ⍝ Modified dup'
       ns'dup'⎕SE.Link.Fix dup                        ⍝ Redefine existing function dup
       assert'dup≡⊃⎕NGET dupfile 1'
+      assert'dupfile≡4⊃5179⌶''ns.dup'''             ⍝   ... await callback & link established
      
       goofile←folder,'/app/goo.aplf'
       FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
      
-      ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'       ⍝ Add a new function
-      assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
+      ns'goo'⎕SE.Link.Fix goo←' r←goo x' ' r←x x x'  ⍝ Add a new function
+      assert'goo≡⊃⎕NGET goofile 1'
+      assert'goofile≡4⊃5179⌶''ns.goo'''             ⍝   ... await callback & link established
+     
       ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
      
       foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
       assert'foo≡⊃⎕NGET foofile 1'                   ⍝ Validate file has the right contents
-      assert 'foofile≡4⊃5179⌶''ns.foo'''             ⍝   ... and foo is linked to the right file
-
+      assert'foofile≡4⊃5179⌶''ns.foo'''             ⍝   ... and foo is linked to the right file
+     
+      ⎕DL 0.1 ⍝ Allow backlog of FSW events to clear on slow machines
+      _←QNDELETE foofile
+      assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
+     
       PauseTest folder
-      
-      _←⎕NDELETE foofile
-      assert '''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
-      
+     
       CleanUp folder name
     ∇
 
@@ -185,7 +189,7 @@
       3 ⎕MKDIR Retry 5⊢folder∘,¨'/sub/sub1' '/sub/sub2'
      
       ⍝ make some content
-     (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
+      (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
       (⊂⊂cv←'Line 1' 'Line two')⎕NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'
       cm←↑cv
       (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/sub/sub2/one2.apla'
@@ -283,15 +287,16 @@
       otfile←folder,'/onetwo.apla'
       ⍝⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla')⎕NTIE 0
       _←otfile #.SLAVE.⎕NMOVE folder,'/one2.apla'
+      
       z←(2 2⍴'one' 1 'two' 2)
-      assert 'z≡ns.onetwo' 'ns.onetwo←z'
-      assert '0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
+      assert'z≡ns.onetwo' 'ns.onetwo←z'
+      assert'0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
      
       ⍝ Update the array
       _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT otfile 1
       value←(3 2⍴'one' 1 'two' 2 'three' 3)
       assert'value≡ns.onetwo' 'ns.onetwo←value'
-
+      
       ⍝ Update file using Link.Fix
       ns.onetwo←⌽ns.onetwo
       ns'onetwo'⎕SE.Link.Fix''
@@ -350,7 +355,7 @@
       tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn ⍝ (beware UTF-8 encoded file)
       ⍝ Validate that this did cause zoo to arrive in the workspace
       zoo←' r←zoo x' ' x x'
-      assert'zoo≡ns.⎕NR ''zoo'''
+      assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
      
       ⍝ Finally edit the new file so it finally defines 'goo'
       tn←goofile ⎕NTIE 0
@@ -358,26 +363,26 @@
       ⎕NUNTIE tn
       ⍝ Validate that this did cause goo to arrive in the workspace
       goo←' r←goo x' ' x x'
-      assert'goo≡ns.⎕NR ''goo'''
+      assert'goo≡ns.⎕NR ''goo''' 'ns.⎕FX goo'
       ⍝ Also validate that zoo is now gone
-      assert'0=ns.⎕NC ''zoo'''
+      assert'0=ns.⎕NC ''zoo''' 'ns.⎕EX ''zoo'''
      
       ⍝ Now simulate changing goo using the editor and verify the file is updated
       ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'
       assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
       assert'goofile≡4⊃5179⌶''ns.goo''' ⍝ Ensure link registered
-
+     
       ⎕SE.Link.Expunge'ns.goo' ⍝ Test "expunge"
-      assert'0=⎕NEXISTS goofile' 
+      assert'0=⎕NEXISTS goofile'
      
       ⍝ Now test the Notify function - and verify the System Variable setting trick
      
-      :If 9=⎕NC 'link.fsw.QUEUE'
+      :If 9=⎕NC'link.fsw.QUEUE'
           fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
       :Else
           fsw←link.fsw
       :EndIf
-
+     
       fsw.EnableRaisingEvents←0 ⍝ Disable notifications
      
       (⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')NPUT file←folder,'/bus/_SV.dyalog'
@@ -432,13 +437,13 @@
       r←'' ⍝ Run will abort if empty
      
       ⎕PW⌈←300
-      (canwatch dotnetcore)←##.U.CanWatch ''
-
+      (canwatch dotnetcore)←##.U.CanWatch''
+     
       :If ~canwatch
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0
-      :EndIf           
-      
+      :EndIf
+     
       :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
       {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
       ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
@@ -467,7 +472,7 @@
               #.⎕CY'isolate'
           :EndIf
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
-          #.SLAVE←#.isolate.New'' 
+          #.SLAVE←#.isolate.New''
           QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
           QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵}
       :Else
@@ -522,21 +527,21 @@
 
     ∇ {msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
-      
+     
       :If STOP_TESTS
           ⎕←'STOP_TESTS detected...'
-          (1+⊃⎕LC) ⎕STOP 'assert'
+          (1+⊃⎕LC)⎕STOP'assert'
       :EndIf
-
+     
       (expr clean)←2↑(⊆args),⊂''
-      end←10000+3⊃⎕AI ⍝ 3s
+      end←1000+3⊃⎕AI ⍝ 3s
       timeout←0
      
       :While 0∊{0::0 ⋄ ⍎⍵}expr
           ⎕DL 0.1
       :Until timeout←end<3⊃⎕AI
      
-      :If 900⌶⍬ ⍝ Monadiv
+      :If 900⌶⍬ ⍝ Monadic
           msg←'assertion failed'
       :EndIf
       :If ~timeout ⋄ :Return ⋄ :EndIf
@@ -549,8 +554,8 @@
           ⎕←'***    recovered via ',clean
           :Return
       :EndIf
-
-      ⍝ No recovery, or recovery failed        
+     
+      ⍝ No recovery, or recovery failed
       :If ASSERT_ERROR
           txt ⎕SIGNAL 11
       :Else ⍝ Just muddle on, not recommended!
