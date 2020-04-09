@@ -27,7 +27,8 @@
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
      
-      {}2501⌶0 ⍝ Reap the thread on exit
+      {}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
+      ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
      
       nargs←⊂##.U.LCase⍕args.ChangeType
       nargs,←⊂args.FullPath

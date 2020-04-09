@@ -1,19 +1,14 @@
  files←GetFileName item
- ;table;⎕IO;itemlist;filelist;roots;this;items
+ ;table;⎕IO;itemlist;filelist;this;items
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←0
-     items←⊆,item
-     items~¨←' '
-     roots←(⍳∘'.'↑⊢)¨items
-     this←'.',⍨⍕⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD'
-     items,¨⍨←/∘this¨~roots∊,¨'#' '⎕SE' '⎕DMX'
-     table←U.GetInfos ⍬
-     itemlist←{(⍕1⊃⍵),'.',⊃⍵}¨table
-     filelist←(3⊃¨table),⊂''
-     files←⊃⍣(1≥≡item)⊢filelist[itemlist⍳items]
+     ⎕IO←1
+     items←(⊆,item)~¨' '
+     this←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬       ⍝ reference to calling namespace
+     files←this∘U.CurrentFileName U.OnEach items
+     files←⊃⍣(1≥≡item)⊢files
  :Else
      U.Resignal 1
  :EndTrap

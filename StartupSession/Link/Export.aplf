@@ -14,15 +14,7 @@
          msg←'Source namespace not found: ',ns
      :Else
          isChild←U.IsChild ns
-         dir↓⍨←-'/\'∊⍨⊃⌽dir
-         :If ⎕NEXISTS dir
-             dir←⊃⊃⎕NINFO⍠1⊢dir
-         :Else
-             dir←∊1 ⎕NPARTS dir ⍝ normalise name
-         :EndIf
-
-         dir←U.WinSlash dir
-
+         dir←0 U.NormDir dir
          outFail←opts WriteFiles(⍎ns)dir
          msg←'Exported: ',ns,' → ',dir
          numFail←≢outFail

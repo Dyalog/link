@@ -8,7 +8,7 @@
          ⎕SE.Link.Links/⍨←{0::1 ⋄ 0≠⎕NC ⎕SE.Link.Links.ns}⍬
      :AndIf ×≢⎕SE.Link.Links
          ⎕IO←1
-         there←⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD' ⍝ DO WE NEED TO DO THIS ELSEWHERE???
+        there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If 2<10|⎕DR nss
              nss←there{
                  ''≢0⍴⍵:⍵

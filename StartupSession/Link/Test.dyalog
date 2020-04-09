@@ -105,6 +105,8 @@
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
+      FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
+     
       {}3 ⎕MKDIR Retry 5 0.1⊢folder
       {}3 ⎕MKDIR folder,'/app'
       {}3 ⎕MKDIR folder,'/utils'
@@ -128,7 +130,6 @@
       assert'dupfile≡4⊃5179⌶''ns.dup'''             ⍝   ... await callback & link established
      
       goofile←folder,'/app/goo.aplf'
-      FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
      
       ns'goo'⎕SE.Link.Fix goo←' r←goo x' ' r←x x x'  ⍝ Add a new function
       assert'goo≡⊃⎕NGET goofile 1'
@@ -156,10 +157,10 @@
       r←1           ⍝ Link should proceed and complete the operation
       →(0=nameq)⍴0  ⍝ We only need to respond to requests for a file name
      
-      :If name≢oldname ⍝ copy / rename of an existing function
-          r←4⊃5179 ns.⌶name           ⍝ ask for existing link info for oldname
-      :AndIf 0≠≢r                      ⍝ we could find info for oldname
-          r←∊((⊂name)@2)⎕NPARTS r     ⍝ just substitute the name
+      :If 0≠≢r←4⊃5179 ns.⌶oldname     ⍝ we could find info for oldname
+          :If name≢oldname ⍝ copy / rename of an existing function
+              r←∊((⊂name)@2)⎕NPARTS r     ⍝ just substitute the name
+          :EndIf
       :Else            ⍝ a new function
           ⍝ A real application exit might prompt the user to pick a folder
           ⍝   in the QA example we look to a global variable
@@ -269,7 +270,7 @@
      
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
       ASSERT_DORECOVER←0
-      
+     
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
@@ -297,7 +298,7 @@
       _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT o2file 1
       value←(3 2⍴'one' 1 'two' 2 'three' 3)
       assert'value≡ns.one2' 'ns.one2←value'
-  
+     
       ⍝ Update array using Link.Fix
       ns.one2←⌽ns.one2
       ns'one2'⎕SE.Link.Fix''
@@ -308,10 +309,10 @@
       otfile←folder,'/onetwo.apla'
       z←ns.one2
       _←otfile #.SLAVE.⎕NMOVE o2file
-      
+     
       assert'z≡ns.onetwo' 'ns.onetwo←z'
       assert'0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
-         
+     
       ⍝ Create sub-folder
       Breathe
       _←#.SLAVE.⎕MKDIR folder,'/sub'
@@ -370,7 +371,7 @@
       zoo←' r←zoo x' ' x x'
       assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
      
-      Breathe 
+      Breathe
       ⍝ Finally edit the new file so it finally defines 'goo'
       tn←goofile ⎕NTIE 0
       'g'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
@@ -445,6 +446,47 @@
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
      EXIT: ⍝ →EXIT to aborted test and clean up
+      CleanUp folder name
+    ∇
+
+    ∇ r←test_casecode folder;name;opts;z;DummyFn;FixFn;fns;nl3;actfiles;mat;expfiles
+      r←0
+     
+      ⎕EX name←'#.',2⊃⎕NPARTS folder
+      
+      ⎕MKDIR folder
+
+      opts←⎕NS''
+      opts.caseCode←1
+      z←opts ⎕SE.Link.Create name folder
+     
+      fns←⍬
+      DummyFn←{('   ∇   r   ←   ',⍵)('   ⎕   ←   ''',⍵,'''   ⍝   ')('   ∇   ')}
+      FixFn←name∘{_←⍺ ⍵ ⎕SE.Link.Fix DummyFn ⍵ ⋄ ⍵}
+      fns,←⊂FixFn'fn_CaseCode'
+      ⍝fns,←⊂FixFn'FN_CaseCode'   ⍝ this one will fail on windows
+     
+      {}⎕SE.Link.Break name ⋄ #.⎕EX name
+     
+      opts.caseCode←0
+      z←opts ⎕SE.Link.Create name folder
+     
+      fns,←⊂FixFn'fn_NoCaseCode'
+      ⍝fns,←⊂FixFn'FN_NoCaseCode'  ⍝ this one will fail on windows
+     
+      {}⎕SE.Link.Break name ⋄ #.⎕EX name
+     
+      opts.caseCode←1
+      z←opts ⎕SE.Link.Create name folder
+     
+      nl3←(⍎name).⎕NL ¯3
+      expfiles←(1+≢folder)↓¨⎕SE.Link.GetFileName(name,'.')∘,¨fns
+      actfiles←(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
+      mat←↑{⍵[⍋↑⍵]}¨fns nl3 expfiles actfiles
+      ⍝⎕←'expected apl names' 'actual apl names' 'expected file names' 'actual file names',mat
+      assert 'expfiles≡actfiles' 
+      assert'fns≡nl3'
+     
       CleanUp folder name
     ∇
 
@@ -583,42 +625,31 @@
     ∇ r←onBasicRead args;type;file;nsname;⎕TRAP;parts;data;extn
       (type file nsname)←3↑args
       r←1 ⍝ Link should carry on; we're not handling this one
-     
       :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
           :Select type
-     
           :Case 'deleted'
               (⍎nsname).⎕EX 2⊃parts
               r←0 ⍝ We're done; Link doesn't need to do any more
-     
           :CaseList 'changed' 'renamed' 'created'
               data←↑⍣(extn≡'.charmat')##.U.GetFile file
               ⍎nsname,'.',(2⊃parts),'←data'
               r←0 ⍝ As above
-     
           :EndSelect
       :EndIf
     ∇
 
     ∇ r←onBasicWrite args;ns;name;oldname;nc;src;file;⎕TRAP;extn;link;nameq
       (ns name oldname nc src file link nameq)←8↑args
+      :If nameq ⋄ r←'' ⋄ :Return ⋄ :EndIf  ⍝ let link choose the file name
       r←1 ⍝ Link should carry on; we're not handling this one
-     
       :If 2=⌊nc ⍝ A variable
-     
           :Select ⎕DR src
-     
           :CaseList 80 82 160 320
-              :If 2=⍴⍴src ⋄ src←↓src
-              :Else ⋄ →0
-              :EndIf
+              :If 2=⍴⍴src ⋄ src←↓src ⋄ :Else ⋄ :Return ⋄ :EndIf
               extn←⊂'.charmat'
-     
           :Case 326
-              :If (1≠⍴⍴src)∨~∧/,(10|⎕DR¨src)∊0 2 ⋄ →0
-              :EndIf
+              :If (1≠⍴⍴src)∨~∧/,(10|⎕DR¨src)∊0 2 ⋄ :Return ⋄ :EndIf
               extn←⊂'.charvec'
-     
           :EndSelect
      
           (⊂src)NPUT(∊(extn@3)⎕NPARTS file)1

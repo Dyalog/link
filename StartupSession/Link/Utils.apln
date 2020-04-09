@@ -11,17 +11,28 @@
     ∇
     :EndSection
 
-    :Section Tacit necessary to avoid stack frame
+
+    :Section APL covers
+      OnEach←{ ⍝ ¨ without prototype call on empty
+          0∊⍴⍵:⍵   ⍝ if empty return empty
+          ⍺←⊢      ⍝ ambivalent
+          1:_←⍺ ⍺⍺¨⍵   ⍝ shy call
+      }
+    :EndSection
+
+
+    :Section Stack Frames      ⍝ Tacit necessary to avoid them
     Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('Message'(Message,⍺)))}
     Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
     If←⍴⍨
     :EndSection
 
+
+
     :Section Strings
-    Strip←{⍵↓⍨-'/'⍳⍨⌽⍵}
-    Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}
-    Case←{⍺(819⌶)¨⍵}
-    LCase←{819⌶⍵}
+    Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}                ⍝ Shortest string in list
+    Case←{⍺(819⌶)¨⍵}                        ⍝ Upper/Lower case
+    LCase←{819⌶⍵}                           ⍝ Lower case
     Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join using ⍺⍺
     Slash←{⍵∊'/\'}                          ⍝ Mark slashes
     Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
@@ -29,10 +40,10 @@
     PadThis←{⍵,'⎕THIS'/⍨0=≢⍵}               ⍝ Default path to here
     NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
     Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
-    WinSlash←'\'@Slash⍣isWindows
+    WinSlash←'\'@Slash⍣isWindows            ⍝ force windows slashes only on windows machines
     DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
     Nss←{,\'.',¨1↓U.Parts ⍵}                ⍝ Convert file path to ns path
-    Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
+        Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
     IsChild←(⍕¨# ⎕SE ⎕DMX)∘{~⍺∊⍨⊂,⍕⍵}
     List←{∊{' ',⍕⍵}¨⍵}
       Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
@@ -41,9 +52,11 @@
       }
     :EndSection
 
+
+
     :Section Covers for I-beams and other built-ins
-    GetLinkInfo←{⍺.(5179⌶)⍵}         ⍝ Return link info or ⍬
-    ForEach←{0∊⍴⍵:⍵ ⋄ ×⎕NC'⍺':⍺ ⍺⍺¨⍵ ⋄ ⍺⍺¨⍵} ⍝ Apply to each if any
+    GetLinkInfo←{⍺.(5179⌶)⍵}         ⍝ Return link info
+    CurrentFileName←{4⊃⍺.(5179⌶)⍵}   ⍝ Return current file name
     Where←{⍵⌿⍺}                      ⍝ Filter as function
     Norm←{∊1⎕NPARTS ⍵}
     GetFileInfo←{5174⌶⍵}             ⍝ Return links to file
@@ -53,7 +66,7 @@
       }
       QFixIfExists←{
           ⎕NEXISTS⊃⍵:_←⍺ ##.QFix ⍵
-          _←⍬
+          1:_←⍬
       }
       GetInfos←{
           ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
@@ -90,16 +103,18 @@
           r←+/5178⌶¨(⍕¨2⊃¨remove),¨'.',¨⍕¨1⊃¨remove
       :EndIf
     ∇
-
-      OnEach←{ ⍝ ¨ without prototype call on empty
-          0∊⍴⍵:⍬ ⍝ if empty return empty
-          ⍺←⊢      ⍝ ambivalent
-          ⍺ ⍺⍺¨⍵ ⍝ call
-      }
-
     :EndSection
 
+
+
     :Section Files
+    ∇ dir←trail NormDir dir
+      dir←∊1 ⎕NPARTS dir                 ⍝ normalise - '' means current dir
+      :If trail ⋄ dir,←'/'/⍨~'/\'∊⍨⊃⌽dir ⍝ append trailing slash if missing
+      :Else ⋄ dir↓⍨←+/∧\⌽dir∊'/\'        ⍝ remove trailing slash
+      :EndIf
+      dir←WinSlash dir                 ⍝ use windows slash on windows machines
+    ∇
     Ancestry←{((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}
 
     FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
@@ -125,11 +140,13 @@
 
     :EndSection
 
+
+
     :Section Lookup
     ∇ (container text)←rsi_xsi ContainerNs ns;n;NormNs;rsi;xsi
       (rsi xsi)←rsi_xsi
       NormNs←{ns←,⍕⍵ ⋄ 9∊⎕NC ns:⍕⍎ns ⋄ ns}
-      :If 326=⎕DR ns
+      :If 9=⎕NC'ns'
           (container text)←#(⍕ns)
       :ElseIf '#⎕'∊⍨⊃ns
           (container text)←#(NormNs ns⊣' *** Invalid target'Resignal{(¯1∊⎕NC'⍵')∧ns≢,'#'}ns)
@@ -147,10 +164,8 @@
           exts,¨⍨←'.'
           exts⊃⍨⌊/types⍳⍵,⌊⍵
       }
-
     ∇ r←GetName file;code;ns
     ⍝ Attempt to determine the name which will be defined by a file
-     
       ns←(⎕NS'').⎕NS r←'' ⍝ Two levels of nesting to allow safe fixing of :Namespace/##.⎕IO←0/:EndNamespace
       :Trap 0
           2 ns.⎕FIX'file://',file
@@ -159,7 +174,6 @@
           :EndIf
       :EndTrap
     ∇
-
     ∇ r←GetRefTo nsname;name;nc
      ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
       nc←⎕NC⊂nsname
@@ -179,6 +193,49 @@
               r←⍬
           :EndTrap
       :EndIf
+    ∇
+    :EndSection
+
+
+    :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
+    ∇ (file oldfile)←fix DetermineFileName(opts ns name oldname src);dir;ext;nc;oldfile;userfile;where
+    ⍝ what should the file name be according to link
+      oldfile←ns CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+      file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
+      :If 0=nc←ns.⎕NC⊂,name
+      :AndIf 0≠≢src
+          :If fix ⋄ where←ns    ⍝ fix in actual namespace
+          :Else ⋄ where←⎕NS ⍬   ⍝ fix in toy namespace
+          :EndIf
+          :Trap 0 ⋄ 2 where.⎕FIX src
+          :Else ⋄ U.Resignal 1
+          :EndTrap
+          nc←where.⎕NC⊂,name  ⍝ infer nameclass from source
+      :EndIf
+      :If 0=≢file  ⍝ no existing file name for it
+          :If ~opts.flatten
+              file←(≢opts.ns)↓⍕ns              ⍝ Add sub.namespace structure
+              ((file='.')/file)←'/'            ⍝ Convert dots to /
+          :EndIf
+          file←opts.dir,file               ⍝ Add link directory
+          file,←'/',name                   ⍝ Add object name
+          file,←opts Tail nc             ⍝ Add extension
+      :EndIf
+      ⍝ Allow user to determine file name - they return '' to give up
+      :If 3=(⍎opts.ns).⎕NC opts.beforeWrite
+      :AndIf 0<≢userfile←(opts.ns⍎opts.beforeWrite)ns name oldname nc src file opts 1
+          file←userfile
+      :EndIf
+      ⍝ enforce file extension / file names
+      (dir file ext)←⎕NPARTS file
+      :If opts.forceExtensions∨0=≢ext
+      :OrIf ~⎕NEXISTS file
+          ext←opts Tail nc
+      :EndIf
+      :If opts.forceFilenames ⋄ file←name ⋄ :EndIf
+      file←dir,file,ext
+      file←ApplyOldExtn⍣(~opts.forceExtensions)⊢file
+      file←##.CaseCode⍣opts.caseCode⊢file ⍝ case code?
     ∇
     :EndSection
 

@@ -20,15 +20,7 @@
      opts←canwatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-
-     dir↓⍨←-'/\'∊⍨⊃⌽dir
-     :If ⎕NEXISTS dir
-         dir←⊃⊃⎕NINFO⍠1⊢dir
-     :Else
-         dir←∊1 ⎕NPARTS dir ⍝ normalise name
-     :EndIf
-
-     dir←U.WinSlash dir
+     dir←0 U.NormDir dir
 
      :If ~canwatch
      :AndIf (⊂opts.watch)∊'both' 'dir'

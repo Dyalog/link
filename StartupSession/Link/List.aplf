@@ -4,11 +4,12 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     ⎕IO←1
      :If ×⎕NC'⎕SE.Link.Links'
      :AndIf ×≢⎕SE.Link.Links
          list←↑⎕SE.Link.Links.(ns dir)
          :If ×≢ns
-             there←⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD'
+             there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ fully qualified name
              ref←9∊⎕NC'ns'
          :AndIf ref∨×there.⎕NC⍕ns
              ns←⍕there⍎⍣(~ref)⊢ns

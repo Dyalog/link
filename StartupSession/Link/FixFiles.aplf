@@ -52,7 +52,7 @@
 
          RemDir←{⍵↓⍨≢source}                              ⍝ Only path beginning at target source
 
-         paths←∪RemDir∘U.Path¨list                        ⍝ paths of all unique items
+         paths←∪RemDir∘U.Path U.OnEach list               ⍝ paths of all unique items
          paths~←⊂''                                       ⍝ remove empty
 
          target U.QFixIfExists(source,'quadVars.apln')opts
@@ -60,12 +60,12 @@
              nss←U.DotSlash¨paths/⍨~'.'∊¨paths            ⍝ transform simple dirs into nss
              nss←StripCaseCode nss
              nss/⍨←¯1≠⎕NC nss                             ⍝ keep only names that are valid
-             nss{
+             {}nss{
                  ref←⍎target⍎U.NsExpr ⍺                   ⍝ create ns
                  ref U.QFixIfExists ⍵ opts                ⍝ set sysvars?
-             }U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ create nss in target if struct is preserved
+             }U.OnEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ create nss in target if struct is preserved
          :Else
-             {target U.QFixIfExists ⍵ opts} U.ForEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ set sysvars?
+             {}{target U.QFixIfExists ⍵ opts} U.OnEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ set sysvars?
          :EndIf
 
          Target←{'.'@U.Slash U.PadThis(~opts.flatten)/U.Path RemDir ⍵} ⍝ Determine target path

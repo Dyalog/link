@@ -1,56 +1,42 @@
  outFail←{opts}WriteFiles(source dir)
  ⍝ Write items to file in folders
  ;nc;okFn;okNs;nss;unscripted;failed;paths;ok;fns
- ;Path;AbsSaveFn;SaveFn;SaveNs
+ ;FileName;SaveFn;SaveNs
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
 
      opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     :If 0=opts.⎕NC'dir'
+         opts.dir←U.NormDir dir
+     :EndIf
 
-     dir,←'/'/⍨~'/\'∊⍨⊃⌽dir ⍝ append trailing slash if missing
-     dir←⊃1 ⎕NPARTS dir     ⍝ normalise ─ '' means current dir
-
-     Path←{ ⍝ name → full file path
-     ⍝ ⍵ ←→ name
-     ⍝ ⍺ ←→ nameclass
-         body←CaseCode⍣opts.caseCode⊢⍵ ⍝ case code?
-         dir,body,opts U.Tail ⍺        ⍝ full file path with appropriate tail
+     FileName←{ ⍝ filename ← src FileName name
+         0 U.DetermineFileName opts source ⍵ ⍵ ⍺
      }
-
-     AbsSaveFn←{ ⍝ Save single fn into target
+     SaveNs←{ ⍝ Save namespace whether scripted or not
+         0=≡⍵:0                ⍝ prototype means
+         16::0 ⍵               ⍝ problem: no script
+         src←⎕SRC source.⍎⍵    ⍝ get source from its location
+         22::⍵ 0               ⍝ failed: no file access
+         0 0⊣src U.Into src FileName ⍵ ⍝ save as namespace and report OK
+     }
+     SaveFn←{  ⍝ Save function there
          nr←source.⎕NR ⍵
-         nc←⊃source.⎕NC ⍵
-         nr U.Into U.ApplyOldExtn nc Path ⍵↑⍨1-'.'⍳⍨⌽⍵ ⍝ Item name without ns path
+         nr U.Into nr FileName ⍵
      }
-
      nc←{⎕NC⊂,'⍵'}source
      okFn←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
      okNs←9.1 9.4 9.5 ⍝ ns/class/interface
      :If nc=0 ⍝ undef
      :ElseIf nc∊okFn
-         outFail←0⍴⊂0⍴AbsSaveFn source ⍝ single fn/op
+         source←source↑⍨1-'.'⍳⍨⌽source ⍝ Item name without ns path
+         outFail←0⍴⊂0⍴SaveFn source ⍝ single fn/op
      :ElseIf (nc∊okNs)∨(nc∊9.2)∧source≡# ⍝ # is reported as an instance (9.2)
-
-         SaveNs←{ ⍝ Save namespace whether scripted or not
-             0=≡⍵:0                ⍝ prototype means
-             16::0 ⍵               ⍝ problem: no script
-             src←⎕SRC source.⍎⍵    ⍝ get source from its location
-             22::⍵ 0               ⍝ failed: no file access
-             nc←⊃source.⎕NC⊂,⍵
-             0 0⊣src U.Into U.ApplyOldExtn nc Path ⍵ ⍝ save as namespace and report OK
-         }
-
          nss←source.⎕NL-okNs
-
-         SaveFn←{  ⍝ Save function there
-             nr←source.⎕NR ⍵
-             nc←⊃source.⎕NC⊂,⍵
-             nr U.Into U.ApplyOldExtn nc Path ⍵
-         }
          (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
-         paths←0 Path U.OnEach unscripted               ⍝ needed dirs
+         paths←''∘FileName U.OnEach unscripted               ⍝ needed dirs
          ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
          fns←source.⎕NL-okFn                            ⍝ tradfn, dfn, tradop, dop
          failed,←0~¨⍨SaveFn U.OnEach fns                ⍝ try to save the functions
@@ -58,7 +44,8 @@
          paths/⍨←ok                                     ⍝ the good paths
          unscripted/⍨←ok                                ⍝ and their namespaces
 
-         outFail←failed,⊃,/unscripted{opts WriteFiles(source.⍎⍺)⍵}U.OnEach paths  ⍝ recurse and collect failures
+         ⍝ recurse and collect failures
+         outFail←failed,⊃,/unscripted{opts WriteFiles(source.⍎⍺)⍵}U.OnEach paths
      :Else ⍝ invalid type
          outFail←,⊂source
      :EndIf
