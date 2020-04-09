@@ -357,10 +357,10 @@
       ⍝ Now copy a file containing a function
       old←ns ##.U.GetLinkInfo'foo'
       _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
-      Breathe ⍝ Allow FileSystemWatcher time to react
+      ⎕DL 0.1 ⍝ Allow FileSystemWatcher time to react (always needed)
       goofile←folder,'/goo.dyalog'
       _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
-      Breathe ⍝ Allow FileSystemWatcher some time to react
+      ⎕DL 0.1 ⍝ Allow FileSystemWatcher some time to react (always needed)
       ⍝ Verify that the old function is still linked to the original file
       assert'old≡new←ns ##.U.GetLinkInfo ''foo''' '5178⌶''ns.foo'''
      
