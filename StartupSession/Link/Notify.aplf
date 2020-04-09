@@ -11,7 +11,9 @@
 
  :Trap DEBUG↓0
      recur←{+/⍵∊1↑⍵}⎕XSI
+     →('EditorFix'≡⊃⌽⎕SI)/NOHOLD     ⍝ Can't hold in a high-priority callback
      :Hold 'Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
+NOHOLD:
      r←⍬⊤⍬
 
      (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
