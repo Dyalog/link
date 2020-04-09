@@ -268,9 +268,6 @@
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
-      ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
-      ASSERT_DORECOVER←0
-     
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
@@ -465,7 +462,7 @@
       FixFn←name∘{_←⍺ ⍵ ⎕SE.Link.Fix DummyFn ⍵ ⋄ ⍵}
       fns,←⊂FixFn'fn_CaseCode'
       ⍝fns,←⊂FixFn'FN_CaseCode'   ⍝ this one will fail on windows
-     
+      Breathe
       {}⎕SE.Link.Break name ⋄ #.⎕EX name
      
       opts.caseCode←0
@@ -473,19 +470,21 @@
      
       fns,←⊂FixFn'fn_NoCaseCode'
       ⍝fns,←⊂FixFn'FN_NoCaseCode'  ⍝ this one will fail on windows
-     
+      Breathe
       {}⎕SE.Link.Break name ⋄ #.⎕EX name
      
       opts.caseCode←1
       z←opts ⎕SE.Link.Create name folder
      
       nl3←(⍎name).⎕NL ¯3
-      expfiles←(1+≢folder)↓¨⎕SE.Link.GetFileName(name,'.')∘,¨fns
-      actfiles←(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
-      mat←↑{⍵[⍋↑⍵]}¨fns nl3 expfiles actfiles
-      ⍝⎕←'expected apl names' 'actual apl names' 'expected file names' 'actual file names',mat
+      expfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⎕SE.Link.GetFileName(name,'.')∘,¨fns
+      actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
+      ⍝ mat←↑{⍵[⍋↑⍵]}¨fns nl3 expfiles actfiles
+      ⍝ ⎕←'expected apl names' 'actual apl names' 'expected file names' 'actual file names',mat
       assert 'expfiles≡actfiles' 
       assert'fns≡nl3'
+      Breathe
+      {}⎕SE.Link.Break name ⋄ #.⎕EX name
      
       CleanUp folder name
     ∇
@@ -496,7 +495,8 @@
       ⎕PW⌈←300
       (canwatch dotnetcore)←##.U.CanWatch''
       ⎕SE.Link.FileSystemWatcher.USE_NQ←USE_NQ
-     
+      ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
+      
       :If ~canwatch
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0
