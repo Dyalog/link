@@ -4,6 +4,8 @@
 
     USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.FileSystemWatcher.QUEUE' ⍝ FSW Queue Object name prefix
+    DEBUG←1                                 ⍝ Log events
+
     TimerEvent←140
     NotifyEvent←7777
     CloseEvent←7778
@@ -21,7 +23,7 @@
       :EndSelect
     ∇
 
-    ∇ WatchEvent(obj args);ct;nargs
+    ∇ WatchEvent(obj args);ct;info;nargs
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
      
@@ -33,6 +35,12 @@
           nargs,←⊂args.OldFullPath
       :EndIf
      
+      :If DEBUG≠0
+          info←¯1↓{((3↑¨⍵)∊⊂'⎕SE')/⍵}{1↓¨(⍵=⎕UCS 13)⊂⍵} 88⌶')SI'
+          EVENTLOG[EVENTPTR+1]←⊂(3⊃⎕AI) nargs info
+          EVENTPTR←(≢EVENTLOG)|EVENTPTR+1
+      :EndIf
+
       :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
           ⎕NQ(⊃'Timer'⎕WN ⎕SE.Link.FileSystemWatcher)NotifyEvent nargs ⍝ Any queue will do
       :Else      ⍝ Make direct calls to Notify
@@ -43,6 +51,11 @@
     ∇ r←Watch args;tid;q;z;end
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in Link.Links[i]
      
+      :If DEBUG≠0
+          EVENTPTR←0
+          EVENTLOG←100⍴⊂0 '' ''
+      :EndIf
+
       :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
           z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
           q←FSWQ,⍕tid←WatcherThread&args
@@ -110,6 +123,16 @@
           ⎕DQ q ⍝ Wait here; q will be ⎕EX'd by Link.Break
           watcher.EnableRaisingEvents←0
       :EndDisposable
+    ∇
+
+    ∇r←EventLog limit;log     
+
+    log←⌽EVENTPTR⌽EVENTLOG
+    :If 0=≢log←↑(0≠¨⊃¨log)/log
+        r←'Log is empty' ⋄ →0
+    :EndIf
+    log[;1]←log[1;1]-log[;1] ⍝ How long ago
+    r←⊖log
     ∇
 
 :EndNamespace

@@ -9,8 +9,15 @@
     USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
+    USE_NQ←0         ⍝ Value to use for ⎕SE.Link.FileSystemWatcher.USE_NQ
 
-    ASSERT_ERROR←1 ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
+    ASSERT_DORECOVER←1 ⍝ Attempt recovery if expression provided
+    ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
+    PAUSE_LENGTH←0.1   ⍝ Length of delays to insert at strategic points on slow machines - See Breathe
+
+    ∇ Breathe
+      ⎕DL PAUSE_LENGTH
+    ∇
 
     STOP_TESTS←0  ⍝ Can be used in a failing thread to stop the action
 
@@ -73,7 +80,7 @@
      
       dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-      opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),')'
+      opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_LENGTH: ',(⍕PAUSE_LENGTH),')'
       r←(⍕≢tests),' test[s] passed OK in',(1⍕1000÷⍨⎕AI[3]-start),'s with Dyalog ',aplv,' and .NET ',dnv,opts
     ∇
 
@@ -133,7 +140,7 @@
       assert'foo≡⊃⎕NGET foofile 1'                   ⍝ Validate file has the right contents
       assert'foofile≡4⊃5179⌶''ns.foo'''             ⍝   ... and foo is linked to the right file
      
-      ⎕DL 0.1 ⍝ Allow backlog of FSW events to clear on slow machines
+      Breathe ⍝ Allow backlog of FSW events to clear on slow machines
       _←QNDELETE foofile
       assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
      
@@ -256,10 +263,13 @@
       #.⎕EX name
     ∇
 
-    ∇ r←test_basic folder;name;foo;ns;nil;ac;bc;tn;goo;old;new;link;file;cb;z;zzz;olddd;zoo;goofile;t;m;cv;cm;opts;start;otfile;value;_
+    ∇ r←test_basic folder;_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;name;new;nil;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz
       r←0
       #.⎕EX name←2⊃⎕NPARTS folder
      
+      ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
+      ASSERT_DORECOVER←0
+      
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
@@ -280,38 +290,41 @@
       assert'nil≡ns.⎕NR ''nil''' 'ns.⎕FX ↑nil'
      
       ⍝ Create an array
-      _←(⊂'[''one'' 1' '''two'' 2]')QNPUT folder,'/one2.apla'
+      _←(⊂'[''one'' 1' '''two'' 2]')QNPUT o2file←folder,'/one2.apla'
       assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
      
+      ⍝ Update the array
+      _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT o2file 1
+      value←(3 2⍴'one' 1 'two' 2 'three' 3)
+      assert'value≡ns.one2' 'ns.one2←value'
+  
+      ⍝ Update array using Link.Fix
+      ns.one2←⌽ns.one2
+      ns'one2'⎕SE.Link.Fix''
+      assert'ns.one2≡##.Deserialise ⊃⎕NGET o2file 1'
+     
       ⍝ Rename the array
+      Breathe
       otfile←folder,'/onetwo.apla'
-      ⍝⎕NUNTIE otfile ⎕NRENAME tn←(folder,'/one2.apla')⎕NTIE 0
-      _←otfile #.SLAVE.⎕NMOVE folder,'/one2.apla'
+      z←ns.one2
+      _←otfile #.SLAVE.⎕NMOVE o2file
       
-      z←(2 2⍴'one' 1 'two' 2)
       assert'z≡ns.onetwo' 'ns.onetwo←z'
       assert'0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
-     
-      ⍝ Update the array
-      _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT otfile 1
-      value←(3 2⍴'one' 1 'two' 2 'three' 3)
-      assert'value≡ns.onetwo' 'ns.onetwo←value'
-      
-      ⍝ Update file using Link.Fix
-      ns.onetwo←⌽ns.onetwo
-      ns'onetwo'⎕SE.Link.Fix''
-      assert'ns.onetwo≡##.Deserialise ⊃⎕NGET otfile 1'
-     
+         
       ⍝ Create sub-folder
+      Breathe
       _←#.SLAVE.⎕MKDIR folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''sub''' '''ns.sub'' ⎕NS '''''
      
       ⍝ Move array to sub-folder
+      Breathe
       value←ns.onetwo
       _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
       assert'value≡ns.sub.one2' 'ns.sub.one2←value'
      
       ⍝ Erase the array
+      Breathe
       _←QNDELETE new
       assert'0=⎕NC ''ns.sub.one2''' '⎕EX ''ns.sub.one2'''
      
@@ -344,10 +357,10 @@
       ⍝ Now copy a file containing a function
       old←ns ##.U.GetLinkInfo'foo'
       _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
-      ⎕DL 0.5 ⍝ Allow FileSystemWatcher time to react
+      Breathe ⍝ Allow FileSystemWatcher time to react
       goofile←folder,'/goo.dyalog'
       _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
-      ⎕DL 0.5 ⍝ Allow FileSystemWatcher some time to react
+      Breathe ⍝ Allow FileSystemWatcher some time to react
       ⍝ Verify that the old function is still linked to the original file
       assert'old≡new←ns ##.U.GetLinkInfo ''foo''' '5178⌶''ns.foo'''
      
@@ -357,6 +370,7 @@
       zoo←' r←zoo x' ' x x'
       assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
      
+      Breathe 
       ⍝ Finally edit the new file so it finally defines 'goo'
       tn←goofile ⎕NTIE 0
       'g'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
@@ -414,6 +428,7 @@
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
      
+      Breathe
       _←2 QNDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
      
@@ -438,6 +453,7 @@
      
       ⎕PW⌈←300
       (canwatch dotnetcore)←##.U.CanWatch''
+      ⎕SE.Link.FileSystemWatcher.USE_NQ←USE_NQ
      
       :If ~canwatch
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
@@ -547,7 +563,7 @@
       :If ~timeout ⋄ :Return ⋄ :EndIf
      
       txt←msg,': ',expr,' at ',(2⊃⎕SI),'[',(⍕2⊃⎕LC),']'
-      :If ×≢clean ⍝ Was a recovery expression provided?
+      :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?
           ⍎clean
       :AndIf ~0∊{0::0 ⋄ ⍎⍵}expr ⍝ Did it work?
           ⎕←'*** Warning: ',txt
