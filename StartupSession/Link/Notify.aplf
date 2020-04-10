@@ -10,10 +10,10 @@
  :EndSelect
 
  :Trap DEBUG↓0
-     recur←{+/⍵∊1↑⍵}⎕XSI
-     →(⎕SE.Link.FileSystemWatcher≡⊃⎕RSI)/NOHOLD ⍝ Can't hold in a high-priority callback (FileSystemWatcher event)
+     recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
+⍝     →(⎕SE.Link.FileSystemWatcher≡⊃⎕RSI)/NOHOLD ⍝ Can't hold in a high-priority callback (FileSystemWatcher event)
      :Hold '⎕SE.Link.Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
-NOHOLD:
+⍝NOHOLD:
          r←⍬⊤⍬
 
          (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
