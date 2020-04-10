@@ -5,7 +5,7 @@
     (1+⊃⎕LC)⎕STOP⊃⎕SI
 :EndIf
 :Trap DEBUG↓0
-    :Hold 'Notify'
+    :Hold '⎕SE.Link.Notify'
         container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
         UnscriptedNs←container.{
             9.1≠⎕NC ⍵:0

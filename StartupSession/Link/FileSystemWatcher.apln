@@ -23,7 +23,7 @@
       :EndSelect
     ∇
 
-    ∇ WatchEvent(obj args);ct;info;nargs
+    ∇ WatchEvent(obj args);ct;info;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
      
@@ -43,7 +43,8 @@
       :EndIf
 
       :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
-          ⎕NQ(⊃'Timer'⎕WN ⎕SE.Link.FileSystemWatcher)NotifyEvent nargs ⍝ Any queue will do
+         ⍝ Do not split the following line into several lines: thread switch must NOT happen
+         :If 0≠≢timers←'Timer' ⎕WN ⎕SE.Link.FileSystemWatcher ⋄ ⎕NQ (⊃timers) NotifyEvent nargs ⋄ :EndIf
       :Else      ⍝ Make direct calls to Notify
           ⎕SE.Link.Notify nargs
       :EndIf
@@ -96,7 +97,7 @@
       :Else ⍝ fsw should be a real FSW object
           :If 0≠⎕NC⊂'fsw.Dispose'  
               fsw.EnableRaisingEvents←0
-              ⎕DL 0.5 ⍝ Give any extant events time to be processed
+              ⎕DL 1.0 ⍝ Give any extant events time to be processed              
               fsw.Dispose
           :EndIf
       :EndIf
@@ -125,6 +126,7 @@
           watcher.EnableRaisingEvents←1
           ⎕DQ q ⍝ Wait here; q will be ⎕EX'd by Link.Break
           watcher.EnableRaisingEvents←0
+          ⎕DL 1 ⍝ Wait for events to stop
       :EndDisposable
     ∇
 

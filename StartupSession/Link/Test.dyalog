@@ -111,9 +111,10 @@
       {}3 ⎕MKDIR folder,'/app'
       {}3 ⎕MKDIR folder,'/utils'
      
-      _←(⊂main←' r←main' 'r←dup 2')QNPUT folder,'/app/main.aplf'        ⍝ One "application" function
-      _←(⊂dup←' r←dup x' 'r←x x')QNPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
-     
+      ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
+      _←(⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
+      _←(⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
+           
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
       opts.beforeWrite←'⎕SE.Link.Test.onFlatWrite'

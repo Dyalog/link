@@ -13,7 +13,7 @@
 
  :Trap DEBUG↓0
      →('⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
-     :Hold 'Notify'
+     :Hold '⎕SE.Link.Notify'
 NOHOLD:
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
