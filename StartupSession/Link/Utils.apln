@@ -112,7 +112,7 @@
       :If trail ⋄ dir,←'/'/⍨~'/\'∊⍨⊃⌽dir ⍝ append trailing slash if missing
       :Else ⋄ dir↓⍨←-+/∧\⌽dir∊'/\'       ⍝ remove trailing slash
       :EndIf
-      dir←WinSlash dir                   ⍝ use windows slash on windows machines
+      ⍝ dir←WinSlash dir                   ⍝ use windows slash on windows machines
     ∇
 
     Ancestry←{((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}
