@@ -15,6 +15,10 @@
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     PAUSE_LENGTH←0.1   ⍝ Length of delays to insert at strategic points on slow machines - See Breathe
 
+    ∇ linktest
+     
+    ∇
+
     ∇ Breathe
       ⎕DL PAUSE_LENGTH
     ∇
@@ -114,7 +118,7 @@
       ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
       _←(⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
       _←(⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
-           
+     
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
       opts.beforeWrite←'⎕SE.Link.Test.onFlatWrite'
@@ -447,17 +451,53 @@
       CleanUp folder name
     ∇
 
-    ∇ r←test_casecode folder;name;opts;z;DummyFn;FixFn;fns;nl3;actfiles;mat;expfiles
+    ∇ r←test_casecode folder;name;opts;z;DummyFn;FixFn;fns;nl3;actfiles;mat;expfiles;ns
       r←0
      
+      ⍝ Test creating a folder from a namespace with Case Conflicts
       ⎕EX name←'#.',2⊃⎕NPARTS folder
-      
-      ⎕MKDIR folder
-
+     
+      ns←⍎name ⎕NS''
+      ns.⎕FX'r←DUP x' 'r←Dup x'
+      ns.⎕FX'r←Dup x' 'r←x x'
+      ns.dup←42 42
+     
       opts←⎕NS''
+      opts.caseCode←0  ⍝ No case coding
+      opts.source←'ns' ⍝ Create folder from
+     
+      :Trap ⎕SE.Link.U.ERRNO
+          z←opts ⎕SE.Link.Create name folder
+          'Link issue #113'assert 0
+          ⎕SE.Link.Break name
+          3 ⎕NDELETE folder
+      :EndTrap
+     
       opts.caseCode←1
       z←opts ⎕SE.Link.Create name folder
+      actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
+      z←'DUP-7.aplf' 'Dup-1.aplf'
+      assert'actfiles≡z'
+      ⎕SE.Link.Add name,'.dup'
+      actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
+      z,←⊂'dup-0.apla'
+      assert'actfiles≡z'
      
+      CleanUp folder name
+      :Return
+     
+      ⍝ /// Morten to write QA with forceFilenames
+      ⍝ ⎕NPUT a function in a file without case coding
+      ⍝   verify that after Notify has run, the file name is correct
+      (⊂'foo' '2+2')⎕NPUT folder,'/foo.aplf'
+      assert that it has a case code name after Notify has run
+      ⍝ Also do an array  (see test_basic)
+      ⍝ ah, in the ForceFileNames test, also try to create a file which will be forced to an existing name and see what happens
+      ∘∘∘
+     
+      Link.Break and clear folder and continue
+     
+      z←opts ⎕SE.Link.Create name folder
       fns←⍬
       DummyFn←{('   ∇   r   ←   ',⍵)('   ⎕   ←   ''',⍵,'''   ⍝   ')('   ∇   ')}
       FixFn←name∘{_←⍺ ⍵ ⎕SE.Link.Fix DummyFn ⍵ ⋄ ⍵}
@@ -482,7 +522,7 @@
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
       ⍝ mat←↑{⍵[⍋↑⍵]}¨fns nl3 expfiles actfiles
       ⍝ ⎕←'expected apl names' 'actual apl names' 'expected file names' 'actual file names',mat
-      assert 'expfiles≡actfiles' 
+      assert'expfiles≡actfiles'
       assert'fns≡nl3'
       Breathe
       {}⎕SE.Link.Break name ⋄ #.⎕EX name
@@ -497,7 +537,7 @@
       (canwatch dotnetcore)←##.U.CanWatch''
       ⎕SE.Link.FileSystemWatcher.USE_NQ←USE_NQ
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
-      
+     
       :If ~canwatch
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0
@@ -528,7 +568,7 @@
      
       :If USE_ISOLATES
           :If 9.1≠⎕NC⊂'#.isolate'
-              #.⎕CY'isolate'
+              #.⎕CY'isolate.dws'
           :EndIf
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
           #.SLAVE←#.isolate.New''

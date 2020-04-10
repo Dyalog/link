@@ -1,11 +1,12 @@
- {opts}←{canwatch} DefaultOpts opts
+ {opts}←{canwatch}DefaultOpts opts
  ;Default;⎕IO
 
- :If 0=⎕NC 'canwatch' ⋄ canwatch←0 ⋄ :EndIf
+ :If 0=⎕NC'canwatch' ⋄ canwatch←0 ⋄ :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-
-     opts←Deserialise⍣(''≡0⍴opts)⊢opts ⍝ pseudo array notation
+     :If ''≡0⍴opts ⋄ opts←Deserialise opts ⍝ pseudo array notation
+     :Else ⋄ opts←⎕NS opts  ⍝ duplicate namespace to avoid changing caller's
+     :EndIf
 
      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
 

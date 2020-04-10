@@ -1,40 +1,42 @@
-﻿{r}←Expunge names;name;i;src
-;container;refs;UnscriptedNs
+﻿ {r}←Expunge names
+ ;container;refs;i;name;ref;src
 ⍝ Use in place of ⎕EX for linked names - will expunge source files where relevant
-:If U.debug=2
-    (1+⊃⎕LC)⎕STOP⊃⎕SI
-:EndIf
-:Trap DEBUG↓0
-    :Hold '⎕SE.Link.Notify'
-        container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-        UnscriptedNs←container.{
-            9.1≠⎕NC ⍵:0
-            11::0
-            1⊣⎕SRC⍎⍵
-        }
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     :Hold '⎕SE.Link.Notify'
+         container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+         UnscriptedNs←container.{
+             9.1≠⎕NC ⍵:0
+             11::0
+             1⊣⎕SRC⍎⍵
+         }
 
-        :If ×≢Links
-            Links/⍨←0≠⎕NC⍕¨Links.ns
-            refs←⍎¨Links.ns
-            r←(≢names←,⊆names)⍴0
-            :For i :In ⍳≢r
-                name←i⊃names
-                :If UnscriptedNs name
-                    Links/⍨←refs≠⍎container.name
-                    container.⎕EX name
-                :Else
-                    src←container U.GetLinkInfo name
-                    r[i]←container.⎕EX name
-                    :If (0≠≢4⊃src)∧0=≢4⊃container U.GetLinkInfo name ⍝ There was source and now there is none
-                        ⎕NDELETE 4⊃src
-                    :EndIf
-                :EndIf
-            :EndFor
-        :Else
-            container.⎕EX names
-        :EndIf
-    :EndHold ⍝ Notify
+         :If ×≢Links
+             Links/⍨←0≠⎕NC⍕¨Links.ns
+             refs←⍎¨Links.ns
+             r←(≢names←,⊆names)⍴0
+             :For i :In ⍳≢r
+                 name←i⊃names
+                 :If 9=⌊container U.NameClass name
+                 :AndIf ~U.IsScripted ref←container U.Execute name
+                     Links/⍨←refs≠ref
+                     container.⎕EX name
+                 :Else
+                     src←container U.GetLinkInfo name
+                     r[i]←container.⎕EX name
+                     :If (0≠≢4⊃src)∧0=≢4⊃container U.GetLinkInfo name ⍝ There was source and now there is none
+                         ⎕NDELETE 4⊃src
+                     :EndIf
+                     ⍝ TODO : arrays
+                 :EndIf
+             :EndFor
+         :Else
+             container.⎕EX names
+         :EndIf
+     :EndHold ⍝ Notify
 
-:Else
-    U.Resignal 1
-:EndTrap
+ :Else
+     U.Resignal 1
+ :EndTrap

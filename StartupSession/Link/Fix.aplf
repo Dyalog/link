@@ -1,9 +1,8 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array;oldfile
+ {linked}←where Fix src;array;ext;file;files;link;name;nc;nosrc;ns;nss;oldfile;oldname;src;stop;z;⎕TRAP
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
 ⍝   One day, the left argument of (ns name) may be inferred, for now it must be provided
-
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
 
@@ -15,7 +14,7 @@
      →('⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
 NOHOLD:
-         nosrc←0=≢src
+         nosrc←0=≢src   ⍝ editor callback provides empty source
          (ns name oldname)←3↑where,'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
@@ -46,15 +45,17 @@ NOHOLD:
              :EndIf
 
              :Trap 0
-                 (file oldfile)←1 U.DetermineFileName link ns name oldname src
+                 (file oldfile)←1 U.DetermineFileName link ns name oldname src  ⍝ fix in target ns
              :Else ⋄ U.Resignal 1
              :EndTrap
-             nc←ns.⎕NC⊂,name
+             nc←ns.⎕NC⊂,name  ⍝ fixed by U.DetermineFileName
 
-             :If (0≠≢oldfile)∧oldname≢name
-                 (⊂ns.⎕NR oldname)⎕NPUT oldfile 1 ⍝ Repair damage done by editor
+             :If (0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
+                 (⊂ns.⎕NR oldname)⎕NPUT oldfile 1
                  2 ns.⎕FIX'file://',oldfile ⍝ Necessary with FSW?
                  file←∊(⊂name)@2 ⎕NPARTS file
+             :ElseIf (0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ file name was changed by beforeWrite or forceFilename or forceExtensions
+                 ⎕NDELETE oldfile    ⍝ old file must be removed
              :EndIf
 
              :If nosrc                       ⍝ Source not provided - find it
@@ -83,25 +84,20 @@ NOHOLD:
              :EndIf
 
              :Trap 0
-                 :If fsw←0≠⎕NC⊂'link.fsw.Object.EnableRaisingEvents'
-                     old←link.fsw.Object.EnableRaisingEvents
-                     link.fsw.Object.EnableRaisingEvents←0
-                 :EndIf
                  3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                  (⊂src)⎕NPUT file 1
              :Else
-                 old←0
-                 :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
                  1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
              :EndTrap
-             :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
 
-             :If ~array
-                 :Trap 0
-                     2 ns.⎕FIX'file://',file
-                 :Else
-                     1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
-                 :EndTrap
+             :If ~(⊂link.watch)∊'both' 'dir'  ⍝ bind name to new file unless the filewatcher does it for us
+                 :If ~array  ⍝ array must always pre-exist the call to ⎕SE.Link.Fix for now
+                     :Trap 0
+                         2 ns.⎕FIX'file://',file
+                     :Else
+                         1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
+                     :EndTrap
+                 :EndIf
              :EndIf
          :EndIf
      :EndHold ⍝ 'Notify'

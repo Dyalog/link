@@ -9,7 +9,7 @@
      :AndIf ×≢⎕SE.Link.Links
          list←↑⎕SE.Link.Links.(ns dir)
          :If ×≢ns
-             there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ fully qualified name
+             there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
              ref←9∊⎕NC'ns'
          :AndIf ref∨×there.⎕NC⍕ns
              ns←⍕there⍎⍣(~ref)⊢ns

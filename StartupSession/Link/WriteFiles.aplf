@@ -1,55 +1,47 @@
- outFail←{opts}WriteFiles(source dir)
+ outFail←opts WriteFiles ns;FileName;dir;files;mask;name;names;nsref;ok;okFn;okNs;parent;src;trad
  ⍝ Write items to file in folders
- ;nc;okFn;okNs;nss;unscripted;failed;paths;ok;fns
- ;FileName;SaveFn;SaveNs
+ ⍝ ns must be a fully specified traditional namespace
+ ⍝ arrays not supported
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-     :If 0=opts.⎕NC'dir'
-         opts.dir←U.NormDir dir
-     :EndIf
-
-     FileName←{ ⍝ filename ← src FileName name
-         0 U.DetermineFileName opts source ⍵ ⍵ ⍺
-     }
-     SaveNs←{ ⍝ Save namespace whether scripted or not
-         0=≡⍵:0                ⍝ prototype means
-         16::0 ⍵               ⍝ problem: no script
-         src←⎕SRC source.⍎⍵    ⍝ get source from its location
-         22::⍵ 0               ⍝ failed: no file access
-         0 0⊣src U.Into src FileName ⍵ ⍝ save as namespace and report OK
-     }
-     SaveFn←{  ⍝ Save function there
-         nr←source.⎕NR ⍵
-         nr U.Into nr FileName ⍵
-     }
-     nc←{⎕NC⊂,'⍵'}source
+     outFail←0⍴⊂''
      okFn←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
      okNs←9.1 9.4 9.5 ⍝ ns/class/interface
-     :If nc=0 ⍝ undef
-     :ElseIf nc∊okFn
-         source←source↑⍨1-'.'⍳⍨⌽source ⍝ Item name without ns path
-         outFail←0⍴⊂0⍴SaveFn source ⍝ single fn/op
-     :ElseIf (nc∊okNs)∨(nc∊9.2)∧source≡# ⍝ # is reported as an instance (9.2)
-         nss←source.⎕NL-okNs
-         (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
-         paths←''∘FileName U.OnEach unscripted               ⍝ needed dirs
-         ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
-         fns←source.⎕NL-okFn                            ⍝ tradfn, dfn, tradop, dop
-         failed,←0~¨⍨SaveFn U.OnEach fns                ⍝ try to save the functions
-         failed,←paths/⍨~ok                             ⍝ also remember failed paths for nss
-         paths/⍨←ok                                     ⍝ the good paths
-         unscripted/⍨←ok                                ⍝ and their namespaces
 
-         ⍝ recurse and collect failures
-         outFail←failed,⊃,/unscripted{opts WriteFiles(source.⍎⍺)⍵}U.OnEach paths
-     :Else ⍝ invalid type
-         outFail←,⊂source
+     ⍝ TODO : should delete oldfilename if not same as filename
+     FileName←{ ⍝ filename ← src (parent FileName) name
+         (file oldfile)←0 U.DetermineFileName opts ⍺⍺ ⍵ ⍵ ⍺
+         file   ⍝ we only need the definite filename
+     }
+
+     ⍝ Create directory for namesapce
+     (parent name)←U.SplitNs ns ⋄ nsref←⍎ns
+     3 ⎕MKDIR dir←''((⍎parent)FileName)name
+     outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+
+     ⍝ Write children to files (except trad namespaces)
+     :If 0≠≢names←nsref.⎕NL-okFn,okNs
+         src←nsref U.GetSource¨names
+         mask←src∊⎕NULL  ⍝ traditional namespaces
+         trad←mask/names
+         (names src)←(~mask)∘/¨(names src)
+         mask←0=≢¨src     ⍝ can't get source
+         outFail,←(ns,'.')∘,¨mask/names
+         (names src)←(~mask)∘/¨(names src)
+         files←src(nsref FileName)¨names
+         :If ∨/mask←(⍳⍨819⌶¨files)≠(⍳≢files) ⍝ should really test the whole list of files after recursion, in case beforeWrite messed up the names
+             ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
+             U.Error'File name case clash - try using caseCode←1: ',⍕(ns,'.')∘,¨mask/names
+         :EndIf
+         mask←~src U.Into¨files  ⍝ failed to write
+         outFail,←(ns,'.')∘,¨mask/names
+
+         :If 0≠≢trad ⍝ recurse on traditional namespaces
+             outFail,←opts∘WriteFiles¨(ns,'.')∘,¨trad
+         :EndIf
      :EndIf
-     outFail(⍕¨~)←⊂⍬
  :Else
      U.Resignal 1
  :EndTrap
