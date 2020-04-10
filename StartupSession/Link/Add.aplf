@@ -4,7 +4,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :Hold 'Notify'
+     :Hold '⎕SE.Link.Notify'
      ⎕IO←1
 
      opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
