@@ -1,234 +1,250 @@
  {r}←Notify args
- ;type;path;oldpath;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
+ ;recur;startai;type;path;oldpath;oldfolder;oldextn;oldnsname;linked;link;i;folder;name;extn;nsname;ns;effect;z;affected;newname;oldname;resp;dispPath;dispNs;cap;text;⎕TRAP;links;above;regex;dir;array
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
-
+ startai←⎕AI
  :Select U.debug
  :Case 1 ⋄ ⎕←'Notify'args
  :Case 2 ⋄ ⎕←'Notify'args ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndSelect
 
  :Trap DEBUG↓0
-     r←⍬⊤⍬
+     recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
+⍝     →(⎕SE.Link.FileSystemWatcher≡⊃⎕RSI)/NOHOLD ⍝ Can't hold in a high-priority callback (FileSystemWatcher event)
+     :Hold '⎕SE.Link.Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
+⍝NOHOLD:
+         r←⍬⊤⍬
 
-     (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
-     (path oldpath)←{(0≠≢⍵)/U.Norm ⍵}¨path oldpath
+         (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
+         (path oldpath)←{(0≠≢⍵)/U.NormFile ⍵}¨path oldpath
 
-     linked←{0::⍬ ⋄ U.Norm¨⎕SE.Link.Links.dir}⍬
-     END U.If(≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path ⍝ not linked => done
-     link←i⊃⎕SE.Link.Links
+         linked←{0::⍬ ⋄ 1 U.NormDir¨⎕SE.Link.Links.dir}⍬
+         →END U.If(≢linked)<i←1⍳⍨linked≡¨(≢¨linked)↑¨⊂path ⍝ not linked => done
+         link←i⊃⎕SE.Link.Links
 
-     (folder name extn)←⎕NPARTS path
-     END U.Check name ⍝ invalid item name
+         (folder name extn)←⎕NPARTS path
+         (oldfolder oldname oldextn)←⎕NPARTS oldpath
+         →END U.Check name ⍝ invalid item name
 
-     dir←U.IsDir path
-     array←(U.LCase extn)≡link U.Tail 2 ⍝ does ext match ext for array (2=⎕NC)?
-     regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
-     END U.If(~(0=≢extn)∧type≡'deleted')∧(array∨dir)⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir or apla nor matching extn (unless deleting folder)
+         dir←U.IsDir path
+         array←(U.LCase extn)≡link U.Tail 2 ⍝ does ext match ext for array (2=⎕NC)?
+         regex←'^' '\*' '\?' '$'⎕R'^' '.*' '.' '$'⊢link.(codeExtensions,customExtensions)~'.' ⍝ convert glob to regex
+         →END U.If(~(0=≢extn)∧type≡'deleted')∧(array∨dir)⍱×≢regex ⎕S 2⊢extn~'.' ⍝ neither dir or apla nor matching extn (unless deleting folder)
 
-     folder←¯1↓folder ⍝ drop trailing /
+         folder←¯1↓folder ⍝ drop trailing /
 
-     nsname←(1+≢link.dir)↓folder
-     END U.Check nsname/⍨link.flatten
-     ((nsname='/')/nsname)←'.'
+         nsname←(1+≢link.dir)↓folder
+         oldnsname←(1+≢link.dir)↓oldfolder
+         →END U.Check nsname/⍨link.flatten
+         ((nsname='/')/nsname)←'.'
+         ((oldnsname='/')/oldnsname)←'.'
 
-     :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
+         :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
      ⍝ check visibility
-         above←≢U.Ancestry link.(dir↓⍨-'/'=⊃⌽dir)
+             above←¯1+≢U.Ancestry link.dir
 
-         :Trap 0 ⍝ no access
-             END U.If∨/6 ⎕NINFO(above↓U.Ancestry name),⊂path
-         :Else
-             →END
-         :EndTrap
-     :EndIf
-
-     nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
-
-     :If 3=⎕NC link.beforeRead ⍝ user exit defined?
-         :Trap DEBUG↓0
-             END U.If~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
-             :If ~(type≡'deleted')∨array∨(U.IsDir path)∨(⊂1↓extn)∊link.codeExtensions
-                 Log'Ignoring due to extension: ',type,' of ',path
-                 →END
-             :EndIf
-         :Else
-             ⎕←'*** onRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
-             ∘∘∘
-         :EndTrap
-     :EndIf
-
-     :If 0=≢ns←U.GetRefTo nsname ⍝ We're going to need a ref to it
-         Log'Unable to create namespace ',nsname
-         →END ⍝ might as well give up now
-     :EndIf
-
-     effect←0
-
-     :Select type
-
-     :Case 'created'               ⍝ A new file
-         effect←0                  ⍝ may not have an effect on existing objects
-         :If 0≠≢z←U.GetName path     ⍝ try to extract the name
-             name←z
-         :EndIf
-         :If 0≠≢z←4⊃ns U.GetLinkInfo name  ⍝ Redefines existing object with a source file
-         :AndIf ⎕NEXISTS z       ⍝ ... and that file exists
-             affected←(⍕ns),'.',name
-             Log'(created): ignoring new file ',path
-             Log'           attempts to redefine ',affected,' which is linked to ',z
-             →END
-         :EndIf
-
-     :Case 'changed'               ⍝ Update to existing file?
-         :If 0≠≢z←4⊃ns U.GetLinkInfo name      ⍝ name already linked
-         :AndIf name≡U.GetName path            ⍝ name matches file contents
-         :AndIf (U.Norm path)≡U.Norm z         ⍝ to the same file name
-             effect←1 ⋄ affected←(⍕ns),'.',name
-             :If (7⊃z)≡U.FileHash path
-                 Log'(change) ignored, checksum unchanged: ',path
-                 →END
+             :Trap 0 ⍝ no access
+                 →END U.If∨/6 ⎕NINFO above↓U.Ancestry path
              :Else
-                 Log'(change): ',affected,' updated in ',path
-             :EndIf    ⍝ ... but the file did not change
-
-         :Else ⍝ apparent change to name with no current link
-             :If 0≠≢z←U.GetFileInfo path ⍝ Paranoia: check if file defined another name
-                 :If 1≠≢z                ⍝ Defined MORE than one name
-                 :AndIf 1≠+/9=3⊃¨z       ⍝ not just a single class or namespace
-                 :AndIf 1≥+/0=5⊃¨z       ⍝ more than one thing defined at line 0
-                     ⎕←'WARNING: user changed name of edited item - ]Link lost track!'
-                     ⎕←'   Best course of action is:'
-                     ⎕←'      ]Link.Break ',(⍕link.ns)
-                     ⎕←'      ]Link.Create ',(⍕link.ns),' ',link.dir
-                     →END
-                 :EndIf ⍝ Multiple names
-                 z←({⍵⍳⌊/⍵}5⊃¨z)⊃z      ⍝ Pick first name defined in source
-             :AndIf 0≠(2⊃z).⎕NC⍕1⊃z     ⍝ If the old name exists
-                 (2⊃z).⎕EX⍕1⊃z          ⍝ Expunge it
-             :EndIf
-
-             :If U.IsDir path
-                 Log'(changed) ignored "change" to directory: ',path
                  →END
-             :EndIf
-
-             :If (~array)∧name≢newname←U.GetName path    ⍝ repeated in create
-             :AndIf 0≠≢⊃z←ns U.GetLinkInfo newname       ⍝ name inside is already linked
-                 affected←(⍕ns),'.',name
-                 Log'(created): ignoring changed file ',path
-                 Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
-                 →END
-             :EndIf
-
-             :If 0≠≢z←U.GetFileInfo path                ⍝ Try to find an "affected" object
-                 effect←1 ⋄ affected←(⍕ns),'.',name
-                 Log'(changed): ',affected,' was previously linked to ',path
-             :ElseIf array∨0≠≢newname
-                 effect←1 ⋄ affected←(⍕ns),'.',newname   ⍝ So just accept it
-                 Log'(changed): fixing ',affected,' from ',path
-             :Else
-                 Log'(changed): No APL object found in ',path
-                 →END
-             :EndIf
-
-         :EndIf
-
-     :Case 'renamed'
-         :If U.IsDir path                        ⍝ of array or folder?
-         :AndIf 0=ns.⎕NC name                    ⍝ and new name is free and valid
-             :If (9-7×array)=ns.⎕NC oldname←∊1↓⎕NPARTS oldpath ⍝ and old name looks like an existing namespace
-                 ns⍎name,'←',oldname                   ⍝ copy it
-                 (⍎(⍕ns),'.',name).⎕DF(⍕ns),'.',name   ⍝ give it a nice name
-                 ns.⎕EX oldname                        ⍝ expunge old
-                 links←U.Norm¨U.GetInfos'file'
-                 links←(((≢oldpath)↑¨links)∊⊂oldpath)/links
-                 links←(⊂path),¨(≢oldpath)↓¨links
-                 :For link :In links
-                     Notify'changed'link
-                 :EndFor
-
-                 Log'NS rename ',oldname,' → ',(⍕ns),'.',name
-             :Else                                    ⍝ no old ns
-                 Log'NS rename ',oldname,' (not found) → ',name
-             :EndIf
-             →END
-         :EndIf
-
-         oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
-         :If array∨0≠≢⊃z←ns U.GetLinkInfo oldname     ⍝ array or old name *is* linked to this file
-             effect←1 ⋄ affected←(⍕ns),'.',name
-             Log'(rename) ',(⍕ns),'.',oldname,' → ',affected
-
-         :Else ⍝ old name not linked to old file
-             :If 0≠≢z←U.GetFileInfo path
-                 affected←(⍕2⊃⊃z),'.',⊃⊃z
-                 Log'(rename): ',affected,' was previously linked to ',path
-             :Else
-                 :If 0≠≢name←U.GetName path
-                     :If 0≠≢⊃z←ns U.GetLinkInfo name ⍝ but name inside is already linked
-                     :AndIf ⎕NEXISTS 4⊃z             ⍝ to a file which exists
-                         affected←(⍕ns),'.',name
-                         Log'(created): ignoring changed file ',path
-                         Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
-                         →END
-                     :Else
-                         effect←1 ⋄ affected←(⍕ns),'.',name
-                         Log'(rename): re-definition of ',affected,' from ',path
-                     :EndIf
-                 :Else
-                     Log'(rename): Unable to find changed object corresponding to ',path
-                 :EndIf
-             :EndIf
-         :EndIf
-
-     :Case 'deleted'
-         :If 0≠≢ns U.GetLinkInfo name   ⍝ existing name is linked to this file
-         :OrIf 9.1=ns.⎕NC⊂name          ⍝ it identifies a namespace
-             effect←1 ⋄ affected←(⍕ns),'.',name
-             Log'(delete) of ',affected
-         :ElseIf 0≠≢z←U.FindLinkInfo path
-             effect←1 ⋄ affected←2⊃z
-             Log'(delete): ',affected,' was previously linked to ',path
-         :Else
-             Log'(delete): Unable to find changed object corresponding to ',path
-         :EndIf
-
-     :EndSelect
-
-     :If effect∨'created'≡type
-         :If array∧type≡'renamed'
-         :AndIf 2=ns.⎕NC oldname
-         :AndIf (1⊃⎕NPARTS oldpath)≡(1⊃⎕NPARTS path)
-             ns.⎕EX oldname
-         :EndIf
-
-         :If (⊂type)∊'renamed' 'deleted'
-             ⎕EX affected
-         :EndIf
-
-         :If type≢'deleted'
-             :Trap 0
-                 :If U.IsDir path
-                     name ns.⎕NS''   ⍝ create namespace
-                 :ElseIf array        ⍝ array
-                     z←Deserialise U.GetFile path
-                     ⍎(⍕ns),'.',name,'←z'
-                 :Else               ⍝ try ⎕FIX
-                     ns QFix path link
-                 :EndIf
-             :Case 22
-                 :If ~'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
-                     ⎕←'(',type,') reported to unreadable file ',path
-                 :EndIf
-             :Else
-                 ⎕←'Unable to fix file ',path
-                 ⎕←'   '⎕DMX
              :EndTrap
          :EndIf
-     :EndIf
+
+         nsname←link.ns,(~link.flatten)/((0≠≢nsname)/'.'),nsname ⍝ target namespace
+         oldnsname←link.ns,(~link.flatten)/((0≠≢oldnsname)/'.'),oldnsname ⍝ target namespace
+
+         :If 3=⎕NC link.beforeRead ⍝ user exit defined?
+             :Trap DEBUG↓0
+                 →END U.If~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
+                 :If ~(type≡'deleted')∨array∨(U.IsDir path)∨(⊂1↓extn)∊link.codeExtensions
+                     Log'Ignoring due to extension: ',type,' of ',path
+                     →END
+                 :EndIf
+             :Else
+                 ⎕←'*** onRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
+                 ∘∘∘
+             :EndTrap
+         :EndIf
+
+         :If 0=≢ns←U.GetRefTo nsname ⍝ We're going to need a ref to it
+             Log'Unable to create namespace ',nsname
+             →END ⍝ might as well give up now
+         :EndIf
+
+         effect←0
+
+         :Select type
+
+         :Case 'created'               ⍝ A new file
+             effect←1
+             :If 0≠≢z←U.GetName path     ⍝ try to extract the name
+                 name←z
+             :EndIf
+             :If 0≠≢z←4⊃ns U.GetLinkInfo name  ⍝ Redefines existing object with a source file
+             :AndIf ⎕NEXISTS z       ⍝ ... and that file exists
+                 affected←(⍕ns),'.',name
+                 Log'(created): ignoring new file ',path
+                 Log'           attempts to redefine ',affected,' which is linked to ',z
+                 →END
+             :EndIf
+
+         :Case 'changed'               ⍝ Update to existing file?
+             :If 0≠≢z←4⊃ns U.GetLinkInfo name      ⍝ name already linked
+             :AndIf name≡U.GetName path            ⍝ name matches file contents
+             :AndIf (U.NormFile path)≡(U.NormFile z)         ⍝ to the same file name
+                 effect←1 ⋄ affected←(⍕ns),'.',name
+                 :If (7⊃z)≡U.FileHash path
+                     Log'(change) ignored, checksum unchanged: ',path
+                     →END
+                 :Else
+                     Log'(change): ',affected,' updated in ',path
+                 :EndIf    ⍝ ... but the file did not change
+
+             :Else ⍝ apparent change to name with no current link
+                 :If 0≠≢z←U.GetFileInfo path ⍝ Paranoia: check if file defined another name
+                     :If 1≠≢z                ⍝ Defined MORE than one name
+                     :AndIf 1≠+/9=3⊃¨z       ⍝ not just a single class or namespace
+                     :AndIf 1≥+/0=5⊃¨z       ⍝ more than one thing defined at line 0
+                         ⎕←'WARNING: user changed name of edited item - ]Link lost track!'
+                         ⎕←'   Best course of action is:'
+                         ⎕←'      ]Link.Break ',(⍕link.ns)
+                         ⎕←'      ]Link.Create ',(⍕link.ns),' ',link.dir
+                         →END
+                     :EndIf ⍝ Multiple names
+                     z←({⍵⍳⌊/⍵}5⊃¨z)⊃z      ⍝ Pick first name defined in source
+                 :AndIf 0≠(2⊃z).⎕NC⍕1⊃z     ⍝ If the old name exists
+                     (2⊃z).⎕EX⍕1⊃z          ⍝ Expunge it
+                 :EndIf
+
+                 :If U.IsDir path
+                     Log'(changed) ignored "change" to directory: ',path
+                     →END
+                 :EndIf
+
+                 :If (~array)∧name≢newname←U.GetName path    ⍝ repeated in create
+                 :AndIf 0≠≢⊃z←ns U.GetLinkInfo newname       ⍝ name inside is already linked
+                     affected←(⍕ns),'.',name
+                     Log'(created): ignoring changed file ',path
+                     Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+                     →END
+                 :EndIf
+
+                 :If 0≠≢z←U.GetFileInfo path                ⍝ Try to find an "affected" object
+                     effect←1 ⋄ affected←(⍕ns),'.',name
+                     Log'(changed): ',affected,' was previously linked to ',path
+                 :ElseIf array∨0≠≢newname
+                     effect←1 ⋄ affected←(⍕ns),'.',newname   ⍝ So just accept it
+                     Log'(changed): fixing ',affected,' from ',path
+                 :Else
+                     Log'(changed): No APL object found in ',path
+                     →END
+                 :EndIf
+
+             :EndIf
+
+         :Case 'renamed'
+             :If U.IsDir path                        ⍝ of array or folder?
+             :AndIf 0=ns.⎕NC name                    ⍝ and new name is free and valid
+                 :If (9-7×array)=ns.⎕NC oldname←∊1↓⎕NPARTS oldpath ⍝ and old name looks like an existing namespace
+                     ns⍎name,'←',oldname                   ⍝ copy it
+                     (⍎(⍕ns),'.',name).⎕DF(⍕ns),'.',name   ⍝ give it a nice name
+                     ns.⎕EX oldname                        ⍝ expunge old
+                     links←U.NormFile¨U.GetInfos'file'
+                     links←(((≢oldpath)↑¨links)∊⊂oldpath)/links
+                     links←(⊂path),¨(≢oldpath)↓¨links
+                     :For link :In links
+                         Notify'changed'link
+                     :EndFor
+
+                     Log'NS rename ',oldname,' → ',(⍕ns),'.',name
+                 :Else                                    ⍝ no old ns
+                     Log'NS rename ',oldname,' (not found) → ',name
+                 :EndIf
+                 →END
+             :EndIf
+
+             oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
+             :If array∨0≠≢⊃z←ns U.GetLinkInfo oldname     ⍝ array or old name *is* linked to this file
+                 effect←1 ⋄ affected←(⍕oldnsname),'.',oldname
+                 Log'(rename) ',affected,' → ',(⍕ns),'.',name
+
+             :Else ⍝ old name not linked to old file
+                 :If 0≠≢z←U.GetFileInfo path
+                     affected←(⍕2⊃⊃z),'.',⊃⊃z
+                     Log'(rename): ',affected,' was previously linked to ',path
+                 :Else
+                     :If 0≠≢name←U.GetName path
+                         :If 0≠≢⊃z←ns U.GetLinkInfo name ⍝ but name inside is already linked
+                         :AndIf ⎕NEXISTS 4⊃z             ⍝ to a file which exists
+                             affected←(⍕ns),'.',name
+                             Log'(created): ignoring changed file ',path
+                             Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+                             →END
+                         :Else
+                             effect←1 ⋄ affected←(⍕ns),'.',name
+                             Log'(rename): re-definition of ',affected,' from ',path
+                         :EndIf
+                     :Else
+                         Log'(rename): Unable to find changed object corresponding to ',path
+                     :EndIf
+                 :EndIf
+             :EndIf
+
+         :Case 'deleted'
+             :If 0≠≢ns U.GetLinkInfo name   ⍝ existing name is linked to this file
+             :OrIf 9.1=ns.⎕NC⊂name          ⍝ it identifies a namespace
+                 effect←1 ⋄ affected←(⍕ns),'.',name
+                 Log'(delete) of ',affected
+             :ElseIf 0≠≢z←U.FindLinkInfo path
+                 effect←1 ⋄ affected←2⊃z
+                 Log'(delete): ',affected,' was previously linked to ',path
+             :Else
+                 Log'(delete): Unable to find changed object corresponding to ',path
+             :EndIf
+
+         :Else
+             Log'Unhandled event type: ',type
+             →END ⍝ might as well give up now
+
+         :EndSelect
+
+         :If effect
+             :If array∧type≡'renamed'
+             :AndIf 2=ns.⎕NC oldname
+             :AndIf (1⊃⎕NPARTS oldpath)≡(1⊃⎕NPARTS path)
+                 ns.⎕EX oldname
+             :EndIf
+
+             :If (⊂type)∊'renamed' 'deleted'
+                 ⎕EX affected
+             :EndIf
+
+             :If type≢'deleted'
+                 :Trap 0
+                     :If U.IsDir path
+                         name ns.⎕NS''   ⍝ create namespace
+                     :ElseIf array        ⍝ array
+                         z←Deserialise U.GetFile path
+                         ⍎(⍕ns),'.',name,'←z'
+                     :Else               ⍝ try ⎕FIX
+                         ns QFix path link
+                     :EndIf
+                 :Case 22
+                     :If ~'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
+                         ⎕←'(',type,') reported to unreadable file ',path
+                     :EndIf
+                 :Else
+                     ⎕←'Unable to fix file ',path
+                     ⎕←'   '⎕DMX
+                 :EndTrap
+             :EndIf
+         :EndIf
 END:
+         :If U.debug≠0
+             ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
+         :EndIf
+     :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1
  :EndTrap

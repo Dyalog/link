@@ -6,7 +6,7 @@
  :Trap DEBUG↓0
 
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     nsref←⍎ns
+     nsref←U.Execute ns
      :If nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
          {}Break nsref

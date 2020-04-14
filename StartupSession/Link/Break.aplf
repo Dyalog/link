@@ -1,4 +1,4 @@
- msg←Break nss;names
+  msg←Break nss;names;link
  ;ns;linked;broken;missing;mask;⎕IO;there;n;parents
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -8,7 +8,7 @@
          ⎕SE.Link.Links/⍨←{0::1 ⋄ 0≠⎕NC ⎕SE.Link.Links.ns}⍬
      :AndIf ×≢⎕SE.Link.Links
          ⎕IO←1
-         there←⊃⌽2⍴⎕RSI↓⍨⎕XSI(∊⍨×¯1+⍳)⊂'⎕SE.UCMD' ⍝ DO WE NEED TO DO THIS ELSEWHERE???
+        there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If 2<10|⎕DR nss
              nss←there{
                  ''≢0⍴⍵:⍵
@@ -25,6 +25,10 @@
          :For ns :In nss
              mask←linked≠ns
              :If 0∊mask
+                 link←(mask⍳0)⊃Links
+                 :If 0≠link.⎕NC'fsw'
+                     FileSystemWatcher.Break link.fsw
+                 :EndIf
                  n+←U.RemoveFileLinksIn ns
                  ⎕SE.Link.Links/⍨←mask
                  broken,←⊂ns
@@ -44,6 +48,6 @@
          msg←'No active links'
      :EndIf
      :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table
-  :Else
+ :Else
      U.Resignal 1
  :EndTrap

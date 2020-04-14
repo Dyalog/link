@@ -1,29 +1,23 @@
  msg←Export(ns dir)
- ;opts;outFail;numFail;container;isChild;d
+ ;opts;outFail;numFail;nc
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     opts←⎕NS ⍬
-     opts.watch←'none'
-     opts.source←'ns'
+     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
      msg←⍕⍬⊤⍬
-     (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-     :If 0=⎕NC ns
-         msg←'Source namespace not found: ',ns
+     :If 9.1≠nc←U.NameClass ns
+         msg←'Source namespace not found: ',ns,' has name class ',(⍕nc)
      :Else
-         isChild←U.IsChild ns
-         dir↓⍨←-'/\'∊⍨⊃⌽dir
-         :If ⎕NEXISTS dir
-             dir←⊃⊃⎕NINFO⍠1⊢dir
-         :Else
-             dir←∊1 ⎕NPARTS dir ⍝ normalise name
-         :EndIf
+         opts←⎕NS ⍬
+         opts.watch←'none'
+         opts.source←'ns'
+         opts.ns←U.NormNs ns
+         opts.dir←dir←0 U.NormDir dir
 
-         dir←U.WinSlash dir
+         outFail←opts WriteFiles ns
 
-         outFail←opts WriteFiles(⍎ns)dir
          msg←'Exported: ',ns,' → ',dir
          numFail←≢outFail
          :If ×numFail

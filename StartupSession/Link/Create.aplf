@@ -1,5 +1,6 @@
  msg←{opts}Create(ns dir)
- ;isWin;container;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
+ ;isWin;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
+ ;dotnetcore;canwatch
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -12,39 +13,29 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
+     (canwatch dotnetcore)←U.CanWatch''
+     opts←canwatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
      msg←⍕⍬⊤⍬
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-
-     (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-
-     dir↓⍨←-'/\'∊⍨⊃⌽dir
-     :If ⎕NEXISTS dir
-         dir←⊃⊃⎕NINFO⍠1⊢dir
-     :Else
-         dir←∊1 ⎕NPARTS dir ⍝ normalise name
-     :EndIf
-
-     dir←U.WinSlash dir
-
-     :If ~U.isWindows
+     :If ~canwatch
      :AndIf (⊂opts.watch)∊'both' 'dir'
-         msg←'Watching directories is only supported under Microsoft Windows'
-     :ElseIf (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
-         msg←'Unable to link to namespace: ',ns
+         msg←'Watching directories is only supported if .NET is available'
      :ElseIf opts.source≡'dir'
      :AndIf ~⎕NEXISTS dir
          msg←'Source directory not found: ',dir
      :ElseIf opts.source≡'ns'
      :AndIf 0=⎕NC ns
          msg←'Source namespace not found: ',ns
-     :ElseIf ×≢⎕SE.Link.Links⊣nsref←⍎ns container.⎕NS ⍬
+     :ElseIf 0=≢nsref←U.GetRefTo ns ⍝ must be normal namespace
+         msg←'Not a namespace: ',ns
+     :ElseIf ×≢⎕SE.Link.Links⊣nsref←U.GetRefTo ns
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
          msg←'Already linked: ',U.Arrow link
-     :ElseIf {16::0 ⋄ 1⊣⎕SRC ⍵}nsref
-         msg←'Scipted: ',ns
-     :ElseIf ~⎕NEXISTS dir←∊1 ⎕NPARTS dir
+     :ElseIf U.IsScripted nsref
+         msg←'Cannot link to scripted namespaces: ',ns
+     :ElseIf ~⎕NEXISTS dir
      :AndIf ~3 ⎕MKDIR dir
          msg←'Directory not found: ',dir
      :ElseIf 0≡opts.source
@@ -53,13 +44,15 @@
      :ElseIf opts.(flatten∧source≢'dir')
          msg←'flatten≡1 requires source≡''dir'''
      :Else
+         ⍝ We're all good; do it!
+         opts.ns←ns←U.NormNs ns
+         opts.dir←dir←0 U.NormDir dir
 
-  ⍝ We're all good; do it!
          inFail←outFail←fsw←⍬
          ix←'[',(⍕(0(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
          msg←0⍴⊂''
          :If 'ns' 'both'∊⍨⊂opts.source
-             outFail←opts WriteFiles nsref dir
+             outFail←opts WriteFiles ns
          :AndIf 0≠≢outFail
              msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
          :EndIf
@@ -72,7 +65,7 @@
 
          linkDef←⎕SE.⎕NS opts
 
-         'linkDef'⎕NS'ns' 'dir' 'inFail' 'outFail'
+         'linkDef'⎕NS'inFail' 'outFail'
          linkDef.fsw←fsw
          arrow←U.Arrow linkDef
          linkDef.⎕DF 1⌽'][',arrow

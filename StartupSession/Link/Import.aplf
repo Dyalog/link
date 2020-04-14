@@ -1,5 +1,5 @@
  msg←{opts}Import(ns dir)
- ;opts;container;isChild;nsref;inFail;numFail
+ ;opts;nsref;inFail;numFail
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -9,19 +9,15 @@
 
      opts.watch←'none'
      opts.source←'dir'
-     (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-     :If (U.IsChild ns)>0 9.1∊⍨container.⎕NC⊂ns ⍝ must be normal namespace
+     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+     :If 0=≢nsref←U.GetRefTo ns ⍝ must be normal namespace
          msg←'Unable to import to namespace: ',ns
      :ElseIf ~⎕NEXISTS dir
          msg←'Source directory not found: ',dir
      :Else
-         isChild←U.IsChild ns
-         nsref←⍎ns container.⎕NS ⍬
-
-         dir←U.WinSlash dir
-
+         dir←0 U.NormDir dir
          inFail←⊃opts FixFiles nsref dir
-         msg←'Imported: ',ns,' ← ',dir
+         msg←'Imported: ',(U.NormNs ns),' ← ',dir
          numFail←≢inFail
          :If ×numFail
              msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail

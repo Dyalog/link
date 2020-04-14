@@ -1,17 +1,14 @@
- msg←Remove items
- ;roots;this;table;itemlist;filelist;files;mask
+ msg←Remove items;this
+ ;table;itemlist;filelist;files;mask
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-
      :If ×≢items
-         items←⊆,items
-         items~¨←' '
-         roots←{⍵↑⍨⍵⍳'.'}¨items
-         this←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-         items,¨⍨←/∘this¨~roots∊,¨'#' '⎕SE' '⎕DMX'
-         table←U.GetInfos⍬
+         items←(,⊆,items)~¨' '
+         this←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
+         items←(this,'.')∘.,¨items
+         table←U.GetInfos ⍬
          itemlist←{(⍕1⊃⍵),'.',⊃⍵}¨table
          filelist←(3⊃¨table),⊂''
          mask←items∊itemlist

@@ -1,4 +1,5 @@
- {name}←target QFix(src opts);ext ⍝ cover for {2}⎕FIX
+ {name}←target QFix(src opts);ext
+ ⍝ cover for {2}⎕FIX 'file://...'
  ⍝ takes target ns as left arg
 
  (name ext)←1↓⎕NPARTS src
