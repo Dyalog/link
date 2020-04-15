@@ -451,7 +451,7 @@
       CleanUp folder name
     ∇
 
-    ∇ r←test_casecode folder;name;opts;z;DummyFn;FixFn;fns;nl3;actfiles;mat;expfiles;ns
+    ∇ r←test_casecode folder;name;opts;z;DummyFn;FixFn;fns;nl3;actfiles;mat;expfiles;ns;_
       r←0
      
       ⍝ Test creating a folder from a namespace with Case Conflicts
@@ -478,17 +478,31 @@
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
       z←'DUP-7.aplf' 'Dup-1.aplf'
       assert'actfiles≡z'
-      ⎕SE.Link.Add name,'.dup'
+      _←⎕SE.Link.Add name,'.dup'
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
       z,←⊂'dup-0.apla'
       assert'actfiles≡z'
-     
+
       CleanUp folder name
       :Return
      
-      ⍝ /// Morten to write QA with forceFilenames
-      ⍝ ⎕NPUT a function in a file without case coding
+      ⍝ /// Morten's suggestions for more QA
+      ⍝ Re-run the above test using the Export function 
+      ⍝    verify the results are the same
+      ⍝ Extend above to have a sub-folder and check that the folder name is properly case coded
+      ⍝ Open above folder again with forceFilenames←1
+      ⍝ ⎕NPUT a function in a file with a name which is NOT case coded
       ⍝   verify that after Notify has run, the file name is correct
+      ⍝ Modify an existing function to rename it (see test_basic for inspiration)
+      ⍝   verify thet the file is renamed correctly
+      ⍝ (⊂⎕NR 'DUP') ⎕NPUT 'DUP.aplf' (i.e. non case coded)
+      ⍝   verify that the attempted rename to a DUP-7.aplf name (which already exists) is handled correctly
+      
+      ⍝ Test that explicit Fix and Notify update the right file
+      ⍝ Test that Expunge deletes the right file
+      ⍝ Test that CaseCode and StripCaseCode functions work correctly
+      ⍝ Ditto for GetFileName and GetItemname
+      
       (⊂'foo' '2+2')⎕NPUT folder,'/foo.aplf'
       assert that it has a case code name after Notify has run
       ⍝ Also do an array  (see test_basic)
