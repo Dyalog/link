@@ -4,7 +4,7 @@
 
  (name ext)←1↓⎕NPARTS src
  :If ext≡2 U.Tail⍨DefaultOpts ⎕NS ⍬ ⍝ array
-     name←StripCaseCode name
+     name←U.StripCaseCode name
      src←U.GetFile src
      :Trap 0 ⍝ must give array, not fn or nothing
          name target.{⍎⍺,'←⍵'}Deserialise src

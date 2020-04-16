@@ -38,13 +38,14 @@
     Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join using ⍺⍺
     Slash←{⍵∊'/\'}                          ⍝ Mark slashes
     Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
-    Path←{⍵↓⍨-'/'⍳⍨⌽⍵}                      ⍝ Until last slash
+    TilLast←{⍵↓⍨-⍺⍳⍨⌽⍵}
+    Path←'/'∘TilLast                        ⍝ Until last slash
+    Parent←'.'∘TilLast                      ⍝ Until last dot
     PadThis←{⍵,'⎕THIS'/⍨0=≢⍵}               ⍝ Default path to here
     NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
     Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
     WinSlash←'\'@Slash⍣isWindows            ⍝ force windows slashes only on windows machines
     DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
-    Nss←{,\'.',¨1↓U.Parts ⍵}                ⍝ Convert file path to ns path
         Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
     List←{∊{' ',⍕⍵}¨⍵}
       Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
@@ -138,6 +139,27 @@
           ⍵
       }
 
+    ∇ name←CaseCode name;bin;digits;len;⎕IO
+      ⎕IO←0
+      →0 If 0=≢name  ⍝ empty name doesn't get case coded
+      bin←name≠819⌶name
+      len←⌈3÷⍨≢bin
+      digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
+      digits↓⍨←+/∧\0=digits
+      name,←'-',⎕D[digits,0/⍨⍬≡digits]
+    ∇
+    ∇ name←StripCaseCode name;code;length;mask;⎕IO
+      ⎕IO←0
+      length←(⌽name)⍳'-'
+      →0 If length∊0,≢name   ⍝ case code must be after hyphen
+      code←⎕D⍳(-length)↑name
+      name←((-length+1)↓name)
+      →0 If code∨.>7         ⍝ case code must be octal digits
+      mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
+      →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
+      name←((≢name)↑mask)Case name
+    ∇
+
     :EndSection
 
 
@@ -166,7 +188,7 @@
     ∇
 
     ∇ r←GetRefTo nsname;name;nc;parent
-     ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
+    ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
       :If 9=⌊nc←NameClass nsname      ⍝ already there
       :OrIf IsRootName nsname         ⍝ or a root
           r←⍎nsname
@@ -204,13 +226,26 @@
       :EndTrap
     ∇
 
+    ∇ linkns←LookupFile file;dirs;inx;mask
+    ⍝ look up which linked directory has file
+      :If 0≠≢⎕SE.Link.Links
+          dirs←⎕SE.Link.Links.dir
+      :AndIf ∨/mask←dirs U.Begins¨⊂file
+          inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
+          linkns←inx⊃⎕SE.Link.Links
+      :Else
+          linkns←⍬
+      :EndIf
+    ∇
+
+
     :EndSection
 
 
 
     :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
 
-    ∇ (file oldfile)←fix DetermineFileName(opts ns name oldname src);cname;dir;ext;isroot;nc;oldfile;path;userfile;where
+    ∇ (file oldfile)←fix DetermineFileName(opts ns name oldname src);dir;ext;isroot;nc;oldfile;path;userfile;where
     ⍝ what should the file name be according to link
     ⍝ fix=1 allows fixing source in target ns to determine name class ⋄ fix=0 forces the fix in a temporary namespace
       oldfile←ns CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
@@ -232,7 +267,6 @@
           isroot←(ns⍎name)≡(⍎opts.ns)  ⍝ we're asking for the root of the link
           nc←¯9   ⍝ trad namespace are given name class ¯9
       :EndIf
-      cname←##.CaseCode⍣opts.caseCode⊢name  ⍝ case coded-name (if required)
       :If 0=≢file  ⍝ no existing file name for it
           :If isroot  ⍝ if we're asking for opts.ns then the answer is opts.dir
               file←opts.dir
@@ -242,10 +276,11 @@
                   ((file='.')/file)←'/'            ⍝ Convert dots to /
               :EndIf
               file←opts.dir,file               ⍝ Add link directory
-              file,←'/',cname                  ⍝ Add object name
+              file,←'/',name                  ⍝ Add object name
           :EndIf
           file,←opts Tail nc               ⍝ Add extension
       :EndIf
+      file←opts ##.CaseCode⍣opts.caseCode⊢file ⍝ case coded-name (if required)
       ⍝ Allow user to determine file name - they return '' to give up
       :If 3=(⍎opts.ns).⎕NC opts.beforeWrite
       :AndIf 0<≢userfile←(opts.ns⍎opts.beforeWrite)ns name oldname nc src file opts 1
@@ -254,12 +289,19 @@
       :If ¯9=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (dir file ext)←⎕NPARTS path←file
       :If opts.forceExtensions∨0=≢ext
-      :OrIf ~⎕NEXISTS path
+      ⍝:OrIf ~⎕NEXISTS path    ⍝ why ??? file is not supposed to exist yet
           ext←opts Tail nc
       :EndIf
-      :If opts.forceFilenames ⋄ file←cname ⋄ :EndIf
+      :If opts.forceFilenames ⋄ file←U.CaseCode⍣opts.caseCode⊢name ⋄ :EndIf
       file←dir,file,ext
       file←ApplyOldExtn⍣(~opts.forceExtensions)⊢file
+    ∇
+
+    ∇ name←opts DetermineAplName file;dir
+      file←opts ##.StripCaseCode file
+      (dir file)←2↑⎕NPARTS file  ⍝ drop extension
+      :If 0=≢file ⋄ dir←¯1↓dir ⋄ :EndIf  ⍝ drop trailing slash for directories
+      name←opts.ns,DotSlash(≢opts.dir)↓dir,file
     ∇
 
     ∇ src←GetRefSource ns

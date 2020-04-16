@@ -26,15 +26,13 @@ NOHOLD:
          :If 0≠⎕NC'⎕SE.Link.Links'
          :AndIf 0≠≢⎕SE.Link.Links
              nss←⍎¨⎕SE.Link.Links.ns
-             :Repeat
-                 :If ~linked←z∊nss
-                     linked←(z←z⍎'##')∊nss
-                 :EndIf
-             :Until linked∨z∊# ⎕SE ⎕DMX
+             :While ~linked←z∊nss
+             :AndIf ~U.IsRoot z
+                 z←z.##
+             :EndWhile
              :If linked
                  link←(nss⍳z)⊃⎕SE.Link.Links
              :EndIf
-
          :EndIf
 
          :If linked

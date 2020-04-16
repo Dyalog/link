@@ -15,9 +15,10 @@
      :ElseIf ~⎕NEXISTS dir
          msg←'Source directory not found: ',dir
      :Else
-         dir←0 U.NormDir dir
-         inFail←⊃opts FixFiles nsref dir
-         msg←'Imported: ',(U.NormNs ns),' ← ',dir
+         opts.ns←ns←U.NormNs ns
+         opts.dir←0 U.NormDir dir
+         inFail←⊃opts FixFiles nsref
+         msg←'Imported: ',ns,' ← ',dir
          numFail←≢inFail
          :If ×numFail
              msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail

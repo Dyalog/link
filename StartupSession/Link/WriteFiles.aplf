@@ -1,4 +1,4 @@
- outFail←opts WriteFiles ns;FileName;dir;files;mask;name;names;nsref;ok;okFn;okNs;parent;src;trad
+ outFail←opts WriteFiles(ns dir);FileName;dir;files;mask;names;nsref;ok;okFn;okNs;src;tradfiles;tradnames
  ⍝ Write items to file in folders
  ⍝ ns must be a fully specified traditional namespace
  ⍝ arrays not supported
@@ -9,6 +9,7 @@
      outFail←0⍴⊂''
      okFn←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
      okNs←9.1 9.4 9.5 ⍝ ns/class/interface
+     nsref←⍎ns
 
      ⍝ TODO : should delete oldfilename if not same as filename
      FileName←{ ⍝ filename ← src (parent FileName) name
@@ -17,16 +18,12 @@
      }
 
      ⍝ Create directory for namesapce
-     (parent name)←U.SplitNs ns ⋄ nsref←⍎ns
-     3 ⎕MKDIR dir←''((⍎parent)FileName)name
+     3 ⎕MKDIR dir
      outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
 
      ⍝ Write children to files (except trad namespaces)
      :If 0≠≢names←nsref.⎕NL-okFn,okNs
          src←nsref U.GetSource¨names
-         mask←src∊⎕NULL  ⍝ traditional namespaces
-         trad←mask/names
-         (names src)←(~mask)∘/¨(names src)
          mask←0=≢¨src     ⍝ can't get source
          outFail,←(ns,'.')∘,¨mask/names
          (names src)←(~mask)∘/¨(names src)
@@ -35,11 +32,16 @@
              ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
              U.Error'File name case clash - try using caseCode←1: ',⍕(ns,'.')∘,¨mask/names
          :EndIf
-         mask←~src U.Into¨files  ⍝ failed to write
-         outFail,←(ns,'.')∘,¨mask/names
-
-         :If 0≠≢trad ⍝ recurse on traditional namespaces
-             outFail,←opts∘WriteFiles¨(ns,'.')∘,¨trad
+         mask←src∊⎕NULL  ⍝ traditional namespaces
+         (tradnames tradfiles)←mask∘/¨(names files)
+         (files names src)←(~mask)∘/¨(files names src)
+         :If 0≠≢files
+             mask←~src U.Into¨files  ⍝ failed to write
+             outFail,←(ns,'.')∘,¨mask/names
+         :EndIf
+         :If 0≠≢tradfiles ⍝ recurse on traditional namespaces
+             tradnames←(ns,'.')∘,¨tradnames
+             outFail,←opts∘WriteFiles¨↓tradnames,[1.5]tradfiles
          :EndIf
      :EndIf
  :Else
