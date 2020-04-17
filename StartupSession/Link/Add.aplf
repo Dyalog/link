@@ -16,7 +16,7 @@
      added←0⍴⊂''
      unfound←0⍴⊂''
      :For item :In items
-         :If ×≢⎕NC item
+         :If 0<⎕NC item
              (ns name)←item⊆⍨⌽≤\⌽item≠'.'
              ns name Fix''
              added,←⊂item

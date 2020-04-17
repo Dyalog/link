@@ -7,11 +7,6 @@
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Notify'
          container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-         UnscriptedNs←container.{
-             9.1≠⎕NC ⍵:0
-             11::0
-             1⊣⎕SRC⍎⍵
-         }
 
          :If ×≢Links
              Links/⍨←0≠⎕NC⍕¨Links.ns
@@ -24,10 +19,10 @@
                      Links/⍨←refs≠ref
                      container.⎕EX name
                  :Else
-                     src←container U.GetLinkInfo name
+                     src←container U.CurrentFileName name
                      r[i]←container.⎕EX name
-                     :If (0≠≢4⊃src)∧0=≢4⊃container U.GetLinkInfo name ⍝ There was source and now there is none
-                         ⎕NDELETE 4⊃src
+                     :If (0≠≢src)∧0=≢container U.CurrentFileName name ⍝ There was source and now there is none
+                         ⎕NDELETE src
                      :EndIf
                      ⍝ TODO : arrays
                  :EndIf

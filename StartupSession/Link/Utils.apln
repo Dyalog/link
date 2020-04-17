@@ -2,6 +2,17 @@
 
     :Section Constants
     isWindows←'Win'≡3↑⊃# ⎕WG'APLVersion'
+    ∇ (canwatch dotnetcore)←_CanWatch;⎕USING
+      :Trap 0
+        ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
+          dotnetcore←(~isWindows)∨(,'1')≡2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_NETCORE'
+          ⎕USING←',System',(~dotnetcore)/'.dll'
+          canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
+      :Else
+          canwatch←dotnetcore←0
+      :EndTrap
+    ∇
+    (CanWatch DotNetCore)←_CanWatch ⍝ cache result
     ∇ d←debug
       :If 0=⎕NC'##.DEBUG'
           d←##.DEBUG←0
@@ -57,33 +68,17 @@
 
 
     :Section Covers for I-beams and other built-ins
-    GetLinkInfo←{⍺.(5179⌶)⍵}         ⍝ Return link info
-    CurrentFileName←{4⊃⍺.(5179⌶)⍵}   ⍝ Return current file name
+    CurrentFileName←{4⊃⍺.(5179⌶)⍵}   ⍝ Return current file name attached to apl name ⍵ in namespace ⍺
     Where←{⍵⌿⍺}                      ⍝ Filter as function
     GetFileInfo←{5174⌶⍵}             ⍝ Return links to file
       GetFile←{
           11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
           ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
       }
-      QFixIfExists←{
-          ⎕NEXISTS⊃⍵:_←⍺ ##.QFix ⍵
-          1:_←⍬
-      }
       GetInfos←{
           ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
           ⍵∘⊃¨5177⌶⍬
       }
-
-    ∇ (canwatch dotnetcore)←CanWatch dummy;⎕USING
-      :Trap 0
-        ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
-          dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_NETCORE'
-          ⎕USING←',System',(~dotnetcore)/'.dll'
-          canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
-      :Else
-          canwatch←dotnetcore←0
-      :EndTrap
-    ∇
 
     ∇ r←RemoveFileLinksIn rootns;all;allrefs;urefs;mask;t;remove
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
@@ -135,7 +130,7 @@
           (dir name ext)←⎕NPARTS ⍵
           ext≡'.dyalog':⍵
           alt←dir,name,'.dyalog'
-          (⎕NEXISTS alt):alt
+          (⎕NEXISTS alt)>(⎕NEXISTS ⍵):alt
           ⍵
       }
 
@@ -200,7 +195,6 @@
           :EndTrap
       :EndIf
     ∇
-
     :EndSection
 
 
@@ -244,30 +238,74 @@
 
 
     :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
+    ∇ src←GetRefSource ns
+      :Trap 16 ⋄ src←⎕SRC ns
+      :Else ⋄ src←⎕NULL  ⍝ traditional namespace
+      :EndTrap
+    ∇
+    ∇ src←{ns}GetSource name;nc
+    ⍝ src is a vector of text vectors, unless traditional namespace with get ⎕NULL
+    ⍝ name may be empty to get the source of ns
+      :If 0∊⍴name
+          src←GetRefSource ns
+      :Else
+          :If 900⌶⍬ ⋄ ns←⎕NS ⍬ ⋄ :EndIf
+          nc←ns.⎕NC⊂,name
+          :Select nc
+          :Case 2.1 ⍝ variable
+              :Trap 11 ⋄ src←,↓##.Serialise ns⍎name
+              :Else ⋄ Error'Unsupported array: ',(⍕ns),'.',name
+              :EndTrap
+          :CaseList 3.1 3.2 4.1 4.2 ⋄ src←ns.⎕NR name ⍝ tradfn/dfn/tradop/dop
+          :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
+          :Else ⋄ Error('Cannot get source of ',(⍕ns),'.',name,': invalid name class (',(⍕nc),')')
+          :EndSelect
+      :EndIf
+    ∇
 
-    ∇ (file oldfile)←fix DetermineFileName(opts ns name oldname src);dir;ext;isroot;nc;oldfile;path;userfile;where
+    ∇ {res}←{where}Fix(name src);names;nc
+    ⍝ Fix source and return names and nameclasses
+      :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
+      :If src≡⎕NULL  ⍝ traditional namespace
+          name where.⎕NS''
+          names←,⊂,name ⋄ nc←,¯9
+      :Else
+          :Trap 0
+              names←2 where.⎕FIX src  ⍝ fn/op/script - name may be different
+              nc←where.⎕NC names
+          :Else
+              :If 121=⎕DMX.ENX  ⍝ unnamed - try again
+                  name where.{⍎⍺,'←⎕FIX ⍵'}src
+                  nc←where.⎕NC names←,⊂,name
+              :Else   ⍝ expect array
+                  :Trap 0
+                      name where.{⍎⍺,'←⍵'}##.Deserialise src  ⍝ array
+                      nc←where.⎕NC names←,⊂,name
+                  :Else
+                      names←0⍴⊂'' ⋄ nc←⍬  ⍝ unknown
+                  :EndTrap
+              :EndIf
+          :EndTrap
+      :EndIf
+      res←(names nc)
+    ∇
+    ∇ (file oldfile)←DetermineFileName(opts ns name oldname src);dir;ext;isroot;names;nc;oldfile;path;userfile
     ⍝ what should the file name be according to link
     ⍝ fix=1 allows fixing source in target ns to determine name class ⋄ fix=0 forces the fix in a temporary namespace
       oldfile←ns CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
-      :If 0=nc←ns.⎕NC⊂,name
-      :AndIf 0≠≢src
-          :If fix ⋄ where←ns    ⍝ fix in actual namespace
-          :Else ⋄ where←⎕NS ⍬   ⍝ fix in toy namespace
-          :EndIf
-          :If src≡⎕NULL ⋄ name where.⎕NS''  ⍝ traditional namespace
-          :Else
-              :Trap 0 ⋄ 2 where.⎕FIX src  ⍝ array unsupported for nw
-              :Else ⋄ U.Resignal 1
-              :EndTrap
-          :EndIf
-          nc←where.⎕NC⊂,name  ⍝ infer nameclass from source
+      :If 0=≢src ⋄ nc←ns.⎕NC⊂,name  ⍝ no source : item must exist
+      :Else  ⍝ infer name class from source
+          (names nc)←Fix name src  ⍝ fix in dummy namespace
+          :If names≢,⊂name ⋄ Log'Source of name ',name,' produces names ',(⍕names) ⋄ :EndIf
+          nc←⊃nc  ⍝ infer nameclass from source
       :EndIf
       :If isroot←nc=9.1 ⋄ :AndIf ~IsScripted ns
           isroot←(ns⍎name)≡(⍎opts.ns)  ⍝ we're asking for the root of the link
           nc←¯9   ⍝ trad namespace are given name class ¯9
       :EndIf
-      :If 0=≢file  ⍝ no existing file name for it
+      :If 0=≢file                   ⍝ no existing file name for it
+      :OrIf opts.forceFilenames     ⍝ force using the default
           :If isroot  ⍝ if we're asking for opts.ns then the answer is opts.dir
               file←opts.dir
           :Else
@@ -292,9 +330,9 @@
       ⍝:OrIf ~⎕NEXISTS path    ⍝ why ??? file is not supposed to exist yet
           ext←opts Tail nc
       :EndIf
-      :If opts.forceFilenames ⋄ file←U.CaseCode⍣opts.caseCode⊢name ⋄ :EndIf
+      :If opts.forceFilenames ⋄ file←U.CaseCode⍣opts.caseCode⊢name ⋄ :EndIf  ⍝ forceFileNames does not affect directory
       file←dir,file,ext
-      file←ApplyOldExtn⍣(~opts.forceExtensions)⊢file
+      file←ApplyOldExtn⍣(~opts.forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
     ∇
 
     ∇ name←opts DetermineAplName file;dir
@@ -304,27 +342,7 @@
       name←opts.ns,DotSlash(≢opts.dir)↓dir,file
     ∇
 
-    ∇ src←GetRefSource ns
-      :Trap 16 ⋄ src←⎕SRC ns
-      :Else ⋄ src←⎕NULL  ⍝ traditional namespace
-      :EndTrap
-    ∇
-    ∇ src←{ns}GetSource name;nc
-    ⍝ src is a vector of text vectors, unless traditional namespace with get ⎕NULL
-    ⍝ name may be empty to get the source of ns
-      :If 0∊⍴name
-          src←GetRefSource ns
-      :Else
-          :If 900⌶⍬ ⋄ ns←⎕NS ⍬ ⋄ :EndIf
-          nc←ns.⎕NC⊂,name
-          :Select nc
-          :Case 2.1 ⋄ src←,↑Serialise ns⍎name  ⍝ variable
-          :CaseList 3.1 3.2 4.1 4.2 ⋄ src←ns.⎕NR name ⍝ tradfn/dfn/tradop/dop
-          :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
-          :Else ⋄ src←''  ⍝ 11 ⎕SIGNAL⍨('Cannot get source of ',(⍕ns),'.',name,': invalid name class (',(⍕nc),')')
-          :EndSelect
-      :EndIf
-    ∇
+
 
     :EndSection
 

@@ -41,9 +41,8 @@
          ((oldnsname='/')/oldnsname)←'.'
 
          :If type≢'deleted' ⍝ Check file is there unless we are processing a deletion
-     ⍝ check visibility
+             ⍝ check visibility
              above←¯1+≢U.Ancestry link.dir
-
              :Trap 0 ⍝ no access
                  →END U.If∨/6 ⎕NINFO above↓U.Ancestry path
              :Else
@@ -81,7 +80,7 @@
              :If 0≠≢z←U.GetName path     ⍝ try to extract the name
                  name←z
              :EndIf
-             :If 0≠≢z←4⊃ns U.GetLinkInfo name  ⍝ Redefines existing object with a source file
+             :If 0≠≢z←ns U.CurrentFileName name  ⍝ Redefines existing object with a source file
              :AndIf ⎕NEXISTS z       ⍝ ... and that file exists
                  affected←(⍕ns),'.',name
                  Log'(created): ignoring new file ',path
@@ -90,7 +89,7 @@
              :EndIf
 
          :Case 'changed'               ⍝ Update to existing file?
-             :If 0≠≢z←4⊃ns U.GetLinkInfo name      ⍝ name already linked
+             :If 0≠≢z←ns U.CurrentFileName name      ⍝ name already linked
              :AndIf name≡U.GetName path            ⍝ name matches file contents
              :AndIf (U.NormFile path)≡(U.NormFile z)         ⍝ to the same file name
                  effect←1 ⋄ affected←(⍕ns),'.',name
@@ -123,10 +122,10 @@
                  :EndIf
 
                  :If (~array)∧name≢newname←U.GetName path    ⍝ repeated in create
-                 :AndIf 0≠≢⊃z←ns U.GetLinkInfo newname       ⍝ name inside is already linked
+                 :AndIf 0≠≢z←ns U.CurrentFileName newname       ⍝ name inside is already linked
                      affected←(⍕ns),'.',name
                      Log'(created): ignoring changed file ',path
-                     Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+                     Log'           attempts to redefine ',affected,' which is linked to ',z
                      →END
                  :EndIf
 
@@ -165,21 +164,21 @@
              :EndIf
 
              oldname←2⊃⎕NPARTS oldpath                    ⍝ rename - not of a folder
-             :If array∨0≠≢⊃z←ns U.GetLinkInfo oldname     ⍝ array or old name *is* linked to this file
+             :If array∨0≠≢z←ns U.CurrentFileName oldname     ⍝ array or old name *is* linked to this file
                  effect←1 ⋄ affected←(⍕oldnsname),'.',oldname
                  Log'(rename) ',affected,' → ',(⍕ns),'.',name
 
              :Else ⍝ old name not linked to old file
                  :If 0≠≢z←U.GetFileInfo path
-                     affected←(⍕2⊃⊃z),'.',⊃⊃z
-                     Log'(rename): ',affected,' was previously linked to ',path
+                     affected←(⍕¨2⊃¨z),¨'.',¨(⊃¨z)
+                     Log'(rename): ',(⍕affected),' was previously linked to ',path
                  :Else
                      :If 0≠≢name←U.GetName path
-                         :If 0≠≢⊃z←ns U.GetLinkInfo name ⍝ but name inside is already linked
-                         :AndIf ⎕NEXISTS 4⊃z             ⍝ to a file which exists
+                         :If 0≠≢z←ns U.CurrentFileName name ⍝ but name inside is already linked
+                         :AndIf ⎕NEXISTS z             ⍝ to a file which exists
                              affected←(⍕ns),'.',name
                              Log'(created): ignoring changed file ',path
-                             Log'           attempts to redefine ',affected,' which is linked to ',4⊃z
+                             Log'           attempts to redefine ',affected,' which is linked to ',z
                              →END
                          :Else
                              effect←1 ⋄ affected←(⍕ns),'.',name
@@ -192,13 +191,13 @@
              :EndIf
 
          :Case 'deleted'
-             :If 0≠≢ns U.GetLinkInfo name   ⍝ existing name is linked to this file
-             :OrIf 9.1=ns.⎕NC⊂name          ⍝ it identifies a namespace
+             :If 0≠≢ns U.CurrentFileName name   ⍝ existing name is linked to this file
+             :OrIf 2.1 9.1∊⍨ns.⎕NC⊂name          ⍝ it identifies a namespace or an array
                  effect←1 ⋄ affected←(⍕ns),'.',name
                  Log'(delete) of ',affected
-             :ElseIf 0≠≢z←U.FindLinkInfo path
-                 effect←1 ⋄ affected←2⊃z
-                 Log'(delete): ',affected,' was previously linked to ',path
+             :ElseIf 0≠≢z←U.GetFileInfo path
+                 effect←1 ⋄ affected←(⍕¨2⊃¨z),¨'.',¨(1⊃¨z)
+                 Log'(delete): ',(⍕affected),' was previously linked to ',path
              :Else
                  Log'(delete): Unable to find changed object corresponding to ',path
              :EndIf

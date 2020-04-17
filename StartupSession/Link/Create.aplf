@@ -1,6 +1,5 @@
  msg←{opts}Create(ns dir)
  ;isWin;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
- ;dotnetcore;canwatch
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -13,12 +12,11 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
-     (canwatch dotnetcore)←U.CanWatch''
-     opts←canwatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←U.CanWatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
      msg←⍕⍬⊤⍬
 
-     :If ~canwatch
+     :If ~U.CanWatch
      :AndIf (⊂opts.watch)∊'both' 'dir'
          msg←'Watching directories is only supported if .NET is available'
      :ElseIf opts.source≡'dir'

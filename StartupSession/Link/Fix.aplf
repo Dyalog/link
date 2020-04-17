@@ -1,4 +1,4 @@
- {linked}←where Fix src;array;ext;file;files;link;name;nc;nosrc;ns;nss;oldfile;oldname;src;stop;z;⎕TRAP
+ {linked}←where Fix src;array;callback;delete;ext;file;files;link;name;nc;nosrc;ns;nss;oldfile;oldname;src;stop;watch;z;⎕TRAP
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -11,10 +11,11 @@
  :EndIf
 
  :Trap DEBUG↓0
-     →('⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
+     →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
 NOHOLD:
-         nosrc←0=≢src   ⍝ editor callback provides empty source
+
+         nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
@@ -38,47 +39,31 @@ NOHOLD:
          :If linked
 
              :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
-             :AndIf 0=≢src
+             :AndIf nosrc
                  →0 ⍝ Just notification, probably editor callback. No more to do.
              :EndIf
+             watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 
-             :Trap 0
-                 (file oldfile)←1 U.DetermineFileName link ns name oldname src  ⍝ fix in target ns
-             :Else ⋄ U.Resignal 1
-             :EndTrap
+             (file oldfile)←U.DetermineFileName link ns name oldname src  ⍝ fix in target ns
              nc←ns.⎕NC⊂,name  ⍝ fixed by U.DetermineFileName
 
-             :If (0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
+             :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
                  (⊂ns.⎕NR oldname)⎕NPUT oldfile 1
-                 2 ns.⎕FIX'file://',oldfile ⍝ Necessary with FSW?
-                 file←∊(⊂name)@2 ⎕NPARTS file
-             :ElseIf (0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ file name was changed by beforeWrite or forceFilename or forceExtensions
-                 ⎕NDELETE oldfile    ⍝ old file must be removed
+                 :If ~watch  ⍝ FileSystemWatcher should do this for us
+                     2 ns.⎕FIX'file://',oldfile
+                 :EndIf
+                 delete←0  ⍝ old file must be preserved
+             :Else
+                 delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
              :EndIf
 
              :If nosrc                       ⍝ Source not provided - find it
-                 :Select ⌊nc
-                 :Case 2
-                     src←ns⍎name
-                 :CaseList 3 4
-                     src←ns.⎕NR name
-                 :Case 9
-                     src←⎕SRC ns⍎name
-                 :Else
-                     1 U.Resignal⍨' *** Fix: unable to handle ',(⍕ns),'.',name,' (⎕NC =',(⍕nc),')'
-                 :EndSelect
+                 src←ns U.GetSource name
              :EndIf
 
+             ⍝ TODO : src should be U.GetSource of it - only difference is that arrays are passed as themselved rather than serialised, which is wrong
              :If 3=link.(⎕NC beforeWrite)
                  →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
-             :EndIf
-
-             :If array←2=⌊nc
-                 :Trap 11
-                     src←,↓Serialise src
-                 :Else
-                     'Unsupported array'U.Resignal 1
-                 :EndTrap
              :EndIf
 
              :Trap 0
@@ -88,14 +73,17 @@ NOHOLD:
                  1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
              :EndTrap
 
-             :If ~(⊂link.watch)∊'both' 'dir'  ⍝ bind name to new file unless the filewatcher does it for us
-                 :If ~array  ⍝ array must always pre-exist the call to ⎕SE.Link.Fix for now
-                     :Trap 0
-                         2 ns.⎕FIX'file://',file
-                     :Else
-                         1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
-                     :EndTrap
-                 :EndIf
+             :If ~watch  ⍝ bind name to new file unless the filewatcher does it for us
+             :AndIf 2≠⌊nc ⍝ array must always pre-exist the call to ⎕SE.Link.Fix for now
+                 :Trap 0
+                     2 ns.⎕FIX'file://',file
+                 :Else
+                     1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
+                 :EndTrap
+             :EndIf
+
+             :If delete  ⍝ old file must be removed
+                 ⎕NDELETE oldfile
              :EndIf
          :EndIf
      :EndHold ⍝ 'Notify'
