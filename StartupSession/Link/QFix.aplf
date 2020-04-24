@@ -3,7 +3,7 @@
  ⍝ takes target ns as left arg
 
  (name ext)←1↓⎕NPARTS src
- :If ext≡2 U.Tail⍨DefaultOpts ⎕NS ⍬ ⍝ array
+ :If ext≡2 U.Tail⍨DefaultOpts opts ⍝ array
      name←U.StripCaseCode name
      src←U.GetFile src
      :Trap 0 ⍝ must give array, not fn or nothing

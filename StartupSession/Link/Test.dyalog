@@ -4,6 +4,11 @@
 ⍝ For example:
 ⍝   Run 'c:\tmp\linktest'
 
+    ⍝ TODO
+    ⍝ - test quadVars.apln produced by Acre
+    ⍝   ':Namespace quadVars'  '##.(⎕IO ⎕ML ⎕WX)←0 1 3'  ':EndNamespace'
+    ⍝ - test ⎕SE.Link.Add '⎕IO'
+
     ⎕IO←1 ⋄ ⎕ML←1
 
     USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
@@ -14,10 +19,6 @@
     ASSERT_DORECOVER←1 ⍝ Attempt recovery if expression provided
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     PAUSE_LENGTH←0.1   ⍝ Length of delays to insert at strategic points on slow machines - See Breathe
-
-    ∇ linktest
-     
-    ∇
 
     ∇ Breathe
       ⎕DL PAUSE_LENGTH
@@ -457,8 +458,19 @@
       files←files,¨(types=1)/¨'/'
       files←(dirs∨types≠1)/files  ⍝ dirs=0 : exclude directories
     ∇
+    ∇ names←trad NSTREE ns;mask;pre;ref;refs;subns;tradns
+      ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
+      names←pre∘,¨ref.(⎕NL-⍳10)    ⍝ all names
+      :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
+          refs←ref⍎¨subns
+      :AndIf ∨/mask←{0::1 ⋄ 0⊣⎕SRC ⍵}¨refs  ⍝ trad ns
+          tradns←pre∘,¨mask/subns
+          :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
+          names,←⊃,/trad NSTREE¨tradns
+      :EndIf
+    ∇
 
-    ∇ r←test_casecode folder;DummyFn;FixFn;actfiles;expfiles;fn;fns;mat;name;nl3;ns;opts;z
+    ∇ r←test_casecode folder;DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fns;mat;name;nl3;ns;opts;z
       r←0
      
       ⍝ Test creating a folder from a namespace with Case Conflicts
@@ -477,26 +489,33 @@
       opts.caseCode←0  ⍝ No case coding
       opts.source←'ns' ⍝ Create folder from
      
+      ⍝ Try saving namespace without case coding
       :Trap ⎕SE.Link.U.ERRNO
           z←opts ⎕SE.Link.Export name folder
           'Link issue #113'assert 0
+      :Else
+          'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
       :EndTrap
       3 ⎕NDELETE folder
       :Trap ⎕SE.Link.U.ERRNO
           z←opts ⎕SE.Link.Create name folder
           'Link issue #113'assert 0
           ⎕SE.Link.Break name
+      :Else
+          'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
       :EndTrap
       3 ⎕NDELETE folder
      
+      ⍝ now do it properly
       opts.caseCode←1
       {}opts ⎕SE.Link.Export name folder
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
       expfiles←'SUB-7/DUP-7.aplf' 'SUB-7/SUBSUB-77/DUPDUP-77.aplf' 'sub-0/dup-0.aplf'
       assert'actfiles≡expfiles'
-      ⍝ TODO : export cannot export arrays ? (ns.dup)
+      ⍝ TODO : export cannot export arrays ? (ns.var)
       3 ⎕NDELETE folder
      
+      ⍝ try variables too
       {}opts ⎕SE.Link.Create name folder
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
       assert'actfiles≡expfiles'
@@ -506,6 +525,43 @@
       assert'actfiles≡expfiles'
      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
+     
+      ⍝ now open it back without case coding
+      opts.caseCode←0
+      opts.source←'dir'
+      {}opts ⎕SE.Link.Import name folder
+      actnames←{⍵[⍋⍵]}0 NSTREE name
+      expnames←{⍵[⍋⍵]}(name,'.')∘,¨'SUB.DUP' 'SUB.SUBSUB.DUPDUP' 'sub.dup' 'var'
+      assert'actnames≡expnames'
+      ⎕EX name
+     
+      ⍝ open it back without case coding and with forcefilenames - must fail
+      opts.forceFilenames←1
+      :Trap ⎕SE.Link.U.ERRNO
+          {}opts ⎕SE.Link.Import name folder
+          assert 0
+      :Else
+          assert'∨/''clashing file names''⍷⊃⎕DM'
+      :EndTrap
+     
+      opts.caseCode←1
+      {}⎕SE.Link.Create name folder
+      {}⎕SE.Link.Break name
+     
+      ⍝ survive clashing apl definitions despite different filenames
+      (⊂'r←foo x' 'r←''foo'' x')∘NPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
+      :Trap ⎕SE.Link.U.ERRNO
+          {}opts ⎕SE.Link.Create name folder
+          assert 0
+      :Else
+          assert'∨/''clashing APL names''⍷⊃⎕DM'
+      :EndTrap
+      NDELETE¨1↓files
+     
+      ⍝ forcefilename will rename file with proper casecoding
+      assert'1 0≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
+      {}opts ⎕SE.Link.Create name folder
+      assert'0 1≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
      
       CleanUp folder name
       :Return
@@ -540,7 +596,7 @@
       ⍝ Ditto for GetFileName and GetItemname
      
       (⊂'foo' '2+2')⎕NPUT folder,'/foo.aplf'
-      assert that it has a case code name after Notify has run
+      ⍝ assert that it has a case code name after Notify has run
       ⍝ Also do an array  (see test_basic)
       ⍝ ah, in the ForceFileNames test, also try to create a file which will be forced to an existing name and see what happens
       ∘∘∘
@@ -741,10 +797,12 @@
               :If (1≠⍴⍴value)∨~∧/,(10|⎕DR¨value)∊0 2 ⋄ :Return ⋄ :EndIf
               src←value
               extn←⊂'.charvec'
-          :EndSelect     
+          :EndSelect
           (⊂src)NPUT(∊(extn@3)⎕NPARTS file)1
           r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
     ∇
+
+
 
 :EndNamespace

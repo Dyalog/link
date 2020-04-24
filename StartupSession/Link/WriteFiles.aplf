@@ -11,18 +11,20 @@
      okNs←9.1 9.4 9.5 ⍝ ns/class/interface
      nsref←⍎ns
 
+     ⍝ TODO : beforeWrite
+
      ⍝ Create directory for namesapce
      3 ⎕MKDIR dir
      outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
 
      ⍝ Write children to files (except trad namespaces)
      :If 0≠≢names←nsref.⎕NL-okFn,okNs
-         src←nsref U.GetSource¨names
+         src←nsref U.GetAplSource¨names
          mask←0=≢¨src     ⍝ can't get source
          outFail,←(ns,'.')∘,¨mask/names
          (names src)←(~mask)∘/¨(names src)
-         (files oldfiles)←↓⍉↑nsref{U.DetermineFileName opts ⍺ ⍵ ⍵''}¨names  ⍝ names are known to exist so don't provide source
-         :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ should really test the whole list of files after recursion, in case beforeWrite messed up the names
+         (files oldfiles)←↓⍉↑ns∘{U.DetermineFileName opts ⍺ ⍵ ⍵''}¨names  ⍝ names are known to exist so don't provide source
+         :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
              ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
              names←names[,(mask/inx),[1.5]⍸mask]
              U.Error'File name case clash - try using caseCode←1:',⍕(ns,'.')∘,¨names

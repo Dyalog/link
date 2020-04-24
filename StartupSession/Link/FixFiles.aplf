@@ -1,12 +1,12 @@
- (inFail fsw)←opts FixFiles target;aplnames;filenames;inx;mask;ndirs;source;target
+ (inFail fsw)←opts FixFiles target;Files;RightExtn;TryFixThere;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;hideBit;inx;list;mask;names;ndirs;nss;parents;source;⎕IO
  ⍝ Load items from files in folders
- ;list;hideBit;hidden;files;dirs;order;nss;⎕IO;exts;names
- ;RightExtn;Files;FixThere;TryFixThere
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
+
+     ⍝ TODO : beforeRead
 
      source←opts.dir ⋄ inFail←⍬
      list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'     ⍝ recursive listing of everything
@@ -25,45 +25,62 @@
      Files←{⍵ U.Where ⍺∘RightExtn¨⍵}                 ⍝ Those that end with specified extension
      exts←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all the interesting extensions
      files←exts Files⊃U.Where/2=@2⊢list              ⍝ second column has 2 for files; first column is filename
-     order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨files     ⍝ slashes after all chars and quads before all - in "descending" order into folders: must process parent folders first
-     files←files[order]
+     files←files[U.GradeFiles files]
 
-     ndirs←≢dirs ⋄ files←dirs,files
-     names←opts U.DetermineAplName¨files
-     inFail,←(mask←¯1=⎕NC names)/files                ⍝ invalid names
-     (files names)←(~mask)∘/¨(files names)            ⍝ keep only names that are valid
+     ndirs←≢dirs ⋄ allfiles←dirs,files
+     (parents expnames actnames actnc)←↓⍉↑opts U.DetermineAplName¨allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+     mask←1≠≢¨actnames   ⍝ defines 0 name (invalid source) or more than 1 name (not supported by link)
+     mask∨←actnc∊⊂,¯1    ⍝ invalid names
+     inFail,←mask/allfiles
+     (allfiles parents expnames actnames actnc)/⍨←⊂~mask    ⍝ keep only names that are valid
      ndirs←+/ndirs↑~mask
+     actnames←⊃¨actnames ⋄ actnc←⊃¨actnc  ⍝ we know there is only one name per file
 
-     ⍝ TODO : doesn't detect actual APL names after fixing...
-     :If ∨/mask←(inx←⍳⍨names)≠(⍳≢names)
-         files←files[,(mask/inx),[1.5]⍸mask]
+     ⍝ detect clashing names
+     allnames←parents('.'U.Join¨)actnames  ⍝ fully qualified names
+     :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
+         files←allfiles[,(mask/inx),[1.5]⍸mask]
          U.Error'Files produce clashing APL names:',⍕files
      :EndIf
 
-     ⍝ TODO : should rename files if using opts.forceFilenames
-
-     ⍝ create namespaces for directories and load quadVars.apln
-     :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-         (dirs aplnames)←ndirs∘↑¨(files names)             ⍝ keep only names that are valid
-         {}U.GetRefTo U.OnEach aplnames
+     ⍝ rename files if incorrectly named
+     :If opts.forceFilenames∨opts.forceExtensions
+         expfiles←⊃¨U.DetermineFileName¨↓⍉↑((≢allfiles)/opts)parents actnames actnames actnc
+         :If ∨/mask←expfiles≢¨allfiles
+             :If (≢expfiles)≠(≢∪819⌶expfiles)
+                 U.Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
+             :Else
+                 ⍝ because APL names don't clash, we now expfiles won't clash either
+                 ⍝ however expfiles may overlap allfiles, producing an error at intermediate steps (⎕NMOVE should fail, because ⍠'IfExists' 'Error')
+                 (mask/expfiles)U.Relocate(mask/allfiles)
+                 allfiles←expfiles
+             :EndIf
+         :EndIf
      :EndIf
 
+     ⍝ create namespaces for directories and load quadVars.apln
+     (dirs names)←ndirs↑¨(allfiles allnames)
+     :If ~opts.flatten                               ⍝ If we are not flattening, create nss
+         nss←U.GetRefTo U.OnEach names
+     :Else
+         nss←target   ⍝ all files fixed in target namespace
+     :EndIf
+     {}nss{⎕NEXISTS ⍵:⍺ QFix ⍵ opts ⋄ ⍬}U.OnEach dirs,¨⊂'quadVars.apln' ⍝ set sysvars - these files are produced by Acre and must be supported
+
      ⍝ fix individual files
-     (files aplnames)←ndirs∘↓¨(files names)           ⍝ keep only names that are valid
-     FixThere←{ ⍝ Fix the file ⍵ in the namespace ⍺
-         ⍺ QFix ⍵ opts                     ⍝ do it
-     }
-     TryFixThere←{      ⍝ Try to fix file there
+     (files names)←ndirs∘↓¨(allfiles allnames)
+     TryFixThere←{      ⍝ Try to fix file ⍵ in namespace ⍺
          6 11::⍵        ⍝ return name on failure
-         0⊣⍺ FixThere ⍵ ⍝ do it and return 0 on success
+         0⊣⍺ QFix ⍵ opts ⍝ do it and return 0 on success
      }
      :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-         nss←⍎∘U.Parent U.OnEach aplnames
+         nss←⍎∘U.Parent U.OnEach names
      :Else
          nss←target   ⍝ all files fixed in target namespace
      :EndIf
      inFail,←0~⍨nss TryFixThere U.OnEach files ⍝ try it and return only failures
-      ⍝ return (list of failures) and (watcher reference or zilde)
+
+     ⍝ return (list of failures) and (watcher reference or zilde)
      :If 'dir' 'both'∊⍨⊂opts.watch
          fsw←FileSystemWatcher.Watch(source)(,'*')
      :Else

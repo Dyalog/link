@@ -1,4 +1,4 @@
- {linked}←where Fix src;array;callback;delete;ext;file;files;link;name;nc;nosrc;ns;nss;oldfile;oldname;src;stop;watch;z;⎕TRAP
+ {linked}←where Fix src;array;callback;delete;ext;file;files;link;name;nc;nosrc;ns;nsname;nss;oldfile;oldname;src;stop;watch;z;⎕TRAP
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -13,14 +13,14 @@
  :Trap DEBUG↓0
      →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
-NOHOLD:
+         NOHOLD:
 
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
          ns←⍎⍣(''≡0⍴∊ns)⊢ns
-         z←ns←⍬⍴ns
+         nsname←⍕z←ns←⍬⍴ns
 
          (linked link)←0 ⍬
 
@@ -44,7 +44,7 @@ NOHOLD:
              :EndIf
              watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 
-             (file oldfile)←U.DetermineFileName link ns name oldname src  ⍝ fix in target ns
+             (file oldfile)←U.DetermineFileName link nsname name oldname src  ⍝ fix in target ns
              nc←ns.⎕NC⊂,name  ⍝ fixed by U.DetermineFileName
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
@@ -57,12 +57,11 @@ NOHOLD:
                  delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
              :EndIf
 
-             :If nosrc                       ⍝ Source not provided - find it
-                 src←ns U.GetSource name
+             :If nosrc    ⍝ Source not provided - find it
+                 src←ns U.GetAplSource name
              :EndIf
 
-             ⍝ TODO : src should be U.GetSource of it - only difference is that arrays are passed as themselved rather than serialised, which is wrong
-             :If 3=link.(⎕NC beforeWrite)
+             :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
                  →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
              :EndIf
 
@@ -70,7 +69,7 @@ NOHOLD:
                  3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                  (⊂src)⎕NPUT file 1
              :Else
-                 1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
+                 1 U.Resignal⍨' *** Fix: Unable to write "',nsname,'.'name,'" to file ',file
              :EndTrap
 
              :If ~watch  ⍝ bind name to new file unless the filewatcher does it for us
@@ -78,7 +77,7 @@ NOHOLD:
                  :Trap 0
                      2 ns.⎕FIX'file://',file
                  :Else
-                     1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
+                     1 U.Resignal⍨' *** Fix: Unable to re-fix "',nsname,'.'name,'" from file ',file
                  :EndTrap
              :EndIf
 

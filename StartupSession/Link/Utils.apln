@@ -33,7 +33,7 @@
 
 
     :Section Stack Frames      ⍝ Tacit necessary to avoid them
-    Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('Message'(Message,⍺)))}
+    Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('EM' EM)('Message'(Message,⍺)))}
         Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
     If←⍴⍨
     ERRNO←99              ⍝ official API error number
@@ -155,6 +155,24 @@
       name←((≢name)↑mask)Case name
     ∇
 
+    ∇ order←GradeFiles files
+    ⍝ slashes after all chars and quads before all
+    ⍝ in "descending" order into folders: must process parent folders first
+      order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨files
+    ∇
+    ∇ {r}←to Relocate from;i;nextfrom;nextto
+    ⍝ move list of files, updating file names as we go through the list
+      r←⍬
+      :While ~0∊⍴to
+          (nextto nextfrom)←⊃¨(to from) ⋄ (to from)↓⍨←1
+          :If nextto≢nextfrom
+              r,←nextto ⎕NMOVE nextfrom
+              from←(nextfrom ⎕R nextto)from  ⍝ update directories in particular
+          :Else ⋄ r,←1   ⍝ no need to copy
+          :EndIf
+      :EndWhile
+    ∇
+
     :EndSection
 
 
@@ -164,10 +182,9 @@
     IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
     SplitNs←{t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'
     SplitNsRef←{⍺⍎@1⊢SplitNs ⍵}             ⍝ #.ns 'name' ← # SplitNsRef 'ns.name'
-    NormNs←{⍺←⎕NS⍬ ⋄ ⍕⍺⍎⍵}                  ⍝ normalise a namespace name
-
-    NameClass←{⍺←⎕NS ⍬ ⋄ ⍺.⎕NC,⊂,⍵}         ⍝ safe name class (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
-    Execute←{⍺←⎕NS⍬ ⋄ ⍺⍎⍵}                  ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
+    NormNs←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍕⍺⍎⍵}                  ⍝ normalise a namespace name
+    NameClass←{⍺←⎕DMX.⎕NS ⍬ ⋄ ⍺.⎕NC,⊂,⍵}         ⍝ safe name class (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
+    Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}                  ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
     IsRootName←{0::0 ⋄ IsRoot Execute ⍵}    ⍝ is name of a root
 
     ∇ (container ns)←rsi_xsi ContainerNs ns;n;rsi;xsi
@@ -243,7 +260,7 @@
       :Else ⋄ src←⎕NULL  ⍝ traditional namespace
       :EndTrap
     ∇
-    ∇ src←{ns}GetSource name;nc
+    ∇ src←{ns}GetAplSource name;nc
     ⍝ src is a vector of text vectors, unless traditional namespace with get ⎕NULL
     ⍝ name may be empty to get the source of ns
       :If 0∊⍴name
@@ -262,18 +279,26 @@
           :EndSelect
       :EndIf
     ∇
+    ∇ src←GetFileSource file
+      :If 1=1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
+      :Else ⋄ src←⊃⎕NGET file 1
+      :EndIf
+    ∇
 
-    ∇ {res}←{where}Fix(name src);names;nc
+    ∇ {res}←{where}Fix(name src);invalid;names;nc
     ⍝ Fix source and return names and nameclasses
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
+      invalid←¯1=⎕NC name ⋄ res←(,⊂,name)(¯1)  ⍝ invalid unless source defines its own name
       :If src≡⎕NULL  ⍝ traditional namespace
+          →0 If invalid
           name where.⎕NS''
           names←,⊂,name ⋄ nc←,¯9
       :Else
           :Trap 0
               names←2 where.⎕FIX src  ⍝ fn/op/script - name may be different
-              nc←where.⎕NC names
+              nc←where.⎕NC names  ⍝ nc cannot be ¯1
           :Else
+              →0 If invalid
               :If 121=⎕DMX.ENX  ⍝ unnamed - try again
                   name where.{⍎⍺,'←⎕FIX ⍵'}src
                   nc←where.⎕NC names←,⊂,name
@@ -289,28 +314,32 @@
       :EndIf
       res←(names nc)
     ∇
-    ∇ (file oldfile)←DetermineFileName(opts ns name oldname src);dir;ext;isroot;names;nc;oldfile;path;userfile
+    ∇ (file oldfile)←DetermineFileName(opts ns name oldname src);dir;ext;isroot;names;nc;oldfile;path;ref;userfile
     ⍝ what should the file name be according to link
-    ⍝ fix=1 allows fixing source in target ns to determine name class ⋄ fix=0 forces the fix in a temporary namespace
-      oldfile←ns CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+    ⍝ src may be the (nested) text source of item, or may be the scalar name class
+      :If 0=⎕NC ns ⋄ oldfile←'' ⋄ ref←⎕NULL   ⍝ namespace doesn't exist - src or nc ought to be provided
+      :Else ⋄ ref←⍎ns ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+      :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
-      :If 0=≢src ⋄ nc←ns.⎕NC⊂,name  ⍝ no source : item must exist
-      :Else  ⍝ infer name class from source
+      :If (0∊⍴src)∨(src≡0)  ⍝ no information about item - item must exist
+          nc←ref.⎕NC⊂,name  ⍝ no source : item must exist
+          :If 0=nc ⋄ ##.Log'Source of name ',ns,'.',name,' doesn''t exist' ⋄ :EndIf
+      :ElseIf 0=≡src ⋄ nc←src ⍝ (non-zero) name class is given
+      :Else  ⍝ infer name class from (non-empty) source
           (names nc)←Fix name src  ⍝ fix in dummy namespace
-          :If names≢,⊂name ⋄ Log'Source of name ',name,' produces names ',(⍕names) ⋄ :EndIf
+          :If names≢,⊂name ⋄ ##.Log'Source of name ',ns,'.',name,' produces names: ',(⍕names) ⋄ :EndIf
           nc←⊃nc  ⍝ infer nameclass from source
       :EndIf
-      :If isroot←nc=9.1 ⋄ :AndIf ~IsScripted ns
-          isroot←(ns⍎name)≡(⍎opts.ns)  ⍝ we're asking for the root of the link
-          nc←¯9   ⍝ trad namespace are given name class ¯9
-      :EndIf
+      ⍝ trad namespace are given name class ¯9
+      :If nc=9.1 ⋄ :AndIf ~IsScripted ref ⋄ nc←¯9 ⋄ :EndIf
+      :If isroot←nc=¯9 ⋄ isroot←opts.ns≡ns,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file                   ⍝ no existing file name for it
       :OrIf opts.forceFilenames     ⍝ force using the default
           :If isroot  ⍝ if we're asking for opts.ns then the answer is opts.dir
               file←opts.dir
           :Else
               :If ~opts.flatten                ⍝ flatten prevents subdirectory hierarchy
-                  file←(≢opts.ns)↓⍕ns              ⍝ Add sub.namespace structure
+                  file←(≢opts.ns)↓ns              ⍝ Add sub.namespace structure
                   ((file='.')/file)←'/'            ⍝ Convert dots to /
               :EndIf
               file←opts.dir,file               ⍝ Add link directory
@@ -321,7 +350,7 @@
       file←opts ##.CaseCode⍣opts.caseCode⊢file ⍝ case coded-name (if required)
       ⍝ Allow user to determine file name - they return '' to give up
       :If 3=(⍎opts.ns).⎕NC opts.beforeWrite
-      :AndIf 0<≢userfile←(opts.ns⍎opts.beforeWrite)ns name oldname nc src file opts 1
+      :AndIf 0<≢userfile←(opts.ns⍎opts.beforeWrite)ref name oldname nc src file opts 1
           file←userfile
       :EndIf
       :If ¯9=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
@@ -330,16 +359,25 @@
       ⍝:OrIf ~⎕NEXISTS path    ⍝ why ??? file is not supposed to exist yet
           ext←opts Tail nc
       :EndIf
-      :If opts.forceFilenames ⋄ file←U.CaseCode⍣opts.caseCode⊢name ⋄ :EndIf  ⍝ forceFileNames does not affect directory
+      :If isroot<opts.forceFilenames ⋄ file←CaseCode⍣opts.caseCode⊢name ⋄ :EndIf  ⍝ forceFileNames does not affect directory - only leaf name
       file←dir,file,ext
       file←ApplyOldExtn⍣(~opts.forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
     ∇
 
-    ∇ name←opts DetermineAplName file;dir
+    ∇ (ns name names nc)←opts DetermineAplName file;dir;fullname;src
+    ⍝ ns is the target namespace
+    ⍝ name is apl name expected from file name
+    ⍝ names is actual list of names fixed from file
+    ⍝ nc is list of name classes of same length as names
+      src←GetFileSource file
       file←opts ##.StripCaseCode file
       (dir file)←2↑⎕NPARTS file  ⍝ drop extension
       :If 0=≢file ⋄ dir←¯1↓dir ⋄ :EndIf  ⍝ drop trailing slash for directories
-      name←opts.ns,DotSlash(≢opts.dir)↓dir,file
+      (ns name)←SplitNs fullname←opts.ns,DotSlash(≢opts.dir)↓dir,file
+      (names nc)←Fix name src
+      :If ¯1=⎕NC fullname  ⍝ invalid namespace path
+          nc←(⍴nc)⍴¯1
+      :EndIf
     ∇
 
 
