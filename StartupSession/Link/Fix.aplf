@@ -13,7 +13,7 @@
  :Trap DEBUG↓0
      →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
-         NOHOLD:
+NOHOLD:
 
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
@@ -44,8 +44,7 @@
              :EndIf
              watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 
-             (file oldfile)←U.DetermineFileName link nsname name oldname src  ⍝ fix in target ns
-             nc←ns.⎕NC⊂,name  ⍝ fixed by U.DetermineFileName
+             (file oldfile nc)←U.DetermineFileName link nsname name oldname src  ⍝ fix in target ns
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
                  (⊂ns.⎕NR oldname)⎕NPUT oldfile 1
@@ -62,7 +61,11 @@
              :EndIf
 
              :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
+                 ⍝:Trap DEBUG↓0
                  →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
+                 ⍝:Else
+                 ⍝    U.Warn'beforeWrite callback ',link.beforeWrite,' failed: ',⎕DMX.EM
+                 ⍝:EndTrap
              :EndIf
 
              :Trap 0

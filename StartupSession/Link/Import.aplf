@@ -16,8 +16,8 @@
          msg←'Source directory not found: ',dir
      :Else
          opts.ns←ns←U.NormNs ns
-         opts.dir←0 U.NormDir dir
-         inFail←⊃opts FixFiles nsref
+         opts.dir←dir←0 U.NormDir dir
+         inFail←opts FixFiles nsref dir
          msg←'Imported: ',ns,' ← ',dir
          numFail←≢inFail
          :If ×numFail

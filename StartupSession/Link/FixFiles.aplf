@@ -1,4 +1,4 @@
- (inFail fsw)←opts FixFiles target;Files;RightExtn;TryFixThere;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;hideBit;inx;list;mask;names;ndirs;nss;parents;source;⎕IO
+ {inFail}←opts FixFiles(target source);TryFixThere;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;inx;list;mask;names;ndirs;nss;parents;source;⎕IO
  ⍝ Load items from files in folders
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -8,33 +8,28 @@
 
      ⍝ TODO : beforeRead
 
-     source←opts.dir ⋄ inFail←⍬
-     list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'     ⍝ recursive listing of everything
+     inFail←⍬
+     list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'    ⍝ recursive listing of everything  list[filename type hidden;]
 
-     hideBit←1=3⊃list                                ⍝ mask for hidden items
-     hidden←⊃list U.Where¨⊂hideBit                   ⍝ list of hidden (files and) folders
-     hidden,¨←'/'                                    ⍝ protect agains similarly named items
-     list←list U.Where¨⊂~hideBit                     ⍝ keep only visible items
-     list←list U.Where¨⊂~∨⌿hidden∘.U.Begins⊃list     ⍝ filter away things that come below hidden things
-     list↓⍨←¯1                                       ⍝ remove hideBit column
+     mask←1=list[3;] ⋄ list←¯1↓list                  ⍝ mask for hidden items
+     hidden←mask/list ⋄ list/⍨←~mask                 ⍝ crop hidden (files and) folders
+     hidden←(1=hidden[2;])/hidden[1;]                ⍝ keep directories only (files have already been removed from list)
+     hidden←hidden,¨'/'                              ⍝ protect against similarly named files
+     list/⍨←~∨⌿hidden∘.U.Begins list[1;]             ⍝ filter away things that come below hidden directories
 
-     dirs←(⊃U.Where/1=@2⊢list)                       ⍝ second column has 1 for dirs
-     dirs←((⊂opts.dir),{⍵[⍋⍵]}dirs),¨'/'             ⍝
+     dirs←(1=list[2;])/list[1;]                      ⍝ second column has 1 for dirs
+     dirs←((⊂opts.dir),{⍵[⍋⍵]}dirs),¨'/'             ⍝ all directories (including link root)
 
-     RightExtn←{⍺∊⍨⊂1↓⊃⌽⎕NPARTS ⍵}                   ⍝ Ends with specified extension?
-     Files←{⍵ U.Where ⍺∘RightExtn¨⍵}                 ⍝ Those that end with specified extension
-     exts←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all the interesting extensions
-     files←exts Files⊃U.Where/2=@2⊢list              ⍝ second column has 2 for files; first column is filename
-     files←files[U.GradeFiles files]
+     files←(2=list[2;])/list[1;]                     ⍝ second column has 2 for files; first column is filename
+     files/⍨←opts U.HasExtn files                    ⍝ must be of correct extension
+     files←files[U.GradeFiles files]                 ⍝ dirs then quads then files
 
      ndirs←≢dirs ⋄ allfiles←dirs,files
      (parents expnames actnames actnc)←↓⍉↑opts U.DetermineAplName¨allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
-     mask←1≠≢¨actnames   ⍝ defines 0 name (invalid source) or more than 1 name (not supported by link)
-     mask∨←actnc∊⊂,¯1    ⍝ invalid names
+     mask←actnc∊¯1 0    ⍝ invalid names or source
      inFail,←mask/allfiles
      (allfiles parents expnames actnames actnc)/⍨←⊂~mask    ⍝ keep only names that are valid
      ndirs←+/ndirs↑~mask
-     actnames←⊃¨actnames ⋄ actnc←⊃¨actnc  ⍝ we know there is only one name per file
 
      ⍝ detect clashing names
      allnames←parents('.'U.Join¨)actnames  ⍝ fully qualified names
@@ -62,6 +57,9 @@
      (dirs names)←ndirs↑¨(allfiles allnames)
      :If ~opts.flatten                               ⍝ If we are not flattening, create nss
          nss←U.GetRefTo U.OnEach names
+         :If ∨/mask←0=≢¨nss   ⍝ could not create namespace
+             inFail,←mask/names ⋄ names/⍨←~mask
+         :EndIf
      :Else
          nss←target   ⍝ all files fixed in target namespace
      :EndIf
@@ -80,12 +78,7 @@
      :EndIf
      inFail,←0~⍨nss TryFixThere U.OnEach files ⍝ try it and return only failures
 
-     ⍝ return (list of failures) and (watcher reference or zilde)
-     :If 'dir' 'both'∊⍨⊂opts.watch
-         fsw←FileSystemWatcher.Watch(source)(,'*')
-     :Else
-         fsw←⍬
-     :EndIf
+     ⍝ return list of failures
      inFail←⍕¨inFail
  :Else
      U.Resignal 1

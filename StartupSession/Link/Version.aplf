@@ -1,2 +1,6 @@
-version←Version
-version←'2.1'
+ version←Version
+ ⍝ Change history
+ ⍝ Version 2.1
+ ⍝ - beforeWrite split into two callbacks : beforeWrite and getFilename
+ ⍝ - name class is ¯9 for traditional namespaces (scripted namespaces remain 9.1)
+ version←'2.1'

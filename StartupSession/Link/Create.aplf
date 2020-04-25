@@ -27,7 +27,7 @@
          msg←'Source namespace not found: ',ns
      :ElseIf 0=≢nsref←U.GetRefTo ns ⍝ must be normal namespace
          msg←'Not a namespace: ',ns
-     :ElseIf ×≢⎕SE.Link.Links⊣nsref←U.GetRefTo ns
+     :ElseIf ×≢⎕SE.Link.Links
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
          msg←'Already linked: ',U.Arrow link
@@ -56,15 +56,19 @@
          :EndIf
 
          :If 'dir' 'both'∊⍨⊂opts.source
-             (inFail fsw)←opts FixFiles nsref
+             inFail←opts FixFiles nsref dir
          :AndIf 0≠≢inFail
              msg,←⊂(⍕≢inFail),' imports failed (⎕SE.Link.Links',ix,'.inFail)'
          :EndIf
 
          linkDef←⎕SE.⎕NS opts
-
          'linkDef'⎕NS'inFail' 'outFail'
-         linkDef.fsw←fsw
+         :If 'dir' 'both'∊⍨⊂opts.watch
+             linkDef.fsw←FileSystemWatcher.Watch dir(,'*')
+         :Else
+             linkDef.fsw←⍬
+         :EndIf
+
          arrow←U.Arrow linkDef
          linkDef.⎕DF 1⌽'][',arrow
          ⎕SE.Link.Links,←linkDef

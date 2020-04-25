@@ -1,4 +1,4 @@
-  msg←Break nss;names;link
+ msg←Break nss;names;link
  ;ns;linked;broken;missing;mask;⎕IO;there;n;parents
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -8,7 +8,7 @@
          ⎕SE.Link.Links/⍨←{0::1 ⋄ 0≠⎕NC ⎕SE.Link.Links.ns}⍬
      :AndIf ×≢⎕SE.Link.Links
          ⎕IO←1
-        there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
+         there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If 2<10|⎕DR nss
              nss←there{
                  ''≢0⍴⍵:⍵
@@ -36,14 +36,14 @@
                  missing,←⊂ns
              :EndIf
          :EndFor
-         msg←0⍴⊂''
+         msg←''
          :If ×≢broken
              msg,←⊂'Unlinked ',(⍕n),' items:',U.List broken
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List missing
          :EndIf
-         msg←⊃'; 'U.Join/msg
+         :If ~0∊⍴msg ⋄ msg←⊃'; 'U.Join/msg ⋄ :EndIf
      :Else
          msg←'No active links'
      :EndIf

@@ -1,4 +1,4 @@
- outFail←opts WriteFiles(ns dir);dir;files;inx;mask;names;nsref;ok;okFn;okNs;oldfiles;src;tradfiles;tradnames
+ outFail←opts WriteFiles(ns dir);dir;files;inx;mask;names;nc;nsref;ok;oldfiles;src;tradfiles;tradnames
  ⍝ Write items to file in folders
  ⍝ ns must be a fully specified traditional namespace
  ⍝ arrays not supported
@@ -7,8 +7,6 @@
  :EndIf
  :Trap DEBUG↓0
      outFail←0⍴⊂''
-     okFn←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
-     okNs←9.1 9.4 9.5 ⍝ ns/class/interface
      nsref←⍎ns
 
      ⍝ TODO : beforeWrite
@@ -18,12 +16,12 @@
      outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
 
      ⍝ Write children to files (except trad namespaces)
-     :If 0≠≢names←nsref.⎕NL-okFn,okNs
+     :If 0≠≢names←nsref.⎕NL-U.NameClasses 0
          src←nsref U.GetAplSource¨names
          mask←0=≢¨src     ⍝ can't get source
          outFail,←(ns,'.')∘,¨mask/names
          (names src)←(~mask)∘/¨(names src)
-         (files oldfiles)←↓⍉↑ns∘{U.DetermineFileName opts ⍺ ⍵ ⍵''}¨names  ⍝ names are known to exist so don't provide source
+         (files oldfiles nc)←↓⍉↑ns∘{U.DetermineFileName opts ⍺ ⍵ ⍵''}¨names  ⍝ names are known to exist so don't provide source
          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
              ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
              names←names[,(mask/inx),[1.5]⍸mask]

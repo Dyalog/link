@@ -4,6 +4,7 @@
 ⍝ For example:
 ⍝   Run 'c:\tmp\linktest'
 
+
     ⍝ TODO
     ⍝ - test quadVars.apln produced by Acre
     ⍝   ':Namespace quadVars'  '##.(⎕IO ⎕ML ⎕WX)←0 1 3'  ':EndNamespace'
@@ -16,7 +17,7 @@
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
     USE_NQ←0         ⍝ Value to use for ⎕SE.Link.FileSystemWatcher.USE_NQ
 
-    ASSERT_DORECOVER←1 ⍝ Attempt recovery if expression provided
+    ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     PAUSE_LENGTH←0.1   ⍝ Length of delays to insert at strategic points on slow machines - See Breathe
 
@@ -492,14 +493,15 @@
       ⍝ Try saving namespace without case coding
       :Trap ⎕SE.Link.U.ERRNO
           z←opts ⎕SE.Link.Export name folder
-          'Link issue #113'assert 0
+          'Link issue #113'assert'0'
+          ⎕NDELETE⍠1⊢folder
       :Else
           'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
       :EndTrap
       3 ⎕NDELETE folder
       :Trap ⎕SE.Link.U.ERRNO
           z←opts ⎕SE.Link.Create name folder
-          'Link issue #113'assert 0
+          'Link issue #113'assert'0'
           ⎕SE.Link.Break name
       :Else
           'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
@@ -539,7 +541,8 @@
       opts.forceFilenames←1
       :Trap ⎕SE.Link.U.ERRNO
           {}opts ⎕SE.Link.Import name folder
-          assert 0
+          assert'0'
+          ⎕EX name
       :Else
           assert'∨/''clashing file names''⍷⊃⎕DM'
       :EndTrap
@@ -552,7 +555,8 @@
       (⊂'r←foo x' 'r←''foo'' x')∘NPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
       :Trap ⎕SE.Link.U.ERRNO
           {}opts ⎕SE.Link.Create name folder
-          assert 0
+          assert'0'
+          ⎕SE.Link.Break name
       :Else
           assert'∨/''clashing APL names''⍷⊃⎕DM'
       :EndTrap
@@ -675,6 +679,7 @@
           :If 9.1≠⎕NC⊂'#.isolate'
               #.⎕CY'isolate.dws'
           :EndIf
+          #.isolate.Reset ⍬
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
           #.SLAVE←#.isolate.New''
           QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}

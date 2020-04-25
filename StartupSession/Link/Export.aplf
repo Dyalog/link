@@ -8,7 +8,7 @@
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
      msg←⍕⍬⊤⍬
-     :If 9.1≠nc←U.NameClass ns
+     :If ¯9≠nc←U.NameClass ns
          msg←'Source namespace not found: ',ns,' has name class ',(⍕nc)
      :Else
          opts.watch←'none'
