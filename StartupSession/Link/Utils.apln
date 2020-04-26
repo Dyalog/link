@@ -47,7 +47,7 @@
     Case←{⍺(819⌶)¨⍵}                        ⍝ Upper/Lower case
     LCase←{819⌶⍵}                           ⍝ Lower case
     Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join using ⍺⍺
-    Slash←{⍵∊'/\'}                          ⍝ Mark slashes
+    Slash←∊∘'/\'                            ⍝ Mark slashes
     Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
     TilLast←{⍵↓⍨-⍺⍳⍨⌽⍵}
     Path←'/'∘TilLast                        ⍝ Until last slash
@@ -145,10 +145,7 @@
 
     FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
 
-      IsDir←{
-          22::0
-          1=1 ⎕NINFO ⍵
-      }
+    IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
 
       Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
           22::0                  ⍝ no file access
@@ -221,13 +218,16 @@
     NormNs←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍕⍺⍎⍵}             ⍝ normalise a namespace name
 
     Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}             ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
-    IsRootName←{0::0 ⋄ IsRoot Execute ⍵}    ⍝ is name of a root
+    IsRootName←{⍺←⊢ ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
     ∇ nc←{nsref}NameClass name
     ⍝ safe name class (avoid clash with our stuff)
     ⍝ return ¯9 for trad ns
       :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
       :If 9.1=nc←nsref.⎕NC,⊂,name
       :AndIf ~IsScripted nsref⍎name
+          nc←¯9
+      :ElseIf ¯1=nc  ⍝ root reports ¯1
+      :AndIf nsref IsRootName name
           nc←¯9
       :EndIf
     ∇
@@ -289,6 +289,22 @@
       :EndIf
     ∇
 
+    ∇ linkns←LookupRef nsref;linked;nss
+    ⍝ lookup which linked namespace has nsref
+      linkns←⍬
+      :If 0≠⎕NC'⎕SE.Link.Links'
+      :AndIf 0≠≢⎕SE.Link.Links
+          nss←⍎¨⎕SE.Link.Links.ns
+          :While ~linked←nsref∊nss
+          :AndIf ~IsRoot nsref
+              nsref←nsref.##
+          :EndWhile
+          :If linked
+              linkns←(nss⍳nsref)⊃⎕SE.Link.Links
+          :EndIf
+      :EndIf
+    ∇
+
     :EndSection
 
 
@@ -329,35 +345,51 @@
       :EndTrap
     ∇
 
-    ∇ (name nc)←{where}Fix(name src);invalid;names;nc
+    ∇ (name nc)←{where}Fix(name src);file;invalid;names;nc;unnamed
     ⍝ Fix source and return names and nameclass
+    ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9 if trad namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
-      invalid←¯1=⎕NC,name ⋄ nc←¯1  ⍝ invalid unless source defines its own name
-      :If src≡⎕NULL  ⍝ traditional namespace
-          →0 If invalid
-          name where.⎕NS'' ⋄ nc←¯9
+      :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
+      ⍝ attempt to fix as named script because this is the most commly expected format
+      ⍝ actual apl name may be different from what was expected
+      :Trap 11
+          names←2 where.⎕FIX src  ⍝ fn/op/script - can work from file
+          :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
+          :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
+          :EndIf
+          :Return  ⍝ named script fixed
       :Else
-          :Trap 11
-              names←2 where.⎕FIX src  ⍝ fn/op/script - name may be different
-              :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
-              :Else ⋄ name←'' ⋄ nc←0
-              :EndIf
-          :Else
-              →0 If invalid
-              :If 121=⎕DMX.ENX  ⍝ unnamed - try again
-                  name where.{⍎⍺,'←⎕FIX ⍵'}src
-                  nc←where.⎕NC⊂,name
-              :Else   ⍝ expect array
-                  :Trap 0
-                      name where.{⍎⍺,'←⍵'}##.Deserialise src  ⍝ array
-                      nc←where.⎕NC⊂,name
-                  :Else
-                      name←'' ⋄ nc←0  ⍝ unknown
-                  :EndTrap
-              :EndIf
-          :EndTrap
+          unnamed←121=⎕DMX.ENX  ⍝ 2 ⎕FIX failed because script was unnamed
+      :EndTrap
+      ⍝ name must be valid because we define it in the following code
+      :If ¯1=⎕NC,name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
+      :If unnamed  ⍝ unnamed script
+          name where.{⍎⍺,'←⎕FIX ⍵'}src  ⍝ can work from file
+          nc←where.⎕NC⊂,name
+          :Return  ⍝ unnamed script fixed
       :EndIf
+      ⍝ remaining possibilities are array or trad ns
+      :If ~0∊⍴file  ⍝ they both require source, not filename
+          src←GetFileSource file
+      :EndIf
+      :If src≡⎕NULL  ⍝ trad namespace - was not tested before because the 1=1⎕NINFO would have been costy
+          name where.⎕NS'' ⋄ nc←¯9
+          :Return  ⍝ trad ns created
+      :EndIf
+      :Trap 0
+          name where.{⍎⍺,'←⍵'}##.Deserialise src  ⍝ array
+          nc←where.⎕NC⊂,name
+      :Else
+          name←'' ⋄ nc←0  ⍝ unknown
+      :EndTrap
+    ∇
+    ∇ ok←target QFix(file name tie);nc;src
+      :If tie ⋄ src←file ⍝ tie to file
+      :Else ⋄ src←GetFileSource file  ⍝ pure source - no tied
+      :EndIf
+      (name nc)←target Fix(name src)
+      ok←~nc∊0 ¯1
     ∇
     ∇ (file oldfile nc)←DetermineFileName(opts ns name oldname src);dir;ext;isroot;nc;oldfile;path;ref;userfile
     ⍝ what should the file name be according to link
@@ -370,7 +402,8 @@
           nc←ref NameClass name  ⍝ no source : item must exist
           :If 0=nc ⋄ Log'Source of name ',ns,'.',name,' doesn''t exist' ⋄ :EndIf
       :ElseIf 0=≡src ⋄ nc←src ⍝ (non-zero) name class is given
-      :Else  ⍝ infer name class from (non-empty) source
+      :ElseIf opts.fastload ⋄ nc←0
+      :Else   ⍝ infer name class from (non-empty) source
           (name nc)←Fix name src  ⍝ fix in dummy namespace
       :EndIf
       :If nc=¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid
@@ -411,6 +444,17 @@
       file←dir,file,ext
       file←ApplyOldExtn⍣(~opts.forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
     ∇
+    ∇ expname←expname(forcefile MergeFileName forceext)actname;actdir;actext;actfile;expdir;expext;expfile
+    ⍝ enforce forceFilenames/forceExtensions on actual file name, based on expected file name
+      :If (forcefile∨forceext)∧(actname≢expname)
+          :If Slash⊃⌽actname  ⍝ directory - ⎕NPARTS won't work
+              expname←(1+forcefile)⊃actname expname
+          :Else
+              ((expdir expfile expext)(actdir actfile actext))←⎕NPARTS¨expname actname
+              expname←actdir,((1+forcefile)⊃actfile expfile),((1+forceext)⊃actext expext)
+          :EndIf
+      :EndIf
+    ∇
 
     ∇ (ns name nc)←CurrentAplName file;fullname;info;row
       :If 0≠≢info←↑GetFileInfo file  ⍝ file actually linked by interpreter
@@ -421,21 +465,24 @@
           ns←name←'' ⋄ nc←¯1
       :EndIf
     ∇
-    ∇ (ns expname actname nc)←opts DetermineAplName file;dir;src
+    ∇ (ns expname actname nc)←opts DetermineAplName file;dir;fullname;src
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
     ⍝ nc is name class of name
-      src←GetFileSource file
+      :If opts.fastload ⋄ src←''     ⍝ do not spend time inspecting source
+      :Else ⋄ src←GetFileSource file
+      :EndIf
       file←opts ##.StripCaseCode file
       (dir file)←2↑⎕NPARTS file  ⍝ drop extension
       :If 0=≢file ⋄ dir←¯1↓dir ⋄ :EndIf  ⍝ drop trailing slash for directories
       (ns expname)←SplitNs fullname←opts.ns,DotSlash(≢opts.dir)↓dir,file
       :If opts.flatten ⋄ ns←⍕opts.ns ⋄ :EndIf
-      :If 0=≢src ⋄ (actname nc)←''⍬
-      :Else ⋄ (actname nc)←Fix expname src
+      :If opts.fastload ⋄ (actname nc)←expname 0  ⍝ settle with expname
+      :ElseIf 0=≢src ⋄ (actname nc)←'' 0             ⍝ no source
+      :Else ⋄ (actname nc)←Fix expname src           ⍝ inspect source
       :EndIf
-      :If ¯1=⎕NC ns ⋄ nc←¯1 ⋄ :EndIf ⍝ invalid namespace path
+      :If ¯1=# NameClass ns ⋄ nc←¯1 ⋄ :EndIf ⍝ invalid namespace path
     ∇
 
     :EndSection
@@ -448,7 +495,7 @@
 
     ∇ {msg}←{header}Warn msg
     ⍝ Warn user
-      :If 900⌶⍬ ⋄ header←']LINK WARNING: ' ⋄ :EndIf
+      :If 900⌶⍬ ⋄ header←']Link Warning: ' ⋄ :EndIf
       ⎕←msg←↑header∘,¨@1⊢,⊆,msg
     ∇
 

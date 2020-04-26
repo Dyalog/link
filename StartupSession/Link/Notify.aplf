@@ -1,32 +1,40 @@
- {r}←Notify args;actname;affected;children;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;startai;type;warn;watch;z
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
+
  startai←⎕AI
  :Select U.debug
- :Case 1 ⋄ ⍝⎕←'Notify'args
+ :Case 1 ⋄ ⍝ ⎕←'Notify'args  ⍝ no need for this - Notify calls U.Log a lot
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
 
  :Trap DEBUG↓0
      recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
-⍝     →(⎕SE.Link.FileSystemWatcher≡⊃⎕RSI)/NOHOLD ⍝ Can't hold in a high-priority callback (FileSystemWatcher event)
      :Hold '⎕SE.Link.Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
-⍝NOHOLD:
          r←⍬⊤⍬
-
          (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
          (path oldpath)←0 U.NormFile¨path oldpath
-         deleted←type≡'deleted' ⋄ msg←'Notify: ',type,' ',path,': '
 
          →END U.If 0∊⍴link←U.LookupFile path  ⍝ not linked => done
 
+         deleted←type≡'deleted'
+         msg←'Notify: ',type,' ',path,': '
+         :If DEBUG>0 ⋄ :AndIf type≡'renamed'
+             msg←(¯2↓msg),'←',oldpath,': '
+         :EndIf
+
          :If ~deleted
-             :Trap 0
-                 dir←1=1 ⎕NINFO path
-                 hidden←∨/6 ⎕NINFO(¯1+≢U.Ancestry link.dir)↓U.Ancestry path
-             :Else ⋄ →END⊣U.Log msg,'not accessible'
-             :EndTrap
+             retry←3 ⍝ occasionnaly, on ⎕NMOVE made by Notify, the watcher rename event will not have access to file
+             :While 0≤retry←retry-1
+                 :Trap 0
+                     dir←1=1 ⎕NINFO path
+                     hidden←∨/6 ⎕NINFO(¯1+≢U.Ancestry link.dir)↓U.Ancestry path
+                     :Leave
+                 :Else ⋄ ⎕DL 0.000001
+                 :EndTrap
+             :EndWhile
+             :If retry<0 ⋄ →END⊣U.Log msg,'not accessible' ⋄ :EndIf
              :If hidden ⋄ →END⊣U.Log'hidden' ⋄ :EndIf
              :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
                  →END⊣U.Log msg,'file type not managed by link'
@@ -39,63 +47,72 @@
              →END⊣U.Log msg,'file does not reflect in a valid namespace'
          :EndIf
          ⍝ determine current name tied to file (if any)
-         (curnsname curname curnc)←U.CurrentAplName path
-         ⍝ determin current file tied to name we plan to use
+         (curnsname curactname curnc)←U.CurrentAplName path
+         :If deleted  ⍝ can't examine source file - rely on expected apl name
+             :If ~curnc∊0 ¯1 ⋄ actname←curactname ⋄ nc←curnc     ⍝ interpreter remembers that name was linked to file
+             :Else ⋄ nc←nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
+             :EndIf
+             dir←nc=¯9
+             :If nc∊¯1 0 ⋄ →END⊣U.Log msg,'could not determine which object was linked to it' ⋄ :EndIf
+         :Else ⍝ cannot trust nc returned by DetermineAplName when opts.fastload
+             :If link.fastload<nc∊¯1 0 ⋄ →END⊣U.Log msg,'invalid file contents' ⋄ :EndIf
+         :EndIf
+         ⍝ determine current file tied to name we plan to use
          curfile←0 U.NormFile nsref U.CurrentFileName actname
 
-         :If deleted  ⍝ can't examine source file - rely on expected apl name
-             :If ~curnc∊0 ¯1 ⋄ actname←curname ⋄ nc←curnc     ⍝ interpreter remembers that name was linked to file
-             :Else ⋄ nc←,nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
-             :EndIf
-             :If nc∊¯1 0 ⋄ →END⊣U.Log msg,'could not determine which object was linked to it' ⋄ :EndIf
-         :Else
-             :If nc∊¯1 0 ⋄ →END⊣U.Log msg,'invalid file contents' ⋄ :EndIf
-         :EndIf
 
+         oldname←actname
+         affected←nsname,'.',actname
+         curname←curnsname,'.',curactname
 
          :If 3=⎕NC link.beforeRead ⍝ user exit defined?
              ⍝:Trap DEBUG↓0
-             →END U.If~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
+             :If ~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
+                 →END⊣U.Log msg,'handled by user'
+             :EndIf
              ⍝:Else
              ⍝    U.Warn'beforeRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
              ⍝:EndTrap
          :EndIf
 
-         affected←nsname,'.',actname
 
          :Select type
 
          :Case 'created'               ⍝ A new file
-             effect←1
              ⍝:If 0≠≢z←nsref U.CurrentFileName actname  ⍝ Redefines existing object with a source file
              ⍝:AndIf ⎕NEXISTS z       ⍝ ... and that file exists
-             :If 0≠⎕NC affected  ⍝ object already exists
+             :If 0≠⎕NC affected  ⍝ object already exists - this happens on ⎕SE.Link.Add on a variable
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
-                 U.Untie curnsname,'.',curname
-                 U.Log msg,'creating ',affected,' - unlinking previously linked ',curnsname,'.',curname
+                 U.Untie curname
+                 U.Log msg,'creating ',affected,' - unlinking previously linked ',curname
              :Else
                  U.Log msg,'creating ',affected
              :EndIf
 
          :Case 'changed'               ⍝ Update to existing file?
-             :If nc=¯9 ⋄ →END⊣U.Log msg,'ignoring change to directory' ⋄ :EndIf
+             :If dir ⋄ →END⊣U.Log msg,'ignoring change to directory' ⋄ :EndIf
              :If path≡curfile      ⍝ name already tied to the same file
-                 :If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected
-                 :Else ⋄ U.Log msg,'updating previously linked ',affected
-                 :EndIf
+                 ⍝ Checking hash is not worth, compared to fixing file.... also it might have false positive on character inversion (multiple of 4-bytes apart)
+                 ⍝ also, forcefilename might still want to rename the file
+                 ⍝:If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected ⋄ :EndIf
+                 U.Log msg,'updating previously linked ',affected
              :ElseIf 0≠≢curfile      ⍝ name was tied to a different file
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name
-                 (⍎curnsname).⎕EX curname  ⍝ delete name in case the name defined by source has changed
-                 U.Log msg,'updating un-linked ',affected,', expunging previously linked ',curnsname,'.',curname
+                 ⎕EX curname  ⍝ delete name in case the name defined by source has changed
+                 U.Log msg,'updating un-linked ',affected,', expunging previously linked ',curname
              :Else
                  U.Log msg,'updating un-linked ',affected
              :EndIf
 
          :Case 'renamed'
-             :If 0≠⎕NC affected                    ⍝ redefining existing name
-                 →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to',curfile
+             :If path≡curfile       ⍝ name already tied to the same file - happens when forceFilenames/forceExtensions moves back a file to where it was
+                 ⍝:If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected ⋄ :EndIf
+                 U.Log msg,'updating previously linked ',affected
+             :ElseIf 0≠⎕NC affected  ⍝ redefining existing name
+             :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
+                 →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
              :EndIf
              (oldnsname oldexpname)←2↑link U.DetermineAplName oldpath  ⍝ cannot determine actual name and nameclass because file is gone
              oldname←oldnsname,'.',oldexpname
@@ -104,7 +121,7 @@
                  oldfile←oldnsref U.CurrentFileName oldexpname
              :Else ⋄ oldnsref←⎕NULL ⋄ oldnc←¯1 ⋄ oldfile←''
              :EndIf
-             :If nc=¯9         ⍝ move traditional ns
+             :If dir         ⍝ move traditional ns
                  :If 9=⌊oldnc ⍝ old name is an existing namespace
                      ⍝actname nsref.⎕NS oldnsref.⍎oldexpname ⍝ deep copy into parent with a nice name
                      actname nsref.⎕NS''  ⍝ create empty namespace
@@ -126,8 +143,8 @@
                  oldnsref.⎕EX oldexpname
              :EndIf
              :If ~curnc∊0 ¯1     ⍝ new file already tied to a name
-                 U.Untie curnsname,'.',curname
-                 U.Warn msg,'moving ',oldname,' to ',affected,' - unlinking previously linked ',curnsname,'.',curname
+                 U.Untie curname
+                 U.Warn msg,'moving ',oldname,' to ',affected,' - unlinking previously linked ',curname
              :Else
                  U.Log msg,'moving ',oldname,' to ',affected
              :EndIf
@@ -135,53 +152,50 @@
          :Case 'deleted'
              :If 0=⎕NC affected  ⍝ object didn't exist
                  U.Log msg,'not found: ',affected
-             :ElseIf ~curnc∊0 ¯1     ⍝ file was tied to a name
-                 U.Untie curnsname,'.',curname
-                 U.Warn msg,'expunging ',affected,' - unlinking previously linked ',curnsname,'.',curname
+             :ElseIf (0<≢curfile)∧(path≢curfile)  ⍝ name tied to another file - don't expunge
+                 →END⊣U.Log msg,'not expunging ',affected,' linked to ',curfile
+             :ElseIf (~curnc∊0 ¯1)∧(curname≢affected)     ⍝ a different file was tied to a name
+                 U.Untie curname
+                 U.Warn msg,'expunging ',affected,' - unlinking previously linked ',curname
              :Else
                  U.Log msg,'expunging ',affected
              :EndIf
              ⎕EX affected
+             →END
 
          :Else
-             U.Log'Unhandled event type: ',type
+             U.Log msg,'Unhandled event type'
              →END ⍝ might as well give up now
 
          :EndSelect
 
 
-                      ⍝ rename files if incorrectly named
+         ⍝ rename files if incorrectly named
          watch←'dir' 'both'∊⍨⊂link.watch  ⍝ watching files
-         :If (~deleted)∧(link.forceFilenames∨link.forceExtensions)
-         :AndIf path≢exppath←⊃U.DetermineFileName link nsname name oldname nc
-             exppath ⎕NMOVE path ⋄ path←exppath
-             →END U.If watch  ⍝ file watcher will take care of the rest
+         :If link.fastload<(link.forceFilenames∨link.forceExtensions)
+             exppath←⊃U.DetermineFileName link nsname actname oldname nc
+         :AndIf path≢exppath←exppath(link.forceFilenames U.MergeFileName link.forceExtensions)path
+             :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
+                 →END⊣U.Warn msg,'name clash - cannot move file to existing ',exppath,' - cannot fix ',affected
+             :Else
+                 U.Log msg,'moving to ',exppath
+                 exppath ⎕NMOVE path ⋄ path←exppath
+                 ⍝ If we do the line below, then occasionally the watcher fails to callback on move, making the new file definition not fixed
+                 ⍝→END U.If watch     ⍝ file watcher will take care of the rest
+                 :While ~⎕NEXISTS exppath ⋄ ⎕DL 0.000001 ⋄ :EndWhile    ⍝ ensure file effectively moved before fixing
+             :EndIf
          :EndIf
 
-         :If type≢'deleted'
-             :Trap 0
-                 :If U.IsDir path
-                     actname nsref.⎕NS''   ⍝ create namespace
-                 :ElseIf 2=⌊nc        ⍝ array
-                     z←Deserialise U.GetFile path
-                     ⍎nsname,'.',actname,'←z'
-                 :Else               ⍝ try ⎕FIX
-                     nsref QFix path link
-                 :EndIf
-             :Case 22
-              ∘∘∘
-                     ⍝:If ~'tmp___'≡¯6↑path ⍝ PyCharm up to no good again
-                 U.Warn msg,'reported to unreadable file'
-                     ⍝:EndIf
-             :Else
-                 ∘∘∘
-                 U.Warn'Unable to fix file',⍕⎕DMX.(EM Message)
-             :EndTrap
+         ⍝ fix file
+         tie←'both' 'ns'∊⍨⊂link.watch ⍝ tie to file if watching namespace
+         :If dir  ⍝ create namespace - optimisation to avoid the call to ⎕NINFO that QFix would cause through GetFileSource
+             actname nsref.⎕NS''
+         :ElseIf ~nsref U.QFix path actname tie
+             U.Warn msg,'Unable to fix file'
          :EndIf
+
 END:
-         :If U.debug≠0
-             ⍝⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3]
-         :EndIf
+         ⍝:If U.debug≠0 ⋄ ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3] ⋄ :EndIf
      :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1

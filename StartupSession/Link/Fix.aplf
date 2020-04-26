@@ -1,4 +1,4 @@
- {linked}←where Fix src;array;callback;delete;ext;file;files;link;name;nc;nosrc;ns;nsname;nss;oldfile;oldname;src;stop;watch;z;⎕TRAP
+ {linked}←where Fix src;array;callback;delete;ext;file;files;link;name;nc;nosrc;ns;nsname;oldfile;oldname;src;stop;watch;z;⎕TRAP
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -13,7 +13,7 @@
  :Trap DEBUG↓0
      →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
-NOHOLD:
+         NOHOLD:
 
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
@@ -22,21 +22,7 @@ NOHOLD:
          ns←⍎⍣(''≡0⍴∊ns)⊢ns
          nsname←⍕z←ns←⍬⍴ns
 
-         (linked link)←0 ⍬
-
-         :If 0≠⎕NC'⎕SE.Link.Links'
-         :AndIf 0≠≢⎕SE.Link.Links
-             nss←⍎¨⎕SE.Link.Links.ns
-             :While ~linked←z∊nss
-             :AndIf ~U.IsRoot z
-                 z←z.##
-             :EndWhile
-             :If linked
-                 link←(nss⍳z)⊃⎕SE.Link.Links
-             :EndIf
-         :EndIf
-
-         :If linked
+         :If linked←~0∊⍴link←U.LookupRef ns
 
              :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
              :AndIf nosrc

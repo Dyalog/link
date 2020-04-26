@@ -7,7 +7,6 @@
      opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
-     msg←⍕⍬⊤⍬
      :If ¯9≠nc←U.NameClass ns
          msg←'Source namespace not found: ',ns,' has name class ',(⍕nc)
      :Else
@@ -18,7 +17,7 @@
 
          outFail←opts WriteFiles ns dir
 
-         msg←'Exported: ',ns,' → ',dir
+         msg←'Exported: ',ns,' → ',U.WinSlash dir
          numFail←≢outFail
          :If ×numFail
              msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓1 ⎕JSON⍕¨outFail

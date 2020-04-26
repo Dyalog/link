@@ -14,6 +14,7 @@
      'watch'Default(1+canwatch)⊃'ns' 'both'
 
      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames'Default 0
+     'fastload'Default 0
 
      'beforeWrite' 'beforeRead' 'customExtensions'Default''
 

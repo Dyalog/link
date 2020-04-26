@@ -8,7 +8,10 @@
      :AndIf 0∊⍴opts←U.LookupFile name
          U.Error'Not linked: ',⍕name
      :EndIf
-     :If name≡opts.dir ⋄ :Return ⋄ :EndIf  ⍝ would wrongfully cut name because of missing trailing slash
+     :If name≡opts.dir  ⍝ would wrongfully cut name because of missing trailing slash
+     :OrIf ~'-'∊name  ⍝ no casecode
+         :Return
+     :EndIf
      (path file ext)←1 ⎕NPARTS name
      path←(≢opts.dir)↓path       ⍝ do not case-code linked directory
      parts←(U.Parts path),⊂file

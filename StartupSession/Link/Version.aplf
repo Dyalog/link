@@ -1,6 +1,32 @@
  version←Version
- ⍝ Change history
- ⍝ Version 2.1
- ⍝ - beforeWrite split into two callbacks : beforeWrite and getFilename
- ⍝ - name class is ¯9 for traditional namespaces (scripted namespaces remain 9.1)
- version←'2.1'
+ version←'2.1.0-alpha'
+
+ ⍝ Changes history
+
+
+ ⍝ TODO
+
+ ⍝ - turn Serialise into ,↓Serialise
+ ⍝ - add Ignore - requires ignore list in ⎕SE.Link.Links.ignored)
+ ⍝ - Add should support non-existing names (added to ⎕SE.Link.Links.added)
+ ⍝ - add Pause/Resume ? to disable watcher ? and editor callbacks ?
+ ⍝ - remember ties between arrays and files (could be stored in ⎕SE.Link.Links.arrays)
+ ⍝ - add crawlers (file and namespace) - costy in code complexity and performance
+ ⍝ - clean up ⎕SE.Link to have only public names (excluding ⎕SE.Link.Links ?)
+
+ ⍝ Version 2.1.0
+ ⍝ - TODO beforeWrite split into two callbacks : beforeWrite and getFilename
+ ⍝   TODO specify them
+ ⍝ - beforeRead may use 'loaded' as event type when loading directory (so not truely a file change event)
+ ⍝ - Name class is reported as ¯9 for traditional namespaces (mapped to directories)
+ ⍝   Scripted namespaces remain of name class 9.1 (mapped to files)
+ ⍝ - -fastload flag to silently overwrite rather than inspecting source to detect name clashes
+ ⍝   will improve performance by a factor of 2
+ ⍝   worth doing only for very large projects, with expert users that don't produce misnamed files or name clashes
+ ⍝   side effects :
+ ⍝   - forceFileNames/forceFileExtensions won't be observed on file read
+ ⍝   - clashing names won't be detected on load - files names must match apl names
+ ⍝   - beforeRead/beforeWrite may report nc=0
+
+ ⍝ Version 2.0.0
+ ⍝ - initial public release

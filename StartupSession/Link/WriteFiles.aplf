@@ -1,4 +1,4 @@
- outFail←opts WriteFiles(ns dir);dir;files;inx;mask;names;nc;nsref;ok;oldfiles;src;tradfiles;tradnames
+ outFail←opts WriteFiles(ns dir);dir;files;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
  ⍝ Write items to file in folders
  ⍝ ns must be a fully specified traditional namespace
  ⍝ arrays not supported
@@ -21,7 +21,7 @@
          mask←0=≢¨src     ⍝ can't get source
          outFail,←(ns,'.')∘,¨mask/names
          (names src)←(~mask)∘/¨(names src)
-         (files oldfiles nc)←↓⍉↑ns∘{U.DetermineFileName opts ⍺ ⍵ ⍵''}¨names  ⍝ names are known to exist so don't provide source
+         (files oldfiles)←2↑↓⍉↑ns∘{U.DetermineFileName opts ⍺ ⍵ ⍵''}¨names  ⍝ names are known to exist so don't provide source
          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
              ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
              names←names[,(mask/inx),[1.5]⍸mask]

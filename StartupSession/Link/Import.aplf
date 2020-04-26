@@ -18,7 +18,7 @@
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
          inFail←opts FixFiles nsref dir
-         msg←'Imported: ',ns,' ← ',dir
+         msg←'Imported: ',ns,' ← ',U.WinSlash dir
          numFail←≢inFail
          :If ×numFail
              msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail
