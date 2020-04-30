@@ -1,29 +1,28 @@
-﻿ {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref
+﻿ {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref;⎕IO
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
+ :EndIf 
  :Trap DEBUG↓0
-     :Hold '⎕SE.Link.Notify'
-         container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-
-         :If ×≢Links
-             Links/⍨←0≠⎕NC⍕¨Links.ns
-             ⍝refs←⍎¨Links.ns
+     ⎕IO←1
+     container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+     :If U.HasLinks
+         :Hold '⎕SE.Link.Notify'
              r←(≢names←,⊆names)⍴0
              :For i :In ⍳≢r
-                 nc←# U.NameClass name←(⍕container),'.',i⊃names
+                 nc←container U.NameClass name←(⍕container),'.',i⊃names
                  :If 0=nc  ⍝ does not exist
                      r[i]←0 ⋄ :Continue
                  :EndIf
                  :If ¯9=nc  ⍝ trad ns
-                 :AndIf (⊂NormNs name)∊Link.ns  ⍝ is a link root
-                     r[i]←container.⎕EX name
+                 :AndIf (⊂U.NormNs name)∊Link.ns  ⍝ is a link root
+                     r[i]←⎕EX name
                      {}{0=≢⍵:⍵ ⋄ U.Warn ⍵}Break name  ⍝ tell user about problems
                  :Else
-                     link←U.LookupRef⍎parent←U.Parent name
-                     (file oldfile)←2↑U.DetermineFileName(link parent name name nc)
-                     r[i]←container.⎕EX name
+                     (parent name)←U.SplitNs name
+                     link←U.LookupRef parent←⍎parent
+                     (file oldfile)←2↑link U.DetermineFileName(⍕parent)name name nc  ⍝ U.NormNs parent
+                     r[i]←parent.⎕EX name
                      :If 0<≢oldfile  ⍝ tied to file
                          2 ⎕NDELETE oldfile
                      :ElseIf ⎕NEXISTS file  ⍝ guess file name
@@ -31,11 +30,10 @@
                      :EndIf
                  :EndIf
              :EndFor
-         :Else
-             container.⎕EX names
-         :EndIf
-     :EndHold ⍝ Notify
-
+         :EndHold ⍝ Notify
+     :Else
+         container.⎕EX names
+     :EndIf
  :Else
      U.Resignal 1
  :EndTrap

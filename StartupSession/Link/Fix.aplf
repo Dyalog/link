@@ -1,4 +1,4 @@
- {linked}←where Fix src;array;callback;delete;ext;file;files;link;name;nc;nosrc;ns;nsname;oldfile;oldname;src;stop;watch;z;⎕TRAP
+ {linked}←where Fix src;callback;delete;file;link;name;nc;nosrc;ns;nsname;oldfile;oldname;this;watch
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -11,17 +11,17 @@
  :EndIf
 
  :Trap DEBUG↓0
+     ⎕IO←1
      →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
-         NOHOLD:
-
+NOHOLD:
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
-         ns←⍎⍣(''≡0⍴∊ns)⊢ns
-         nsname←⍕z←ns←⍬⍴ns
-
+         this←⊃⎕RSI ⎕XSI U.ContainerNs ns
+         nsname←⍕ns←this(0 U.GetRefTo)ns
+                  
          :If linked←~0∊⍴link←U.LookupRef ns
 
              :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
@@ -30,7 +30,7 @@
              :EndIf
              watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 
-             (file oldfile nc)←U.DetermineFileName link nsname name oldname src  ⍝ fix in target ns
+             (file oldfile nc)←link U.DetermineFileName nsname name oldname src  ⍝ fix in target ns
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
                  (⊂ns.⎕NR oldname)⎕NPUT oldfile 1

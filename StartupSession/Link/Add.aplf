@@ -1,23 +1,23 @@
- msg←{opts}Add items;Default
- ;item;ns;name;this;added;unfound;⎕IO
+ msg←{opts}Add items;item;ns;name;this;added;unfound;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     ⍝ TODO ?
+     ⍝ opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     ⍝ Default←opts{0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
+     ⍝ 'filename'Default''
 
-     Default←opts{0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
-     'filename'Default''
      items←(⊆,items)~¨' '
-     this←2⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+     this←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
      items←(this,'.')∘,¨items         ⍝ fully qualified name
      added←0⍴⊂''
      unfound←0⍴⊂''
      :For item :In items
          :If 0<⎕NC item
-             (ns name)←item⊆⍨⌽≤\⌽item≠'.'
+             (ns name)←U.SplitNs item
              ns name Fix''
              added,←⊂item
          :Else

@@ -1,14 +1,12 @@
- msg←Refresh ns
- ;container;nsref;nsrefs;outFail;inFail;link
+ msg←Refresh ns;link;nsref;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-
+     ⎕IO←1
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     nsref←U.Execute ns
-     :If nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
-         link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+     :If ~0∊⍴nsref←(0 U.GetRefTo)ns
+     :AndIf ~0∊⍴link←U.LookupRef nsref
          {}Break nsref
          link.source←'both'
          msg←link Create nsref link.dir

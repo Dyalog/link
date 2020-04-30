@@ -1,7 +1,6 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
-
 
  startai←⎕AI
  :Select U.debug
@@ -10,6 +9,7 @@
  :EndSelect
 
  :Trap DEBUG↓0
+     ⎕IO←1
      recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
      :Hold '⎕SE.Link.Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
          r←⍬⊤⍬
@@ -42,28 +42,11 @@
          :EndIf
 
          ⍝ determine expected apl name from file name, and actual apl name from source
+         link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time
          (nsname expname actname nc)←link U.DetermineAplName path
-         :If 0=≢nsref←U.GetRefTo nsname
-             →END⊣U.Log msg,'file does not reflect in a valid namespace'
+         :If 0=≢nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
+             →END⊣U.Warn msg,'file does not reflect in a valid namespace'
          :EndIf
-         ⍝ determine current name tied to file (if any)
-         (curnsname curactname curnc)←U.CurrentAplName path
-         :If deleted  ⍝ can't examine source file - rely on expected apl name
-             :If ~curnc∊0 ¯1 ⋄ actname←curactname ⋄ nc←curnc     ⍝ interpreter remembers that name was linked to file
-             :Else ⋄ nc←nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
-             :EndIf
-             dir←nc=¯9
-             :If nc∊¯1 0 ⋄ →END⊣U.Log msg,'could not determine which object was linked to it' ⋄ :EndIf
-         :Else ⍝ cannot trust nc returned by DetermineAplName when opts.fastload
-             :If link.fastload<nc∊¯1 0 ⋄ →END⊣U.Log msg,'invalid file contents' ⋄ :EndIf
-         :EndIf
-         ⍝ determine current file tied to name we plan to use
-         curfile←0 U.NormFile nsref U.CurrentFileName actname
-
-
-         oldname←actname
-         affected←nsname,'.',actname
-         curname←curnsname,'.',curactname
 
          :If 3=⎕NC link.beforeRead ⍝ user exit defined?
              ⍝:Trap DEBUG↓0
@@ -75,6 +58,24 @@
              ⍝:EndTrap
          :EndIf
 
+         ⍝ determine current name tied to file (if any)
+         (curnsname curactname curnc)←U.CurrentAplName path
+         :If deleted  ⍝ can't examine source file - rely on expected apl name
+             :If ~curnc∊0 ¯1 ⋄ actname←curactname ⋄ nc←curnc     ⍝ interpreter remembers that name was linked to file
+             :Else ⋄ nc←nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
+             :EndIf
+             dir←nc=¯9
+             :If nc∊¯1 0 ⋄ →END⊣U.Log msg,'could not determine which object was linked to it' ⋄ :EndIf
+         :Else ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
+             :If link.fastLoad<nc∊¯1 0 ⋄ →END⊣U.Log msg,'invalid file contents' ⋄ :EndIf
+         :EndIf
+
+         ⍝ determine current file tied to name we plan to use
+         curfile←0 U.NormFile nsref U.CurrentFileName actname
+
+         oldname←actname
+         affected←nsname,'.',actname
+         curname←curnsname,'.',curactname
 
          :Select type
 
@@ -172,8 +173,8 @@
 
          ⍝ rename files if incorrectly named
          watch←'dir' 'both'∊⍨⊂link.watch  ⍝ watching files
-         :If link.fastload<(link.forceFilenames∨link.forceExtensions)
-             exppath←⊃U.DetermineFileName link nsname actname oldname nc
+         :If link.fastLoad<(link.forceFilenames∨link.forceExtensions)
+             exppath←⊃link U.DetermineFileName nsname actname oldname nc
          :AndIf path≢exppath←exppath(link.forceFilenames U.MergeFileName link.forceExtensions)path
              :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
                  →END⊣U.Warn msg,'name clash - cannot move file to existing ',exppath,' - cannot fix ',affected

@@ -1,17 +1,14 @@
- items←GetItemName file
- ;table;⎕IO;filelist;files;itemlist
+ items←GetItemName files;names;ns;⎕IO
+ ⍝ Get APL names from file names
+ ⍝ TODO doesn't work for arrays and traditional namespaces
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←0
-     files←{∊1 ⎕NPARTS ⍵}¨⊆file
-     table←U.GetInfos⍬
-     filelist←{∊1 ⎕NPARTS 3⊃⍵}¨table
-     itemlist←(2↑¨table),⊂'' ''
-     items←itemlist[filelist⍳files]
-     items←{(⍕1⊃⍵),(×≢⊃⍵)/'.',⊃⍵}¨items
-     items←⊃⍣(1≥≡file)⊢items
+     ⎕IO←1
+     (ns names)←2↑↓⍉↑⎕SE.Link.U.CurrentAplName¨,⊆files
+     items←ns('.'U.JoinEach)names
+     items←⊃⍣(1≥|≡files)⊢items
  :Else
      U.Resignal 1
  :EndTrap

@@ -1,12 +1,10 @@
- list←{opts}List ns
- ;nss;lineages;there;ref;infos;prop;L
+ list←{opts}List ns;L;infos;lineages;nss;prop;ref;there;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←1
-     :If ×⎕NC'⎕SE.Link.Links'
-     :AndIf ×≢⎕SE.Link.Links
+     :If U.HasLinks
+         ⎕IO←1
          list←↑⎕SE.Link.Links.(ns dir)
          :If ×≢ns
              there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container

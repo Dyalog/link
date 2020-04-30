@@ -12,7 +12,7 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
-     opts←U.CanWatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
      msg←⍕⍬⊤⍬
 
@@ -25,7 +25,7 @@
      :ElseIf opts.source≡'ns'
      :AndIf 0=⎕NC ns
          msg←'Source namespace not found: ',ns
-     :ElseIf 0=≢nsref←U.GetRefTo ns ⍝ must be normal namespace
+     :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          msg←'Not a namespace: ',ns
      :ElseIf ×≢⎕SE.Link.Links
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
@@ -36,7 +36,7 @@
      :ElseIf ~⎕NEXISTS dir
      :AndIf ~3 ⎕MKDIR dir
          msg←'Directory not found: ',dir
-     :ElseIf 0≡opts.source
+     :ElseIf 0⊣'both'≡opts.source
      :AndIf ∧/0≠(≢nsref.⎕NL-⍳10),≢⊃(⎕NINFO⍠1)dir,'/*'
          msg←'Source must be specified when linking a non-empty namespace to a non-empty directory'
      :ElseIf opts.(flatten∧source≢'dir')

@@ -1,20 +1,14 @@
- name←{opts}CaseCode name
- ;path;ext;file;parts
+ name←{opts}CaseCode name;opts
+ ⍝ Case-code a file name located
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If 900⌶⍬
+     :If 900⌶⍬  ⍝ only expert users provide correct link options to avoid lookup
      :AndIf 0∊⍴opts←U.LookupFile name
          U.Error'Not linked: ',⍕name
-     :EndIf
-     :If name≡opts.dir ⋄ :Return ⋄ :EndIf  ⍝ would wrongfully cut name because of missing trailing slash
-     (path file ext)←1 ⎕NPARTS name
-     path←(≢opts.dir)↓path       ⍝ do not case-code linked directory
-     parts←(U.Parts path),⊂file
-     parts←U.CaseCode¨parts      ⍝ case-code each part of path independently
-     name←⊃'/'U.Join/(⊂opts.dir),parts
-     name,←ext
+     :EndIf     
+     name←opts.dir U.CaseCode opts.flatten⊢name
  :Else
      U.Resignal 1
  :EndTrap

@@ -1,14 +1,13 @@
- files←GetFileName item
- ;table;⎕IO;itemlist;filelist;this;items
+ files←GetFileName items;this;⎕IO
+ ⍝ TODO doesn't work for arrays and traditional namespaces
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-     items←(⊆,item)~¨' '
      this←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬       ⍝ reference to calling namespace
-     files←this∘U.CurrentFileName U.OnEach items
-     files←⊃⍣(1≥≡item)⊢files
+     files←this∘U.CurrentFileName U.OnEach(⊆,items)~¨' '
+     files←⊃⍣(1≥≡items)⊢files
  :Else
      U.Resignal 1
  :EndTrap
