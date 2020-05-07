@@ -5,13 +5,12 @@
 ⍝   Run 'c:\tmp\linktest'
 
     ⍝ TODO - See ⎕SE.Link.Version too
-    ⍝ - deletions occasionally (rarely) don't produce a watcher event, making QA's fail - no idea what to do about it...
     ⍝ - Notify should not quit early on invalid file content because it might be handled by user
     ⍝ - test quadVars.apln produced by Acre
     ⍝   ':Namespace quadVars'  '##.(⎕IO ⎕ML ⎕WX)←0 1 3'  ':EndNamespace'
     ⍝ - test ⎕SE.Link.Add '⎕IO', and that subsequent script fix observed it (⎕SIGNAL (⎕IO≠0)/11)
     ⍝ - proper QA for arrays and tradns add/expunge
-    ⍝ - test invalid files / hidden files / files with nasty side effects
+    ⍝ - test invalid files / hidden files / files with nasty side effects on fix
     ⍝   and that ⎕SE.Link reports about them
     ⍝ - ensure beforeRead is called at Create/Import time
     ⍝   and that our special format is not loaded by link (which would fail)
@@ -755,6 +754,73 @@
 
 
 
+    ∇ r←test_bugs(folder name);sub;z
+    ⍝ Github issues
+      r←0
+     
+      ⍝ link issue #112 : cannot break an empty link
+      name ⎕NS''
+      ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
+      z←⎕SE.Link.Create name folder
+      'link issue #112'assert'~∨/''failed''⍷z'
+      z←⎕SE.Link.Break name
+      'link issue #112'assert'∨/''Unlinked''⍷z'
+      ⎕EX name
+     
+      ⍝ link issue #118 : create link in #
+      '#.unlikelyname must be non-existent'assert'0=⎕NC''#.unlikelyname'''
+      (⊂'unlikelyname x' '⎕←x')⎕NPUT folder,'/unlikelyname.dyalog'
+      z←⎕SE.Link.Create # folder
+      'link issue #118'assert'1=≢⎕SE.Link.Links'
+      'link issue #118'assert'~∨/''failed''⍷z'
+      'link issue #118'assert'3=⎕NC''#.unlikelyname'''
+      z←⎕SE.Link.Break #
+      assert'0=≢⎕SE.Link.Links'
+      ⎕EX'#.unlikelyname'
+     
+      z←⎕SE.Link.Create name folder
+      assert'~∨/''failed''⍷z'
+      assert'1=≢⎕SE.Link.Links'
+      z←⎕SE.Link.Create(name,'.sub')folder
+      assert'~∨/''failed''⍷z'
+      assert'2=≢⎕SE.Link.Links'
+      {}'{exact:1}'⎕SE.Link.Break name  ⍝ break only # and not children
+      assert'1=≢⎕SE.Link.Links'
+      {}⎕SE.Link.Break name  ⍝ break all chilren of #
+      assert'0=≢⎕SE.Link.Links'
+     
+      ⍝ link issue #111 : ]link.break -all must work
+      '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
+      z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
+      z←⎕SE.Link.Create'#.unlikelyname'folder
+      assert'2=≢⎕SE.Link.Links'
+      {}'{all:1}'⎕SE.Link.Break ⍬
+      'link issue #111'assert'0=≢⎕SE.Link.Links'
+      ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
+     
+      ⍝ link issue #117 : leave trailing slash in dir
+      z←⎕SE.Link.Create name(folder,'/')
+      'link issue #117'assert'1=≢⎕SE.Link.Links'
+      'link issue #117'assert'~∨/''failed''⍷z'
+     ⍝ link issue #116 : ⎕SE.Link.Refresh should not error when given a dir
+      z←⎕SE.Link.Refresh folder
+      'link issue #117'assert'∨/''Not linked''⍷z'
+      z←⎕SE.Link.Refresh name
+      assert'''Linked:''≡7↑z'
+      assert'~∨/''failed''⍷z'
+     
+      {}⎕SE.Link.Break name ⋄ ⎕EX name
+     
+      CleanUp folder name
+    ∇
+
+
+
+
+
+
+
+
 
 
 
@@ -778,7 +844,7 @@
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
           Log ⎕SE.UCMD'link.list'
-          Log'      ⎕SE.Link.Break # ⍝ to break all links'
+          Log'      ''{all:1}''⎕SE.Link.Break ⍬ ⍝ to break all links'
           →0
       :EndIf
      
@@ -793,9 +859,7 @@
       :EndIf
       :If ~0∊⍴folder  ⍝ specific folder
           folder←∊1 ⎕NPARTS folder,(0=≢folder)/(739⌶0),'/linktest'
-          :Trap 22
-              2 ⎕MKDIR folder
-          :Case 22
+          :If ⎕NEXISTS folder
               ⎕←folder,' exists. Clean it out? [Y|n] '
               :If 'yYjJ1 '∊⍨⊃⍞~' '
                   3 ⎕NDELETE Retry⊢folder
@@ -803,7 +867,7 @@
                   ⎕→'Directory must be non-existent.'
                   →0
               :EndIf
-          :EndTrap
+          :EndIf
       :Else  ⍝ generate a new directory - avoids prompting for deletion
           folder←CreateTempDir 0
       :EndIf

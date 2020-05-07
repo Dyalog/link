@@ -16,6 +16,7 @@
  ⍝   - that includes StripCaseCode which looses much time with U.debug, :Trap anyways
  ⍝   - same thing with DetermineFileName → CaseCode
  ⍝ - use :Holds to synchronise access to ⎕SE.Link.Links
+ ⍝ - FileWatcher.Break should break all at once : (EnableRaisingEvents←0) (⎕DL) (Dispose)
 
  ⍝ RFE
  ⍝ - proper logging of errors and warnings, with accessible backlog - to check no errors during a working session.
@@ -29,13 +30,14 @@
  ⍝ Version 2.1.0
  ⍝ - TODO beforeWrite split into two callbacks : beforeWrite and getFilename
  ⍝   TODO specify them
- ⍝ - DONE beforeRead may use 'loaded' as event type when loading directory (so not truely a file change event)
- ⍝ - DONE Name class is reported as ¯9 for traditional namespaces (linked to directories)
+ ⍝ - beforeRead may use 'loaded' as event type when loading directory (so not truely a file change event)
+ ⍝ - Name class is reported as ¯9 for traditional namespaces (linked to directories)
  ⍝   Scripted namespaces remain of name class 9.1 (linked to files)
  ⍝   Use Link.NameClass to get it. Name class is also reported in beforeWrite/getFilename callbacks
- ⍝ - DONE Link.Break now breaks all children namespaces by default, so that Link.Break # breaks all link in the workspace.
+ ⍝ - Link.Break now breaks all children namespaces by default, so that Link.Break # breaks all link in the workspace.
  ⍝   This behaviour can be overriden with the -exact flag which makes it unlink only argument directories and non of their children.
- ⍝ - DONE -fastLoad flag to reduce the load time by not inspecting source to detect name clashes
+ ⍝ - Link.Break also has a -all flag to break all links
+ ⍝ - -fastLoad flag to reduce the load time by not inspecting source to detect name clashes
  ⍝   This affects only initial directory loading, but not subsequent editor or file system watcher events.
  ⍝   Worth doing for very large projects with expert users that don't produce name clashes.
  ⍝   Side effects (again, only at initial load time, not at subsequent events):

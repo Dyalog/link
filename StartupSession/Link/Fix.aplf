@@ -21,7 +21,7 @@ NOHOLD:
          name,←(0=≢name)/oldname ⍝ name not specified
          this←⊃⎕RSI ⎕XSI U.ContainerNs ns
          nsname←⍕ns←this(0 U.GetRefTo)ns
-                  
+
          :If linked←~0∊⍴link←U.LookupRef ns
 
              :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
@@ -30,7 +30,7 @@ NOHOLD:
              :EndIf
              watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 
-             (file oldfile nc)←link U.DetermineFileName nsname name oldname src  ⍝ fix in target ns
+             (file oldfile nc)←link (0 U.DetermineFileName) nsname name oldname src  ⍝ fix in target ns
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
                  (⊂ns.⎕NR oldname)⎕NPUT oldfile 1

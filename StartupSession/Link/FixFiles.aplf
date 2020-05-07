@@ -1,4 +1,4 @@
- {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;cache;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
+ {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
  ⍝ Load items from files in folders
  inFail←⍬
  list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'    ⍝ recursive listing of everything  list[filename type hidden;]
@@ -18,9 +18,8 @@
  :If 0∊⍴files ⋄ :Return ⋄ :EndIf
 
  ndirs←≢dirs ⋄ allfiles←dirs,files
- cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite fastLoad)  ⍝ values cached for performance on ns lookup
 
- (parents expnames actnames actnc)←↓⍉↑cache∘U.DetermineAplNamePart¨allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+ (parents expnames actnames actnc)←opts U.DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
  :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
      allnames←parents('.'U.JoinEach)expnames  ⍝ do not infer true apl name from source
  :Else
@@ -37,7 +36,7 @@
 
  ⍝ rename files if incorrectly named - cannot work with opts.fastLoad
  :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
-     expfiles←⊃¨cache∘U.DetermineFileNamePart¨↓⍉↑parents actnames actnames actnc
+     expfiles←⊃opts(1 U.DetermineFileName)parents actnames actnames actnc
      expfiles←expfiles(opts.forceFilenames U.MergeFileName opts.forceExtensions)¨allfiles
      :If ∨/mask←expfiles≢¨allfiles
          :If (≢expfiles)≠(≢∪819⌶expfiles)

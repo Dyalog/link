@@ -174,7 +174,7 @@
          ⍝ rename files if incorrectly named
          watch←'dir' 'both'∊⍨⊂link.watch  ⍝ watching files
          :If link.fastLoad<(link.forceFilenames∨link.forceExtensions)
-             exppath←⊃link U.DetermineFileName nsname actname oldname nc
+             exppath←⊃link(0 U.DetermineFileName)nsname actname oldname nc
          :AndIf path≢exppath←exppath(link.forceFilenames U.MergeFileName link.forceExtensions)path
              :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
                  →END⊣U.Warn msg,'name clash - cannot move file to existing ',exppath,' - cannot fix ',affected

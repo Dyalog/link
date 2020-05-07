@@ -2,7 +2,7 @@
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf 
+ :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
@@ -21,7 +21,7 @@
                  :Else
                      (parent name)←U.SplitNs name
                      link←U.LookupRef parent←⍎parent
-                     (file oldfile)←2↑link U.DetermineFileName(⍕parent)name name nc  ⍝ U.NormNs parent
+                     (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
                      r[i]←parent.⎕EX name
                      :If 0<≢oldfile  ⍝ tied to file
                          2 ⎕NDELETE oldfile

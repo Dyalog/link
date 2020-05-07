@@ -77,29 +77,34 @@
       :EndIf
     ∇
 
-    ∇ Break fsw;timer;tid;fsw;end
+    ∇ Break link;timer;tid;end
     ⍝ Cleanly shut down a file system watcher
+    ⍝ TODO : should break all at once : (EnableRaisingEvents←0) (⎕DL) (Dispose)
     ⍝   Called on Links[i].fsw by ⎕SE.Link.Break
-     
-      :If 2=⎕NC'fsw.QUEUE' ⍝ Did we using indirection via a queue?
-          (timer tid)←fsw.(QUEUE TID)
-          :If tid∊⎕TNUMS
-          :AndIf 9=⎕NC timer
-              ⎕NQ timer CloseEvent ⍝ Tell it to go away
-              end←Timeout+3⊃⎕AI
-              :While tid∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
-                  :If end<3⊃⎕AI
-                      ('WatcherThread ',(⍕tid),' did not die on request')⎕SIGNAL 11
-                  :EndIf
-                  ⎕DL 0.05
-              :EndWhile
+      :If 0≠link.⎕NC'fsw'
+      :AndIf ~0∊⍴link.fsw
+          :If 2=⎕NC'link.fsw.QUEUE' ⍝ Did we using indirection via a queue?
+              (timer tid)←link.fsw.(QUEUE TID)
+              :If tid∊⎕TNUMS
+              :AndIf 9=⎕NC timer
+                  ⎕NQ timer CloseEvent ⍝ Tell it to go away
+                  end←Timeout+3⊃⎕AI
+                  :While tid∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
+                      :If end<3⊃⎕AI
+                          ('WatcherThread ',(⍕tid),' did not die on request')⎕SIGNAL 11
+                      :EndIf
+                      ⎕DL 0.05
+                  :EndWhile
+              :EndIf
+              ⎕EX link.fsw.QUEUE
+          :Else ⍝ fsw should be a real FSW object
+              :If 0≠⎕NC⊂'link.fsw.Dispose'
+                  link.fsw.EnableRaisingEvents←0
+                  ⎕DL 0.1 ⍝ Give any extant events time to be processed
+                  link.fsw.Dispose
+              :EndIf
           :EndIf
-      :Else ⍝ fsw should be a real FSW object
-          :If 0≠⎕NC⊂'fsw.Dispose'
-              fsw.EnableRaisingEvents←0
-              ⎕DL 1 ⍝ Give any extant events time to be processed
-              fsw.Dispose
-          :EndIf
+          link.fsw←⍬
       :EndIf
     ∇
 

@@ -1,15 +1,17 @@
- msg←{opts}Break nss;Linked;broken;defopts;link;linked;mask;missing;n;ns;there;⎕IO
+ msg←{opts}Break nss;Linked;broken;defopts;deleted;link;linked;mask;missing;n;ns;there;⎕IO
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
+ ⍝ opts.all=0 (default)   : break specified links
+ ⍝ opts.all=1 (-all)      : break all links
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :If U.HasLinks
          ⎕IO←1
-         defopts←⎕NS ⍬
-         defopts.exact←0
+
+         (defopts←⎕NS ⍬).(all exact)←0
          opts←defopts DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
 
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
@@ -19,24 +21,22 @@
          :If opts.exact ⋄ Linked←linked∘=
          :Else ⋄ Linked←U.IsParent¨∘linked
          :EndIf
+         :If opts.all ⋄ nss←linked ⋄ :EndIf
 
-         broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0
+         broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
          :For ns :In nss
              :If ~0∊⍴ns←there(0 U.GetRefTo)ns
-             :AndIf ∨/mask←Linked ns
+             :AndIf ∨/deleted∨←mask←Linked ns
                  :For link :In ∪mask/⎕SE.Link.Links
-                     :If 0≠link.⎕NC'fsw'
-                     :AndIf ~0∊⍴link.fsw
-                         FileSystemWatcher.Break link.fsw
-                     :EndIf
+                     FileSystemWatcher.Break link
                      n+←U.RemoveFileLinksIn ns
                  :EndFor
-                 ⎕SE.Link.Links/⍨←~mask
                  broken,←⊂∪mask/linked
              :Else
                  missing,←⊂ns
              :EndIf
          :EndFor
+         ⎕SE.Link.Links/⍨←~deleted
          msg←''
          :If ×≢broken
              msg,←⊂'Unlinked ',(⍕n),' items:',U.List broken
