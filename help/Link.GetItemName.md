@@ -1,4 +1,4 @@
-Returns the name of the APL item that is linked to a file. See also [GetFileName](Link.GetFileName).
+Returns the name of the APL item that is linked to a file. See also [GetFileName](Link.GetFileName.md).
 
 #### Arguments
 

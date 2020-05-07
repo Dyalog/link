@@ -1,11 +1,11 @@
-As described on the [Home](Home) page, each link maps a namespace in the active workspace to a file directory. If the directory
+As described on the [Home](Home.md) page, each link maps a namespace in the active workspace to a file directory. If the directory
 has sub-directories, similarly named sub-namespaces will be exist in the workspace. Each file within the directory structure maps to a single 
 named item (variable, function, operator, scripted namespace or class). Depending on which synchronisation options have been
 selected, Link will synchronise changes in none, one or both directions.
 
 ### Creating Links
 
-Links are created using [`Link.Create`](Link.Create), or the corresponding user command `]LINK.Create`.
+Links are created using [`Link.Create`](Link.Create.md), or the corresponding user command `]LINK.Create`.
 Both of these take two arguments: the name of a namespace and the corresponding directory 
 that it should be linked to. So long as there is only content in either the namespace or
 the directory (or neither), pre-existing content will be replicated on the other side of the link,
@@ -27,7 +27,7 @@ the functions would probably be created using the editor:
       stats.StdDev←{2 Root(+.×⍨÷⍴),⍵-Mean ⍵}
 ```
 Assuming that the directory /tmp/stats is empty or does not exist, we can now link the stats
-namespace to it using the [`Link.Create`](Link.Create) API function, or as in this case using
+namespace to it using the [`Link.Create`](Link.Create.md) API function, or as in this case using
 the user command with the same name:
 ```apl
       ]LINK.Create stats /tmp/stats -source=ns
@@ -86,7 +86,7 @@ source code for the new function.
 ```
 
 If full synchronisation is not enabled,
-[`Link.Refresh`](Link.Refresh) can be used to re-synchronise
+[`Link.Refresh`](Link.Refresh.md) can be used to re-synchronise
 the namespace and directory.
 
 ### Changes made Under Program control
@@ -96,10 +96,10 @@ Changes made under program control using assignment (`←`) or system functions
 like `⎕CY`, `⎕NS`, `⎕EX`, `⎕FX` or `⎕FIX` will ***NOT*** trigger synchronisation.
 This is intentional and not expected to change. 
 
-The API functions [`Link.Fix`](Link.Fix) and [`Link.Expunge`](Link.Expunge)
+The API functions [`Link.Fix`](Link.Fix.md) and [`Link.Expunge`](Link.Expunge.md)
 can be used to inform link that a change which has been made under program control should be
 considered a change to application source, and cause synchronisation. Similarly,
-[`Link.Notify`](Link.Notify) can be used to bring an external change into the active workspace, even though
+[`Link.Notify`](Link.Notify.md) can be used to bring an external change into the active workspace, even though
 synchronisation is not active.
 
 ### Current Limitations

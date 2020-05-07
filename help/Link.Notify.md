@@ -2,7 +2,7 @@ When synchonisation is active, Link will call Notify each time it detects a chan
 If synchronisation is not enabled, you can use this function to bring an external change into the active workspace, to notify
 the link system that an external file has changed.
 
-Note: The [Refresh](Link.refresh) function can be used to synchronise all extant changes between a linked directory and namespace.
+Note: The [Refresh](Link.Refresh.md) function can be used to synchronise all extant changes between a linked directory and namespace.
 
 #### Arguments
 

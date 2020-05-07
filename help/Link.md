@@ -12,7 +12,7 @@ When creating an unscripted namespace, we recommend using `⎕NS` dyadically to 
 
 ## Syntax
 
-`Link` provides a set of utility functions (see [the wiki](https://github.com/Dyalog/link/wiki) for a list) in the namespace `⎕SE.Link`, and if SALT and user commands are enabled then, additionally, a `LINK` group of user commands are available.
+`Link` provides a set of utility functions (see [the API reference](API.md) for a list) in the namespace `⎕SE.Link`, and if SALT and user commands are enabled then, additionally, a `LINK` group of user commands are available.
 
 For performance and ease of debugging, we recommend avoiding the invocation of user commands under program control. Use the utility functions directly instead.
 
