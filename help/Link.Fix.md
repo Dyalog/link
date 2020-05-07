@@ -2,7 +2,7 @@ This function is intended as a replacement for `⎕FIX` or `⎕FX` in code which
 or modify a function, operator, or scripted object within a linked namespace, creating or updating the correponding source file.
 
 Note: If the item has already been updated or created and you
-only need to update the source file, you can also use [Add](Link.Add).
+only need to update the source file, you can also use [Add](Link.Add.md).
 
 When an item is edited, a call is made to this function by the APL interpreter.
 

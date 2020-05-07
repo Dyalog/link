@@ -1,114 +1,70 @@
-As described on the [Home](Home) page, each link maps a namespace in the active workspace to a file directory. If the directory
-has sub-directories, similarly named sub-namespaces will be exist in the workspace. Each file within the directory structure maps to a single 
-named item (variable, function, operator, scripted namespace or class). Depending on which synchronisation options have been
+# Overview
+
+As described on the [Home](Home.md) page, `Link` streamlines working with code in text files by mapping workspace content and filesystem content in a one-to-one relationship. Each unscripted namespace (created by `⎕NS` rather than `⎕FIX`) is associated with a directory of matching name while other workspace content (defined functions and scripted objects) are associated with one file per item. Depending on which synchronisation options have been
 selected, Link will synchronise changes in none, one or both directions.
 
-### Creating Links
+## Scope
 
-Links are created using [`Link.Create`](Link.Create), or the corresponding user command `]LINK.Create`.
-Both of these take two arguments: the name of a namespace and the corresponding directory 
-that it should be linked to. So long as there is only content in either the namespace or
-the directory (or neither), pre-existing content will be replicated on the other side of the link,
-and all available synchronisation will be enabled depending on the platform.
+Link automatically manages name classes 3.1 (traditional function), 3.2 (direct function), 4.1 (traditional operator), 4.2 (direct operator), 9.1 (namespace), 9.4 (class) and 9.5 (interfaces).
 
-If both the namspace and the directory have pre-existing content, the `source` option 
-*must* be specified as one of `ns`, `dir`, or `none`, and content will be copied in one direction,
-potentially overwriting any content on the other side. Use this with caution!
+Unscripted namespaces (created with ⎕NS or )NS and not :Namespace or :Class or :Interface) are mapped to directories. Functions, operators and namespaces that have text source are mapped to text files.
 
-### Create a Directory from a Namespace
+Arrays (nameclass 2.1) may be explicitly linked with [Add](Link.Add.md).
 
-To get started, we will create a namespace and populate it with three defined functions in order to 
-have something to work with. In this example, the functions are created under program control; under normal use
-the functions would probably be created using the editor:
-```apl
-      'stats' ⎕NS ⍬
-      stats.⎕FX 'Root←{⍺←2' '⍵*÷⍺}'
-      stats.⎕FX 'mean←Mean vals;sum' 'sum←+⌿,vals' 'mean←sum÷1⌈⍴,vals'
-      stats.StdDev←{2 Root(+.×⍨÷⍴),⍵-Mean ⍵}
+By default, `Link` will update files with changes made in linked namespaces through the editor (`⎕ED`). It will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is currently supported only on .Net and .NetCore,but support is planned for other operating systems in the near future.
+
+
+## Syntax
+
+`Link` provides a set of utility functions in the namespace `⎕SE.Link` (see [the API reference](API.md) for a list). If SALT and user commands are enabled then an additional `LINK` group of user commands are available (and can be listed with `]?link`)
+
+For performance and ease of debugging, we recommend avoiding the invocation of user commands under program control. Use the utility functions located in `⎕SE.Link` directly instead.
+
+### User commands
+
+The corresponding user commands have the general syntax
 ```
-Assuming that the directory /tmp/stats is empty or does not exist, we can now link the stats
-namespace to it using the [`Link.Create`](Link.Create) API function, or as in this case using
-the user command with the same name:
-```apl
-      ]LINK.Create stats /tmp/stats -source=ns
-Linked: #.stats ←→ C:\tmp\stats
+]LINK.CmdName arg1 [arg2] [-name[=value] ...]
 ```
-The double arrow `←→` in the output indicates that bi-directional synchronisation is active.
-We can verify that the three expected files have been created:
-```apl
-      ls←⎕NINFO⍠1 ⍝ List files, allowing wildcards
-      ls '/tmp/stats/*'
-  /tmp/stats/Mean.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
-```
-### Start or Resume Work based on a Directory
+where `arg2`'s presence depends on the specific command, and `-name` is a flag enabling the specific option and `-name=value` sets the specific option to a specific value. The value of the two options requiring array values (`codeExtensions` and `typeExtensions`) are instead the *name* of a variable containing the needed array.
 
-Once the directory exists and contains our source code, we can start work in an APL session using exactly the same
-command as we used to create the directory, but there's no need to specify the source since `dir` is the default. This time (so long
-as the target namespace does not exist in the active
-workspace), the directory is used as the source:
+### Utility functions
+
+The general syntax of the utility functions is
 
 ```apl
-      )CLEAR
-clear ws
-      ]LINK.Create stats /tmp/stats
-Linked: stats ←→ C:\tmp\stats
-      stats.⎕NL -3 ⍝ Verify functions were loaded as expected
- Mean  Root  StdDev
+options FnName arg
 ```
+where `options` is a namespace with variables named according to the option they set, containing their corresponding values. The `-name=value` option can be set by `options.name←value`, and switches with values (e.g. `-name`) can be set by `options.name←1`
 
-### Adding Content
-
-Since bi-directional synchronisation has been set up, we are free to add content either by
-adding new source files in the directory, or using the editor inside the APL session.
-For example, we could add a `Median` function:
-
-```apl
-      )ED stats.Median
-```
-
-In the Edit window, we complete the function:
-
-```apl
-Median←{
-     asc←⍋vals←,⍵
-     Mean vals[asc[⌈2÷⍨0 1+⍴vals]]
- }
-```
-
-Closing the edit window (using the <kbd>Esc</kbd> key) will not only fix the definition of the
-function in the namespace, it will also cause a new file to be created containing the
-source code for the new function.
+`arg` is a simple character vector or a two element vector of character vectors, depending on the specific function.
 
 
-```apl
-      ls '/tmp/stats/*'
-  /tmp/stats/Mean.aplf  /tmp/stats/Median.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
-```
+## Usage
 
-If full synchronisation is not enabled,
-[`Link.Refresh`](Link.Refresh) can be used to re-synchronise
-the namespace and directory.
+In most cases, it is unnecessary to use any custom options. `Link` will infer what to do in the first three of the following four cases:
 
-### Changes made Under Program control
+1. The namespace is empty or doesn't exist and the directory is empty or doesn't exist.
+1. The namespace is empty or doesn't exist but the directory has content
+1. The namespace has content but the directory is empty or doesn't exist
+1. The namespace has content and the directory has content
 
-Note that external source files are only updated when items are modified using the editor.
-Changes made under program control using assignment (`←`) or system functions 
-like `⎕CY`, `⎕NS`, `⎕EX`, `⎕FX` or `⎕FIX` will ***NOT*** trigger synchronisation.
-This is intentional and not expected to change. 
+In the first three cases (where no more than one side has content), `Link` will export/import any content to the other side, and set up tracking of future changes. In the last case, the `source` option must be specified as `ns`, `dir`, or `none` , and the selected side's content will overwrite the other side. **Use this with caution!**
 
-The API functions [`Link.Fix`](Link.Fix) and [`Link.Expunge`](Link.Expunge)
-can be used to inform link that a change which has been made under program control should be
-considered a change to application source, and cause synchronisation. Similarly,
-[`Link.Notify`](Link.Notify) can be used to bring an external change into the active workspace, even though
-synchronisation is not active.
+## Current Limitations
 
-### Current Limitations
-
-* The detection of external changes to files and directories is currently only supported under Microsoft Windows. However, changes to a file will be reflected in the namespace if the file's item is opened in APL's editor, on all platforms.
+* The root namespace of a link must be an unscripted namespace (created with ⎕NS)
+* Link does not support name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). Link does not support namespace-tagged functions and operators (e.g. foo←namespace.{function})
+* Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` or the APL line `∇` editor are not currently detected. For link to be aware of the change, they must be replaced by a call to [Link.Fix](Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](Link.Expunge.md).
+* Link only handles correctly named namespaces - that is, observing `{⍵≡(⎕NS⍬)⍎⍕⍵}`. Scripted namespaces must simply be named. When creating an unscripted namespace, we recommend using `⎕NS` dyadically to name the created namespace (for example `'myproject'⎕NS⍬` rather than `myproject←⎕NS⍬`). This allows retrieving namespace reference from its display from (for example `#.myproject` rather than `#.[namespace]`).
+* The detection of external changes to files and directories is currently only supported under .Net and .NetCore. However, changes to a file will be reflected in the namespace if the file's item is opened in APL's editor, on all platforms.
 * The detection of external changes to files and directories is currently only supported if `source` was not set to `ns`
-* Changes made using the del editor (`∇`) are not currently detected.
-* Functions, operators and namespaces without text source (`⎕NC` of 3.3 or 4.3, 
-namely derived functions/operators, trains and named primitives), are not supported.
 
-### Tips and Recommendations
-When creating a namespace for use with Link, it is recommend to use named namespaces (created using dyadic `⎕NS`)
+
+
+
+
+
+
+
+

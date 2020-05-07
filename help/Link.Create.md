@@ -48,7 +48,7 @@
   > even though the file name does not match the item name.
 
 - **source**	{ns|**dir**|both}  
-  > Whether to consider the ns or dir as the authoritative source when [creating](Link.Create) or [refreshing](Link.Refresh) the link.
+  > Whether to consider the ns or dir as the authoritative source when [creating](Link.Create.md) or [refreshing](Link.Refresh.md) the link.
   > - `dir` means that items in the namespace will be overwritten by items in files.
   > - `ns` means that items in files will be overwritten by items in the namespace.
   > - `both` will first copy from ns to dir, and then the other way.
@@ -58,8 +58,8 @@
 
  - **watch**	{none|ns|dir|**both**} 
    > Specifies which sides of the link to watch for changes (and synchronise).
-   > - `ns` will mirror namespace changes (done with the editor) to files. Note that it will **not** reflect changes using assignment, ⎕FX, ⎕FIX, ⎕CY, ⎕NS, etc. If you want to programmatically change an item so that the change is reflected to files, you need to use [Fix](Link.Fix)
-   > - `dir` will mirror file changes (done with any software) into the namespace. Note that massive file changes (e.g. git checkout or git pull) may fail and leave the link in an unsynchronised state, in which case you will get a warning message. Therefore it is desirable to [break](Link.Break) the link before doing massive changes to files, then re-[create](Link.Create) the link.
+   > - `ns` will mirror namespace changes (done with the editor) to files. Note that it will **not** reflect changes using assignment, ⎕FX, ⎕FIX, ⎕CY, ⎕NS, etc. If you want to programmatically change an item so that the change is reflected to files, you need to use [Fix](Link.Fix.md)
+   > - `dir` will mirror file changes (done with any software) into the namespace. Note that massive file changes (e.g. git checkout or git pull) may fail and leave the link in an unsynchronised state, in which case you will get a warning message. Therefore it is desirable to [break](Link.Break.md) the link before doing massive changes to files, then re-[create](Link.Create.md) the link.
    > - `both` will do both.
    >
    > \
