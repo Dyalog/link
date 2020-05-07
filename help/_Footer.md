@@ -1,0 +1,1 @@
+**Quick links:** [Introduction](https://github.com/Dyalog/link/blob/master/help/Link.md) [Installation](https://github.com/Dyalog/link/blob/master/StartupSession/Link/Install/README.md) [Wiki home](Home) [Email us](mailto:support@dyalog.com)
