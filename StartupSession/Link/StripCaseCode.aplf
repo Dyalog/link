@@ -1,12 +1,13 @@
- StripCaseCode←{ ⍝ Change case coded filenames into plain filenames
-     ⎕IO←0
-     1<|≡⍵:∇¨⍵
-     ~'-'∊⍵:⍵ ⍝ no case code?
-     (p f e)←⎕NPARTS ⍵
-     s←'-'(≠⊆⊢)f
-     2≠≢s:⍵ ⍝ too many sections
-     (n c)←s
-     0∊c∊⎕D:⍵ ⍝ not a proper case code
-     a←⌽,⍉2 2 2⊤⎕D⍳c∩⎕D
-     p,e,⍨n U.Case⍨a↑⍨≢n
- }
+ name←{opts}StripCaseCode name;path;ext;file;parts
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     :If 900⌶⍬   ⍝ only expert users provide correct link options to avoid lookup
+     :AndIf 0∊⍴opts←U.LookupFile name
+         U.Error'Not linked: ',⍕name
+     :EndIf     
+     name←opts.dir U.StripCaseCode opts.flatten⊢ name
+ :Else
+     U.Resignal 1
+ :EndTrap

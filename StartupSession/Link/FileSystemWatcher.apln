@@ -37,14 +37,14 @@
       :EndIf
      
       :If DEBUG≠0
-          info←¯1↓{((3↑¨⍵)∊⊂'⎕SE')/⍵}{1↓¨(⍵=⎕UCS 13)⊂⍵} 88⌶')SI'
-          EVENTLOG[EVENTPTR+1]←⊂(3⊃⎕AI) nargs info
+          info←¯1↓{((3↑¨⍵)∊⊂'⎕SE')/⍵}{1↓¨(⍵=⎕UCS 13)⊂⍵}88⌶')SI'
+          EVENTLOG[EVENTPTR+1]←⊂(3⊃⎕AI)nargs info
           EVENTPTR←(≢EVENTLOG)|EVENTPTR+1
       :EndIf
-
+     
       :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
          ⍝ Do not split the following line into several lines: thread switch must NOT happen
-         :If 0≠≢timers←'Timer' ⎕WN ⎕SE.Link.FileSystemWatcher ⋄ ⎕NQ (⊃timers) NotifyEvent nargs ⋄ :EndIf
+          :If 0≠≢timers←'Timer'⎕WN ⎕SE.Link.FileSystemWatcher ⋄ ⎕NQ(⊃timers)NotifyEvent nargs ⋄ :EndIf
       :Else      ⍝ Make direct calls to Notify
           ⎕SE.Link.Notify nargs
       :EndIf
@@ -57,7 +57,7 @@
           EVENTPTR←0
           EVENTLOG←100⍴⊂0 '' ''
       :EndIf
-
+     
       :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
           z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
           q←FSWQ,⍕tid←WatcherThread&args
@@ -77,38 +77,41 @@
       :EndIf
     ∇
 
-    ∇ Break fsw;timer;tid;fsw;end
+    ∇ Break link;timer;tid;end
     ⍝ Cleanly shut down a file system watcher
+    ⍝ TODO : should break all at once : (EnableRaisingEvents←0) (⎕DL) (Dispose)
     ⍝   Called on Links[i].fsw by ⎕SE.Link.Break
-     
-      :If 2=⎕NC'fsw.QUEUE' ⍝ Did we using indirection via a queue?
-          (timer tid)←fsw.(QUEUE TID)
-          :If tid∊⎕TNUMS
-          :AndIf 9=⎕NC timer
-              ⎕NQ timer CloseEvent ⍝ Tell it to go away
-              end←Timeout+3⊃⎕AI
-              :While tid∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
-                  :If end<3⊃⎕AI
-                      ('WatcherThread ',(⍕tid),' did not die on request')⎕SIGNAL 11
-                  :EndIf
-                  ⎕DL 0.05
-              :EndWhile
+      :If 0≠link.⎕NC'fsw'
+      :AndIf ~0∊⍴link.fsw
+          :If 2=⎕NC'link.fsw.QUEUE' ⍝ Did we using indirection via a queue?
+              (timer tid)←link.fsw.(QUEUE TID)
+              :If tid∊⎕TNUMS
+              :AndIf 9=⎕NC timer
+                  ⎕NQ timer CloseEvent ⍝ Tell it to go away
+                  end←Timeout+3⊃⎕AI
+                  :While tid∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
+                      :If end<3⊃⎕AI
+                          ('WatcherThread ',(⍕tid),' did not die on request')⎕SIGNAL 11
+                      :EndIf
+                      ⎕DL 0.05
+                  :EndWhile
+              :EndIf
+              ⎕EX link.fsw.QUEUE
+          :Else ⍝ fsw should be a real FSW object
+              :If 0≠⎕NC⊂'link.fsw.Dispose'
+                  link.fsw.EnableRaisingEvents←0
+                  ⎕DL 0.1 ⍝ Give any extant events time to be processed
+                  link.fsw.Dispose
+              :EndIf
           :EndIf
-      :Else ⍝ fsw should be a real FSW object
-          :If 0≠⎕NC⊂'fsw.Dispose'  
-              fsw.EnableRaisingEvents←0
-              ⎕DL 1.0 ⍝ Give any extant events time to be processed              
-              fsw.Dispose
-          :EndIf
+          link.fsw←⍬
       :EndIf
     ∇
 
-    ∇ watcher←MakeWatcher args;dotnetcore;⎕USING
+    ∇ watcher←MakeWatcher args;⎕USING
      ⍝ Return a FileSystemWatcher object
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
-     
-      dotnetcore←(~##.U.isWindows)∨(,'1')≡2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_NETCORE'
-      ⎕USING←',System',(~dotnetcore)/'.dll'
+      ⎕USING←',System',(~##.U.DotNetCore)/'.dll'
       watcher←⎕NEW System.IO.FileSystemWatcher
       watcher.(Path Filter)←args
       watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
@@ -130,14 +133,14 @@
       :EndDisposable
     ∇
 
-    ∇r←EventLog limit;log     
-
-    log←⌽EVENTPTR⌽EVENTLOG
-    :If 0=≢log←↑(0≠¨⊃¨log)/log
-        r←'Log is empty' ⋄ →0
-    :EndIf
-    log[;1]←log[1;1]-log[;1] ⍝ How long ago
-    r←⊖log
+    ∇ r←EventLog limit;log
+     
+      log←⌽EVENTPTR⌽EVENTLOG
+      :If 0=≢log←↑(0≠¨⊃¨log)/log
+          r←'Log is empty' ⋄ →0
+      :EndIf
+      log[;1]←log[1;1]-log[;1] ⍝ How long ago
+      r←⊖log
     ∇
 
 :EndNamespace

@@ -1,9 +1,9 @@
- msg←Remove items;this
- ;table;itemlist;filelist;files;mask
+ msg←Remove items;filelist;files;itemlist;mask;table;this;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     ⎕IO←1
      :If ×≢items
          items←(,⊆,items)~¨' '
          this←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬

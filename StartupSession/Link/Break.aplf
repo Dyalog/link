@@ -1,49 +1,50 @@
-  msg←Break nss;names;link
- ;ns;linked;broken;missing;mask;⎕IO;there;n;parents
+ msg←{opts}Break nss;Linked;broken;defopts;deleted;link;linked;mask;missing;n;ns;there;⎕IO
+ ⍝ Use Break # to break all links
+ ⍝ opts.exact=0 (default) : break all links below argument namespaces
+ ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
+ ⍝ opts.all=0 (default)   : break specified links
+ ⍝ opts.all=1 (-all)      : break all links
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If ×⎕NC'⎕SE.Link.Links'
-         ⎕SE.Link.Links/⍨←{0::1 ⋄ 0≠⎕NC ⎕SE.Link.Links.ns}⍬
-     :AndIf ×≢⎕SE.Link.Links
+     :If U.HasLinks
          ⎕IO←1
-        there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
-         :If 2<10|⎕DR nss
-             nss←there{
-                 ''≢0⍴⍵:⍵
-                 9≠⍺.⎕NC ⍵::⍵
-                 ⍺⍎⍵
-             }¨nss
-         :Else
-             nss←there⍎nss
-         :EndIf
+
+         (defopts←⎕NS ⍬).(all exact)←0
+         opts←defopts DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+
+         there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
+         :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
+
          linked←⍎¨⎕SE.Link.Links.ns
-         broken←0⍴⊂''
-         missing←0⍴⊂''
-         n←0
+         :If opts.exact ⋄ Linked←linked∘=
+         :Else ⋄ Linked←U.IsParent¨∘linked
+         :EndIf
+         :If opts.all ⋄ nss←linked ⋄ :EndIf
+
+         broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
          :For ns :In nss
-             mask←linked≠ns
-             :If 0∊mask
-                 link←(mask⍳0)⊃Links
-                 :If 0≠link.⎕NC'fsw'
-                     FileSystemWatcher.Break link.fsw
-                 :EndIf
-                 n+←U.RemoveFileLinksIn ns
-                 ⎕SE.Link.Links/⍨←mask
-                 broken,←⊂ns
+             :If ~0∊⍴ns←there(0 U.GetRefTo)ns
+             :AndIf ∨/deleted∨←mask←Linked ns
+                 :For link :In ∪mask/⎕SE.Link.Links
+                     FileSystemWatcher.Break link
+                     n+←U.RemoveFileLinksIn ns
+                 :EndFor
+                 broken,←⊂∪mask/linked
              :Else
                  missing,←⊂ns
              :EndIf
          :EndFor
-         msg←0⍴⊂''
+         ⎕SE.Link.Links/⍨←~deleted
+         msg←''
          :If ×≢broken
              msg,←⊂'Unlinked ',(⍕n),' items:',U.List broken
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List missing
          :EndIf
-         msg←⊃'; 'U.Join/msg
+         :If ~0∊⍴msg ⋄ msg←'; 'U.JoinList msg ⋄ :EndIf
      :Else
          msg←'No active links'
      :EndIf

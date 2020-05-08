@@ -1,47 +1,46 @@
- outFail←opts WriteFiles ns;FileName;dir;files;mask;name;names;nsref;ok;okFn;okNs;parent;src;trad
+ outFail←opts WriteFiles(ns dir);count;dir;files;i;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
  ⍝ Write items to file in folders
  ⍝ ns must be a fully specified traditional namespace
  ⍝ arrays not supported
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
- :EndIf
- :Trap DEBUG↓0
-     outFail←0⍴⊂''
-     okFn←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
-     okNs←9.1 9.4 9.5 ⍝ ns/class/interface
+ outFail←0⍴⊂''
+ nsref←⍎ns
 
-     ⍝ TODO : should delete oldfilename if not same as filename
-     FileName←{ ⍝ filename ← src (parent FileName) name
-         (file oldfile)←0 U.DetermineFileName opts ⍺⍺ ⍵ ⍵ ⍺
-         file   ⍝ we only need the definite filename
-     }
+ ⍝ Create directory for namesapce
+ 3 ⎕MKDIR dir
+ outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
 
-     ⍝ Create directory for namesapce
-     (parent name)←U.SplitNs ns ⋄ nsref←⍎ns
-     3 ⎕MKDIR dir←''((⍎parent)FileName)name
-     outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+ ⍝ Write children to files (except trad namespaces)
+ :If 0≠≢names←nsref.⎕NL-U.NameClasses 0
+     src←nsref U.GetAplSource¨names
+     mask←0=≢¨src     ⍝ can't get source
+     outFail,←(ns,'.')∘,¨mask/names
+     (names src)←(~mask)∘/¨(names src) ⋄ count←≢names
+     (files oldfiles)←2↑opts(1 U.DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+     :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
+         ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
+         names←names[,(mask/inx),[1.5]⍸mask]
+         U.Error'File name case clash - try using caseCode←1:',⍕(ns,'.')∘,¨names
+     :EndIf
 
-     ⍝ Write children to files (except trad namespaces)
-     :If 0≠≢names←nsref.⎕NL-okFn,okNs
-         src←nsref U.GetSource¨names
-         mask←src∊⎕NULL  ⍝ traditional namespaces
-         trad←mask/names
-         (names src)←(~mask)∘/¨(names src)
-         mask←0=≢¨src     ⍝ can't get source
-         outFail,←(ns,'.')∘,¨mask/names
-         (names src)←(~mask)∘/¨(names src)
-         files←src(nsref FileName)¨names
-         :If ∨/mask←(⍳⍨819⌶¨files)≠(⍳≢files) ⍝ should really test the whole list of files after recursion, in case beforeWrite messed up the names
-             ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
-             U.Error'File name case clash - try using caseCode←1: ',⍕(ns,'.')∘,¨mask/names
+     mask←src∊⎕NULL  ⍝ traditional namespaces
+     (tradnames tradfiles)←mask∘/¨(names files)
+     (files names src)←(~mask)∘/¨(files names src)
+     :If 0≠≢files
+         :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write - not on directories
+             mask←(≢files)⍴1
+             :For i :In ⍳⍴files
+                 mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref U.NameClass i⊃names)(ns.'.',i⊃names)src
+             :EndFor
+             (files names src)/⍨←⊂mask  ⍝ keep what was not processed by user
          :EndIf
-         mask←~src U.Into¨files  ⍝ failed to write
-         outFail,←(ns,'.')∘,¨mask/names
-
-         :If 0≠≢trad ⍝ recurse on traditional namespaces
-             outFail,←opts∘WriteFiles¨(ns,'.')∘,¨trad
+         mask←src U.Into¨files  ⍝ failed to write
+         outFail,←(ns,'.')∘,¨(~mask)/names
+         :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
+             ⎕NDELETE¨mask/oldfiles
          :EndIf
      :EndIf
- :Else
-     U.Resignal 1
- :EndTrap
+     :If 0≠≢tradfiles ⍝ recurse on traditional namespaces
+         tradnames←(ns,'.')∘,¨tradnames
+         outFail,←⊃,/opts∘WriteFiles¨↓tradnames,[1.5]tradfiles
+     :EndIf
+ :EndIf

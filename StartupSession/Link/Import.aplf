@@ -10,14 +10,15 @@
      opts.watch←'none'
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     :If 0=≢nsref←U.GetRefTo ns ⍝ must be normal namespace
+     :If 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          msg←'Unable to import to namespace: ',ns
      :ElseIf ~⎕NEXISTS dir
          msg←'Source directory not found: ',dir
      :Else
-         dir←0 U.NormDir dir
-         inFail←⊃opts FixFiles nsref dir
-         msg←'Imported: ',(U.NormNs ns),' ← ',dir
+         opts.ns←ns←U.NormNs ns
+         opts.dir←dir←0 U.NormDir dir
+         inFail←opts FixFiles nsref dir
+         msg←'Imported: ',ns,' ← ',U.WinSlash dir
          numFail←≢inFail
          :If ×numFail
              msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail

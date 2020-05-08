@@ -1,34 +1,31 @@
- {opts}←{canwatch}DefaultOpts opts
- ;Default;⎕IO
+ {opts}←{defopts}DefaultOpts opts;Default;nl
 
- :If 0=⎕NC'canwatch' ⋄ canwatch←0 ⋄ :EndIf
- :Trap DEBUG↓0
-     ⎕IO←1
-     :If ''≡0⍴opts ⋄ opts←Deserialise opts ⍝ pseudo array notation
-     :Else ⋄ opts←⎕NS opts  ⍝ duplicate namespace to avoid changing caller's
-     :EndIf
+ :If ''≡0⍴opts ⋄ opts←Deserialise opts ⍝ pseudo array notation
+ :Else ⋄ opts←⎕NS opts  ⍝ duplicate namespace to avoid changing caller's
+ :EndIf
 
-     Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
+ Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
 
-     'source'Default'dir'
-     'watch'Default(1+canwatch)⊃'ns' 'both'
+ 'source'Default'dir'
+ 'watch'Default(1+U.CanWatch)⊃'ns' 'both'
 
-     'flatten' 'caseCode' 'forceExtensions' 'forceFilenames'Default 0
+ 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Default 0
+ 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions'Default''
 
-     'beforeWrite' 'beforeRead' 'customExtensions'Default''
+ 'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
+ opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
 
-     'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
-     opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
+ 'typeExtensions'Default 0 2⍴0 ''
+ opts.typeExtensions{_←⍺
+     _⍪←2 'apla'
+     _⍪←3 'aplf'
+     _⍪←4 'aplo'
+     _⍪←9.1 'apln'
+     _⍪←9.4 'aplc'
+     _⍪←9.5 'apli'
+     _[∪⍳⍨⊣/_;]}←⍬
 
-     'typeExtensions'Default 0 2⍴0 ''
-     opts.typeExtensions{_←⍺
-         _⍪←2 'apla'
-         _⍪←3 'aplf'
-         _⍪←4 'aplo'
-         _⍪←9.1 'apln'
-         _⍪←9.4 'aplc'
-         _⍪←9.5 'apli'
-         _[∪⍳⍨⊣/_;]}←⍬
- :Else
-     U.Resignal 1
- :EndTrap
+ :If ~900⌶⍬  ⍝ some more custom defaults
+ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2
+     nl Default¨defopts⍎¨nl
+ :EndIf

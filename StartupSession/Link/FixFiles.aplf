@@ -1,98 +1,96 @@
- (inFail fsw)←{opts}FixFiles(target source);⎕IO;exts ⍝ Load items from files in folders
- ;cands;candLengths;name;d;f;e;list;hideBit;hidden;files;dirs;order;paths;nss
- ;RightExtn;Files;RemDir;Target;Fix
- :If U.debug=2
-     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
+ ⍝ Load items from files in folders
+ inFail←⍬
+ list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'    ⍝ recursive listing of everything  list[filename type hidden;]
+
+ mask←1=list[3;] ⋄ list←¯1↓list                  ⍝ mask for hidden items
+ hidden←mask/list ⋄ list/⍨←~mask                 ⍝ crop hidden (files and) folders
+ hidden←(1=hidden[2;])/hidden[1;]                ⍝ keep directories only (files have already been removed from list)
+ hidden←hidden,¨'/'                              ⍝ protect against similarly named files
+ list/⍨←~∨⌿hidden∘.U.Begins list[1;]             ⍝ filter away things that come below hidden directories
+
+ dirs←(1=list[2;])/list[1;]                      ⍝ second column has 1 for dirs
+ dirs←((⊂opts.dir),{⍵[⍋⍵]}dirs),¨'/'             ⍝ all directories (including link root)
+
+ files←(2=list[2;])/list[1;]                     ⍝ second column has 2 for files; first column is filename
+ files/⍨←opts U.HasExtn files                    ⍝ must be of correct extension
+ files←files[U.GradeFiles files]                 ⍝ dirs then quads then files
+ :If 0∊⍴files ⋄ :Return ⋄ :EndIf
+
+ ndirs←≢dirs ⋄ allfiles←dirs,files
+
+ (parents expnames actnames actnc)←opts U.DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+ :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
+     allnames←parents('.'U.JoinEach)expnames  ⍝ do not infer true apl name from source
+ :Else
+     mask←actnc∊¯1 0    ⍝ invalid names or source
+     inFail,←mask/allfiles
+     (allfiles parents expnames actnames actnc)/⍨←⊂~mask    ⍝ keep only names that are valid
+     ndirs←+/ndirs↑~mask
+     allnames←parents('.'U.JoinEach)actnames  ⍝ fully qualified names
+     :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
+         files←allfiles[,(mask/inx),[1.5]⍸mask]
+         U.Error'Files produce clashing APL names:',⍕files
+     :EndIf
  :EndIf
- :Trap DEBUG↓0
-     ⎕IO←1
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-
-     source↓⍨←-U.Slash⊃⌽source                  ⍝ Remove slash from end
-     cands←⊃⎕NINFO⍠1⊢source,'*'                 ⍝ normalised source candidates
-     candLengths←≢¨cands                        ⍝ their lengths
-
-     source←cands⊃⍨candLengths⍳≢source          ⍝ first length-match
-     name←⊃⌽U.Parts source                      ⍝ name without path
-
-     :If 2≡1 ⎕NINFO source ⍝ if it is a file, just fix it
-         target QFix source opts
-         :If 'dir' 'both'∊⍨⊂opts.watch
-             d f e←⎕NPARTS source
-             inFail←⍬
-             fsw←FileSystemWatcher.Watch d(f,e)
+ ⍝ rename files if incorrectly named - cannot work with opts.fastLoad
+ :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
+     expfiles←⊃opts(1 U.DetermineFileName)parents actnames actnames actnc
+     expfiles←expfiles(opts.forceFilenames U.MergeFileName opts.forceExtensions)¨allfiles
+     :If ∨/mask←expfiles≢¨allfiles
+         :If (≢expfiles)≠(≢∪819⌶expfiles)
+             U.Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
          :Else
-             inFail←fsw←⍬
-         :EndIf
-     :Else
-         source,←'/'                                     ⍝ append missing slash
-         list←0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'*'      ⍝ recursive listing of everything
-
-         hideBit←1=3⊃list                                ⍝ mask for hidden items
-         hidden←⊃list U.Where¨⊂hideBit                   ⍝ list of hidden (files and) folders
-         hidden,¨←'/'                                    ⍝ protect agains similarly named items
-         list←list U.Where¨⊂~hideBit                     ⍝ keep only visible items
-         list←list U.Where¨⊂~∨⌿hidden∘.U.Begins⊃list     ⍝ filter away things that come below hidden things
-         list↓⍨←¯1                                       ⍝ remove hideBit column
-
-         RightExtn←{⍺∊⍨⊂1↓⊃⌽⎕NPARTS ⍵}                   ⍝ Ends with specified extension?
-
-         Files←{⍵ U.Where ⍺∘RightExtn¨⍵}                 ⍝ Those that end with specified extension
-         exts←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all the interesting extensions
-
-         files←exts Files⊃U.Where/2=@2⊢list               ⍝ second column has 2 for files; first column is filename
-         dirs←⊃U.Where/1=@2⊢list                          ⍝ second column has 1 for dirs
-         dirs,¨←'/'                                       ⍝ give the dirs trailing slashes
-         list←dirs⍪files                                  ⍝ we need to process dirs before files
-         order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨list       ⍝ slashes after all chars and quads before all
-         list←order⊃¨⊂list                                ⍝ sort the list
-         order←⍋+/¨'/'=list                               ⍝ in "descending" order into folders: (must process parent folders first)
-         list←order⊃¨⊂list                                ⍝ sort the list
-
-         RemDir←{⍵↓⍨≢source}                              ⍝ Only path beginning at target source
-
-         paths←∪RemDir∘U.Path U.OnEach list               ⍝ paths of all unique items
-         paths~←⊂''                                       ⍝ remove empty
-
-         target U.QFixIfExists(source,'quadVars.apln')opts
-         :If ~opts.flatten                                ⍝ If we are not flattening, create nss
-             nss←U.DotSlash¨paths/⍨~'.'∊¨paths            ⍝ transform simple dirs into nss
-             nss←StripCaseCode nss
-             nss/⍨←¯1≠⎕NC nss                             ⍝ keep only names that are valid
-             {}nss{
-                 ref←⍎target⍎U.NsExpr ⍺                   ⍝ create ns
-                 ref U.QFixIfExists ⍵ opts                ⍝ set sysvars?
-             }U.OnEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ create nss in target if struct is preserved
-         :Else
-             {}{target U.QFixIfExists ⍵ opts} U.OnEach source∘,¨paths,¨⊂'/quadVars.apln' ⍝ set sysvars?
-         :EndIf
-
-         Target←{'.'@U.Slash U.PadThis(~opts.flatten)/U.Path RemDir ⍵} ⍝ Determine target path
-
-         FixThere←{ ⍝ Fix the file ⍵ in the namespace ⍺
-             t←(1+opts.flatten)⊃(⍺.⍎Target ⍵)⍺ ⍝ final target
-             t QFix ⍵ opts                     ⍝ do it
-         }
-
-         TryFixThere←{      ⍝ Try to fix file there
-             6 11::⍵        ⍝ return name on failure
-             0⊣⍺ FixThere ⍵ ⍝ do it and return 0 on success
-         }
-         OnEach←{ ⍝ ¨ without prototype call on empty
-             0∊⍴⍵:⍬  ⍝ if empty return empty
-             ⍺←⊢     ⍝ ambivalent
-             ⍺ ⍺⍺¨⍵  ⍝ call
-         }
-         inFail←0~⍨target∘TryFixThere OnEach exts Files list ⍝ try it and return only failures
-      ⍝ return (list of failures) and (watcher reference or zilde)
-         :If 'dir' 'both'∊⍨⊂opts.watch
-             fsw←FileSystemWatcher.Watch(¯1↓source)(,'*')
-         :Else
-             fsw←⍬
+             ⍝ because APL names don't clash, we now expfiles won't clash either
+             ⍝ however expfiles may overlap allfiles, producing an error at intermediate steps (⎕NMOVE should fail, because ⍠'IfExists' 'Error')
+             (mask/expfiles)U.Relocate(mask/allfiles)
+             allfiles←expfiles
          :EndIf
      :EndIf
-     inFail←⍕¨inFail
- :Else
-     U.Resignal 1
- :EndTrap
+ :EndIf
+
+ :If 3=⎕NC opts.beforeRead ⍝ user exit defined?
+     mask←(⍴allfiles)⍴1
+     :For i :In ⍳⍴allfiles
+         mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(i⊃actnc) ⍝ return 1 to continue else 0
+     :EndFor
+     (allfiles parents expnames actnames actnc)/⍨←⊂mask    ⍝ keep what was not processed by user
+ :EndIf
+
+ tie←'both' 'ns'∊⍨⊂opts.watch ⍝ tie to file if watching namespace - cached for performance
+ FixFile←tie∘{(target file name)←⍵ ⋄ target U.QFix file name ⍺}
+ ⍝ create namespaces for directories and load quadVars.apln
+ (dirs names)←ndirs↑¨(allfiles allnames)
+ :If ~0∊⍴dirs
+     :If ~opts.flatten                               ⍝ If we are not flattening, create nss
+         nss←names ⎕NS¨⊂⍬
+         :If ∨/mask←0=≢¨nss   ⍝ could not create namespace
+             inFail,←mask/names
+         :EndIf
+     :Else
+         nss←target   ⍝ all files fixed in target namespace
+     :EndIf
+     ⍝ set sysvars before anything else - these files are produced by Acre and must be supported
+     :If ∨/mask←⎕NEXISTS¨quadfiles←dirs,¨⊂'quadVars.apln'
+         mask←mask\~FixFile¨↓nss,mask⌿quadfiles,[1.5]⊂'quadVars'
+         inFail,←mask/quadfiles
+     :EndIf
+ :Else ⋄ quadfiles←0⍴⊂''
+ :EndIf
+
+ ⍝ fix individual files
+ (files names)←ndirs∘↓¨(allfiles allnames)
+ (files names)/⍨←⊂~files∊quadfiles
+ :If ~0∊⍴files
+     :If ~opts.flatten                               ⍝ If we are not flattening, create nss
+         nss←⍎∘U.Parent¨names
+     :Else
+         nss←target   ⍝ all files fixed in target namespace
+     :EndIf
+     mask←~FixFile¨↓nss,files,[1.5]names ⍝ try it and return only failures
+     inFail,←mask/files
+ :EndIf
+
+ ⍝ return list of failures
+ inFail←⍕¨inFail

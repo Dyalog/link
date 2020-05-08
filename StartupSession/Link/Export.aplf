@@ -1,24 +1,23 @@
- msg←Export(ns dir)
- ;opts;outFail;numFail;nc
+ msg←{opts}Export(ns dir)
+ ;outFail;numFail;nc
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
-     msg←⍕⍬⊤⍬
-     :If 9.1≠nc←U.NameClass ns
+     :If ¯9≠nc←U.NameClass ns
          msg←'Source namespace not found: ',ns,' has name class ',(⍕nc)
      :Else
-         opts←⎕NS ⍬
          opts.watch←'none'
          opts.source←'ns'
-         opts.ns←U.NormNs ns
+         opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
 
-         outFail←opts WriteFiles ns
+         outFail←opts WriteFiles ns dir
 
-         msg←'Exported: ',ns,' → ',dir
+         msg←'Exported: ',ns,' → ',U.WinSlash dir
          numFail←≢outFail
          :If ×numFail
              msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓1 ⎕JSON⍕¨outFail

@@ -1,18 +1,18 @@
- name←CaseCode name
- ;bin;len;digits;⎕IO;path;ext
+ names←{opts}CaseCode names;i;opts;scal
+ ⍝ Case-code a file name located
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←0
-     (path name ext)←⎕NPARTS⊃⊆name
-     bin←name≠819⌶name
-     len←⌈3÷⍨≢bin
-     digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
-     digits↓⍨←+/∧\0=digits
-     name,←'-',⎕D[digits,0/⍨⍬≡digits]
-     name←path,name,ext
+     scal←1=≡,names
+     :For i :In ⍳⍴names←⊆names
+         :If 900⌶⍬  ⍝ only expert users provide correct link options to avoid lookup
+         :AndIf 0∊⍴opts←U.LookupFile i⊃names
+             U.Error'Not linked: ',⍕i⊃names
+         :EndIf
+         (i⊃names)←opts.dir U.CaseCode opts.flatten⊢(i⊃names)
+     :EndFor
+     names←⊃⍣scal⊢names
  :Else
      U.Resignal 1
  :EndTrap
- 

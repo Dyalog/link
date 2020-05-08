@@ -1,5 +1,10 @@
-TypeExtension←{
+ ext←opts TypeExtension nc
 ⍝ Return type extension to use for ⎕NC ⍵ in Link defined by ⍺
-(link nc)←⍵
-1↓link U.Tail nc
-}
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     ext←1↓opts.typeExtensions U.Tail nc
+ :Else
+     U.Resignal 1
+ :EndTrap

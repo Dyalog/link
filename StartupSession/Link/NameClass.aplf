@@ -1,0 +1,16 @@
+ nc←{where}NameClass names;container;nsref
+ ⍝ Cover for (where.⎕NC⊆names), excepted that ¯9 is reported for traditional namespaces
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     container←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
+     :If 900⌶⍬ ⋄ where←container ⋄ :EndIf
+     :If 0=≢nsref←container(0 U.GetRefTo)where
+         nc←(⍴⊆names)⍴¯1   ⍝ namespace not found
+     :Else
+         nc←nsref U.NameClass¨⊆names
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap

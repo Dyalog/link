@@ -19,7 +19,7 @@ Since SALT is not available, the `Link` user command group is also unavailable, 
 
 ## 17.0 default session
 
-1. Copy the **link** repository contents into the Dyalog installation directory so **startup.dyalog** ends up in the same directory as **dyalog.exe**, confirming the overwriting of **[DYALOG/SALT/spice/Link.dyalog**
+1. Copy the **link** repository contents into the Dyalog installation directory so **startup.dyalog** ends up in the same directory as **dyalog.exe**, confirming the overwriting of **DYALOG/SALT/spice/Link.dyalog**
 1. `2⎕FIX'file://',(2⎕NQ#'GetEnvironment' 'DYALOG'),'/StartupSession/Link/Install/RemoveLinks.dyalog'`
 1. `2⎕FIX'file://',(2⎕NQ#'GetEnvironment' 'DYALOG'),'/StartupSession/Link/Install/WSLoaded-default.dyalog'`
 1. `2⎕FIX'file://',(2⎕NQ#'GetEnvironment' 'DYALOG'),'/StartupSession/Link/Install/BUILD_DYALOGSPACE.dyalog'`
