@@ -1,4 +1,4 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;loadlink;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -42,40 +42,39 @@
          :EndIf
 
          ⍝ determine expected apl name from file name, and actual apl name from source
-         link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time
-         (nsname expname actname nc)←link U.DetermineAplName path
-         :If 0=≢nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
-             →END⊣U.Warn msg,'file does not reflect in a valid namespace'
-         :EndIf
-
-         :If 3=⎕NC link.beforeRead ⍝ user exit defined?
-             ⍝:Trap DEBUG↓0
-             :If ~(link⍎link.beforeRead)type path nsname link 0 ⍝ return 1 to continue else 0
-                 →END⊣U.Log msg,'handled by user'
-             :EndIf
-             ⍝:Else
-             ⍝    U.Warn'beforeRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
-             ⍝:EndTrap
-         :EndIf
+         loadlink←⎕NS link ⋄ loadlink.fastLoad←0  ⍝ fastLoad not observed at Notify time
+         (nsname expname actname nc)←loadlink U.DetermineAplName path
+         nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
 
          ⍝ determine current name tied to file (if any)
          (curnsname curactname curnc)←U.CurrentAplName path
          :If deleted  ⍝ can't examine source file - rely on expected apl name
              :If ~curnc∊0 ¯1 ⋄ actname←curactname ⋄ nc←curnc     ⍝ interpreter remembers that name was linked to file
-             :Else ⋄ nc←nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
-             :EndIf
-             dir←nc=¯9
-             :If nc∊¯1 0 ⋄ →END⊣U.Log msg,'could not determine which object was linked to it' ⋄ :EndIf
-         :Else ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
-             :If link.fastLoad<nc∊¯1 0 ⋄ →END⊣U.Log msg,'invalid file contents' ⋄ :EndIf
+             :ElseIf ~0∊⍴nsref ⋄ nc←nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
+             :Else ⋄ nc←¯1  ⍝ nsname is invalid - see U.DetermineAplName
+             :EndIf ⋄ dir←nc=¯9
+         :ElseIf 0∊⍴actname ⋄ actname←expname  ⍝ failed to fix source - nc is 0 - only beforeRead can save us
          :EndIf
-
-         ⍝ determine current file tied to name we plan to use
-         curfile←0 U.NormFile nsref U.CurrentFileName actname
 
          oldname←actname
          affected←nsname,'.',actname
          curname←curnsname,'.',curactname
+
+         :If ~deleted  ⍝ won't read a deleted file
+         :AndIf 3=⎕NC link.beforeRead ⍝ user exit defined? - must run BEFORE we exit on invalid file contents
+             :If ~(link⍎link.beforeRead)'beforeRead'link path affected ⍝ return 1 to continue else 0
+                 →END⊣U.Log msg,'handled by user'
+             :EndIf
+         :EndIf
+
+         :If 0=≢nsref
+             →END⊣U.Warn msg,'file does not reflect in a valid namespace'
+         :ElseIf (deleted∨~loadlink.fastLoad)∧(nc∊¯1 0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
+             →END⊣U.Log msg,(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
+         :EndIf
+
+         ⍝ determine current file tied to name we plan to use
+         curfile←0 U.NormFile nsref U.CurrentFileName actname
 
          :Select type
 
@@ -169,7 +168,6 @@
              →END ⍝ might as well give up now
 
          :EndSelect
-
 
          ⍝ rename files if incorrectly named
          watch←'dir' 'both'∊⍨⊂link.watch  ⍝ watching files

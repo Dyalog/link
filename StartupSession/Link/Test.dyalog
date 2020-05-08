@@ -86,7 +86,7 @@
      
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
-      opts.beforeWrite←'⎕SE.Link.Test.onFlatWrite'
+      opts.getFilename←'⎕SE.Link.Test.onFlatFilename'
       z←opts ⎕SE.Link.Create('#.',name)folder
      
       ns←#⍎name
@@ -100,7 +100,7 @@
       assert'dupfile≡4⊃5179⌶''ns.dup'''             ⍝   ... await callback & link established
      
       goofile←folder,'/app/goo.aplf'
-     
+
       ns'goo'⎕SE.Link.Fix goo←' r←goo x' ' r←x x x'  ⍝ Add a new function
       assert'goo≡⊃⎕NGET goofile 1'
       assert'goofile≡4⊃5179⌶''ns.goo'''             ⍝   ... await callback & link established
@@ -120,21 +120,19 @@
       CleanUp folder name
     ∇
 
-    ∇ r←onFlatWrite args;⎕TRAP;ns;name;oldname;nc;src;file;link;nameq;ext;z
+    ∇ r←onFlatFilename args;event;ext;file;link;name;nc;oldname
     ⍝ Callback functions to implement determining target folder for flattened link
-      (ns name oldname nc src file link nameq)←8↑args
-     
-      r←1           ⍝ Link should proceed and complete the operation
-      →(0=nameq)⍴0  ⍝ We only need to respond to requests for a file name
-     
-      :If 0≠≢r←4⊃5179 ns.⌶oldname     ⍝ we could find info for oldname
+      (event link file name nc oldname)←6↑args
+      :If 0≠≢r←4⊃5179⌶oldname     ⍝ we could find info for oldname
           :If name≢oldname ⍝ copy / rename of an existing function
+              name←(⌽∧\⌽name≠'.')/name  ⍝ drop namespace specification
               r←∊((⊂name)@2)⎕NPARTS r     ⍝ just substitute the name
           :EndIf
       :Else            ⍝ a new function
           ⍝ A real application exit might prompt the user to pick a folder
           ⍝   in the QA example we look to a global variable
           ext←link ⎕SE.Link.TypeExtension nc        ⍝ Ask for correct extension for the name class
+          name←(⌽∧\⌽name≠'.')/name  ⍝ drop namespace specification
           r←link.dir,'/',FLAT_TARGET,'/',name,'.',ext  ⍝ Return the file name
       :EndIf
     ∇
@@ -437,28 +435,20 @@
     ∇
 
    ⍝ Callback functions to implement .charmat & .charvec support
-    ∇ r←onBasicRead args;type;file;nsname;⎕TRAP;parts;data;extn
-      (type file nsname)←3↑args
+    ∇ r←onBasicRead args;data;event;extn;file;link;name;nc;parts
+      (event link file name nc)←5↑args
       r←1 ⍝ Link should carry on; we're not handling this one
       :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
-          :Select type
-          :Case 'deleted'
-              (⍎nsname).⎕EX 2⊃parts
-              r←0 ⍝ We're done; Link doesn't need to do any more
-          :CaseList 'changed' 'renamed' 'created' 'loaded'
-              data←↑⍣(extn≡'.charmat')##.U.GetFile file
-              ⍎nsname,'.',(2⊃parts),'←data'
-              r←0 ⍝ As above
-          :EndSelect
+          data←↑⍣(extn≡'.charmat')##.U.GetFile file
+          ⍎name,'←data'
+          r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
     ∇
-
-    ∇ r←onBasicWrite args;extn;file;link;name;nameq;nc;ns;oldname;src;value;⎕TRAP
-      (ns name oldname nc src file link nameq)←8↑args
-      :If nameq ⋄ r←'' ⋄ :Return ⋄ :EndIf  ⍝ let link choose the file name
+    ∇ r←onBasicWrite args;event;extn;file;link;name;nc;oldname;src;value
+      (event link file name nc oldname src)←7↑args
       r←1 ⍝ Link should carry on; we're not handling this one
       :If 2=⌊nc ⍝ A variable
-          :Select ⎕DR value←ns⍎name
+          :Select ⎕DR value←⍎name
           :CaseList 80 82 160 320
               :If 2=⍴⍴value ⋄ src←↓value ⋄ :Else ⋄ :Return ⋄ :EndIf
               extn←⊂'.charmat'

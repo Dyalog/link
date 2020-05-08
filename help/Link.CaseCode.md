@@ -1,3 +1,5 @@
+# Link.CaseCode
+
 If case codes is on (default is off), each file name will have a case code (see below). 
 
 If you set up a *BeforeWrite* hook when creating a Link, Link will prompt your hook for a file name whenever a new source file needs

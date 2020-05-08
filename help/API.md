@@ -1,29 +1,28 @@
 The Link API functions are normally found in ```⎕SE.Link```. All API functions take a character
-vector or a nested vector as a right argument, and optionally a namespace containing option values on
-the left. For more details on setting options, look below the following table:
+vector or a nested vector as a right argument. The left argument may either be a namespace containing option values, or an array of character vectors. Namespaces may be specified by reference. For more details on setting options, look below the following table:
 
 ### Link API Function reference
 
-Function                        | Right Argument(s) | Options                  | Result 
---------------------------------|---------------------|--------------------------|-------
- [Add](Link.Add.md)<sup>`]`</sup>  | items               | filename | 
- [Break](Link.Break.md)<sup>`]`</sup>| namespace           | all | 
- [CaseCode](Link.CaseCode.md) | filename            |                                           | case-coded filename 
- [Create](Link.Create.md)<sup>`]`</sup>| namespace directory | source watch [[and many more]](Link.Create.md) | 
- [Export](Link.Export.md)<sup>`]`</sup>| namespace directory | | 
- [Expunge](Link.Expunge.md)<sup>`]`</sup>| items               | | 
- [Fix](Link.Fix.md)           | source              | namespace name oldname<sup>`⍺`</sup>                     | 
- [GetFileName](Link.GetFileName.md)<sup>`]`</sup>| item |        |                                           | filename 
- [GetItemName](Link.GetItemName.md)<sup>`]`</sup>| filename      |                                           | itemname 
- [Import](Link.Import.md)<sup>`]`</sup>| namespace directory | | 
- [List](Link.List.md)<sup>`]`</sup>|    [namespace]      | extended | 
- [Notify](Link.Notify.md)     | event filename oldfilename | | 
- [Refresh](Link.Refresh.md)<sup>`]`</sup>| namespace           | | 
- [StripCaseCode](Link.CaseCode.md) | filename            |                                           | filename without case code
+Function                                              | Right Argument(s)          | Left Argument(s)                               | Result 
+------------------------------------------------------|----------------------------|------------------------------------------------|-------
+ [Add](Link.Add.md)<sup>`]`</sup>                     | items                      | *&lt;none&gt;*                                 | 
+ [Break](Link.Break.md)<sup>`]`</sup>                 | namespaces                 | options: **all** **exact**                     | 
+ [CaseCode](Link.CaseCode.md)                         | filename                   | *&lt;none&gt;*                                 | case-coded filename 
+ [Create](Link.Create.md)<sup>`]`</sup>               | namespace directory        | options: **source** **watch** [and many more]  | 
+ [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: [same as Create]                      | 
+ [Expunge](Link.Expunge.md)<sup>`]`</sup>             | items                      | *&lt;none&gt;*                                 | boolean array
+ [Fix](Link.Fix.md)                                   | source                     | array: namespace name oldname                  | 
+ [GetFileName](Link.GetFileName.md)<sup>`]`</sup>     | items                      | *&lt;none&gt;*                                 | filenames
+ [GetItemName](Link.GetItemName.md)<sup>`]`</sup>     | filenames                  | *&lt;none&gt;*                                 | items
+ [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: [same as Create]                      | 
+ [List](Link.List.md)<sup>`]`</sup>                   | namespace                  | options: **extended**                          | 
+ [NameClass](Link.NameClass.md)                       | items                      | array: namespace                               | numeric vector of name classes
+ [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                                 | 
+ [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | *&lt;none&gt;*                                 | 
+ [StripCaseCode](Link.CaseCode.md)                    | filename                   | *&lt;none&gt;*                                 | filename without case code
+ [Version](Link.Version.md)                           | *&lt;none&gt;*             | *&lt;none&gt;*                                 | version number as string
 
  <sup>`]`</sup> These functions have [user command covers](#user-commands).
-
- <sup>`⍺`</sup> The left argument to [Fix](Link.Fix.md) is a 3-element vector, not an option namespace.
 
 
 ### Option Namespaces

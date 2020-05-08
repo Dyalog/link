@@ -1,3 +1,5 @@
+# Link.Refresh 
+
 If synchronisation is not enabled, or you have made changes to
 linked folders or namespaces which are not tracked (such as
 using `⎕FX`, `⎕NS`. `⎕CY` or assignment), you can use this function to re-synchronise the namespace and the directory.\

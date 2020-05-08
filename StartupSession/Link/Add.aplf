@@ -1,15 +1,9 @@
- msg←{opts}Add items;item;ns;name;this;added;unfound;⎕IO
+ msg←Add items;item;ns;name;this;added;unfound;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-
-     ⍝ TODO ?
-     ⍝ opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-     ⍝ Default←opts{0=⍺⍺.⎕NC ⍺:⍺⍺⍎⍺,'←⍵'}
-     ⍝ 'filename'Default''
-
      items←(⊆,items)~¨' '
      this←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
      items←(this,'.')∘,¨items         ⍝ fully qualified name

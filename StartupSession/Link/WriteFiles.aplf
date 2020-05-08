@@ -1,4 +1,4 @@
- outFail←opts WriteFiles(ns dir);count;dir;files;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
+ outFail←opts WriteFiles(ns dir);count;dir;files;i;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
  ⍝ Write items to file in folders
  ⍝ ns must be a fully specified traditional namespace
  ⍝ arrays not supported
@@ -22,12 +22,17 @@
          U.Error'File name case clash - try using caseCode←1:',⍕(ns,'.')∘,¨names
      :EndIf
 
-     ⍝ TODO : beforeWrite
-
      mask←src∊⎕NULL  ⍝ traditional namespaces
      (tradnames tradfiles)←mask∘/¨(names files)
      (files names src)←(~mask)∘/¨(files names src)
      :If 0≠≢files
+         :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write - not on directories
+             mask←(≢files)⍴1
+             :For i :In ⍳⍴files
+                 mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref U.NameClass i⊃names)(ns.'.',i⊃names)src
+             :EndFor
+             (files names src)/⍨←⊂mask  ⍝ keep what was not processed by user
+         :EndIf
          mask←src U.Into¨files  ⍝ failed to write
          outFail,←(ns,'.')∘,¨(~mask)/names
          :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful

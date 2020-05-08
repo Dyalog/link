@@ -53,11 +53,7 @@
  :If 3=⎕NC opts.beforeRead ⍝ user exit defined?
      mask←(⍴allfiles)⍴1
      :For i :In ⍳⍴allfiles
-         ⍝:Trap DEBUG↓0
-         mask[i]←(opts⍎opts.beforeRead)'loaded'(i⊃allfiles)(i⊃parents)opts 0 ⍝ return 1 to continue else 0
-         ⍝:Else
-         ⍝    U.Warn'beforeRead callback ',link.beforeRead,' failed: ',⎕DMX.EM
-         ⍝:EndTrap
+         mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(i⊃actnc) ⍝ return 1 to continue else 0
      :EndFor
      (allfiles parents expnames actnames actnc)/⍨←⊂mask    ⍝ keep what was not processed by user
  :EndIf

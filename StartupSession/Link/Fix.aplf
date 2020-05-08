@@ -30,7 +30,7 @@ NOHOLD:
              :EndIf
              watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 
-             (file oldfile nc)←link (0 U.DetermineFileName) nsname name oldname src  ⍝ fix in target ns
+             (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src  ⍝ fix in target ns
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
                  (⊂ns.⎕NR oldname)⎕NPUT oldfile 1
@@ -47,11 +47,7 @@ NOHOLD:
              :EndIf
 
              :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
-                 ⍝:Trap DEBUG↓0
-                 →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
-                 ⍝:Else
-                 ⍝    U.Warn'beforeWrite callback ',link.beforeWrite,' failed: ',⎕DMX.EM
-                 ⍝:EndTrap
+                 →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)nc(nsname,'.',oldname)src
              :EndIf
 
              :Trap 0

@@ -1,3 +1,5 @@
+# Link.Expunge
+
 This function is intended as a replacement for the system
 function `⎕EX` in tools that manage code. It removes an item from the workspace and also deletes the corresponding source file.
 

@@ -250,7 +250,7 @@
           16::0
           1⊣⎕SRC ⍵
       }
-    RootOf←{⍵.##}⍣≡
+        RootOf←{⍵.##}⍣≡
     IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
     SplitNs←{t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots
     IsParent←{p←⍵.## ⋄ ⍺∊p ⍵:1 ⋄ ⍵=p:0 ⋄ ⍺∇p }  ⍝ is ⍺ parent of ⍵
@@ -450,17 +450,17 @@
     ∇
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);cache
     ⍝ opts cached for performance on ns lookup
-      cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite fastLoad)
+      cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       :If depth ⋄ (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨↓⍉↑(where name oldname src)
       :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
     ∇
-    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
+    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through U.NormNs
       ⍝ values cached for performance on ns lookup
-      (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite fastLoad)←opts
+      (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⎕NULL   ⍝ namespace doesn't exist - src or nc ought to be provided
       :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
@@ -491,16 +491,6 @@
           file,←typeExtensions Tail nc               ⍝ Add extension
       :EndIf
       file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
-      ⍝ Allow user to determine file name - they return '' to give up
-      :If 3=(⍎ns).⎕NC beforeWrite
-          ⍝:Trap DEBUG↓0
-          :If 0<≢userfile←(ns⍎beforeWrite)ref name oldname nc src file opts 1
-              file←userfile
-          :EndIf
-          ⍝:Else
-          ⍝    U.Warn'beforeWrite callback ',opts.beforeWrite,' failed: ',⎕DMX.EM
-          ⍝:EndTrap
-      :EndIf
       :If ¯9=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (subdir file ext)←⎕NPARTS path←file
       :If forceExtensions∨0=≢ext
@@ -510,6 +500,11 @@
       :If isroot<forceFilenames ⋄ file←CaseCodePart⍣caseCode⊢name ⋄ :EndIf  ⍝ forceFileNames does not affect directory - only leaf name
       file←subdir,file,ext
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
+      ⍝ Allow user to determine file name - they return '' to give up
+      :If 3=(⍎ns).⎕NC getFilename
+      :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(ns,'.',name)nc(ns,'.',oldname)
+          file←userfile
+      :EndIf
     ∇
     ∇ expname←expname(forcefile MergeFileName forceext)actname;actdir;actext;actfile;expdir;expext;expfile
     ⍝ enforce forceFilenames/forceExtensions on actual file name, based on expected file name
@@ -534,16 +529,16 @@
     ∇
     ∇ (where expname actname nc)←opts DetermineAplName files;cache
     ⍝ opts cached for performance on ns lookup
-      cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite fastLoad)
+      cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
     ∇
-    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;ns;src;subdir;typeExtensions
+    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;src;subdir;typeExtensions
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
     ⍝ nc is name class of name
     ⍝ opts cached for performance on ns lookup
-      (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite fastLoad)←opts
+      (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If fastLoad ⋄ src←''     ⍝ do not spend time inspecting source
       :Else ⋄ src←GetFileSource file
       :EndIf

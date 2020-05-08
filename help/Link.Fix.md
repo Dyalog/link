@@ -1,3 +1,5 @@
+# Link.Fix
+
 This function is intended as a replacement for `⎕FIX` or `⎕FX` in code which manipulates linked namespaces. It will allow you to add
 or modify a function, operator, or scripted object within a linked namespace, creating or updating the correponding source file.
 

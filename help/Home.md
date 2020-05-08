@@ -23,7 +23,7 @@ Note that Link is ***not a source code management system***,
 but is designed to support the use of tools like Git or Subversion to manage the linked directories.
 
 For more information:
-* [Installation instructions](Installation)
-* [Overview](Overview)
-* [Getting started](GettingStarted)
-* [Full API reference](API)
+* [Installation instructions](Installation.md)
+* [Overview](Overview.md)
+* [Getting started](GettingStarted.md)
+* [Full API reference](API.md)
