@@ -1,12 +1,11 @@
 # TODO
  - clean up ⎕SE.Link into ⎕SE.Link.U to have as few non-public names as possible
- - Formalise results of Add, Break, Create, Export, Fix, Import, List, Notify, Refresh
+ - Normalise results of Add, Break, Create, Export, Fix, Import, List, Notify, Refresh
  - FSW error recovery (no .NetCore support !)
- - alternative names for -fastLoad : -fixOnce -noCheck -noInspect
- - normalise API results
  - turn Serialise into ,↓Serialise
  - use :Holds to synchronise access to ⎕SE.Link.Links
  - FileWatcher.Break should break all at once : (EnableRaisingEvents←0) (⎕DL) (Dispose)
+ - 
 
 # RFE
  - proper logging of errors and warnings, with accessible backlog - to check no errors during a working session.

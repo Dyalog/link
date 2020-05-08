@@ -3,7 +3,7 @@
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
 ⍝   Run 'c:\tmp\linktest'
-
+    
     ⍝ TODO - See ⎕SE.Link.Version too
     ⍝ - Notify should not quit early on invalid file content because it might be handled by user
     ⍝ - test quadVars.apln produced by Acre
@@ -17,35 +17,35 @@
     ⍝ - ensure beforeWrite is called at Create/Export time
     ⍝   and that files are not overwritten by link
     ⍝ - case-code+flatten (on sub-directories)
-
+    
     ⎕IO←1 ⋄ ⎕ML←1
-
+    
     USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
     USE_NQ←0         ⍝ Value to use for ⎕SE.Link.FileSystemWatcher.USE_NQ
-
+    
     NAME←'#.linktest'  ⍝ namespace used by link tests
-
+    
     ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
-
+    
     PAUSE_TIME←0.1   ⍝ Seconds of delays to insert at strategic points on slow machines - See Breathe
     ASSERT_TIME←1    ⍝ Seconds of wait time trying to verify assertions
-
-
+    
+    
     ∇ r←{test_filter}Run folder;aplv;core;dnv;opts;pause_tests;test;tests;time;z
      ⍝ Run all the Link Tests. If no folder name provided, default to (739⌶0),'/linktest'
-     
+      
       tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ by default: run all tests
       pause_tests←0                             ⍝ no manual testing
-     
+      
       :If 0≠⎕NC'test_filter'
           pause_tests←(⊂'pause')∊test_filter
           tests←(1∊¨test_filter∘⍷¨tests)/tests
       :EndIf
-     
+      
       →(0=≢folder←Setup folder NAME)⍴0
       time←⎕AI[3]
       :For test :In tests
@@ -53,73 +53,73 @@
       :EndFor
       time←⎕AI[3]-time
       UnSetup
-     
+      
       dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
       core←(1+##.U.DotNetCore)⊃'Framework' 'Core'
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
       opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
       r←(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
     ∇
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ∇ r←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
      ⍝ Test the flattened scenario
-     
+      
       r←0
-     
+      
       FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
-     
+      
       {}3 ⎕MKDIR Retry⊢folder
       {}3 ⎕MKDIR folder,'/app'
       {}3 ⎕MKDIR folder,'/utils'
-     
+      
       ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
       _←(⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
       _←(⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
-     
+      
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
       opts.getFilename←'⎕SE.Link.Test.onFlatFilename'
       z←opts ⎕SE.Link.Create('#.',name)folder
-     
+      
       ns←#⍎name
-     
+      
       assert'''dup'' ''main'' ≡ ns.⎕NL ¯3'           ⍝ Validate both fns are in root namespace
       assert'2 2≡ns.main'                            ⍝ Check that main function works
-     
+      
       dup,←⊂' ⍝ Modified dup'
       ns'dup'⎕SE.Link.Fix dup                        ⍝ Redefine existing function dup
       assert'dup≡⊃⎕NGET dupfile 1'
       assert'dupfile≡4⊃5179⌶''ns.dup'''             ⍝   ... await callback & link established
-     
+      
       goofile←folder,'/app/goo.aplf'
-
+      
       ns'goo'⎕SE.Link.Fix goo←' r←goo x' ' r←x x x'  ⍝ Add a new function
       assert'goo≡⊃⎕NGET goofile 1'
       assert'goofile≡4⊃5179⌶''ns.goo'''             ⍝   ... await callback & link established
-     
+      
       ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
-     
+      
       foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
       assert'foo≡⊃⎕NGET foofile 1'                   ⍝ Validate file has the right contents
       assert'foofile≡4⊃5179⌶''ns.foo'''             ⍝   ... and foo is linked to the right file
-     
+      
       Breathe ⍝ Allow backlog of FSW events to clear on slow machines
       _←QNDELETE foofile
       assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
-     
+      
       PauseTest folder
-     
+      
       CleanUp folder name
     ∇
-
+    
     ∇ r←onFlatFilename args;event;ext;file;link;name;nc;oldname
     ⍝ Callback functions to implement determining target folder for flattened link
       (event link file name nc oldname)←6↑args
@@ -136,44 +136,44 @@
           r←link.dir,'/',FLAT_TARGET,'/',name,'.',ext  ⍝ Return the file name
       :EndIf
     ∇
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ∇ r←test_failures(folder name);opts
       r←0
-     
+      
       'not found'assertMsg'⎕SE.Link.Export''#.',name,'.ns_not_here'' ''',folder,''''
       'not found'assertMsg'⎕SE.Link.Import''#.',name,''' ''',folder,'/dir_not_here'''
-     
+      
       opts←⎕NS''
       opts.source←'ns'
       'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,'.ns_not_here'' ''',folder,''''
-     
+      
       opts←⎕NS''
       opts.source←'dir'
       'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,''' ''',folder,'/dir_not_here'''
     ∇
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ∇ r←test_import(folder name);foo;cm;cv;ns;z;opts;_;bc;ac
       r←0
-     
+      
       3 ⎕MKDIR Retry⊢folder∘,¨'/sub/sub1' '/sub/sub2'
-     
+      
       ⍝ make some content
       (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
       (⊂⊂cv←'Line 1' 'Line two')⎕NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'
@@ -181,78 +181,78 @@
       (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/sub/sub2/one2.apla'
       (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/bClass.dyalog'
       (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/aClass.dyalog'
-     
+      
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
       ⍝opts.customExtensions←'charmat' 'charvec'
       z←opts ⎕SE.Link.Import('#.',name)folder
       assert'0=≢⎕SE.Link.Links'
-     
+      
       ns←#⍎name
-     
+      
       assert'foo≡ns.⎕NR''foo'''
 ⍝ Import does not support custom types at this time
 ⍝      assert'cm≡ns.cm'
 ⍝      assert'cv≡ns.cv'
-     
+      
       assert'9.1=ns.⎕NC''sub'' ''sub.sub1'' ''sub.sub2'''
       assert'ns.sub.sub2.one2≡2 2⍴''one'' 1 ''two'' 2'
-     
+      
       assert'9.4=ns.sub.sub2.⎕NC''aClass'' ''bClass'''
       assert'ac≡⎕SRC ns.sub.sub2.aClass'
       assert'bc≡⎕SRC ns.sub.sub2.bClass'
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.sub.sub2.aClass'
-     
+      
       ⍝ make sure there is no link
       ns'foo'⎕SE.Link.Fix' r←foo x' ' r←x x x'
       assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
-     
+      
       _←(⊂' r←foo x' ' r←x x x x')QNPUT(folder,'/foo.dyalog')1
       assert'(ns.⎕NR''foo'')≢⊃#.SLAVE.⎕NGET folder,''/foo.dyalog'''
-     
+      
       ⎕SE.Link.Expunge'ns.sub.sub1'
       assert'⎕NEXISTS folder,''/sub/sub1'''
-     
+      
       ⎕EX'ns' ⋄ #.⎕EX name
-     
+      
       opts.flatten←1
       z←opts ⎕SE.Link.Import('#.',name)folder
       ns←#⍎name
       assert'0=≢⎕SE.Link.Links'
       assert'0=≢ns.⎕NL-9.1'
-     
+      
 ⍝ Import does not support custom types at this time
 ⍝      assert'cm≡ns.cm'
 ⍝      assert'cv≡ns.cv'
-     
+      
       assert'ns.one2≡2 2⍴''one'' 1 ''two'' 2'
-     
+      
       assert'9.4=ns.⎕NC''aClass'' ''bClass'''
       assert'ac≡⎕SRC ns.aClass'
       assert'bc≡⎕SRC ns.bClass'
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
-     
+      
       PauseTest folder
-     
+      
       ⍝ Now tear it all down again:
       _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
-     
+      
       #.⎕EX name
     ∇
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
     ∇ r←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;fsw;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz
       r←0
-     
+      
       3 ⎕MKDIR Retry⊢folder
-     
+      
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
@@ -260,32 +260,32 @@
       opts.watch←'both'
       z←opts ⎕SE.Link.Create('#.',name)folder
       z ⎕SIGNAL(0=≢⎕SE.Link.Links)/11
-     
+      
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
       ns←#⍎name
-     
+      
       ⍝ Create a monadic function
       _←(⊂foo←' r←foo x' ' x x')QNPUT folder,'/foo.dyalog'
       assert'foo≡ns.⎕NR ''foo''' 'ns.⎕FX ↑foo'
       ⍝ Create a niladic / non-explicit function
       _←(⊂nil←' nil' ' 2+2')QNPUT folder,'/nil.dyalog'
       assert'nil≡ns.⎕NR ''nil''' 'ns.⎕FX ↑nil'
-     
+      
       ⍝ Create an array
       _←(⊂'[''one'' 1' '''two'' 2]')QNPUT o2file←folder,'/one2.apla'
       assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
-     
+      
       ⍝ Update the array
       _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT o2file 1
       value←(3 2⍴'one' 1 'two' 2 'three' 3)
       assert'value≡ns.one2' 'ns.one2←value'
-     
+      
       ⍝ Update array using Link.Fix
       ns.one2←⌽ns.one2
       ns'one2'⎕SE.Link.Fix''
       assert'ns.one2≡⎕SE.Link.Deserialise ⊃⎕NGET o2file 1'
-     
+      
       ⍝ Rename the array
       Breathe
       otfile←folder,'/onetwo.apla'
@@ -293,18 +293,18 @@
       _←otfile #.SLAVE.⎕NMOVE o2file
       assert'z≡ns.onetwo' 'ns.onetwo←z'
       assert'0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
-     
+      
       ⍝ Create sub-folder
       Breathe
       _←#.SLAVE.⎕MKDIR folder,'/sub'
       assert'9.1=ns.⎕NC ⊂''sub''' '''ns.sub'' ⎕NS '''''
-     
+      
       ⍝ Move array to sub-folder
       Breathe
       value←ns.onetwo
       _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
       assert'value≡ns.sub.one2' 'ns.sub.one2←value'
-     
+      
       ⍝ Duplicate array (effect will be checked by looking at ⎕NL after renaming directory)
       ns.sub.onetwo←ns.sub.one2
       assert'~⎕NEXISTS folder,''/sub/onetwo.apla'''
@@ -312,31 +312,31 @@
       Breathe
       assert'⎕NEXISTS folder,''/sub/onetwo.apla'''
       assert'2=⎕NC''ns.sub.onetwo'''
-     
+      
       ⍝ Erase the array
       Breathe
       _←QNDELETE new
       assert'0=⎕NC ''ns.sub.one2''' '⎕EX ''ns.sub.one2'''
-     
+      
       ⍝ Put a copy of foo in the folder
       _←(⊂foo)QNPUT folder,'/sub/foo.dyalog'
       assert'foo≡ns.sub.⎕NR ''foo'''
-     
+      
       ⍝ Create a class with missing dependency
       _←(⊂ac←':Class aClass : bClass' ':EndClass')QNPUT folder,'/sub/aClass.dyalog'
       assert'9=ns.sub.⎕NC ''aClass'''
       assert'ac≡⎕SRC ns.sub.aClass'
-     
+      
       ⍝ Now add the base class
       _←(⊂bc←':Class bClass' ':EndClass')QNPUT folder,'/sub/bClass.dyalog'
       assert'9=ns.sub.⎕NC ''bClass'''
       assert'bc≡⎕SRC ns.sub.bClass'
-     
+      
       ⍝ Check that the derived class works
       :Trap 0 ⋄ {}⎕NEW ns.sub.aClass
       :Else ⋄ ⎕←'NB: Unable to instantiate aClass: ',⊃⎕DM
       :EndTrap
-     
+      
       ⍝ Rename the sub-folder
       nl←'aClass' 'bClass' 'foo' 'onetwo'
       assert'nl≡ns.sub.⎕NL-⍳10'                             ⍝ contents are the same
@@ -347,7 +347,7 @@
       assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus.(5179⌶)''foo''' ⍝ check connection is registered
       assert'0=ns.⎕NC ''sub''' '⎕EX ''ns.sub'''             ⍝ sub is gone
       assert'nl≡ns.bus.⎕NL-⍳10'                             ⍝ contents are the same
-     
+      
       ⍝ Now copy a file containing a function
       old←ns.(5179⌶)'foo'
       _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
@@ -357,13 +357,13 @@
       ⎕DL 0.2 ⍝ Allow FileSystemWatcher some time to react (always needed)
       ⍝ Verify that the old function is still linked to the original file
       assert'old≡new←ns.(5179⌶)''foo''' '5178⌶''ns.foo'''
-     
+      
       ⍝ Now edit the new file so it defines 'zoo'
       tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn ⍝ (beware UTF-8 encoded file)
       ⍝ Validate that this did cause zoo to arrive in the workspace
       zoo←' r←zoo x' ' x x'
       assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
-     
+      
       Breathe
       ⍝ Finally edit the new file so it finally defines 'goo'
       tn←goofile ⎕NTIE 0
@@ -374,16 +374,16 @@
       assert'goo≡ns.⎕NR ''goo''' 'ns.⎕FX goo'
       ⍝ Also validate that zoo is now gone
       assert'0=ns.⎕NC ''zoo''' 'ns.⎕EX ''zoo'''
-     
+      
       ⍝ Now simulate changing goo using the editor and verify the file is updated
       ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'
       assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
       assert'goofile≡4⊃5179⌶''ns.goo''' ⍝ Ensure link registered
-     
+      
       ⎕SE.Link.Expunge'ns.goo' ⍝ Test "expunge"
       assert'0=⎕NEXISTS goofile'
       assert'0=⎕NC''ns.goo'''
-     
+      
       ⍝ Now test the Notify function - and verify the System Variable setting trick
       name Watch 0  ⍝ pause file watching
       {}(⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')QNPUT file←folder,'/bus/_SV.dyalog'
@@ -391,49 +391,49 @@
       assert'0=ns.bus.⎕IO'
       assert'1=ns.⎕IO'
       name Watch 1  ⍝ resume watcher
-     
-     
+      
+      
       ⍝ Now test whether exits implement ".charmat" support
       ⍝ First, write vars in the workspace to file'
-     
+      
       ns.cm←↑ns.cv←'Line 1' 'Line two'
       ns'cm'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
       ns'cv'⎕SE.Link.Fix ⍬ ⍝ Ditto for charvec
       assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
-     
+      
       ⍝ Then verify that modifying the file brings changes back
       _←(⊂cv←ns.cv,⊂'Line three')QNPUT(folder,'/cv.charvec')1
       _←(⊂↓cm←↑ns.cv)QNPUT(folder,'/cm.charmat')1
-     
+      
       assert'cm≡↑⊃#.SLAVE.⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃#.SLAVE.⎕NGET (folder,''/cv.charvec'') 1'
-     
+      
       PauseTest folder
-     
+      
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
-     
+      
       Breathe
       _←2 QNDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
-     
+      
       ⍝ The variables
       _←QNDELETE folder,'/cv.charvec'
       assert'0=ns.⎕NC ''cv''' 'ns.⎕EX ''cv'''
       _←QNDELETE folder,'/cm.charmat'
       assert'0=ns.⎕NC ''cm''' 'ns.⎕EX ''cm'''
-     
+      
       ⍝ The the functions, one by one
       _←QNDELETE folder,'/nil.dyalog'
       assert'0=ns.⎕NC ''nil'''
       _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
-     
-     EXIT: ⍝ →EXIT to aborted test and clean up
+      
+      EXIT: ⍝ →EXIT to aborted test and clean up
       CleanUp folder name
     ∇
-
+    
    ⍝ Callback functions to implement .charmat & .charvec support
     ∇ r←onBasicRead args;data;event;extn;file;link;name;nc;parts
       (event link file name nc)←5↑args
@@ -461,21 +461,21 @@
           r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
     ∇
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ∇ r←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;var;var2;varfile;winfolder;z
       r←0
-     
+      
       ⍝ Test creating a folder from a namespace with Case Conflicts
       winfolder←⎕SE.Link.U.WinSlash folder
-     
+      
       ns←⍎name ⎕NS''
       ns.('sub'⎕NS'')
       ns.sub.⎕FX'r←dup x' 'r←x x'  ⍝ ns.sub.dup
@@ -484,11 +484,11 @@
       ns.SUB.('SUBSUB'⎕NS'')
       ns.SUB.SUBSUB.⎕FX'r←DUPDUP x' 'r←x x'
       ns.var←42 42
-     
+      
       opts←⎕NS''
       opts.caseCode←0  ⍝ No case coding
       opts.source←'ns' ⍝ Create folder from
-     
+      
       ⍝ Try saving namespace without case coding
       :Trap ⎕SE.Link.U.ERRNO
           z←opts ⎕SE.Link.Export name folder
@@ -510,7 +510,7 @@
           assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
       :EndTrap
       3 ⎕NDELETE folder
-     
+      
       ⍝ now do it properly
       opts.caseCode←1
       z←opts ⎕SE.Link.Export name folder
@@ -520,7 +520,7 @@
       assert'actfiles≡expfiles'
       ⍝ TODO : export cannot export arrays ? (ns.var)
       3 ⎕NDELETE folder
-     
+      
       ⍝ try variables too
       z←opts ⎕SE.Link.Create name folder
       assert'z≡''Linked: ',name,' ←→ ',winfolder,''''
@@ -530,9 +530,9 @@
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
       expfiles,←⊂'var-0.apla'
       assert'actfiles≡expfiles'
-     
+      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
-     
+      
       ⍝ now open it back without case coding
       opts.caseCode←0
       opts.source←'dir'
@@ -542,7 +542,7 @@
       expnames←{⍵[⍋⍵]}(name,'.')∘,¨'SUB.DUP' 'SUB.SUBSUB.DUPDUP' 'sub.dup' 'var'
       assert'actnames≡expnames'
       ⎕EX name
-     
+      
       ⍝ open it back without case coding and with forcefilenames - must fail
       opts.forceFilenames←1
       :Trap ⎕SE.Link.U.ERRNO
@@ -552,11 +552,11 @@
       :Else
           assert'∨/''clashing file names''⍷⊃⎕DM'
       :EndTrap
-     
+      
       opts.caseCode←1
       {}⎕SE.Link.Create name folder
       {}⎕SE.Link.Break name
-     
+      
       ⍝ survive clashing apl definitions despite different filenames
       {}(⊂'r←foo x' 'r←''foo'' x')∘QNPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
       :Trap ⎕SE.Link.U.ERRNO
@@ -567,23 +567,23 @@
           assert'∨/''clashing APL names''⍷⊃⎕DM'
       :EndTrap
       {}QNDELETE¨1↓files
-     
+      
       ⍝ forcefilename will rename file with proper casecoding
       assert'1 0≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
       {}opts ⎕SE.Link.Create name folder
       assert'0 1≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
-     
+      
       ⍝ check forcefilename on-the-fly
       fn←' r←Dup x' ' r←x x'  ⍝ whitespace not preserved because of ⎕NR
       {}(⊂fn)QNPUT folder,'/NotDup.aplf'
       assert'fn≡⎕NR name,''.Dup'''
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
-     
+      
       ⍝ check file rename on-the-fly
       Breathe
       {}(folder,'/NotDup.aplf')#.SLAVE.⎕NMOVE(folder,'/Dup-1.aplf')
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
-     
+      
       ⍝ check apl rename on-the-fly
       Breathe
       fn←' r←DupduP x' ' r←x x x'
@@ -592,7 +592,7 @@
       assert'fn≡⎕NR name,''.DupduP'''
       assert'0 1≡⎕NEXISTS folder∘,¨''/Dup-1.aplf'' ''/DupduP-41.aplf'''
       nl←(⍎name).⎕NL-⍳10
-     
+      
       ⍝ can't rename because it would clash
       Breathe
       fn2←' r←DupduP x' 'r←x x x x'
@@ -600,18 +600,18 @@
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'fn≡⎕NR name,''.DupduP'''
       assert'1 1≡⎕NEXISTS folder∘,¨''/NotDupduP.aplf'' ''/DupduP-41.aplf'''
-     
+      
       ⍝ very that delete that supplementary file has no effect
       Breathe
       {}QNDELETE folder,'/NotDupduP.aplf'  ⍝ delete
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'fn≡⎕NR name,''.DupduP'''
-     
+      
       {}⎕SE.Link.Break name
-     
+      
       opts.forceFilenames←0
       opts.forceExtensions←1
-     
+      
       ⍝ survive clashing apl definitions despite different filenames
       {}(⊂'r←goo x' 'r←''goo'' x')∘QNPUT¨files←folder∘,¨'/goo.apla' '/goo.apln'
       {}(⊂'r←hoo x' 'r←''hoo'' x')QNPUT folder,'/hoo.aplf'  ⍝ this one should remain as is
@@ -623,14 +623,14 @@
           assert'∨/''clashing APL names''⍷⊃⎕DM'
       :EndTrap
       {}QNDELETE¨1↓files
-     
+      
       ⍝ check forceextensions - should not enforce casecoding
       assert'1 0 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
       assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
       {}opts ⎕SE.Link.Create name folder
       assert'0 1 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
       assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
-     
+      
       ⍝ check forceextensions on-the-fly
       ⍝fn←'  ∇  r  ←  Dup  x' 'r  ←  x  x  ' '  ∇  '  ⍝ whitespace preserved (TODO : not for now)
       fn←' r←DupDup1 x' ' r←x x 1'  ⍝ whitespace not preserved because of ⎕NR
@@ -638,14 +638,14 @@
       assert'fn≡⎕NR name,''.DupDup1'''
       assert'0=⎕NC name,''.NotDupDup1'''
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
-     
+      
       ⍝ check file rename on-the-fly
       Breathe
       {}(folder,'/NotDupDup1.apla')#.SLAVE.⎕NMOVE(folder,'/NotDupDup1.aplf')
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
       assert'fn≡⎕NR name,''.DupDup1'''
       assert'0=⎕NC name,''.NotDupDup1'''
-     
+      
       ⍝ check apl rename on-the-fly
       Breathe
       var←↓⎕SE.Link.Serialise⍳2 3
@@ -655,7 +655,7 @@
       assert'(⍳2 3)≡',name,'.NotDupDup1'
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.aplf'' ''/NotDupDup1.apla'''
       nl←(⍎name).⎕NL-⍳10
-     
+      
       ⍝ can't rename because it would clash
       Breathe
       var2←↓⎕SE.Link.Serialise⍳3 2
@@ -663,7 +663,7 @@
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'(⍳2 3)≡',name,'.NotDupDup1'
       assert'1 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
-     
+      
       ⍝ check that delete the supplementary file has no effect
 ⍝ BUG : doesn't work because link doesn't remember which files arrays were tied to
 ⍝      Breathe
@@ -681,7 +681,7 @@
       {}QNDELETE folder,'/YetAnother.apla'
       Breathe
       assert'fn≡⎕NR name,''.YetAnother'''
-     
+      
       ⍝ Test that CaseCode and StripCaseCode functions work correctly
 ⍝ BUG Serialise/Deserialise doesn't work with rank 3
 ⍝      var←⍳2 3 4
@@ -695,7 +695,7 @@
       fnfile←⎕SE.Link.CaseCode folder,'/OhMyOhMy.aplf'
       assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
       assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
-     
+      
       ⍝ Test that explicit Fix updates the right file
       assert'0 0≡⎕NEXISTS varfile fnfile'
       name'HeLLo'⎕SE.Link.Fix,↓⎕SE.Link.Serialise var
@@ -703,7 +703,7 @@
       assert'var≡',name,'.HeLLo'
       assert'fn≡⎕NR''',name,'.OhMyOhMy'''
       assert'1 1≡⎕NEXISTS varfile fnfile'
-     
+      
       ⍝ Test that explicit Notify update the right name
       name Watch 0
       {}(⊂,↓⎕SE.Link.Serialise var←⍳6 7)QNPUT varfile 1
@@ -713,41 +713,41 @@
       assert'var≡',name,'.HeLLo'
       assert'fn≡⎕NR''',name,'.OhMyOhMy'''
       name Watch 1
-     
+      
       ⍝ Ditto for GetFileName and GetItemname
       assert'fnfile≡⎕SE.Link.GetFileName name,''.OhMyOhMy'''
       assert'(name,''.OhMyOhMy'')≡⎕SE.Link.GetItemName fnfile'
 ⍝ BUG doens't work for arrays and trad namespaces
 ⍝      assert'varfile≡⎕SE.Link.GetFileName name,''.HeLLo'''
 ⍝      assert'(name,''.HeLLo'')≡⎕SE.Link.GetItemName varfile'
-     
+      
       ⍝ Test that Expunge deletes the right file
       assert'1 1≡⎕NEXISTS varfile fnfile'
       assert'0∧.≠⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
-     
+      
       z←⎕SE.Link.Expunge name∘,¨'.HeLLo' '.OhMyOhMy'
       assert'1 1≡z'
       assert'0 0≡⎕NEXISTS varfile fnfile'
       assert'0∧.=⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
-     
+      
       {}⎕SE.Link.Break name
       CleanUp folder name
     ∇
-
-
-
-
-
-
-
-
-
-
-
-    ∇ r←test_bugs(folder name);sub;z
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ∇ r←test_bugs(folder name);newbody;sub;unlikelyfile;unlikelyfn;unlikelyname;z
     ⍝ Github issues
       r←0
-     
+      
       ⍝ link issue #112 : cannot break an empty link
       name ⎕NS''
       ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
@@ -756,10 +756,10 @@
       z←⎕SE.Link.Break name
       'link issue #112'assert'∨/''Unlinked''⍷z'
       ⎕EX name
-     
+      
       ⍝ link issue #118 : create link in #
       '#.unlikelyname must be non-existent'assert'0=⎕NC''#.unlikelyname'''
-      (⊂'unlikelyname x' '⎕←x')⎕NPUT folder,'/unlikelyname.dyalog'
+      (⊂unlikelyfn←' unlikelyname x' ' ⎕←x')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
       z←⎕SE.Link.Create # folder
       'link issue #118'assert'1=≢⎕SE.Link.Links'
       'link issue #118'assert'~∨/''failed''⍷z'
@@ -767,7 +767,7 @@
       z←⎕SE.Link.Break #
       assert'0=≢⎕SE.Link.Links'
       ⎕EX'#.unlikelyname'
-     
+      
       z←⎕SE.Link.Create name folder
       assert'~∨/''failed''⍷z'
       assert'1=≢⎕SE.Link.Links'
@@ -778,7 +778,7 @@
       assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name  ⍝ break all chilren of #
       assert'0=≢⎕SE.Link.Links'
-     
+      
       ⍝ link issue #111 : ]link.break -all must work
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
@@ -787,7 +787,7 @@
       {}'{all:1}'⎕SE.Link.Break ⍬
       'link issue #111'assert'0=≢⎕SE.Link.Links'
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
-     
+      
       ⍝ link issue #117 : leave trailing slash in dir
       z←⎕SE.Link.Create name(folder,'/')
       'link issue #117'assert'1=≢⎕SE.Link.Links'
@@ -798,38 +798,50 @@
       z←⎕SE.Link.Refresh name
       assert'''Linked:''≡7↑z'
       assert'~∨/''failed''⍷z'
-     
+      
+      ⍝ link issue #109 : fixing invalid function makes it disappear
+      unlikelyname←name,'.unlikelyname'
+      name'unlikelyname'⎕SE.Link.Fix newbody←'unlikelyname x;' '⎕←x'
+      'link issue #109'assert'newbody≡⊃⎕NGET unlikelyfile 1'    ⍝ changes put back to file
+      'link issue #109'assert'unlikelyfn≡⎕NR unlikelyname'  ⍝ fix failed
+      ⍝ TODO : check that editor reads back from file - as ov v2.1.0-alpha this is the case
+      'link issue #109' assert 'unlikelyfile≡4⊃5179⌶ name,''.unlikelyname''' ⍝ still tied : is a good sign that editor will read from file next time
+      
+      ⍝ link issue #108 : UCMD returned empty
+      'link issue #108' assert '(⎕SE.UCMD '']Link.GetFileName '',unlikelyname)≡,⊂⎕SE.Link.GetFileName unlikelyname'
+
+      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
-     
+      
       CleanUp folder name
     ∇
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ∇ r←Setup(folder name)
       r←'' ⍝ Run will abort if empty
-     
+      
       ⍝⎕PW⌈←300
       ⎕SE.Link.FileSystemWatcher.USE_NQ←USE_NQ
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
-     
+      
       :If ~##.U.CanWatch
           ⎕←'Unable to run Link.Tests - .Net is required to test the FileSystemWatcher'
           →0
       :EndIf
-     
+      
       :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
       {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
       ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
-     
+      
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
@@ -837,7 +849,7 @@
           Log'      ''{all:1}''⎕SE.Link.Break ⍬ ⍝ to break all links'
           →0
       :EndIf
-     
+      
       :If 0≠⎕NC name
           ⍝⎕←name,' exists. Expunge? [Y|n]'
           ⍝:If 'yYjJ1 '∊⍨⊃⍞~' '
@@ -861,7 +873,7 @@
       :Else  ⍝ generate a new directory - avoids prompting for deletion
           folder←CreateTempDir 0
       :EndIf
-     
+      
       :If USE_ISOLATES
           :If 9.1≠⎕NC⊂'#.isolate'
               #.⎕CY'isolate.dws'
@@ -880,10 +892,10 @@
       ⍝QNCOPY←#.SLAVE.⎕NCOPY
       ⍝QNGET←#.SLAVE.⎕NGET
       ⍝QMKDIR←#.SLAVE.⎕MKDIR
-     
+      
       r←folder
     ∇
-
+    
     ∇ UnSetup
       :If USE_ISOLATES
           z←4=#.SLAVE.(2+2) ⍝ Make sure it finished what it was doing
@@ -891,7 +903,7 @@
           ⎕EX'#.SLAVE'
       :EndIf
     ∇
-
+    
     ∇ CleanUp(folder name);z;m
     ⍝ Tidy up after test
       ⍝⎕SE.Link.DEBUG←0
@@ -905,12 +917,12 @@
       3 ⎕NDELETE folder
       #.⎕EX name
     ∇
-
-
+    
+    
     ∇ Log x
       ⎕←x ⍝ This might get more sophisticated someday
     ∇
-
+    
     ∇ PauseTest folder;z
       :If 2=⎕NC'pause_tests'
       :AndIf pause_tests=1
@@ -919,10 +931,10 @@
           ⎕←'*** ',(2⊃⎕SI),' paused. To continue,'
           ⎕←'      →RESUME'
           RESUME ⎕STOP'PauseTest'
-     RESUME:
+          RESUME:
       :EndIf
     ∇
-
+    
     ∇ {r}←{x}(F Retry)y;c;n
       :If 900⌶⍬
           x←⊢
@@ -937,37 +949,37 @@
           Breathe  ⍝ pause between retries
       :EndFor
     ∇
-
+    
     ∇ Breathe
       ⎕DL PAUSE_TIME
     ∇
-
-      assertMsg←{
-          msg←⍎⍵
-          ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
-      }
-
+    
+    assertMsg←{
+        msg←⍎⍵
+        ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
+    }
+    
     ∇ {msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
-     
+      
       :If STOP_TESTS
           ⎕←'STOP_TESTS detected...'
           (1+⊃⎕LC)⎕STOP'assert'
       :EndIf
-     
+      
       (expr clean)←2↑(⊆args),⊂''
       end←(1000×ASSERT_TIME)+3⊃⎕AI
       timeout←0
-     
+      
       :While 0∊{0::0 ⋄ ⍎⍵}expr
           Breathe
       :Until timeout←end<3⊃⎕AI
-     
+      
       :If 900⌶⍬ ⍝ Monadic
           msg←'assertion failed'
       :EndIf
       :If ~timeout ⋄ :Return ⋄ :EndIf
-     
+      
       txt←msg,': ',expr,' ⍝ at ',(2⊃⎕SI),'[',(⍕2⊃⎕LC),']'
       :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?
           ⍎clean
@@ -976,7 +988,7 @@
           ⎕←'***    recovered via ',clean
           :Return
       :EndIf
-     
+      
       ⍝ No recovery, or recovery failed
       :If ASSERT_ERROR
           txt ⎕SIGNAL 11
@@ -984,17 +996,17 @@
           ⎕←txt
       :EndIf
     ∇
-
-
-
-
+    
+    
+    
+    
     ∇ {r}←{flag}NDELETE file;type;name;names;types;n;t
      ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
      ⍝ Superseeded by #.SLAVE.⎕NDELETE
      ⍝ re-superseeded by QNDELETE
       r←1
       :If 0=⎕NC'flag' ⋄ flag←0 ⋄ :EndIf
-     
+      
       :Select flag
       :Case 0 ⋄ ⎕NDELETE file
       :Case 2 ⍝ Recursive
@@ -1011,12 +1023,12 @@
       :Else ⋄ 'Larg must be 0 or 2'⎕SIGNAL 11
       :EndSelect
     ∇
-
+    
     ∇ {r}←text NPUT args;file;bytes;tn;overwrite
      ⍝ Cover for ⎕NPUT -
      ⍝ Superseeded by #.SLAVE.⎕NPUT when USE_ISOLATES←1
      ⍝ re-superseeded by QNPUT
-     
+      
       (file overwrite)←2↑(⊆args),1
       r←≢bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
       :If (⎕NEXISTS file)∧overwrite
@@ -1025,14 +1037,14 @@
           tn←file ⎕NCREATE 0 ⋄ bytes ⎕NAPPEND tn ⋄ ⎕NUNTIE tn ⋄ ⎕DL 0.01
       :EndIf
     ∇
-
-
+    
+    
     ∇ files←dirs NTREE folder;types
       (files types)←0 1 ⎕NINFO⍠1⍠'Recurse' 1⊢folder,'/*'
       files←files,¨(types=1)/¨'/'
       files←(dirs∨types≠1)/files  ⍝ dirs=0 : exclude directories
     ∇
-
+    
     ∇ names←trad NSTREE ns;mask;pre;ref;refs;subns;tradns
       ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
       names←pre∘,¨ref.(⎕NL-⍳10)    ⍝ all names
@@ -1044,7 +1056,7 @@
           names,←⊃,/trad NSTREE¨tradns
       :EndIf
     ∇
-
+    
     ∇ nsname Watch watch;fsw;link
     ⍝ pause/resume file watching
       :If 0∊⍴link←⎕SE.Link.U.LookupRef(⍎nsname)
@@ -1059,7 +1071,7 @@
           fsw.EnableRaisingEvents←watch
       :EndIf
     ∇
-
+    
     ∇ dir←CreateTempDir create;i;prefix;tmp
       prefix←(739⌶0),'/linktest-' ⋄ i←0
       :Repeat ⋄ dir←prefix,⍕i←i+1
@@ -1069,24 +1081,24 @@
     ∇ dirs←DeleteTempDirs;dir;dirs;list
       3 ⎕NDELETE⊃⎕NINFO⍠1⊢'\d+'⎕R'*'⊢CreateTempDir
     ∇
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ∇ clear build_simcorp folder;Body;Constants;Lines;Names;Primitives;body;depth;dirs;files;i;maxdepth;names;ndirs;nfiles;nlines;primitives
     ⍝ Simcorp has about 1e5 files in about 1e4 directories - file sizes unknown
     ⍝ that correspondings roughly to ndirs←nfiles←10 and maxdepth←4
@@ -1118,7 +1130,7 @@
       {}3 ⎕MKDIR dirs
       {}names{(⊂Body ⍺)⎕NPUT ⍵ 1}¨files
     ∇
-
+    
     ∇ (time dirs files)←{opts}bench_simcorp folder;clear;fastload;filetype;name;opts;profile;temp;time
     ⍝ times with (ndirs nfiles nlines maxdepth)←10 10 0 3 → (dirs files)≡1110 11100
     ⍝ v2.0:       fastLoad=1:1500 ⋄ fastLoad=0:N/A
@@ -1152,6 +1164,6 @@
           3 ⎕NDELETE folder
       :EndIf
     ∇
-
-
+    
+    
 :EndNamespace
