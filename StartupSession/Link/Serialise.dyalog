@@ -98,7 +98,7 @@
          :CaseList 0 2 ⍝ charmat
              text←Quot SubMat array
          :Case 6  ⍝ heteromat
-             text←⍪Dia∘Serialise¨↓array
+             text←⍪Dia∘Serialise¨⊂⍤¯1⊢array
          :Else ⍝ nummat
              :If ⍬≡array
              :ElseIf (1↑⍨-≢⍴array)≡0=⍴array
