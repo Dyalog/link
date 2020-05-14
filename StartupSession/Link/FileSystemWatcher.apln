@@ -50,6 +50,10 @@
       :EndIf
     ∇
 
+    ∇ WatchError(obj args)
+      ##.U.Log'FileSystemWatcher Error: ',obj.Path
+    ∇
+
     ∇ r←Watch args;tid;q;z;end
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in Link.Links[i]
      
@@ -115,6 +119,7 @@
       watcher←⎕NEW System.IO.FileSystemWatcher
       watcher.(Path Filter)←args
       watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
+      watcher.onError←'WatchError'
       watcher.IncludeSubdirectories←1
     ∇
 

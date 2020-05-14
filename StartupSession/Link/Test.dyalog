@@ -811,7 +811,14 @@
      
       ⍝ link issue #108 : UCMD returned empty
       'link issue #108'assert'(⎕SE.UCMD '']Link.GetFileName '',unlikelyname)≡,⊂⎕SE.Link.GetFileName unlikelyname'
+      {}⎕SE.Link.Break name
      
+      {}'{watch:dir}'⎕SE.Link.Create name folder
+      ⍝ unlikelyname can't fix because of previous test
+      assert '⎕SE.Link.Links.inFail≡,⊂,⊂unlikelyfile'
+      name⍎'var←1 2 3'
+      {}⎕SE.Link.Add name,'.var'
+      'link issue #104'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.apla'') 1'
      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
      
