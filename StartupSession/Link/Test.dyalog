@@ -746,7 +746,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);newbody;sub;unlikelyfile;unlikelyfn;unlikelyname;z
+    ∇ r←test_bugs(folder name);newbody;opts;sub;unlikelyfile;unlikelyfn;unlikelyname;z
     ⍝ Github issues
       r←0
      
@@ -813,17 +813,28 @@
       'link issue #108'assert'(⎕SE.UCMD '']Link.GetFileName '',unlikelyname)≡,⊂⎕SE.Link.GetFileName unlikelyname'
       {}⎕SE.Link.Break name
      
-      {}'{watch:dir}'⎕SE.Link.Create name folder
+      opts←⎕NS ⍬
+      opts.watch←'dir'
+      opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
+      {}opts ⎕SE.Link.Create name folder
       ⍝ unlikelyname can't fix because of previous test
-      assert '⎕SE.Link.Links.inFail≡,⊂,⊂unlikelyfile'
+      assert'⎕SE.Link.Links.inFail≡,⊂,⊂unlikelyfile'
       name⍎'var←1 2 3'
       {}⎕SE.Link.Add name,'.var'
-      'link issue #104'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.apla'') 1'
+      'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'
+      z←⎕SE.Link.Expunge name,'.var'
+      assert '(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
+      'link issue #89 and #104' assert '~⎕NEXISTS folder,''/var.myapla'''
+
      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
      
       CleanUp folder name
     ∇
+
+
+
+
 
 
 

@@ -24,9 +24,8 @@ NOHOLD:
 
          :If linked←~0∊⍴link←U.LookupRef ns
 
-             :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
-             :AndIf nosrc
-                 →0 ⍝ Just notification, probably editor callback. No more to do.
+             :If callback ⋄ :AndIf 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
+                 →0 ⍝ Ignore notification from editor
              :EndIf
              watch←(⊂link.watch)∊'both' 'dir'  ⍝ watching files
 

@@ -1,4 +1,4 @@
-﻿ {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref;⎕IO
+﻿ {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref;scal;shape;⎕IO
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -8,8 +8,8 @@
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :If U.HasLinks
          :Hold '⎕SE.Link.Notify'
-             r←(≢names←,⊆names)⍴0
-             :For i :In ⍳≢r
+             scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
+             :For i :In ⍳≢names
                  nc←container U.NameClass name←(⍕container),'.',i⊃names
                  :If 0=nc  ⍝ does not exist
                      r[i]←0 ⋄ :Continue
@@ -30,6 +30,7 @@
                      :EndIf
                  :EndIf
              :EndFor
+             r←⊃⍣scal⊢shape⍴r
          :EndHold ⍝ Notify
      :Else
          container.⎕EX names
