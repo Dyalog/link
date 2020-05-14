@@ -17,8 +17,8 @@ A reverse binary indication of the letter cases in the main part of the name, en
 
 #### Arguments
 
-- filename
+- filename(s)
 
 #### Result
 
-- filename with case code
+- filename(s) with case code

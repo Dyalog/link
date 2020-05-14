@@ -5,7 +5,7 @@ all traces of the link, preventing any further synchronisation from taking place
 
 #### Arguments
 
-- namespace name or reference
+- namespace name(s) or reference(s)
 
 #### Options
 

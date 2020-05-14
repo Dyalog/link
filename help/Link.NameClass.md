@@ -6,7 +6,7 @@ The only difference is that `¯9` is returned for unscripted namespaces (includi
 
 #### Right Argument
 
-- one or more APL name(s)
+- item name(s)
 
 #### Optional Left Argument
 

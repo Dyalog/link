@@ -7,7 +7,7 @@
      container←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
      :If 900⌶⍬ ⋄ where←container ⋄ :EndIf
      :If 0=≢nsref←container(0 U.GetRefTo)where
-         nc←(⍴⊆names)⍴¯1   ⍝ namespace not found
+         nc←(⍴⊆names)⍴⎕NC ⊂where   ⍝ namespace not found
      :Else
          nc←nsref U.NameClass¨⊆names
      :EndIf

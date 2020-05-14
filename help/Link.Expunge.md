@@ -7,7 +7,7 @@ If you manually `⎕EX` or `)ERASE` items, you can subsequently call Expunge to 
 
 #### Arguments
 
-- items
+- item(s)
 
 #### Result
 

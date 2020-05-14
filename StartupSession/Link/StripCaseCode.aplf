@@ -1,13 +1,17 @@
- name←{opts}StripCaseCode name;path;ext;file;parts
+ names←{opts}StripCaseCode names;i;scal;shape
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If 900⌶⍬   ⍝ only expert users provide correct link options to avoid lookup
-     :AndIf 0∊⍴opts←U.LookupFile name
-         U.Error'Not linked: ',⍕name
-     :EndIf     
-     name←opts.dir U.StripCaseCode opts.flatten⊢ name
+     scal←1=≡,names ⋄ shape←⍴names←⊆names
+     :For i :In ⍳⍴names←,names
+         :If 900⌶⍬   ⍝ only expert users provide correct link options to avoid lookup
+         :AndIf 0∊⍴opts←U.LookupFile i⊃names
+             U.Error'Not linked: ',⍕i⊃names
+         :EndIf
+         (i⊃names)←opts.dir U.StripCaseCode opts.flatten⊢i⊃names
+     :EndFor
+     names←⊃⍣scal⊢shape⍴names
  :Else
      U.Resignal 1
  :EndTrap

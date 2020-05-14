@@ -1,18 +1,18 @@
- names←{opts}CaseCode names;i;opts;scal
+ names←{opts}CaseCode names;i;opts;scal;shape
  ⍝ Case-code a file name located
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     scal←1=≡,names
-     :For i :In ⍳⍴names←⊆names
+     scal←1=≡,names ⋄ shape←⍴names←⊆names
+     :For i :In ⍳⍴names←,names
          :If 900⌶⍬  ⍝ only expert users provide correct link options to avoid lookup
          :AndIf 0∊⍴opts←U.LookupFile i⊃names
              U.Error'Not linked: ',⍕i⊃names
          :EndIf
          (i⊃names)←opts.dir U.CaseCode opts.flatten⊢(i⊃names)
      :EndFor
-     names←⊃⍣scal⊢names
+     names←⊃⍣scal⊢shape⍴names
  :Else
      U.Resignal 1
  :EndTrap
