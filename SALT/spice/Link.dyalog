@@ -30,6 +30,7 @@
       r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       r,←'{"Name":"List",        "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Fully synchronise namespace-directory content"},'
+      r,←'{"Name":"Version",     "args":"",        "Parse":"0", "Desc":"Get current ]link version number"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'
@@ -91,9 +92,12 @@
     ∇ r←Run(cmd args);opts;name;lc;names;L
       L←819⌶
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
-      :If 1=1 2⊃⎕SE.Link.⎕AT cmd
+      :Select |1 2⊃⎕SE.Link.⎕AT cmd
+      :Case 0  ⍝ niladic
+         opts←⊃  ⍝ hack : rslt← ⊃ (⍎Niladic)args
+      :Case 1  ⍝ monadic
           opts←⊢
-      :Else
+      :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
           names←'watch' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extension' 'flatten' 'forceExtensions' 'forceFileNames' 'source' 'typeExtensions' 'extended'
           :For name :In names
@@ -103,7 +107,7 @@
                   name opts.{⍎⍺,'←⍵'}##.THIS⍎⍣(∨/'Extensions'⍷name)⍎'args.',lc
               :EndIf
           :EndFor
-      :EndIf
+      :EndSelect
      ⍝ Set up GLOBALS in this ucmd ns:
       OPTS←opts
       ARGS←args.Arguments
