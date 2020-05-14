@@ -114,7 +114,7 @@
       ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
       _←(⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
       _←(⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
-           
+     
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
       opts.beforeWrite←'⎕SE.Link.Test.onFlatWrite'
@@ -447,13 +447,26 @@
       CleanUp folder name
     ∇
 
+    ∇ r←test_bugs folder;name;opts
+      ⎕EX name←'#.',2⊃⎕NPARTS folder
+      name ⎕NS ⍬
+      name⍎'var←⍳6'
+      (⍎name).⎕FX'goo arg' '⎕←arg'
+      opts←⎕NS ⍬
+      opts.source←'ns'
+      {}opts ⎕SE.Link.Create name folder
+      assert '(⊂,⊂folder,''/goo.aplf'')≡(⎕NINFO⍠1⊢folder,''/*'')'     
+      CleanUp folder name
+      r←0
+    ∇
+
     ∇ r←test_casecode folder;name;opts;z;DummyFn;FixFn;fns;nl3;actfiles;mat;expfiles
       r←0
      
       ⎕EX name←'#.',2⊃⎕NPARTS folder
-      
+     
       ⎕MKDIR folder
-
+     
       opts←⎕NS''
       opts.caseCode←1
       z←opts ⎕SE.Link.Create name folder
@@ -482,7 +495,7 @@
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨⊃⎕NINFO⍠1⊢folder,'/*'
       ⍝ mat←↑{⍵[⍋↑⍵]}¨fns nl3 expfiles actfiles
       ⍝ ⎕←'expected apl names' 'actual apl names' 'expected file names' 'actual file names',mat
-      assert 'expfiles≡actfiles' 
+      assert'expfiles≡actfiles'
       assert'fns≡nl3'
       Breathe
       {}⎕SE.Link.Break name ⋄ #.⎕EX name
@@ -497,7 +510,7 @@
       (canwatch dotnetcore)←##.U.CanWatch''
       ⎕SE.Link.FileSystemWatcher.USE_NQ←USE_NQ
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
-      
+     
       :If ~canwatch
           ⎕←'Unable to run Link.Tests - .NET is required to test the FileSystemWatcher'
           →0

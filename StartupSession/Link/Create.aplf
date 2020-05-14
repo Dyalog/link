@@ -48,6 +48,8 @@
      :ElseIf opts.(flatten∧source≢'dir')
          msg←'flatten≡1 requires source≡''dir'''
      :Else
+         opts.dir←dir
+         opts.ns←ns
 
   ⍝ We're all good; do it!
          inFail←outFail←fsw←⍬

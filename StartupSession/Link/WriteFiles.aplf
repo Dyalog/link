@@ -9,11 +9,11 @@
 
      opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If 0=opts.⎕NC'dir'
-         opts.dir←U.NormDir dir
+         opts.dir←0 U.NormDir dir
      :EndIf
 
      FileName←{ ⍝ filename ← src FileName name
-         0 U.DetermineFileName opts source ⍵ ⍵ ⍺
+         ⊃0 U.DetermineFileName opts source ⍵ ⍵ ⍺
      }
      SaveNs←{ ⍝ Save namespace whether scripted or not
          0=≡⍵:0                ⍝ prototype means
@@ -34,18 +34,22 @@
          source←source↑⍨1-'.'⍳⍨⌽source ⍝ Item name without ns path
          outFail←0⍴⊂0⍴SaveFn source ⍝ single fn/op
      :ElseIf (nc∊okNs)∨(nc∊9.2)∧source≡# ⍝ # is reported as an instance (9.2)
-         nss←source.⎕NL-okNs
-         (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
-         paths←''∘FileName U.OnEach unscripted               ⍝ needed dirs
-         ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
-         fns←source.⎕NL-okFn                            ⍝ tradfn, dfn, tradop, dop
-         failed,←0~¨⍨SaveFn U.OnEach fns                ⍝ try to save the functions
-         failed,←paths/⍨~ok                             ⍝ also remember failed paths for nss
-         paths/⍨←ok                                     ⍝ the good paths
-         unscripted/⍨←ok                                ⍝ and their namespaces
-
-         ⍝ recurse and collect failures
-         outFail←failed,⊃,/unscripted{opts WriteFiles(source.⍎⍺)⍵}U.OnEach paths
+        failed←0⍴⊂''
+         :If ~0∊⍴fns←source.⎕NL-okFn                            ⍝ tradfn, dfn, tradop, dop
+             failed,←0~¨⍨SaveFn U.OnEach fns                ⍝ try to save the functions
+         :EndIf
+         :If 0∊⍴nss←source.⎕NL-okNs
+             failed←unscripted←0⍴⊂''
+         :Else
+             (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
+             paths←''∘FileName U.OnEach unscripted               ⍝ needed dirs
+             ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
+             failed,←paths/⍨~ok                             ⍝ also remember failed paths for nss
+             paths/⍨←ok                                     ⍝ the good paths
+             unscripted/⍨←ok                                ⍝ and their namespaces
+             failed,←⊃,/unscripted{opts WriteFiles(source.⍎⍺)⍵}U.OnEach paths
+         :EndIf
+         outFail←failed
      :Else ⍝ invalid type
          outFail←,⊂source
      :EndIf
