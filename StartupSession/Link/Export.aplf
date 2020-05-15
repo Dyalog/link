@@ -4,7 +4,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
      :If ¯9≠nc←U.NameClass ns
@@ -15,7 +15,7 @@
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
 
-         outFail←opts WriteFiles ns dir
+         outFail←opts U.WriteFiles ns dir
 
          msg←'Exported: ',ns,' → ',U.WinSlash dir
          numFail←≢outFail

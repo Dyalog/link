@@ -290,7 +290,7 @@
       ⍝ Update array using Link.Fix
       ns.one2←⌽ns.one2
       ns'one2'⎕SE.Link.Fix''
-      assert'ns.one2≡⎕SE.Link.Deserialise ⊃⎕NGET o2file 1'
+      assert'ns.one2≡⎕SE.Link.Array.Deserialise ⊃⎕NGET o2file 1'
      
       ⍝ Rename the array
       Breathe
@@ -654,7 +654,7 @@
      
       ⍝ check apl rename on-the-fly
       Breathe
-      var←⎕SE.Link.Serialise⍳2 3
+      var←⎕SE.Link.Array.Serialise⍳2 3
       {}(⊂var)QNPUT(folder,'/NotDupDup1.aplf')1
       assert'0=⎕NC name,''.DupDup1'''     ⍝ ideal
       ⍝assert'fn≡⎕NR name,''.DupDup1'''   ⍝ arguable
@@ -664,7 +664,7 @@
      
       ⍝ can't rename because it would clash
       Breathe
-      var2←⎕SE.Link.Serialise⍳3 2
+      var2←⎕SE.Link.Array.Serialise⍳3 2
       {}(⊂var2)QNPUT(folder,'/NotDupDup1.aplf')1
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'(⍳2 3)≡',name,'.NotDupDup1'
@@ -680,7 +680,7 @@
       fn←' r←YetAnother' ' r←YetAnother'
       {}(⊂fn)QNPUT folder,'/YetAnother.aplf'
       assert'fn≡⎕NR name,''.YetAnother'''
-      var←⎕SE.Link.Serialise⍳3 4
+      var←⎕SE.Link.Array.Serialise⍳3 4
       {}(⊂var)QNPUT folder,'/YetAnother.apla'
       Breathe
       assert'fn≡⎕NR name,''.YetAnother'''
@@ -704,7 +704,7 @@
      
       ⍝ Test that explicit Fix updates the right file
       assert'0 0≡⎕NEXISTS varfile fnfile'
-      name'HeLLo'⎕SE.Link.Fix ⎕SE.Link.Serialise var
+      name'HeLLo'⎕SE.Link.Fix ⎕SE.Link.Array.Serialise var
       name'OhMyOhMy'⎕SE.Link.Fix fn
       assert'var≡',name,'.HeLLo'
       assert'fn≡⎕NR''',name,'.OhMyOhMy'''
@@ -712,7 +712,7 @@
      
       ⍝ Test that explicit Notify update the right name
       name Watch 0
-      {}(⊂⎕SE.Link.Serialise var←⍳6 7)QNPUT varfile 1
+      {}(⊂⎕SE.Link.Array.Serialise var←⍳6 7)QNPUT varfile 1
       {}(⊂fn←' r←OhMyOhMy(oh my)' ' r←(oh my)(oh my)')QNPUT fnfile 1
       ⎕SE.Link.Notify'changed'varfile
       ⎕SE.Link.Notify'changed'fnfile

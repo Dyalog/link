@@ -133,7 +133,7 @@
                      Notify¨{'changed'⍵}¨children
                  :Else                                    ⍝ no old ns
                      U.Warn msg,'not found namespace ',oldname,' - loading ',affected,' from ',path
-                     :If 0<≢inFail←link FixFiles nsref path
+                     :If 0<≢inFail←link U.FixFiles nsref path
                          U.Warn msg,'failed to load: ',⍕inFail
                      :EndIf
                  :EndIf

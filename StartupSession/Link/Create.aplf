@@ -13,7 +13,7 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
      msg←⍕⍬⊤⍬
 
@@ -51,13 +51,13 @@
          ix←'[',(⍕(0(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
          msg←0⍴⊂''
          :If 'ns' 'both'∊⍨⊂opts.source
-             outFail←opts WriteFiles ns dir
+             outFail←opts U.WriteFiles ns dir
          :AndIf 0≠≢outFail
              msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
          :EndIf
 
          :If 'dir' 'both'∊⍨⊂opts.source
-             inFail←opts FixFiles nsref dir
+             inFail←opts U.FixFiles nsref dir
          :AndIf 0≠≢inFail
              msg,←⊂(⍕≢inFail),' imports failed (⎕SE.Link.Links',ix,'.inFail)'
          :EndIf

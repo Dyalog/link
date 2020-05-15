@@ -1,0 +1,1020 @@
+:Namespace Array   ⍝ A model for a literal notation for most APL arrays
+
+⍝     # A model for a literal notation for most APL arrays
+
+⍝ ## How to use
+
+⍝ First load the library with `]load apl-array-notation/*`.
+
+⍝ ### `Deserialise`
+
+⍝ This takes a character array and evaluates it as array notation, returning the resulting array.
+
+⍝ ```apl
+⍝ Deserialise '[1 2 ⋄ 3 4]'
+⍝ Deserialise '(a:{(+⌿⍵)÷≢⍵}' 'b:42)'
+⍝ Deserialise '(1 2 3',(⎕UCS 10),'4 5)'
+⍝ ```
+
+⍝ An optional left argument of `0` may be specified to return an APL expression which will generate the array rather than returning the array itself.
+
+⍝ ### `Serialise`
+
+⍝ This takes an array and returns a character vector of matrix representing the argument in array notation.
+
+⍝ ```apl
+⍝ Serialise 2 2⍴⍳4
+⍝ Serialise ⎕fix ':namespace' 'a←{(+⌿⍵)÷≢⍵}' 'b←42' ':endnamespace'
+⍝ Serialise '(1 2 3)(4 5)'
+⍝ ```
+
+⍝ An optional left argument of `1` may be specified to force return of a vector by using `⋄` to fuse lines.
+
+⍝ ### `∆NS`
+
+⍝ Extends `⎕NS` to allow a two-element right argument of names and values:
+
+⍝ ```apl
+⍝ myns←∆NS ('name1' 'name2')(7 42)
+⍝ 'myns'∆NS ('name3' 'name4')('apl' 'dyalog')
+⍝ ```
+
+⍝ ### `∆NSinverse`
+
+⍝ Takes a ref or name of a namespace and returns a two-element vector of names and values.
+⍝ ```
+⍝ ∆NSinverse myns
+⍝ ∆NSinverse 'myns'
+⍝ ```
+
+⍝ ### `Array`
+
+⍝ This allows using the notation inline, optionally over multiple lines, without having to quote everything. Instead, the notation is encapsulated in a dfn, which is used as operand for `Array` which in turn returns the corresponding array. A right argument must be supplied, and may be `⍬` or `1` returns the array, while `0` returns an expression for the array.
+
+⍝ ## Domain and Limitations
+
+⍝ ### Valid Content
+
+⍝ The models handle arrays consisting of numbers, characters, namespaces, one-liner dfns/dops, and such arrays. Note that namespaces lose their scripts, names, and system variables when serialised, just like when converted to JSON using `⎕JSON`. Classes, Instances, Interfaces, and namespaces are not supported. Namespaces with circular references will cause `Serialise` to recurse until `WS FULL`.
+
+⍝ ### Functions and Operators
+
+⍝ `Serialise` does handle multi-line dfns/dops, but `Deserialise` is not able to parse them. Tradfns/tradops and derived functions/operators (including primitives and trains) are not supported.
+
+⍝ ### Code Layout
+
+⍝ `Serialise` generates indented notation using line breaks, but will fall back to using diamonds for the inner parts of certain nested arrays. It will often generate superfluous parentheses and diamonds.
+
+⍝ ### Scoping and Order of Evaluation
+
+⍝ The official proposal for the below notation includes specification of exact scope in phrases, including order of evaluation. The models do not attempt to address this other than encapsulating namespace members such that names created as side effects avoid polluting their surroundings. This also means that a namespace cannot contain a member with a name identical to itself.
+
+⍝ ### System Variables
+
+⍝ `Deserialise` does not accept invalid APL names as members of namespaces. This includes otherwise valid system names like `⎕IO` and `⎕ML`.
+
+⍝ ## Notation
+
+⍝ The notation extends strand notation as follows:
+
+⍝ ### Round Parentheses
+
+⍝ A diamond (`⋄`) inside a parenthesis causes the parenthesis to represent a vector where each diamond-delimited phrase represents an element.  
+⍝  `(1 2 ⋄ 3 4 5)` is equivalent to `(1 2)(3 4 5)`
+
+⍝ A colon (`:`) inside a parenthesis causes the parenthesis to represent a namespace where each diamond-delimited phrase represents a name:value pair.  
+⍝  `(ans:42)` is equivalent to `⎕JSON'{"ans":42}'` (except for the display form)
+
+⍝ An empty parenthesis (`()`) represents a new empty namespace.  
+⍝  `()` is equivalent to `⎕NS⍬`
+
+⍝ ### Square Brackets
+
+⍝ A diamond (`⋄`) inside a bracket causes the bracket to represent an array where each diamond-delimited phrase represents a major cell.  
+⍝  `[1 2 3 ⋄ 4 5 6]` is equivalent to `2 3⍴1 2 3,4 5 6`
+
+⍝ If a major cell is scalar, it will be interpreted as a 1-element vector.  
+⍝  `[1 ⋄ 2]` is equivalent to `⍪1 2`
+
+⍝ If major cells have differing shapes, they will be extended in the manner of Mix (`↑`).  
+⍝  `[1 2 ⋄ 3 4 5]` is equivalent to `2 3⍴1 2 0,3 4 5`
+
+⍝ ### Diamonds, Whitespace, Line Breaks
+
+⍝ At least one diamond is required to indicate array notation as opposed to traditional parenthesisation or bracketing.  
+⍝  `(1)` is equivalent to `1`  
+⍝  `'abcdef'[[1 2 3 ⋄ 4 5 6]]` is equivalent to `'abcdef'[2 3⍴1 2 3,4 5 6]`
+
+⍝ All-whitespace phrases are ignored.  
+⍝  `(1 2 ⋄ ⋄ 3 4 5)` is equivalent to `(1 2)(3 4 5)`  
+⍝  `(1 2 ⋄ )` is equivalent to `,⊂1 2`  
+⍝  `(1 ⋄ )` is equivalent to `,1`
+
+⍝ Any diamond may be exchanged with a line break.  
+⍝  `(1 2`   
+⍝  `3 4 5)`  is equivalent to `(1 2 ⋄ 3 4 5)`
+
+
+
+
+
+
+
+
+    ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items ⍝ Convert Array to text
+      ⎕IO←1
+      :If 900⌶⍬ ⋄ inner←0 ⋄ :EndIf  ⍝ flag for outer call of Serialise
+      q←''''
+      DblQuot←{'('q,(q ⎕R'&&'⍕⍵),q')'}
+      MkEsc←{
+          stop←~⍵.Lengths[3]
+          nums←⍕⎕UCS ⍵.Match↓⍨-~stop
+          ''',',stop↓'(⎕UCS ',nums,stop↓'),''',⊃⌽⍵.Match
+      }
+      Esc←'([\x00-\x1F\x80-\xA0]+)(.?)'⎕R MkEsc⍠'Mode' 'D'
+      DelQQ←'^(\()'''',' ',''''(\))$'⎕R'\1'
+      Quot←DelQQ∘Esc∘DblQuot∘⍕⍤1
+      Encl←{(l↑⍺⍺),(¯1⊖l↑w),')]'['(['⍳⍺⍺]↑⍨-l←2+≢w←⎕FMT ⍵}
+      Brack←{(⎕FMT'['Encl⍤2)⍣⍺⍺⊢⍵}
+      SubMat←{(¯2+≢⍴⍵)Brack ⍺⍺ ⍵}
+      Dia←{1⌽')(',' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
+      :Trap (~inner)/0   ⍝ trap only outer call
+          :If 0=≡array ⍝ simple scalar
+              :Select 10|⎕DR array
+              :CaseList 0 2  ⍝ char
+                  :If (⎕UCS array)∊0,(⍳31),127+⍳33
+                      text←1⌽')(⎕UCS ',⍕⎕UCS array
+                  :Else
+                      text←q,array,q
+                  :EndIf
+              :CaseList 6    ⍝ ref
+                  :If ⎕NULL≡array
+                      text←'⎕NULL'
+                  :Else
+                      text←'('
+                      :For name :In array.⎕NL-⍳9
+                          :Select |array.⎕NC⊂name
+                          :CaseList 2.1 2.2 2.3 2.6 ⍝ var
+                              text,←⊂⎕FMT(name,':')(1 Serialise array⍎name)
+                          :CaseList 3.2 4.2 ⍝ dfn/dop
+                              text,←⊂↑('^( ',name,')←')⎕R'\1:'@1 array.⎕NR name
+                          :CaseList 9+0.1×⍳9
+                              text,←⊂(name,':')(1 Serialise array⍎name)
+                          :Else
+                              'Unsupported array'⎕SIGNAL 11
+                          :EndSelect
+                      :EndFor
+                      text←⎕FMT⍪text,')'
+                  :EndIf
+              :Else ⍝ num
+                  text←⍕array
+              :EndSelect
+          :ElseIf ⍬≡⍴array ⍝ enclosure
+              'Unsupported array'⎕SIGNAL 11/⍨1=≡array ⍝ ⎕OR
+              text←⎕FMT'⊂'(1 Serialise⊃array)
+          :ElseIf 0=≢array ⍝ no major cells
+              :Select array
+              :Case ⍬
+                  text←'⍬'
+              :Case ''
+                  text←q q
+              :Else
+                  text←(⍕⍴array),'⍴⊂',Dia 1 Serialise⊃array
+              :EndSelect
+          :ElseIf 1=≢⍴array ⍝ non-empty vec
+              :If 326=⎕DR array ⍝ heterovec
+                  text←'('Encl⍪Dia∘(1∘Serialise)¨array
+              :Else ⍝ simple vec
+                  :If 2|⎕DR array ⍝ numvec
+                      text←⍕array
+                  :Else ⍝ charvec
+                      text←Quot array
+                  :EndIf
+                  :If 1=≢array
+                      text←'('text,'⋄)'
+                  :EndIf
+              :EndIf
+              text←⎕FMT⍣(1≡≢array)⊢text
+          :ElseIf 0∊¯1↓⍴array ⍝ early 0 length
+              zero←¯1+0⍳⍨⍴array
+              trailshape←zero↓⍴array
+              content←(⍕trailshape),'⍴⊂',Dia 1 Serialise⊃array
+              text←zero Brack(1,⍨zero↑⍴array)⍴⊂content
+          ⍝ Special-case "tables"
+          :ElseIf 2=≢⍴array ⍝ matrix
+          :AndIf (⊂≢⊆)array ⍝ nested
+          ⍝:AndIf 2≤≢array   ⍝ 2-row
+          :AndIf 2∧.≤⍴array  ⍝ 2-row, 2-col
+          :AndIf ~326∊drs←⎕DR¨array  ⍝ simple, non-ref'y items
+          :AndIf ∧/,1≥≢∘⍴¨array ⍝ scal/vec items
+          :AndIf ~∨/(⎕UCS∊(,~2|drs)/,array)∊127 133 0,⍳31 ⍝ ctrl chars
+              items←{
+                  ⍬≡⍵:'⍬'
+                  r←⍕⍵
+                  r{⍵:⍺ ⋄ 1⌽q q,''''⎕R'&&'⊢⍺}←⍬≡0⍴⍵  ⍝ quote?
+                  r,←'⋄'/⍨1∊⍴⍵                       ⍝ 1-element vec
+                  r{⍵:1⌽')(',⍺ ⋄ ⍺}←(1∊⍴⍵)∨(⍬≡⍴⍵)<⍬≡0⍴⍵ ⍝ parens?
+                  r
+              }¨array
+              text←⍕items
+              text←'[]'@(1 1)(⍴text)⊢text
+          :Else ⍝ high-rank
+              :Select 10|⎕DR array
+              :CaseList 0 2 ⍝ charmat
+                  text←Quot SubMat array
+              :Case 6  ⍝ heteromat
+                  text←⍪Dia∘(1∘Serialise)¨⊂⍤¯1⊢array
+              :Else ⍝ nummat
+                  :If ⍬≡array
+                  :ElseIf (1↑⍨-≢⍴array)≡0=⍴array
+                      text←('⍬'⍴⍨1,⍨¯1↓⍴)SubMat array
+                  :Else
+                      text←(1∘Serialise)⍤1 SubMat array
+                  :EndIf
+              :EndSelect
+              text←'['Encl text
+          :EndIf
+          :If ~inner ⋄ text←,{(+/∨\' '≠⌽⍵)↑¨↓⍵}text ⋄ :EndIf ⍝ outer result is vector of strings
+      :Else
+          ⎕SIGNAL⊂⎕DMX.(('EN'EN)('Message'Message))
+      :EndTrap
+    ∇
+
+
+      Deserialise←{ ⍝ Convert text to array
+          ⍺←1 ⍝ 1=execute expression; 0=return expression
+          q←''''
+          ⎕IO←0
+          SEP←'⋄',⎕UCS 10 13
+     
+          Unquot←{(⍺⍺ ⍵)×~≠\q=⍵}
+          SepMask←∊∘SEP Unquot
+          ParenLev←+\(×¯3+7|¯3+'([{)]}'∘⍳)Unquot
+     
+          Paren←1⌽')(',⊢
+          Split←{1↓¨⍺⍺⊂Over(1∘,)⍵}
+     
+          Over←{(⍵⍵ ⍺)⍺⍺(⍵⍵ ⍵)}
+          EachIfAny←{0=≢⍵:⍵ ⋄ ⍺ ⍺⍺¨⍵}
+          EachNonempty←{⍺ ⍺⍺ EachIfAny Over((×≢¨⍵~¨' ')/⊢)⍵}
+     
+          Parse←{
+              0=≢⍵:''
+              bot←0=⍺
+              (2≤≢⍵)>∨/¯1↓bot:⍺ SubParse ⍵
+              p←bot×SepMask ⍵
+              ∨/p:∊{1=≢⍵:',⊂',⍵ ⋄ ⍵}⍺(Paren ∇)EachNonempty Over(p Split)⍵
+              p←2(1,>/∨¯1↓0,</)bot
+              ∨/1↓p:∊(p⊂⍺)∇¨p⊂⍵
+              ⍵
+          }
+     
+          ErrIfEmpty←{⍵⊣'Empty array'⎕SIGNAL 11/⍨0=≢⍵}
+     
+          SubParse←{
+              ('})]'⍳⊃⌽⍵)≠('{(['⍳⊃⍵):'Bad bracketing'⎕SIGNAL 2
+              (a w)←(1↓¯1∘↓)¨(⍺-1)⍵
+              '['=⊃⍵:Paren'↑1/¨',Paren ErrIfEmpty a Parse w ⍝ high-rank
+              ':'∊⍵/⍨(1=⍺)×~≠\q=⍵:a Namespace w ⍝ ns
+              '('=⊃⍵:Paren{⍵,'⎕NS⍬'/⍨0=≢⍵}a Parse w ⍝ vector/empty ns
+              ⍵ ⍝ dfn
+          }
+     
+          ParseLine←{
+              c←⍵⍳':'
+              1≥≢(c↓⍵)~' ':'Missing value'⎕SIGNAL 6
+              name←c↑⍵
+              ¯1=⎕NC name:'Invalid name'⎕SIGNAL 2
+              name(name,'←',⍺ Parse Over((c+1)↓⊢)⍵)
+          }
+     
+          Namespace←{
+              p←(0=⍺)×SepMask ⍵
+              (names assns)←↓⍉↑⍺ ParseLine EachNonempty Over(p Split)⍵
+              ∊'({'(assns,¨'⋄')'⎕NS'('(, '∘,¨q,¨names,¨⊂q')')'}⍬)'
+          }
+     
+          w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ mat?
+          w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ vtv?
+          w←'''[^'']+''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
+     
+          pl←ParenLev w
+          ∨/0>pl:'Unmatched brackets'⎕SIGNAL 2
+          ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
+          ⍎⍣⍺⊢pl Parse w
+      }
+
+
+      Array←{
+          aa←⍺⍺
+          (1≡⊃⍵,1)Deserialise 1↓∊(⎕UCS 13),¨'^ aa←{( |\R)*|( |\R)*}\R*$'⎕R''⍠'Mode' 'D'⎕NR'aa'
+      }
+
+
+      Is←{
+          0::'MISMATCH'⎕SIGNAL 999
+          a←Serialise ⍺⍺ Array 1
+          a≡Serialise ⍵:
+          a≡Serialise ⎕JSON ⍵:
+          ∧/⍵(∨/⍷)¨⊂a:
+          !#
+      }
+
+
+      ∆NS←{ ⍝ allows ⎕NS names values
+          ⍺←⊢ ⍝ default to unnamed namespace
+          11::⎕SIGNAL 11
+          (0=≢⍵)∨2≥|≡⍵:{_←⍵}⍣(2∊⎕NC'⍺')⊢⍺ ⎕NS ⍵ ⍝ default behaviour
+          {_←⍵}⍣(2∊⎕NC'⍺')⊃⊃(⍺⊣⍣(2∊⎕NC'⍺')⊢⍺ ⎕NS ⍬){ ⍝ new behaviour
+              (,1)≢(⍴,≡)⍵:⍺⍺⍎⍺,'←⍵ ⋄ ⍺⍺' ⍝ non-⎕OR: use value
+              4 11::⍺⍺⍎⍺,'←⎕NS ⍵ ⋄ ⍺⍺' ⍝ object?
+              ⍺⍺⍎⍺,'←⍎⎕FX ⍵ ⋄ ⍺⍺⊣⍺{⍺≡⍵:⍬ ⋄ ⎕EX ⍵}⎕FX ⍵' ⍝ function?
+          }¨/⍵
+      }
+
+      ∆NSinverse←{ ⍝ ⎕NS⍣¯1
+          ⍵∘⍎¨'⎕NL-⍳9' '⎕OR¨⎕NL-⍳9' ⍝ names values
+      }
+
+
+
+
+
+
+
+
+
+
+    ∇ r←SerialiseQA stop_on_error;⎕IO;Is;⎕TRAP
+      ⎕IO←0
+      ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
+      Is←{
+          0::'MISMATCH'⎕SIGNAL 999
+          a←Serialise ⍺⍺ Array 1
+          a≡Serialise ⍵:
+          a≡Serialise ⎕JSON ⍵:
+          ∧/⍵(1∊⍷)¨⊂a:
+          !#
+      }
+     
+      :Section scalars
+          {
+              'a'
+          }Is'a'
+          {
+              42
+          }Is 42
+      :EndSection
+      :Section vectors
+          {(42 ⋄ )}Is,42
+     
+          {(42
+              )}Is,42
+     
+          {
+              (1 2 3 'Hello' ⋄ 4 5 6 'World')
+          }Is(1 2 3 'Hello')(4 5 6 'World')
+     
+          {
+              (1 2 3 'Hello'
+              4 5 6 'World')
+          }Is(1 2 3 'Hello')(4 5 6 'World')
+     
+          {
+              (0 1 ⋄ 2 3
+              4 5 ⋄ 6 7)
+          }Is↓4 2⍴⍳8
+     
+          {
+              ('Three'
+              'Blind'
+              'Mice')
+          }Is'Three' 'Blind' 'Mice'
+      :EndSection
+      :Section Matrices
+          {
+              [0 1 2
+              3 4 5]
+          }Is 2 3⍴⍳6
+     
+          {
+              [ ⋄ 0 1 2 3]
+          }Is⍉⍪⍳4
+     
+          {
+              [
+              0 1 2 3
+              ]
+          }Is⍉⍪⍳4
+     
+          {
+              ['Three'
+              'Blind'
+              'Mice']
+          }Is 3 5⍴'ThreeBlindMice '
+     
+          {
+              [1 ⋄ ]
+          }Is⍪1
+     
+          {
+              1 2[1 ⋄ ]
+          }Is 1 2(⍪1)
+      :EndSection
+      :Section Combo
+          {
+              ([0 0 1
+              1 0 1
+              0 1 1]
+     
+              [0 1 1
+              1 1 0
+              0 1 0]
+     
+              [0 1 1 1
+              1 1 1 0]
+     
+              [0 1 1 0
+              1 0 0 1
+              0 1 1 0])
+     
+          }Is{
+              _←⍉⍪0 0 1
+              _⍪←1 0 1
+              _⍪←0 1 1
+              r←⊂_
+              _←⍉⍪0 1 1
+              _⍪←1 1 0
+              _⍪←0 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 1
+              _⍪←1 1 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 0
+              _⍪←1 0 0 1
+              _⍪←0 1 1 0
+              r,←⊂_
+              r
+          }⍬
+     
+          {
+              [0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
+          }Is{
+              e←⍉⍪0 'OK'
+              e⍪←1 'WS FULL'
+              e⍪←2 'SYNTAX ERROR'
+              e⍪←3 'INDEX ERROR'
+              e⍪←4 'RANK ERROR'
+              e
+          }⍬
+          {
+              ['a'(⊂1 2)'a'
+              (⊂1 2)'a'(⊂1 2)]
+          }Is 2 3⍴'a'(⊂1 2)
+      :EndSection
+     
+      :Section High Rank
+          {
+              [[3
+              1 5 9]
+              [2 7 1
+              2 8]]
+          }Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+      :EndSection
+     
+      :Section Empty
+          {
+              ⍬
+          }Is ⍬
+          {
+              (⍬ ⋄ )
+          }Is,⊂⍬
+          {
+              0⍴⊂⍬
+          }Is 0⍴⊂⍬
+          {
+              0⍴⊂⊂⍬
+          }Is 0⍴⊂⊂⍬
+          {
+              0⍴⊂0⍴⊂⍬
+          }Is 0⍴⊂0⍴⊂⍬
+          {
+              [⍬ ⋄ ]
+          }Is⍉⍪⍬
+          {
+              ⍉[⍬ ⋄ ]
+          }Is⍪⍬
+          {
+              0⍴⊂[⍬ ⋄ ]
+          }Is 0⍴⊂⍉⍪⍬
+          {
+              0⍴⊂⍉[⍬ ⋄ ]
+          }Is 0⍴⊂⍪⍬
+      :EndSection
+     
+      :Section Namespace
+          {
+              ()
+          }Is'{}'
+     
+          {
+              (
+              )
+          }Is'{}'
+     
+          {
+              ()()
+          }Is'[{},{}]'
+     
+          {
+              (a:⍳n←3 ⋄ b:n*2)
+          }Is'{"a":[0,1,2],"b":9}'
+     
+          {
+              (p:{⍺+⍵}
+              m:{⍺-⍵})
+          }Is'p:{⍺+⍵}' ' m:{⍺-⍵}'
+     
+          {
+              (v:(1 2 ⋄ 3))
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (v:(1 2
+              3))
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (v:(1 2 ⋄ 3)
+              )
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (
+              ()
+              )
+          }Is'[{}]'
+     
+          {(n:())}Is'{"n":{}}'
+     
+      :EndSection
+      r←1
+    ∇
+
+
+    ∇ r←DeserialiseQA stop_on_error;⎕IO;Is;⎕TRAP
+      ⎕IO←0
+      ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
+      Is←{
+          Check←'MISMATCH'⎕SIGNAL 999/⍨⍵∘≢
+          a←⍺⍺ Array 1
+          ×⎕NC'⍺':Check a.⎕NR ⍺
+          Check{⎕JSON⍣(326∊⎕DR¨∊⍵)⊢⍵}⍣(⍵≢⎕NULL)⊢a
+      }
+     
+      :Section scalars
+          {
+              'a'
+          }Is'a'
+          {
+              42
+          }Is 42
+          {
+              ⎕NULL
+          }Is ⎕NULL
+          {
+              ⎕UCS 0
+          }Is ⎕UCS 0
+      :EndSection
+      :Section vectors
+          {(42 ⋄ )}Is,42
+     
+          {(42
+              )}Is,42
+     
+          {'Hello',⎕UCS⍳200}Is'Hello',⎕UCS⍳200
+     
+          {
+              (1 2 3 'Hello' ⋄ 4 5 6 'World')
+          }Is(1 2 3 'Hello')(4 5 6 'World')
+     
+          {
+              (1 2 3 'Hello'
+              4 5 6 'World')
+          }Is(1 2 3 'Hello')(4 5 6 'World')
+     
+          {
+              (0 1 ⋄ 2 3
+              4 5 ⋄ 6 7)
+          }Is↓4 2⍴⍳8
+     
+          {
+              ('Three'
+              'Blind'
+              'Mice')
+          }Is'Three' 'Blind' 'Mice'
+      :EndSection
+      :Section Matrices
+          {
+              [0 1 2
+              3 4 5]
+          }Is 2 3⍴⍳6
+     
+          {
+              [ ⋄ 0 1 2 3]
+          }Is⍉⍪⍳4
+     
+          {
+              [
+              0 1 2 3
+              ]
+          }Is⍉⍪⍳4
+     
+          {
+              ['Three'
+              'Blind'
+              'Mice']
+          }Is 3 5⍴'ThreeBlindMice '
+     
+          {
+              [1 ⋄ ]
+          }Is⍪1
+     
+          {
+              1 2[1 ⋄ ]
+          }Is 1 2(⍪1)
+      :EndSection
+      :Section Combo
+          {
+              ([0 0 1
+              1 0 1
+              0 1 1]
+     
+              [0 1 1
+              1 1 0
+              0 1 0]
+     
+              [0 1 1 1
+              1 1 1 0]
+     
+              [0 1 1 0
+              1 0 0 1
+              0 1 1 0])
+     
+          }Is{
+              _←⍉⍪0 0 1
+              _⍪←1 0 1
+              _⍪←0 1 1
+              r←⊂_
+              _←⍉⍪0 1 1
+              _⍪←1 1 0
+              _⍪←0 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 1
+              _⍪←1 1 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 0
+              _⍪←1 0 0 1
+              _⍪←0 1 1 0
+              r,←⊂_
+              r
+          }⍬
+     
+          {
+              [0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
+          }Is{
+              e←⍉⍪0 'OK'
+              e⍪←1 'WS FULL'
+              e⍪←2 'SYNTAX ERROR'
+              e⍪←3 'INDEX ERROR'
+              e⍪←4 'RANK ERROR'
+              e
+          }⍬
+          {
+              ['a'(⊂1 2)'a'
+              (⊂1 2)'a'(⊂1 2)]
+          }Is 2 3⍴'a'(⊂1 2)
+      :EndSection
+     
+      :Section High Rank
+          {
+              [[3
+              1 5 9]
+              [2 7 1
+              2 8]]
+          }Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+      :EndSection
+     
+      :Section Empty
+          {
+              ⍬
+          }Is ⍬
+          {
+              (⍬ ⋄ )
+          }Is,⊂⍬
+          {
+              0⍴⊂⍬
+          }Is 0⍴⊂⍬
+          {
+              0⍴⊂⊂⍬
+          }Is 0⍴⊂⊂⍬
+          {
+              0⍴⊂0⍴⊂⍬
+          }Is 0⍴⊂0⍴⊂⍬
+          {
+              [⍬ ⋄ ]
+          }Is⍉⍪⍬
+          {
+              ⍉[⍬ ⋄ ]
+          }Is⍪⍬
+          {
+              0⍴⊂[⍬ ⋄ ]
+          }Is 0⍴⊂⍉⍪⍬
+          {
+              0⍴⊂⍉[⍬ ⋄ ]
+          }Is 0⍴⊂⍪⍬
+      :EndSection
+     
+      :Section Namespace
+          {
+              ()
+          }Is'{}'
+     
+          {
+              (
+              )
+          }Is'{}'
+     
+          {
+              ()()
+          }Is'[{},{}]'
+     
+          {
+              (a:⍳n←3 ⋄ b:n*2)
+          }Is'{"a":[0,1,2],"b":9}'
+     
+          'p' 'm'{
+              (p:+
+              m:{⍺-⍵})
+          }Is¨(,'+')(,⊂' m←{⍺-⍵}')
+     
+          {
+              (v:(1 2 ⋄ 3))
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (v:(1 2
+              3))
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (v:(1 2 ⋄ 3)
+              )
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (
+              ()
+              )
+          }Is'[{}]'
+     
+          {(n:())}Is'{"n":{}}'
+     
+      :EndSection
+      r←1
+    ∇
+
+
+
+
+    ∇ r←RoundtripQA stop_on_error;⎕IO;Is;⎕TRAP
+      ⎕IO←0
+      ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
+      Roundtrip←{
+          Check←'MISMATCH'⎕SIGNAL 999/⍨⍵∘≢
+          a←⍺⍺ Array 1
+          ×⎕NC'⍺':Check a.⎕NR ⍺
+          Check{⎕JSON⍣(326∊⎕DR¨∊⍵)⊢⍵}⍣(⍵≢⎕NULL)⊢a
+      }
+     
+      :Section scalars
+          {
+              'a'
+          }Is'a'
+          {
+              42
+          }Is 42
+          {
+              ⎕NULL
+          }Is ⎕NULL
+          {
+              ⎕UCS 0
+          }Is ⎕UCS 0
+      :EndSection
+      :Section vectors
+          {(42 ⋄ )}Is,42
+     
+          {(42
+              )}Is,42
+     
+          {'Hello',⎕UCS⍳200}Is'Hello',⎕UCS⍳200
+     
+          {
+              (1 2 3 'Hello' ⋄ 4 5 6 'World')
+          }Is(1 2 3 'Hello')(4 5 6 'World')
+     
+          {
+              (1 2 3 'Hello'
+              4 5 6 'World')
+          }Is(1 2 3 'Hello')(4 5 6 'World')
+     
+          {
+              (0 1 ⋄ 2 3
+              4 5 ⋄ 6 7)
+          }Is↓4 2⍴⍳8
+     
+          {
+              ('Three'
+              'Blind'
+              'Mice')
+          }Is'Three' 'Blind' 'Mice'
+      :EndSection
+      :Section Matrices
+          {
+              [0 1 2
+              3 4 5]
+          }Is 2 3⍴⍳6
+     
+          {
+              [ ⋄ 0 1 2 3]
+          }Is⍉⍪⍳4
+     
+          {
+              [
+              0 1 2 3
+              ]
+          }Is⍉⍪⍳4
+     
+          {
+              ['Three'
+              'Blind'
+              'Mice']
+          }Is 3 5⍴'ThreeBlindMice '
+     
+          {
+              [1 ⋄ ]
+          }Is⍪1
+     
+          {
+              1 2[1 ⋄ ]
+          }Is 1 2(⍪1)
+      :EndSection
+      :Section Combo
+          {
+              ([0 0 1
+              1 0 1
+              0 1 1]
+     
+              [0 1 1
+              1 1 0
+              0 1 0]
+     
+              [0 1 1 1
+              1 1 1 0]
+     
+              [0 1 1 0
+              1 0 0 1
+              0 1 1 0])
+     
+          }Is{
+              _←⍉⍪0 0 1
+              _⍪←1 0 1
+              _⍪←0 1 1
+              r←⊂_
+              _←⍉⍪0 1 1
+              _⍪←1 1 0
+              _⍪←0 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 1
+              _⍪←1 1 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 0
+              _⍪←1 0 0 1
+              _⍪←0 1 1 0
+              r,←⊂_
+              r
+          }⍬
+     
+          {
+              [0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
+          }Is{
+              e←⍉⍪0 'OK'
+              e⍪←1 'WS FULL'
+              e⍪←2 'SYNTAX ERROR'
+              e⍪←3 'INDEX ERROR'
+              e⍪←4 'RANK ERROR'
+              e
+          }⍬
+          {
+              ['a'(⊂1 2)'a'
+              (⊂1 2)'a'(⊂1 2)]
+          }Is 2 3⍴'a'(⊂1 2)
+      :EndSection
+     
+      :Section High Rank
+          {
+              [[3
+              1 5 9]
+              [2 7 1
+              2 8]]
+          }Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+      :EndSection
+     
+      :Section Empty
+          {
+              ⍬
+          }Is ⍬
+          {
+              (⍬ ⋄ )
+          }Is,⊂⍬
+          {
+              0⍴⊂⍬
+          }Is 0⍴⊂⍬
+          {
+              0⍴⊂⊂⍬
+          }Is 0⍴⊂⊂⍬
+          {
+              0⍴⊂0⍴⊂⍬
+          }Is 0⍴⊂0⍴⊂⍬
+          {
+              [⍬ ⋄ ]
+          }Is⍉⍪⍬
+          {
+              ⍉[⍬ ⋄ ]
+          }Is⍪⍬
+          {
+              0⍴⊂[⍬ ⋄ ]
+          }Is 0⍴⊂⍉⍪⍬
+          {
+              0⍴⊂⍉[⍬ ⋄ ]
+          }Is 0⍴⊂⍪⍬
+      :EndSection
+     
+      :Section Namespace
+          {
+              ()
+          }Is'{}'
+     
+          {
+              (
+              )
+          }Is'{}'
+     
+          {
+              ()()
+          }Is'[{},{}]'
+     
+          {
+              (a:⍳n←3 ⋄ b:n*2)
+          }Is'{"a":[0,1,2],"b":9}'
+     
+          'p' 'm'{
+              (p:+
+              m:{⍺-⍵})
+          }Is¨(,'+')(,⊂' m←{⍺-⍵}')
+     
+          {
+              (v:(1 2 ⋄ 3))
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (v:(1 2
+              3))
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (v:(1 2 ⋄ 3)
+              )
+          }Is'{"v":[[1,2],3]}'
+     
+          {
+              (
+              ()
+              )
+          }Is'[{}]'
+     
+          {(n:())}Is'{"n":{}}'
+     
+      :EndSection
+      r←1
+    ∇
+
+
+    ∇ r←QA
+    ⍝ fails because of mantis 18132
+      r←SerialiseQA 0
+      r∧←DeserialiseQA 0
+      r∧←RoundtripQA
+    ∇
+
+:EndNamespace

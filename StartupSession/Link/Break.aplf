@@ -12,7 +12,7 @@
          ⎕IO←1
 
          (defopts←⎕NS ⍬).(all exact)←0
-         opts←defopts DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+         opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
 
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces

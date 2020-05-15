@@ -322,18 +322,6 @@
           ok←×≢⎕SE.Link.Links
       :EndIf
     ∇
-
-    ∇ r←GetName file;code;ns
-    ⍝ Attempt to determine the name which will be defined by a file
-      ns←(⎕NS'').⎕NS r←'' ⍝ Two levels of nesting to allow safe fixing of :Namespace/##.⎕IO←0/:EndNamespace
-      :Trap 0
-          2 ns.⎕FIX'file://',file
-          :If 1=≢r←ns.⎕NL-⍳10 ⋄ r←⊃r
-          :Else ⋄ r←''
-          :EndIf
-      :EndTrap
-    ∇
-
     ∇ linkns←LookupFile file;dirs;inx;mask
     ⍝ look up which linked directory has file
       :If HasLinks
@@ -345,7 +333,6 @@
           linkns←⍬
       :EndIf
     ∇
-
     ∇ linkns←LookupRef nsref;linked;nss
     ⍝ lookup which linked namespace has nsref
       linkns←⍬
@@ -359,6 +346,24 @@
           :If linked
               linkns←(nss⍳nsref)⊃⎕SE.Link.Links
           :EndIf
+      :EndIf
+    ∇
+    ∇ {opts}←{defopts}DefaultOpts opts;Default;nl
+    ⍝ Get default modifiers for link options namespace
+      :If ''≡0⍴opts ⋄ opts←##.Array.Deserialise opts ⍝ pseudo array notation (experimental)
+      :Else ⋄ opts←⎕NS opts  ⍝ duplicate namespace to avoid changing caller's
+      :EndIf
+      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
+      'source'Default'dir'
+      'watch'Default(1+CanWatch)⊃'ns' 'both'
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Default 0
+      'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions'Default''
+      'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
+      opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
+      'typeExtensions'Default 0 2⍴0 ''
+      opts.typeExtensions{_←⍺⍪⍵ ⋄ _[∪⍳⍨⊣/_;]}←↑(2 'apla')(3 'aplf')(4 'aplo')(9.1 'apln')(9.4 'aplc')(9.5 'apli')
+      :If ~900⌶⍬ ⋄ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2 ⍝ some more custom defaults
+          nl Default¨defopts⍎¨nl
       :EndIf
     ∇
 
@@ -384,7 +389,7 @@
           nc←ns.⎕NC⊂,name
           :Select nc
           :Case 2.1 ⍝ variable
-              :Trap 11 ⋄ src←##.Serialise ns⍎name
+              :Trap 11 ⋄ src←##.Array.Serialise ns⍎name
               :Else ⋄ Error'Unsupported array: ',(⍕ns),'.',name
               :EndTrap
           :CaseList 3.1 3.2 4.1 4.2 ⋄ src←ns.⎕NR name ⍝ tradfn/dfn/tradop/dop
@@ -435,7 +440,7 @@
           :Return  ⍝ trad ns created
       :EndIf
       :Trap 0
-          name where.{⍎⍺,'←⍵'}##.Deserialise src  ⍝ array
+          name where.{⍎⍺,'←⍵'}##.Array.Deserialise src  ⍝ array
           nc←where.⎕NC⊂,name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
@@ -556,6 +561,149 @@
       :EndIf
     ∇
 
+
+
+    ∇ outFail←opts WriteFiles(ns dir);count;dir;files;i;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
+    ⍝ Write items to file in folders
+    ⍝ ns must be a fully specified traditional namespace
+    ⍝ arrays not supported
+      outFail←0⍴⊂'' ⋄ nsref←⍎ns
+      ⍝ Create directory for namesapce
+      3 ⎕MKDIR dir ⋄ outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+      ⍝ Write children to files (except trad namespaces)
+      :If 0≠≢names←nsref.⎕NL-NameClasses 0
+          src←nsref GetAplSource¨names
+          mask←0=≢¨src     ⍝ can't get source
+          outFail,←(ns,'.')∘,¨mask/names
+          (names src)←(~mask)∘/¨(names src) ⋄ count←≢names
+          (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
+              ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
+              names←names[,(mask/inx),[1.5]⍸mask]
+              Error'File name case clash - try using caseCode←1:',⍕(ns,'.')∘,¨names
+          :EndIf
+          mask←src∊⎕NULL  ⍝ traditional namespaces
+          (tradnames tradfiles)←mask∘/¨(names files)
+          (files oldfiles names src)/⍨←⊂(~mask)
+          :If 0≠≢files
+              :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write - not on directories
+                  mask←(≢files)⍴1
+                  :For i :In ⍳⍴files
+                      mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)src
+                  :EndFor
+                  (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
+              :EndIf
+              mask←src Into¨files  ⍝ failed to write
+              outFail,←(ns,'.')∘,¨(~mask)/names
+              :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
+                  ⎕NDELETE¨mask/oldfiles
+              :EndIf
+          :EndIf
+          :If 0≠≢tradfiles ⍝ recurse on traditional namespaces
+              tradnames←(ns,'.')∘,¨tradnames
+              outFail,←⊃,/opts∘WriteFiles¨↓tradnames,[1.5]tradfiles
+          :EndIf
+      :EndIf
+    ∇
+
+    ∇ {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
+    ⍝ Load items from files in folders
+      inFail←⍬
+      list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'    ⍝ recursive listing of everything  list[filename type hidden;]
+     
+      mask←1=list[3;] ⋄ list←¯1↓list                  ⍝ mask for hidden items
+      hidden←mask/list ⋄ list/⍨←~mask                 ⍝ crop hidden (files and) folders
+      hidden←(1=hidden[2;])/hidden[1;]                ⍝ keep directories only (files have already been removed from list)
+      hidden←hidden,¨'/'                              ⍝ protect against similarly named files
+      list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
+     
+      dirs←(1=list[2;])/list[1;]                      ⍝ second column has 1 for dirs
+      dirs←((⊂opts.dir),{⍵[⍋⍵]}dirs),¨'/'             ⍝ all directories (including link root)
+     
+      files←(2=list[2;])/list[1;]                     ⍝ second column has 2 for files; first column is filename
+      files/⍨←opts HasExtn files                    ⍝ must be of correct extension
+      files←files[GradeFiles files]                 ⍝ dirs then quads then files
+      :If 0∊⍴files ⋄ :Return ⋄ :EndIf
+     
+      ndirs←≢dirs ⋄ allfiles←dirs,files
+     
+      (parents expnames actnames actnc)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+      :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
+          allnames←parents('.'JoinEach)expnames  ⍝ do not infer true apl name from source
+      :Else
+          mask←actnc∊¯1 0    ⍝ invalid names or source
+          inFail,←mask/allfiles
+          (allfiles parents expnames actnames actnc)/⍨←⊂~mask    ⍝ keep only names that are valid
+          ndirs←+/ndirs↑~mask
+          allnames←parents('.'JoinEach)actnames  ⍝ fully qualified names
+          :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
+              files←allfiles[,(mask/inx),[1.5]⍸mask]
+              Error'Files produce clashing APL names:',⍕files
+          :EndIf
+      :EndIf
+     
+      ⍝ rename files if incorrectly named - cannot work with opts.fastLoad
+      :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
+          expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actnc
+          expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
+          :If ∨/mask←expfiles≢¨allfiles
+              :If (≢expfiles)≠(≢∪819⌶expfiles)
+                  Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
+              :Else
+                  ⍝ because APL names don't clash, we now expfiles won't clash either
+                  ⍝ however expfiles may overlap allfiles, producing an error at intermediate steps (⎕NMOVE should fail, because ⍠'IfExists' 'Error')
+                  (mask/expfiles)Relocate(mask/allfiles)
+                  allfiles←expfiles
+              :EndIf
+          :EndIf
+      :EndIf
+     
+      :If 3=⎕NC opts.beforeRead ⍝ user handler defined?
+          mask←(⍴allfiles)⍴1
+          :For i :In ⍳⍴allfiles
+              mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(i⊃actnc) ⍝ return 1 to continue else 0
+          :EndFor
+          (allfiles parents expnames actnames actnc)/⍨←⊂mask    ⍝ keep what was not processed by user
+      :EndIf
+     
+      tie←'both' 'ns'∊⍨⊂opts.watch ⍝ tie to file if watching namespace - cached for performance
+      FixFile←tie∘{(target file name)←⍵ ⋄ target QFix file name ⍺}
+      ⍝ create namespaces for directories and load quadVars.apln
+      (dirs names)←ndirs↑¨(allfiles allnames)
+      :If ~0∊⍴dirs
+          :If ~opts.flatten                               ⍝ If we are not flattening, create nss
+              nss←names ⎕NS¨⊂⍬
+              :If ∨/mask←0=≢¨nss   ⍝ could not create namespace
+                  inFail,←mask/names
+              :EndIf
+          :Else
+              nss←target   ⍝ all files fixed in target namespace
+          :EndIf
+          ⍝ set sysvars before anything else - these files are produced by Acre and must be supported
+          :If ∨/mask←⎕NEXISTS¨quadfiles←dirs,¨⊂'quadVars.apln'
+              mask←mask\~FixFile¨↓nss,mask⌿quadfiles,[1.5]⊂'quadVars'
+              inFail,←mask/quadfiles
+          :EndIf
+      :Else ⋄ quadfiles←0⍴⊂''
+      :EndIf
+     
+      ⍝ fix individual files
+      (files names)←ndirs∘↓¨(allfiles allnames)
+      (files names)/⍨←⊂~files∊quadfiles
+      :If ~0∊⍴files
+          :If ~opts.flatten                               ⍝ If we are not flattening, create nss
+              nss←⍎∘Parent¨names
+          :Else
+              nss←target   ⍝ all files fixed in target namespace
+          :EndIf
+          mask←~FixFile¨↓nss,files,[1.5]names ⍝ try it and return only failures
+          inFail,←mask/files
+      :EndIf
+     
+      ⍝ return list of failures
+      inFail←⍕¨inFail
+    ∇
+
     :EndSection
 
 
@@ -575,6 +723,26 @@
       :If debug≠0
           ⎕←msg
       :EndIf
+    ∇
+    ∇ r←ViewMetaData mode
+    ⍝ Experiemental function to inspect Link meta data.
+    ⍝ For debugging only.
+    ⍝ !!! DO NOT USE THIS function in application code!!!
+      r←5177⌶⍬
+      r←(~(8↑¨⍕¨2⊃¨r)∊⊂'⎕SE.Link')/r
+      r←r[⍋⍕⌽↑2↑¨r]
+     
+      :Select mode
+      :Case 'raw' ⋄ →0
+      :Case 'count' ⋄ r←(⍕¨2⊃¨r){⍺(≢⍵)}⌸1⊃¨r
+      :Case 'group' ⋄ r←(⍕¨2⊃¨r){⍺ ⍵}⌸1⊃¨r
+      :CaseList '' 'report'
+          r←↑4↑¨r
+          r[;1]←(⍕¨r[;2]),¨'.',¨r[;1]
+          r←r[;1 3 4]
+      :Else
+          'mode must be one of: raw count group report'⎕SIGNAL 11
+      :EndSelect
     ∇
 
     :EndSection

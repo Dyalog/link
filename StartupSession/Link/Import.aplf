@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
 
-     opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
      opts.watch←'none'
      opts.source←'dir'
@@ -17,7 +17,7 @@
      :Else
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
-         inFail←opts FixFiles nsref dir
+         inFail←opts U.FixFiles nsref dir
          msg←'Imported: ',ns,' ← ',U.WinSlash dir
          numFail←≢inFail
          :If ×numFail
