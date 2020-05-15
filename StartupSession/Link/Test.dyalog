@@ -20,6 +20,9 @@
     ⍝ - test UCMD's with modifiers
     ⍝ - test basic git usage
 
+
+    :Section Main entry point and global settings
+
     ⎕IO←1 ⋄ ⎕ML←1
 
     USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
@@ -63,13 +66,14 @@
       r←(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
     ∇
 
+    :EndSection Main entry point and global settings
 
 
 
 
 
 
-
+    :Section test_functions
 
     ∇ r←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
      ⍝ Test the flattened scenario
@@ -650,7 +654,7 @@
      
       ⍝ check apl rename on-the-fly
       Breathe
-      var←↓⎕SE.Link.Serialise⍳2 3
+      var←⎕SE.Link.Serialise⍳2 3
       {}(⊂var)QNPUT(folder,'/NotDupDup1.aplf')1
       assert'0=⎕NC name,''.DupDup1'''     ⍝ ideal
       ⍝assert'fn≡⎕NR name,''.DupDup1'''   ⍝ arguable
@@ -660,7 +664,7 @@
      
       ⍝ can't rename because it would clash
       Breathe
-      var2←↓⎕SE.Link.Serialise⍳3 2
+      var2←⎕SE.Link.Serialise⍳3 2
       {}(⊂var2)QNPUT(folder,'/NotDupDup1.aplf')1
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'(⍳2 3)≡',name,'.NotDupDup1'
@@ -676,7 +680,7 @@
       fn←' r←YetAnother' ' r←YetAnother'
       {}(⊂fn)QNPUT folder,'/YetAnother.aplf'
       assert'fn≡⎕NR name,''.YetAnother'''
-      var←↓⎕SE.Link.Serialise⍳3 4
+      var←⎕SE.Link.Serialise⍳3 4
       {}(⊂var)QNPUT folder,'/YetAnother.apla'
       Breathe
       assert'fn≡⎕NR name,''.YetAnother'''
@@ -700,7 +704,7 @@
      
       ⍝ Test that explicit Fix updates the right file
       assert'0 0≡⎕NEXISTS varfile fnfile'
-      name'HeLLo'⎕SE.Link.Fix,↓⎕SE.Link.Serialise var
+      name'HeLLo'⎕SE.Link.Fix ⎕SE.Link.Serialise var
       name'OhMyOhMy'⎕SE.Link.Fix fn
       assert'var≡',name,'.HeLLo'
       assert'fn≡⎕NR''',name,'.OhMyOhMy'''
@@ -708,7 +712,7 @@
      
       ⍝ Test that explicit Notify update the right name
       name Watch 0
-      {}(⊂,↓⎕SE.Link.Serialise var←⍳6 7)QNPUT varfile 1
+      {}(⊂⎕SE.Link.Serialise var←⍳6 7)QNPUT varfile 1
       {}(⊂fn←' r←OhMyOhMy(oh my)' ' r←(oh my)(oh my)')QNPUT fnfile 1
       ⎕SE.Link.Notify'changed'varfile
       ⎕SE.Link.Notify'changed'fnfile
@@ -877,6 +881,7 @@
     ∇
 
 
+    :EndSection  test_functions
 
 
 
@@ -887,8 +892,7 @@
 
 
 
-
-
+    :Section Setup and Utils
 
     ∇ r←Setup(folder name)
       r←'' ⍝ Run will abort if empty
@@ -910,7 +914,7 @@
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
           Log ⎕SE.UCMD'link.list'
-          Log'      ''{all:1}''⎕SE.Link.Break ⍬ ⍝ to break all links'
+          Log'      ]Link.Break -all    ⍝ to break all links'
           →0
       :EndIf
      
@@ -1147,6 +1151,7 @@
     ∇
 
 
+    :EndSection Setup and Utils
 
 
 
@@ -1160,11 +1165,10 @@
 
 
 
+    :Section Benchmarks
 
-
-
-    ∇ clear build_simcorp folder;Body;Constants;Lines;Names;Primitives;body;depth;dirs;files;i;maxdepth;names;ndirs;nfiles;nlines;primitives
-    ⍝ Simcorp has about 1e5 files in about 1e4 directories - file sizes unknown
+    ∇ clear build_large folder;Body;Constants;Lines;Names;Primitives;body;depth;dirs;files;i;maxdepth;names;ndirs;nfiles;nlines;primitives
+    ⍝ A large company has about 1e5 files in about 1e4 directories - file sizes unknown
     ⍝ that correspondings roughly to ndirs←nfiles←10 and maxdepth←4
     ⍝ use small number of lines to increase the link overhead and measure it more accurately
       :If clear ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder   ⍝ clear folder
@@ -1195,18 +1199,18 @@
       {}names{(⊂Body ⍺)⎕NPUT ⍵ 1}¨files
     ∇
 
-    ∇ (time dirs files)←{opts}bench_simcorp folder;clear;fastload;filetype;name;opts;profile;temp;time
+    ∇ (time dirs files)←{opts}bench_large folder;clear;fastload;filetype;name;opts;profile;temp;time
     ⍝ times with (ndirs nfiles nlines maxdepth)←10 10 0 3 → (dirs files)≡1110 11100
-    ⍝ v2.0:       fastLoad=1:1500 ⋄ fastLoad=0:N/A
-    ⍝ v2.1-alpha: fastLoad=1:1800 ⋄ fastLoad=0:3500
-    ⍝ v2.1:       fastLoad=1:650  ⋄ fastLoad=0:1250
+    ⍝ v2.0:        fastLoad=1:1500 ⋄ fastLoad=0:N/A
+    ⍝ v2.1-alpha1: fastLoad=1:1800 ⋄ fastLoad=0:3500
+    ⍝ v2.1.0:      fastLoad=1:650  ⋄ fastLoad=0:1250
       :If 900⌶⍬ ⋄ opts←⍬ ⋄ :EndIf
       (fastload profile clear)←opts,(≢opts)↓1 0 0
-      name←'#.simcorp'
+      name←'#.largelink'
       :If temp←0∊⍴folder
           folder←CreateTempDir 0
           ⎕←'building ',folder,' ...'
-          clear build_simcorp folder
+          clear build_large folder
       :EndIf
       filetype←⊃1 ⎕NINFO⍠1⍠'Recurse' 1⊢folder,'/*'
       dirs←filetype+.=1 ⋄ files←filetype+.=2
@@ -1228,6 +1232,9 @@
           3 ⎕NDELETE folder
       :EndIf
     ∇
+
+    :EndSection Benchmarks
+
 
 
 :EndNamespace

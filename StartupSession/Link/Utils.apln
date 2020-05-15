@@ -384,7 +384,7 @@
           nc←ns.⎕NC⊂,name
           :Select nc
           :Case 2.1 ⍝ variable
-              :Trap 11 ⋄ src←,↓##.Serialise ns⍎name
+              :Trap 11 ⋄ src←##.Serialise ns⍎name
               :Else ⋄ Error'Unsupported array: ',(⍕ns),'.',name
               :EndTrap
           :CaseList 3.1 3.2 4.1 4.2 ⋄ src←ns.⎕NR name ⍝ tradfn/dfn/tradop/dop
