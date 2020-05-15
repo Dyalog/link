@@ -1,5 +1,5 @@
 ﻿:Namespace U ⍝ Utilities
-    ⎕IO←1
+    ⎕IO←⎕ML←1
 
     :Section Constants
     isWindows←'Win'≡3↑⊃# ⎕WG'APLVersion'
@@ -279,7 +279,7 @@
       :EndIf
     ∇
 
-    ∇ (container ns)←rsi_xsi ContainerNs ns;n;rsi;xsi
+    ∇ (container ns)←rsi_xsi ContainerNs ns;n;xsi;rsi
     ⍝ container is a reference, and namespace is fully qualified namespace name
       (rsi xsi)←rsi_xsi
       :If 9=⎕NC'ns'

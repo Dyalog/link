@@ -1,5 +1,6 @@
  files←GetFileName items;this;⎕IO
- ⍝ TODO doesn't work for arrays and traditional namespaces
+ ⍝ Get file names from APL names
+ ⍝ returns empty string for unlinked names
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -7,7 +8,7 @@
      ⎕IO←1
      this←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬       ⍝ reference to calling namespace
      files←this∘U.CurrentFileName U.OnEach(⊆,items)~¨' '
-     files←⊃⍣(1≥≡items)⊢files
+     files←⊃⍣(1=≡,items)⊢files
  :Else
      U.Resignal 1
  :EndTrap

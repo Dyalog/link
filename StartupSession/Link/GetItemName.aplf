@@ -1,6 +1,6 @@
  items←GetItemName files;names;ns;⎕IO
  ⍝ Get APL names from file names
- ⍝ TODO doesn't work for arrays and traditional namespaces
+ ⍝ returns empty string for unlinked files
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf

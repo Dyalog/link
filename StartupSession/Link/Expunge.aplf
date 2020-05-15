@@ -15,9 +15,9 @@
                      r[i]←0 ⋄ :Continue
                  :EndIf
                  :If ¯9=nc  ⍝ trad ns
-                 :AndIf (⊂U.NormNs name)∊Link.ns  ⍝ is a link root
+                 :AndIf (⊂U.NormNs name)∊Links.ns  ⍝ is a link root
+                     {}Break name  ⍝ github issue #119: tell user about problems
                      r[i]←⎕EX name
-                     {}{0=≢⍵:⍵ ⋄ U.Warn ⍵}Break name  ⍝ tell user about problems
                  :Else
                      (parent name)←U.SplitNs name
                      link←U.LookupRef parent←⍎parent
@@ -33,7 +33,7 @@
              r←⊃⍣scal⊢shape⍴r
          :EndHold ⍝ Notify
      :Else
-         container.⎕EX names
+         r←container.⎕EX names
      :EndIf
  :Else
      U.Resignal 1

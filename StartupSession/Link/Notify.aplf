@@ -1,4 +1,4 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;loadlink;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO;expfile
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -17,6 +17,8 @@
          (path oldpath)←0 U.NormFile¨path oldpath
 
          →END U.If 0∊⍴link←U.LookupFile path  ⍝ not linked => done
+         link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time
+
 
          deleted←type≡'deleted'
          msg←'Notify: ',type,' ',path,': '
@@ -42,8 +44,7 @@
          :EndIf
 
          ⍝ determine expected apl name from file name, and actual apl name from source
-         loadlink←⎕NS link ⋄ loadlink.fastLoad←0  ⍝ fastLoad not observed at Notify time
-         (nsname expname actname nc)←loadlink U.DetermineAplName path
+         (nsname expname actname nc)←link U.DetermineAplName path
          nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
 
          ⍝ determine current name tied to file (if any)
@@ -69,19 +70,24 @@
 
          :If 0=≢nsref
              →END⊣U.Warn msg,'file does not reflect in a valid namespace'
-         :ElseIf (deleted∨~loadlink.fastLoad)∧(nc∊¯1 0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
+         :ElseIf (deleted∨~link.fastLoad)∧(nc∊¯1 0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              →END⊣U.Log msg,(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
          :EndIf
 
          ⍝ determine current file tied to name we plan to use
-         curfile←0 U.NormFile nsref U.CurrentFileName actname
+         expfile←U.Deslash⊃link(0 U.DetermineFileName)nsname actname oldname nc
+         :If 0∊⍴curfile←0 U.NormFile nsref U.CurrentFileName actname ⍝ not tied by interpreter
+         :AndIf 2 ¯9∊⍨⌊nc   ⍝ only arrays and tradnamespaces don't have ties
+             curfile←(⎕NEXISTS expfile)/expfile    ⍝
+         :EndIf
 
          :Select type
 
          :Case 'created'               ⍝ A new file
              ⍝:If 0≠≢z←nsref U.CurrentFileName actname  ⍝ Redefines existing object with a source file
              ⍝:AndIf ⎕NEXISTS z       ⍝ ... and that file exists
-             :If 0≠⎕NC affected  ⍝ object already exists - this happens on ⎕SE.Link.Add on a variable
+             :If 0≠⎕NC affected  ⍝ object already exists - avoid re-linking when file was copy/pasted
+             :AndIf curfile≢path   ⍝ sometimes file writes produce a create event on the same file - let it run
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  U.Untie curname
@@ -96,8 +102,9 @@
                  ⍝ Checking hash is not worth, compared to fixing file.... also it might have false positive on character inversion (multiple of 4-bytes apart)
                  ⍝ also, forcefilename might still want to rename the file
                  ⍝:If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected ⋄ :EndIf
-                 U.Log msg,'updating previously linked ',affected
-             :ElseIf 0≠≢curfile      ⍝ name was tied to a different file
+                 :If curname≢affected ⋄ ⎕EX curname ⋄ :EndIf   ⍝ name changed
+                 U.Log msg,'updating previously linked ',affected,(curname≢affected)/' deleting previously defined ',curname
+             :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)      ⍝ name was tied to a different file
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name
                  ⎕EX curname  ⍝ delete name in case the name defined by source has changed
@@ -171,9 +178,8 @@
 
          ⍝ rename files if incorrectly named
          watch←'dir' 'both'∊⍨⊂link.watch  ⍝ watching files
-         :If link.fastLoad<(link.forceFilenames∨link.forceExtensions)
-             exppath←⊃link(0 U.DetermineFileName)nsname actname oldname nc
-         :AndIf path≢exppath←exppath(link.forceFilenames U.MergeFileName link.forceExtensions)path
+         :If link.fastLoad<(link.forceFilenames∨link.forceExtensions) ⍝ fastLoad is disabled in Notify
+         :AndIf path≢exppath←expfile(link.forceFilenames U.MergeFileName link.forceExtensions)path
              :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
                  →END⊣U.Warn msg,'name clash - cannot move file to existing ',exppath,' - cannot fix ',affected
              :Else

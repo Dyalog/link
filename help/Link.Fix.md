@@ -22,4 +22,4 @@ When an item is edited, a call is made to this function by the APL interpreter.
 
 #### Result
 
-- 1 if the object was found to be in a linked namespace, else 0
+- 1 if the object was found to be in a linked namespace (and updated), else 0 (and the source code wasn't fixed)

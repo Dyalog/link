@@ -106,6 +106,8 @@
                   link.fsw.EnableRaisingEvents←0
                   ⎕DL 0.1 ⍝ Give any extant events time to be processed
                   link.fsw.Dispose
+              :Else
+                  ##.U.Warn'FileSystemWatcher: no Dispose method'
               :EndIf
           :EndIf
           link.fsw←⍬

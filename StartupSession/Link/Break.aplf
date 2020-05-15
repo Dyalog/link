@@ -31,7 +31,7 @@
                      FileSystemWatcher.Break link
                      n+←U.RemoveFileLinksIn ns
                  :EndFor
-                 broken,←⊂∪mask/linked
+                 broken,←mask/linked
              :Else
                  missing,←⊂ns
              :EndIf
@@ -39,10 +39,10 @@
          ⎕SE.Link.Links/⍨←~deleted
          msg←''
          :If ×≢broken
-             msg,←⊂'Unlinked ',(⍕n),' items:',U.List broken
+             msg,←⊂'Unlinked ',(⍕n),' items:',U.List ∪broken
          :EndIf
          :If ×≢missing
-             msg,←⊂'Not found:',U.List missing
+             msg,←⊂'Not found:',U.List ∪missing
          :EndIf
          :If ~0∊⍴msg ⋄ msg←'; 'U.JoinList msg ⋄ :EndIf
      :Else
