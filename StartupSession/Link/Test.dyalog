@@ -746,7 +746,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);newbody;opts;sub;unlikelyfile;unlikelyfn;unlikelyname;z
+    ∇ r←test_bugs(folder name);newbody;nr;opts;src;sub;unlikelyfile;unlikelyfn;unlikelyname;var;z
     ⍝ Github issues
       r←0
      
@@ -823,13 +823,57 @@
       {}⎕SE.Link.Add name,'.var'
       'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'
       z←⎕SE.Link.Expunge name,'.var'
-      assert '(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
-      'link issue #89 and #104' assert '~⎕NEXISTS folder,''/var.myapla'''
-
+      assert'(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
+      'link issue #89 and #104'assert'~⎕NEXISTS folder,''/var.myapla'''
+      {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
      
-      {}⎕SE.Link.Break name ⋄ ⎕EX name
+      ⍝ rebuild a namespace from scratch
+      (name,'.sub')⎕NS ⍬
+      :For sub :In name∘,¨'' '.sub'
+          ⍎sub,'.var←',⍕var←1 2 3 4
+          (⍎sub).⎕FX nr←' r←foo r' ' r←r'
+          (⍎sub).⎕FIX src←':Namespace script' ':EndNamespace'
+      :EndFor
+     
+      RDFILES←RDNAMES←WRFILES←WRNAMES←⍬
+      opts←⎕NS ⍬
+      opts.beforeRead←'⎕SE.Link.Test.beforeReadAdd'
+      opts.beforeWrite←'⎕SE.Link.Test.beforeWriteAdd'
+     
+      ⍝ TODO allow exporting variables ?
+      {}opts ⎕SE.Link.Export name folder
+      'link issue #21'assert'WRFILES ≡ folder∘,¨''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' '
+      'link issue #21'assert'WRNAMES ≡ name∘,¨''.foo''  ''.script''  ''.sub.foo''  ''.sub.script''  '
+      'link issue #21'assert'0∊⍴RDFILES,RDNAMES'
+      WRFILES←WRNAMES←⍬
+      ⎕EX name
+     
+      (⊂⍕var)⎕NPUT folder,'/var.apla'
+      (⊂⍕var)⎕NPUT folder,'/sub/var.apla'
+      {}opts ⎕SE.Link.Import name folder
+      'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'''
+      'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'''
+      'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
+      {}⎕SE.Link.Break name
      
       CleanUp folder name
+    ∇
+
+    ∇ r←beforeReadAdd args
+      ⍝[1] Event name ('beforeRead')
+      ⍝[2] Reference to a namespace containing link options for the active link.
+      ⍝[3] Fully qualified filename that Link intends to read from
+      ⍝[4] Fully qualified APL name of the item that Link intends to update
+      ⍝[5] Name class of the APL item to be read
+      r←1 ⋄ RDFILES,←args[3] ⋄ RDNAMES,←args[4]
+    ∇
+    ∇ r←beforeWriteAdd args
+      ⍝[1] Event name ('beforeRead')
+      ⍝[2] Reference to a namespace containing link options for the active link.
+      ⍝[3] Fully qualified filename that Link intends to read from
+      ⍝[4] Fully qualified APL name of the item that Link intends to update
+      ⍝[5] Name class of the APL item to be read
+      r←1 ⋄ WRFILES,←args[3] ⋄ WRNAMES,←args[4]
     ∇
 
 

@@ -24,14 +24,14 @@
 
      mask←src∊⎕NULL  ⍝ traditional namespaces
      (tradnames tradfiles)←mask∘/¨(names files)
-     (files names src)←(~mask)∘/¨(files names src)
+     (files oldfiles names src)/⍨←⊂(~mask)
      :If 0≠≢files
          :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write - not on directories
              mask←(≢files)⍴1
              :For i :In ⍳⍴files
-                 mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref U.NameClass i⊃names)(ns.'.',i⊃names)src
+                 mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref U.NameClass i⊃names)(ns,'.',i⊃names)src
              :EndFor
-             (files names src)/⍨←⊂mask  ⍝ keep what was not processed by user
+             (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
          :EndIf
          mask←src U.Into¨files  ⍝ failed to write
          outFail,←(ns,'.')∘,¨(~mask)/names
