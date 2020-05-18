@@ -1,6 +1,8 @@
 :Namespace Hooks
     ⎕ML←1 ⋄ ⎕IO←1
 
+    Num←2|⎕DR
+
       Handle←{ ⍝ Generate hash using dfns.chksum
           9{⎕IO ⎕ML←0 1                           ⍝ Simple ⍺-digit checksum.
      
@@ -10,7 +12,7 @@
                   (⍺≡⍬)∧isref⊃⍵:⍬                 ⍝ ref:       ignored.
                   ⍵≡,⎕NULL:⍬                      ⍝ ⎕null:     ignored.
                   6=10|⎕DR ⍵:⍺ pref↑,/sub¨⍵       ⍝ nested:    cat of sub-vectors.
-                  ⍺ pref bytes ifdr(11∘≠)⎕UCS ifdr(2∘|)⍵     ⍝ bytes of array.
+                  ⍺ pref bytes ifdr(11∘≠)⎕UCS ifdr(~2∘|)⍵ ⍝ bytes of array.
               }
      
               ifdr←{⍺⍺⍣(⍵⍵ ⎕DR ⍵)⊢⍵}             ⍝ apply fn for all other types
@@ -35,11 +37,15 @@
           :EndTrap
      
       :ElseIf ~326∊⎕DR¨efp ⍝no refs
-      :AndIf 0 0 1≡2|⎕DR¨efp ⍝ char char num
+      :AndIf 0 0 1≡Num¨efp ⍝ char char num
       :AndIf 1∧.≥≢∘⍴¨efp ⍝ all scal/vecs
       :AndIf 1∧.≤≢¨efp ⍝ all non-empty
           efp←,¨efp
-          Init event←⊃efp
+          :Trap 11
+              Init event←⊃efp
+          :Case 11
+              ⎕SIGNAL ⎕DMX.(⊂('EN'EN)('Message'Message))
+          :EndTrap
           ⍎event,'←Norm ',event,'⍪1↓efp'
           handle←Handle efp
      
@@ -60,8 +66,9 @@
               hooks←(⊂event),⍎event
               remove←handle∊⍨Handle hooks
               removed⍪←remove⌿hooks
-              kept←hooks⌿⍨~remove
+              kept←(~remove)⌿0 1↓hooks
               ⍎event,'←kept'
+              Init event
           :EndFor
           removed←,⍣(⍬≡⍴handle)⊢removed
      
@@ -70,31 +77,62 @@
       :EndIf
     ∇
 
-    ∇ {created}←Init event ⍝ global var for event
+    ∇ {exists}←{create}Init event ⍝ global var for event
       ⍝ Event must be character vector(s) in correct case
-      ;hooks;val
+      ⍝ create:0 to leave undefined if missing
+      ;hooks;val;current;err;exists
+     
+      :If 900⌶⍬  ⍝monadic
+          create←1
+      :EndIf
      
       :If 2=|≡event
           :Trap 11
-              created←Init¨event
+              exists←create Init¨event
           :Else
               →ERROR
           :EndTrap
      
-      :ElseIf ~2|⎕DR event ⍝ char
-      :AndIf 1≥≢⍴event ⍝ vector
-      :AndIf ⎕A∊⍨⊃event ⍝ capital
-          val←0 2⍴⊂''
-          :If ~created←2≠⊃⎕NC event
-              hooks←⊆⍎event ⍝ must be 2-column matrix of (priority,fn) pairs
-              hooks⍴⍨←¯2↑1 1,⍴hooks ⍝ mat
-              hooks↑⍨←¯2,⍨≢hooks ⍝ 2-col
-              :If ∧/{''≡0⌿⍵}¨⊣/hooks ⍝ char left-col
-                  val←hooks
+      :ElseIf ~Num event  ⍝ char
+      :AndIf 1≥≢⍴event  ⍝ scal/vector
+      :AndIf ⎕A∊⍨⊃event  ⍝ capital
+      :AndIf ¯1≠⎕NC event  ⍝ id
+     
+          err←1
+          val←0 2⍴'' 0
+          :If exists←2=⊃⎕NC event  ⍝ exists
+              current←⍎event
+          :AndIf ~0∊⍴current
+     
+              :If ~326∊⎕DR¨∊current  ⍝ no refs
+              :AndIf ~0∊1≥≢∘⍴¨⊆current  ⍝ no high-ranks
+     
+                  :Select ≢⍴current ⍝ rank
+                  :CaseList 0 1  ⍝ scal/vec
+     
+                      :If 2≥|≡current  ⍝ scal/vec of or simple char scal/vec
+                          val←0,⍨⍪⊆,current
+                          err←0
+                      :EndIf
+     
+                  :Case 2  ⍝ mat
+     
+                      :If (0 1∘⊣⍤1≡Num¨)current  ⍝ (char num) rows
+                          val←current
+                          err←0
+                      :EndIf
+     
+                  :EndSelect
+              :EndIf
+              :If err
+                  ⎕←' *** "',(⍕⎕THIS),'.',event,'" must be 2-column matrix of (fn priority) pairs'
               :EndIf
           :EndIf
-          ⍎event,'←val'
      
+          :If exists
+          :OrIf exists←create
+              ⍎event,'←Norm val'
+          :EndIf
       :Else
      ERROR:⎕SIGNAL⊂('EN' 11)('Message' 'Event must be character vector(s) in correct case')
       :EndIf
@@ -104,26 +142,25 @@
 
     ∇ hooks←Registered event ⍝ report callbacks
       ⍝ Event must be character vector(s) in correct case
+      ;events
      
+      events←⎕A ⎕NL ¯2
+      0 Init events
+      :If ⍬''∊⍨⊂event
+          event←events
+      :EndIf
       :If 2=|≡event
-          :Trap 11
-              hooks←⊃⍪⌿Registered¨event
+          :If 0∊⍴event
+              hooks←0 3⍴'' '' 0
           :Else
-              →ERROR
-          :EndTrap
-      :ElseIf (⊂event)∊⍬''
-          hooks←Registered ⎕A ⎕NL ¯2
-     
-      :ElseIf ''≡0⌿event ⍝ charvec
-      :AndIf ⎕A∊⍨⊃event ⍝ capital
-          :If (⊂,event)∊⎕A ⎕NL ¯2 ⍝ exists?
+              hooks/¨⍨←×≢hooks←⊃⍪⌿(⊂,Registered)¨event
+          :EndIf
+      :Else
+          :If events∊⍨⊂event
               hooks←Norm⍎event
           :Else
               hooks←0 2⍴⊂''
           :EndIf
-     
-      :Else
-     ERROR:⎕SIGNAL⊂('EN' 11)('Message' 'Event must be character vector(s) in correct case')
       :EndIf
     ∇
 
