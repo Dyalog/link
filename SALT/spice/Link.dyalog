@@ -1,4 +1,4 @@
-﻿:Namespace Link ⍝ V 2.09
+﻿:Namespace Link
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
@@ -6,6 +6,7 @@
 ⍝ 2019 05 07 Adam: disable ]CaseCode
 ⍝ 2019 05 31 MKrom: Fix ⎕ML sensitivity
 ⍝ 2019 06 19 Adam: Avoid special-cased vars in caller
+⍝ 2020 05 21 Nic: removed unmaintained version tag
 
     ⎕IO←1 ⋄ ⎕ML←1
 
