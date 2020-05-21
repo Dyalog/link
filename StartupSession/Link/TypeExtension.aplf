@@ -1,4 +1,4 @@
- ext←opts TypeExtension nc
+ ext←opts TypeExtension nc;⎕IO
 ⍝ Return type extension to use for name class ⍵ in Link defined by ⍺
 ⍝ Name class ought to be the result of ⎕SE.Link.NameClass,
 ⍝ so that unscripted namespaces are mapped to directories
@@ -6,7 +6,8 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ext←1↓opts.typeExtensions U.Tail nc
+     ⎕IO←1
+     ext←{('.'=⊃⍵)↓⍵}opts.typeExtensions U.Tail nc
  :Else
      U.Resignal 1
  :EndTrap

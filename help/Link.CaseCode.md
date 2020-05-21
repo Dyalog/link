@@ -2,7 +2,7 @@
 
 If case codes is on (default is off), each file name will have a case code (see below). 
 
-If you set up a *BeforeWrite* hook when creating a Link, Link will prompt your hook for a file name whenever a new source file needs
+If you set up a `getFilename` hook when [creating a Link](Link.Create.md), Link will prompt your hook for a file name whenever a new source file needs
 to be created. If case coding is also enabled, the file name should be correctly case coded. The *CaseCode* function is provided to add case coding to any file name. 
 
 ### What is a "case code"?

@@ -18,7 +18,7 @@ This function provides details of texisting links.
    - namespace reference
    - directory name
    - number of linked items scripts
-   > If **extended** was specified, link options settings:
+   > If `extended` was specified, link options settings:
    - case code
    - flatten
    - force extensions

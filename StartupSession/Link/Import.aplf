@@ -14,6 +14,8 @@
          msg←'Unable to import to namespace: ',ns
      :ElseIf ~⎕NEXISTS dir
          msg←'Source directory not found: ',dir
+     :ElseIf 1≠1 ⎕NINFO dir
+         msg←'Not a directory: ',dir
      :Else
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
