@@ -59,7 +59,7 @@
 
          oldname←actname
          affected←nsname,'.',actname
-         curname←curnsname,'.',curactname
+         :If curnc=¯1 ⋄ curname←'' ⋄ :Else ⋄ curname←curnsname,'.',curactname ⋄ :EndIf
 
          :If ~deleted  ⍝ won't read a deleted file
          :AndIf 3=⎕NC link.beforeRead ⍝ user exit defined? - must run BEFORE we exit on invalid file contents
@@ -86,8 +86,9 @@
          :Case 'created'               ⍝ A new file
              ⍝:If 0≠≢z←nsref U.CurrentFileName actname  ⍝ Redefines existing object with a source file
              ⍝:AndIf ⎕NEXISTS z       ⍝ ... and that file exists
-             :If 0≠⎕NC affected  ⍝ object already exists - avoid re-linking when file was copy/pasted
+             :If 0≠⎕NC affected    ⍝ object already exists - avoid re-linking when file was copy/pasted
              :AndIf curfile≢path   ⍝ sometimes file writes produce a create event on the same file - let it run
+             :AndIf 0<≢curfile     ⍝ otherwise it's a regular file creation
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  U.Untie curname
@@ -102,8 +103,8 @@
                  ⍝ Checking hash is not worth, compared to fixing file.... also it might have false positive on character inversion (multiple of 4-bytes apart)
                  ⍝ also, forcefilename might still want to rename the file
                  ⍝:If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected ⋄ :EndIf
-                 :If curname≢affected ⋄ ⎕EX curname ⋄ :EndIf   ⍝ name changed
-                 U.Log msg,'updating previously linked ',affected,(curname≢affected)/' deleting previously defined ',curname
+                 :If (0<≢curname)∧(curname≢affected) ⋄ ⎕EX curname ⋄ :EndIf   ⍝ name changed
+                 U.Log msg,'updating previously linked ',affected,((0<≢curname)∧(curname≢affected))/' deleting previously defined ',curname
              :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)      ⍝ name was tied to a different file
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name

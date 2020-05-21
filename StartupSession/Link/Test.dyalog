@@ -869,7 +869,17 @@
       Breathe
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
+     
+      ⍝ attempt to refresh
+     
+      ⎕SE.Link.Expunge name∘,¨'.script' '.sub.script'  ⍝ BUG: mantis 18148 prevents refresh from working on scripts
+      ⎕SE.UCMD'z←]link.refresh ',name
+      'link issue #132'assert'∨/''Linked:''⍷z'
       {}⎕SE.Link.Break name
+     
+      3 ⎕NDELETE folder
+      {}⎕SE.UCMD']link.export ',name,' ',folder
+      'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' '
      
       CleanUp folder name
     ∇

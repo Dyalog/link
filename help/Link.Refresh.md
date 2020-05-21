@@ -7,7 +7,7 @@ In the latter case, it is preferable to modify workspace items with [Fix](Link.F
 
 #### Arguments
 
-- namespace
+- namespace(s)
 
 #### Options
 
@@ -22,4 +22,4 @@ In the latter case, it is preferable to modify workspace items with [Fix](Link.F
 
 #### Result
 
-On success an empty vector, else an error message.
+A status message

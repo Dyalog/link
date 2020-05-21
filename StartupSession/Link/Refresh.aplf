@@ -1,18 +1,23 @@
- msg←Refresh ns;link;nsref;⎕IO
+ msg←Refresh nss;ko;link;ns;nsref;ok;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     :If ~0∊⍴nsref←(0 U.GetRefTo)ns
-     :AndIf ~0∊⍴link←U.LookupRef nsref
-         {}Break nsref
-         link.source←'both'
-         msg←link Create nsref link.dir
-     :Else
-         msg←'Not linked: ',ns
-     :EndIf
+     :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
+     ok←ko←⍬
+     :For ns :In nss
+         ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+         :If ~0∊⍴nsref←(0 U.GetRefTo)ns
+         :AndIf ~0∊⍴link←U.LookupRef nsref
+             {}Break nsref
+             link.source←'both'
+             ok,←⊂link Create nsref link.dir
+         :Else
+             ko,←⊂'Not linked: ',ns
+         :EndIf
+     :EndFor
+     msg←1↓¯1↓⍕ko,ok
  :Else
      U.Resignal 1
  :EndTrap
