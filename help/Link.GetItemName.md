@@ -1,11 +1,13 @@
 # Link.GetItemName 
 
-Returns the name of the APL item that is linked to a file. See also [GetFileName](Link.GetFileName.md).
+Returns the name of the fully qualified APL item that is linked to a file. See also [GetFileName](Link.GetFileName.md).
 
 #### Arguments
 
-- file name
+- file name(s)
 
 #### Result
 
-- associated APL item name (or the empty vector if the argument does not name a linked file)
+- for each file name:
+  - if file does not exist or does not belong to a linked directory: empty vector
+  - otherwise : item name that the file is linked to

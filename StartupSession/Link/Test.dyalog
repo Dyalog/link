@@ -875,6 +875,14 @@
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
      
+      z←⎕SE.Link.GetFileName 1 NSTREE name
+      'link issue #128'assert'({⍵[⍋⍵]}z)≡({⍵[⍋⍵]} 1 NTREE folder)'
+      z←⎕SE.Link.GetItemName 1 NTREE folder
+      'link issue #128'assert'({⍵[⍋⍵]}z)≡({⍵[⍋⍵]} 1 NSTREE name)'
+      z←⎕SE.Link.GetFileName'⎕SE.nope' '⎕SE.nope.nope',name∘,¨'.nope' '.sub.nope' '.nope.nope'
+      z,←⎕SE.Link.GetItemName'/nope.nope' '/nope/nope.nope',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
+      assert'∧/z≡¨⊂'''' '
+     
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
       'link issue #132 and #133'assert'∨/''Linked:''⍷z'
@@ -1002,6 +1010,7 @@
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
+      Breathe  ⍝ not sure why need a breath here on windows/.netframework
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       name'sub.ns'⎕SE.Link.Fix nssrc

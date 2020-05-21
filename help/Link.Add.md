@@ -3,6 +3,6 @@ This function allows you to add an item to the link, creating the appropriate re
 
 #### Arguments
 
-- item name(s)
+- APL item name(s)
 
 #### Result

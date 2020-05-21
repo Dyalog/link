@@ -20,13 +20,16 @@
                      r[i]←⎕EX name
                  :Else
                      (parent name)←U.SplitNs name
-                     link←U.LookupRef parent←⍎parent
-                     (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
-                     r[i]←parent.⎕EX name
-                     :If 0<≢oldfile  ⍝ tied to file
-                         2 ⎕NDELETE oldfile
-                     :ElseIf ⎕NEXISTS file  ⍝ guess file name
-                         2 ⎕NDELETE file
+                     :If ~0∊⍴link←U.LookupRef parent←⍎parent
+                         (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
+                         r[i]←parent.⎕EX name  ⍝ do it before the watcher kicks in
+                         :If 0<≢oldfile  ⍝ tied to file
+                             2 ⎕NDELETE oldfile
+                         :ElseIf ⎕NEXISTS file  ⍝ guess file name
+                             2 ⎕NDELETE file
+                         :EndIf
+                     :Else
+                         r[i]←parent.⎕EX name
                      :EndIf
                  :EndIf
              :EndFor

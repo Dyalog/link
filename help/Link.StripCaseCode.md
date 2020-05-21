@@ -6,8 +6,8 @@ If you set up a *BeforeRead* hook when creating a Link, Link will allow your pro
 
 #### Arguments
 
-- filename(s)
+- file name(s)
 
 #### Result
 
-- filename(s) without case code
+- file name(s) without case code

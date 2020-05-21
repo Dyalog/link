@@ -1,4 +1,4 @@
- items←GetItemName files;names;ns;⎕IO
+ items←GetItemName files;actname;expname;file;i;link;names;nc;ns;scal;shape;where;⎕IO
  ⍝ Get APL names from file names
  ⍝ returns empty string for unlinked files
  :If U.debug=2
@@ -6,9 +6,24 @@
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
-     (ns names)←2↑↓⍉↑⎕SE.Link.U.CurrentAplName¨,⊆files
-     items←ns('.'U.JoinEach)names
-     items←⊃⍣(1≥|≡files)⊢items
+     container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+     :If U.HasLinks
+         :Hold '⎕SE.Link.Notify'
+             scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
+             :For i :In ⍳≢files
+                 :If ~0∊⍴link←U.LookupFile file←i⊃files
+                     link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents
+                     (where expname actname nc)←link U.DetermineAplName file
+                     (i⊃items)←(~nc∊0 ¯1)/where,'.',actname
+                 :Else
+                     (i⊃items)←''
+                 :EndIf
+             :EndFor
+             items←⊃⍣scal⊢shape⍴items
+         :EndHold ⍝ Notify
+     :Else
+         items←⊃⍣(1=≡,items)⊢(⍴⊆items)⍴⊂''
+     :EndIf
  :Else
      U.Resignal 1
  :EndTrap
