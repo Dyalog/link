@@ -1,4 +1,4 @@
- items←GetItemName files;actname;expname;file;i;link;names;nc;ns;scal;shape;where;⎕IO
+ items←GetItemName files;actname;container;expname;file;i;link;names;nc;ns;scal;shape;where;⎕IO
  ⍝ Get APL names from file names
  ⍝ returns empty string for unlinked files
  :If U.debug=2

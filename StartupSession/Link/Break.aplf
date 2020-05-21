@@ -27,16 +27,15 @@
          :For ns :In nss
              :If ~0∊⍴ns←there(0 U.GetRefTo)ns
              :AndIf ∨/deleted∨←mask←Linked ns
-                 :For link :In ∪mask/⎕SE.Link.Links
-                     FileSystemWatcher.Break link
-                     n+←U.RemoveFileTiesIn ns
-                 :EndFor
+                 n+←U.RemoveFileTiesIn ns
+                 FileSystemWatcher.Break∪mask/⎕SE.Link.Links
                  broken,←mask/linked
              :Else
                  missing,←⊂ns
              :EndIf
          :EndFor
          ⎕SE.Link.Links/⍨←~deleted
+
          msg←''
          :If ×≢broken
              msg,←⊂'Unlinked ',(⍕n),' items:',U.List∪broken

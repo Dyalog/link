@@ -104,7 +104,7 @@
           r←0
           :For (name parent nc file) :In 4↑¨remove
               name←⍕name  ⍝ first column may have refs
-              r+←parent QFix(file name 0)  ⍝ refix from file contents (because of mantis 18148)
+              r+←parent QFix(file name 0)  ⍝ refix from file contents because of mantis 18148
           :EndFor
       :EndIf
     ∇
@@ -187,7 +187,7 @@
       }
 
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO
-        ⍝ case-code a string
+    ⍝ case-code a string
       ⎕IO←0
       →0 If 0=≢name  ⍝ empty name doesn't get case coded
       bin←name≠819⌶name
@@ -197,13 +197,14 @@
       name,←'-',⎕D[digits,0/⍨⍬≡digits]
     ∇
     ∇ name←StripCaseCodePart name;code;length;mask;⎕IO
-        ⍝ strip case code from a string
+    ⍝ strip case code from a string
       ⎕IO←0
       length←(⌽name)⍳'-'
       →0 If length∊0,≢name   ⍝ case code must be after hyphen
       code←⎕D⍳(-length)↑name
       name←((-length+1)↓name)
       →0 If code∨.>7         ⍝ case code must be octal digits
+      →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
       mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
       →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
       name←((≢name)↑mask)Case name
