@@ -4,8 +4,7 @@
 ⍝ For example:
 ⍝   Run 'c:\tmp\linktest'
 
-    ⍝ TODO - See ⎕SE.Link.Version too
-    ⍝ - Notify should not quit early on invalid file content because it might be handled by user
+    ⍝ TODO
     ⍝ - test quadVars.apln produced by Acre
     ⍝   ':Namespace quadVars'  '##.(⎕IO ⎕ML ⎕WX)←0 1 3'  ':EndNamespace'
     ⍝ - test ⎕SE.Link.Add '⎕IO', and that subsequent script fix observed it (⎕SIGNAL (⎕IO≠0)/11)
@@ -19,6 +18,12 @@
     ⍝ - case-code+flatten (on sub-directories)
     ⍝ - test UCMD's with modifiers
     ⍝ - test basic git usage
+
+    ⍝ TODO test ⎕ED :
+    ⍝ test renaming a function in ⎕ED (to an existing name and to a non-existing name)
+    ⍝ test changing nameclass in ⎕ED
+    ⍝ test updating a function with stops
+
 
 
     :Section Main entry point and global settings
@@ -871,15 +876,15 @@
       Breathe
      
       ⍝ attempt to refresh
-     
-      ⎕SE.Link.Expunge name∘,¨'.script' '.sub.script'  ⍝ BUG: mantis 18148 prevents refresh from working on scripts
       ⎕SE.UCMD'z←]link.refresh ',name
-      'link issue #132'assert'∨/''Linked:''⍷z'
+      'link issue #132 and #133'assert'∨/''Linked:''⍷z'
       {}⎕SE.Link.Break name
+      assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
      
+      ⍝ attempt to export
       3 ⎕NDELETE folder
       {}⎕SE.UCMD']link.export ',name,' ',folder
-      'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' '
+      'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
       CleanUp folder name
     ∇

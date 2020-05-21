@@ -83,7 +83,7 @@
           ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
           ⍵∘⊃¨5177⌶⍬
       }
-    Untie←{0=⎕NC'⍺':_←5178⌶⍵ ⋄ ⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file
+    Untie←{0=⎕NC'⍺':_←5178⌶⍵ ⋄ ⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
     ∇ r←GetFileTiesIn rootns;all;allrefs;urefs;mask;t;remove
      ⍝ Find all file system links to objects below rootns
       allrefs←2⊃¨all←5177⌶⍬
@@ -96,11 +96,16 @@
           :EndRepeat ⋄ :EndIf
       r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
     ∇
-    ∇ r←RemoveFileTiesIn rootns;all;allrefs;mask;ok;remove;t;urefs
+    ∇ r←RemoveFileTiesIn rootns;all;allrefs;file;mask;name;nc;ok;parent;remove;t;urefs
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken
       :If 0≠r←≢remove←GetFileTiesIn rootns ⍝ links to be removed
-          r←+/ok←(⍎¨⍕¨2⊃¨remove)Untie¨(⍕¨1⊃¨remove)   ⍝ need ⍎¨⍕¨ on the left argument because of mantis 18147
+          ⍝r←+/ok←(⍎¨⍕¨2⊃¨remove)Untie¨(⍕¨1⊃¨remove)   ⍝ need ⍎¨⍕¨ on the left argument because of mantis 18147
+          r←0
+          :For (name parent nc file) :In 4↑¨remove
+              name←⍕name  ⍝ first column may have refs
+              r+←parent QFix(file name 0)  ⍝ refix from file contents (because of mantis 18148)
+          :EndFor
       :EndIf
     ∇
     ∇ r←ViewMetaData mode
