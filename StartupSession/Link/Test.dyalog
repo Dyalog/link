@@ -863,6 +863,14 @@
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
       {}⎕SE.Link.Break name
      
+      ⍝ attempt to change a function to an operator
+      {}⎕SE.Link.Create name folder
+      name'foo'⎕SE.Link.Fix' r←(op foo) arg' ' r←op arg' ⍝ turn foo into an operator
+      Breathe
+      {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
+      Breathe
+      {}⎕SE.Link.Break name
+     
       CleanUp folder name
     ∇
 

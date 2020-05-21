@@ -31,7 +31,8 @@ NOHOLD:
              (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src  ⍝ fix in target ns
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
-                 (⊂ns.⎕NR oldname)⎕NPUT oldfile 1
+                 (⊂ns.⎕NR oldname)⎕NPUT oldfile 1  ⍝ editor overwrites oldfile with new definition
+                 ns U.Untie name  ⍝ editor ties newname to oldfile
                  :If ~watch  ⍝ FileSystemWatcher should do this for us
                      2 ns.⎕FIX'file://',oldfile
                  :EndIf
