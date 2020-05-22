@@ -455,7 +455,7 @@
       opts←⎕NS ⍬
       opts.source←'ns'
       {}opts ⎕SE.Link.Create name folder
-      assert '(⊂,⊂folder,''/goo.aplf'')≡(⎕NINFO⍠1⊢folder,''/*'')'     
+      assert'(⊂,⊂folder,''/goo.aplf'')≡(⎕NINFO⍠1⊢folder,''/*'')'
       CleanUp folder name
       r←0
     ∇
@@ -597,7 +597,7 @@
       :EndIf
     ∇
 
-    ∇ {msg}assert args;clean;expr;maxwait;end;timeout;txt
+    ∇ {txt}←{msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
      
       :If STOP_TESTS
@@ -616,7 +616,7 @@
       :If 900⌶⍬ ⍝ Monadic
           msg←'assertion failed'
       :EndIf
-      :If ~timeout ⋄ :Return ⋄ :EndIf
+      :If ~timeout ⋄ txt←'' ⋄ :Return ⋄ :EndIf
      
       txt←msg,': ',expr,' at ',(2⊃⎕SI),'[',(⍕2⊃⎕LC),']'
       :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?
@@ -669,6 +669,149 @@
           (⊂src)NPUT(∊(extn@3)⎕NPARTS file)1
           r←0 ⍝ We're done; Link doesn't need to do any more
       :EndIf
+    ∇
+
+
+      assert_create←{  ⍝ ⍺=newapl ⋄ ⍵=newfile
+          _←assert(⍺/'new'),'var≡⍎subname,''.var'''
+          _←assert(⍺/'new'),'foosrc≡⎕NR subname,''.foo'''
+          _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''
+          _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
+          _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+          _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
+      }
+
+    ∇ r←test_create folder;foosrc;name;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;subfolder;subname;var;varsrc;z
+      r←0 ⋄ opts←⎕NS ⍬
+      ⎕EX name←'#.',2⊃⎕NPARTS folder
+     
+      ⍝ test failing creations
+      3 ⎕NDELETE folder ⋄ opts.source←'dir'
+      z←opts ⎕SE.Link.Create name folder
+      assert'∨/''not found''⍷z'
+      ⎕EX name ⋄ opts.source←'ns'
+      z←opts ⎕SE.Link.Create name folder
+      assert'∨/''not found''⍷z'
+      assert'0=≢⎕SE.Link.Links'
+     
+      ⍝ test source=dir watch=dir
+      opts.source←'dir' ⋄ opts.watch←'dir'
+      2 ⎕MKDIR folder
+      2 ⎕MKDIR subfolder←folder,'/sub' ⋄ subname←name,'.sub'
+      (⊂foosrc←' r←foo x' ' ⍝ comment' ' r←''foo''x')∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
+      (⊂varsrc←,↓⎕SE.Link.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
+      (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
+      z←opts ⎕SE.Link.Create name folder
+      assert'''Linked:''≡7↑z'
+      assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
+      assert'foosrc∘≡¨⎕NR¨name subname,¨⊂''.foo'''
+      assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
+      ⍝ watch=dir must reflect changes from files to APL
+      {}(⊂newvarsrc←,↓⎕SE.Link.Serialise newvar←((⊂'world')@2)¨var)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newfoosrc←(⊂' ⍝ new comment')@2⊢foosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newnssrc←(⊂' ⍝ new comment')@2⊢nssrc)QNPUT(subfolder,'/ns.apln')1
+      1 assert_create 1
+      ⍝ watch=dir must not reflect changes from APL to files
+      subname'var'⎕SE.Link.Fix varsrc
+      subname'foo'⎕SE.Link.Fix foosrc
+      subname'ns'⎕SE.Link.Fix nssrc
+      Breathe
+      0 assert_create 1
+      {}⎕SE.Link.Break name ⋄ ⎕EX name  ⍝ expunge whole linked namespace
+     
+     
+      ⍝ now try source=dir watch=ns
+      opts.source←'dir' ⋄ opts.watch←'ns'
+      {}opts ⎕SE.Link.Create name folder
+      1 assert_create 1
+      ⍝ APL changes must be reflected to file
+      subname'var'⎕SE.Link.Fix varsrc
+      subname'foo'⎕SE.Link.Fix foosrc
+      subname'ns'⎕SE.Link.Fix nssrc
+      0 assert_create 0
+      ⍝ file changes must not be reflected back to APL
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      Breathe
+      0 assert_create 1
+      {}⎕SE.Link.Break name ⋄ ⎕EX name  ⍝ expunge whole linked namespace
+     
+      ⍝ now try source=dir watch=none
+      opts.source←'dir' ⋄ opts.watch←'none'
+      {}opts ⎕SE.Link.Create name folder
+      1 assert_create 1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      Breathe
+      1 assert_create 0
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      Breathe
+      1 assert_create 1
+      subname'var'⎕SE.Link.Fix varsrc
+      subname'foo'⎕SE.Link.Fix foosrc
+      subname'ns'⎕SE.Link.Fix nssrc
+      Breathe
+      0 assert_create 1
+      {}⎕SE.Link.Break name
+      3 ⎕NDELETE folder
+     
+      ⍝ now try source=ns watch=dir
+      opts.source←'ns' ⋄ opts.watch←'dir'
+      {}opts ⎕SE.Link.Create name folder
+      0 assert_create 0
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      1 assert_create 1
+      Breathe  ⍝ not sure why need a breath here on windows/.netframework
+      subname'var'⎕SE.Link.Fix varsrc
+      subname'foo'⎕SE.Link.Fix foosrc
+      subname'ns'⎕SE.Link.Fix nssrc
+      Breathe
+      0 assert_create 1
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+     
+      ⍝ now try source=ns watch=ns
+      opts.source←'ns' ⋄ opts.watch←'ns'
+      {}opts ⎕SE.Link.Create name folder
+      0 assert_create 0
+      subname'var'⎕SE.Link.Fix newvarsrc
+      subname'foo'⎕SE.Link.Fix newfoosrc
+      subname'ns'⎕SE.Link.Fix newnssrc
+      1 assert_create 1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      Breathe
+      1 assert_create 0
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+     
+      ⍝ now try source=ns watch=none
+      opts.source←'ns' ⋄ opts.watch←'none'
+      {}opts ⎕SE.Link.Create name folder
+      1 assert_create 1
+      subname'var'⎕SE.Link.Fix varsrc
+      subname'foo'⎕SE.Link.Fix foosrc
+      subname'ns'⎕SE.Link.Fix nssrc
+      Breathe
+      0 assert_create 1
+      subname'var'⎕SE.Link.Fix newvarsrc
+      subname'foo'⎕SE.Link.Fix newfoosrc
+      subname'ns'⎕SE.Link.Fix newnssrc
+      1 assert_create 1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      Breathe
+      1 assert_create 0
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+     
+     
+      CleanUp folder name
     ∇
 
 :EndNamespace
