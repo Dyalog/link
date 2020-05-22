@@ -298,7 +298,7 @@
       ⍝ Update array using Link.Fix
       ns.one2←⌽ns.one2
       ns'one2'⎕SE.Link.Fix''
-      assert'ns.one2≡⎕SE.Link.Array.Deserialise ⊃⎕NGET o2file 1'
+      assert'ns.one2≡⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET o2file 1'
      
       ⍝ Rename the array
       Breathe
@@ -662,7 +662,7 @@
      
       ⍝ check apl rename on-the-fly
       Breathe
-      var←⎕SE.Link.Array.Serialise⍳2 3
+      var←⎕SE.Dyalog.Array.Serialise⍳2 3
       {}(⊂var)QNPUT(folder,'/NotDupDup1.aplf')1
       assert'0=⎕NC name,''.DupDup1'''     ⍝ ideal
       ⍝assert'fn≡⎕NR name,''.DupDup1'''   ⍝ arguable
@@ -712,7 +712,7 @@
      
       ⍝ Test that explicit Fix updates the right file
       assert'0 0≡⎕NEXISTS varfile fnfile'
-      name'HeLLo'⎕SE.Link.Fix ⎕SE.Link.Array.Serialise var
+      name'HeLLo'⎕SE.Link.Fix ⎕SE.Dyalog.Array.Serialise var
       name'OhMyOhMy'⎕SE.Link.Fix fn
       assert'var≡',name,'.HeLLo'
       assert'fn≡⎕NR''',name,'.OhMyOhMy'''
@@ -720,7 +720,7 @@
      
       ⍝ Test that explicit Notify update the right name
       name Watch 0
-      {}(⊂⎕SE.Link.Array.Serialise var←⍳6 7)QNPUT varfile 1
+      {}(⊂⎕SE.Dyalog.Array.Serialise var←⍳6 7)QNPUT varfile 1
       {}(⊂fn←' r←OhMyOhMy(oh my)' ' r←(oh my)(oh my)')QNPUT fnfile 1
       ⎕SE.Link.Notify'changed'varfile
       ⎕SE.Link.Notify'changed'fnfile
@@ -942,7 +942,7 @@
       2 ⎕MKDIR folder
       2 ⎕MKDIR subfolder←folder,'/sub' ⋄ subname←name,'.sub'
       (⊂foosrc←' r←foo x' ' ⍝ comment' ' r←''foo''x')∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
-      (⊂varsrc←⎕SE.Link.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
+      (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
       z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
@@ -950,7 +950,7 @@
       assert'foosrc∘≡¨⎕NR¨name subname,¨⊂''.foo'''
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
       ⍝ watch=dir must reflect changes from files to APL
-      {}(⊂newvarsrc←⎕SE.Link.Array.Serialise newvar←((⊂'world')@2)¨var)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'world')@2)¨var)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc←(⊂' ⍝ new comment')@2⊢foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc←(⊂' ⍝ new comment')@2⊢nssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
