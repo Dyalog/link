@@ -1,4 +1,4 @@
- {linked}←where Fix src;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;oldfile;oldname;this;update;watch;⎕IO;added;XSI;RSI
+ {linked}←where Fix src;RSI;XSI;added;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;update;watch;⎕IO
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -15,20 +15,27 @@
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
      →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
-NOHOLD:
+         NOHOLD:
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
          this←⊃RSI XSI U.ContainerNs ns
-         nsname←⍕ns←this(0 U.GetRefTo)ns
+         nsname←⍕nsref←this(0 U.GetRefTo)ns
 
-         :If linked←~0∊⍴link←U.LookupRef ns
+         :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
+
+         :If linked←~0∊⍴link←U.LookupRef ns←nsref
 
              update←added∨'ns' 'both'∊⍨⊂link.watch  ⍝ update files if watching namespace or explicitly added
              watch←'both' 'dir'∊⍨⊂link.watch  ⍝ watching files
 
              (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src  ⍝ fix in target ns
+
+             :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
+             :ElseIf (0=nc)∧(~0∊⍴src) ⋄ U.Error'Invalid source for ',nsname,'.',name,': ',⍕src
+             :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
+             :EndIf
 
              :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
                  (⊂ns.⎕NR oldname)⎕NPUT oldfile 1  ⍝ editor overwrites oldfile with new definition
@@ -59,7 +66,7 @@ NOHOLD:
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                      (⊂src)⎕NPUT file 1
                  :Else
-                     1 U.Resignal⍨' *** ⎕SE.Link.Fix: Unable to write "',nsname,'.',name,'" to file: "',file,'"'
+                     U.Error'Unable to write "',nsname,'.',name,'" to file: "',file,'"'
                  :EndTrap
 
                  :If ~watch  ⍝ bind name to new file unless the filewatcher does it for us
@@ -67,7 +74,7 @@ NOHOLD:
                          :Trap 0
                              2 ns.⎕FIX'file://',file
                          :Else
-                             1 U.Resignal⍨' *** ⎕SE.Link.Fix: Unable to re-fix "',nsname,'.',name,'" from file: "',file,'"'
+                             U.Error'Unable to re-fix "',nsname,'.',name,'" from file: "',file,'"'
                          :EndTrap
                      :Else
                          fix←~nosrc  ⍝ source was specified - need to update actual variable
@@ -82,7 +89,7 @@ NOHOLD:
              :EndIf
 
              :If fix ⋄ :AndIf ¯1 0∊⍨2⊃ns U.Fix name src
-                 U.Error' *** ⎕SE.Link.Fix: Unable to fix "',nsname,'.',name,'" from source: ',⍕src
+                 ##.U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
              :EndIf
          :EndIf
      :EndHold ⍝ 'Notify'

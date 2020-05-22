@@ -68,9 +68,9 @@
              :EndIf
          :EndIf
 
-         :If 0=≢nsref
-             →END⊣U.Warn msg,'file does not reflect in a valid namespace'
-         :ElseIf (deleted∨~link.fastLoad)∧(nc∊¯1 0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
+         :If 0=≢nsref ⋄ →END⊣U.Warn msg,'file does not reflect in a valid namespace'
+         :ElseIf (nc=¯1) ⋄ →END⊣U.Warn msg,'invalid name defined by file: ',path
+         :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              →END⊣U.Log msg,(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
          :EndIf
 

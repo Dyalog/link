@@ -14,13 +14,13 @@
       :EndTrap
     ∇
     (CanWatch DotNetCore)←_CanWatch ⍝ cache result
+    ⍝ constants with defaults
     ∇ d←debug
-      :If 0=⎕NC'##.DEBUG'
-          d←##.DEBUG←0
-      :Else
-          d←##.DEBUG
+      :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
+      :Else ⋄ d←##.DEBUG
       :EndIf
     ∇
+
     :EndSection
 
 
@@ -38,7 +38,11 @@
         Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
     If←⍴⍨
     ERRNO←99              ⍝ official API error number
-    Error←⎕SIGNAL∘ERRNO
+    ∇ {errno}Error msg;caller
+      :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
+      caller←(1++/⎕SE.Link IsParent¨⎕RSI)⊃⎕XSI  ⍝ outer caller from ⎕SE.Link
+      (caller,': ',msg)⎕SIGNAL errno
+    ∇
     :EndSection
 
 
@@ -420,7 +424,7 @@
           :Select nc
           :Case 2.1 ⍝ variable
               :Trap 11 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
-              :Else ⋄ Error'Unsupported array: ',(⍕ns),'.',name
+              :Else ⋄ Error'Array cannot be serialised: ',(⍕ns),'.',name
               :EndTrap
           :CaseList 3.1 3.2 4.1 4.2 ⋄ src←ns.⎕NR name ⍝ tradfn/dfn/tradop/dop
           :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
@@ -506,15 +510,15 @@
       :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
-      :If (0∊⍴src)∨(src≡0)  ⍝ no information about item - item must exist
+      :If 0∊⍴src  ⍝ no information about item - item must exist
           nc←ref NameClass name  ⍝ no source : item must exist
-          :If 0=nc ⋄ Log'Source of name ',where,'.',name,' doesn''t exist' ⋄ :EndIf
-      :ElseIf 0=≡src ⋄ nc←src ⍝ (non-zero) name class is given
+          ⍝:If 0=nc ⋄ Warn'Source of name ',where,'.',name,' doesn''t exist' ⋄ :EndIf
+      :ElseIf 0=≡src ⋄ nc←src ⍝ name class is given
       ⍝:ElseIf opts.fastLoad ⋄ nc←0  ⍝ nope - fastLoad is used only by FixFiles which then shouldn't call DetermineFileName
       :Else   ⍝ infer name class from (non-empty) source
           (name nc)←Fix name src  ⍝ fix in dummy namespace
       :EndIf
-      :If nc=¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid
+      :If nc∊0 ¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid source or name
       ⍝ trad namespace are given name class ¯9
       :If isroot←nc=¯9 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file                   ⍝ no existing file name for it
@@ -577,7 +581,7 @@
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
-    ⍝ nc is name class of name
+    ⍝ nc is name class of name - returns ¯1 on invalid name and 0 on invalid/missing source
     ⍝ opts cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If fastLoad ⋄ src←''     ⍝ do not spend time inspecting source
@@ -748,10 +752,11 @@
 
     :Section UI
 
+
     ∇ {msg}←{header}Warn msg
     ⍝ Warn user
       :If 900⌶⍬ ⋄ header←']Link Warning: ' ⋄ :EndIf
-      ⎕←msg←↑header∘,¨@1⊢,⊆,msg
+      ⎕←header,msg
     ∇
 
     ∇ {msg}←Log msg

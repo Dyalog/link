@@ -20,9 +20,11 @@
     ⍝ - test basic git usage
 
     ⍝ TODO test ⎕ED :
-    ⍝ - test renaming a function in ⎕ED (to an existing name and to a non-existing name)
-    ⍝ - test changing nameclass in ⎕ED
-    ⍝ - test updating a function with stops
+    ⍝ - renaming a function in ⎕ED (to an existing name and to a non-existing name)
+    ⍝ - changing nameclass in ⎕ED
+    ⍝ - updating a function with stops
+    ⍝ - changing valid source to invalid source (e.g. 'r←foo;')
+    ⍝ - editiing a new name and giving it invalid source
 
 
 
@@ -56,7 +58,7 @@
      
       :If 0≠⎕NC'test_filter'
           pause_tests←(⊂'pause')∊test_filter
-          tests←(1∊¨test_filter∘⍷¨tests)/tests
+          tests←(∨⌿1∊¨(,⊆test_filter)∘.⍷tests)/tests
       :EndIf
      
       →(0=≢folder←Setup FOLDER NAME)⍴0
@@ -160,7 +162,7 @@
 
 
 
-    ∇ r←test_failures(folder name);opts
+    ∇ r←test_failures(folder name);opts;z
       r←0
      
       'not found'assertMsg'⎕SE.Link.Export''#.',name,'.ns_not_here'' ''',folder,''''
@@ -173,6 +175,23 @@
       opts←⎕NS''
       opts.source←'dir'
       'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,''' ''',folder,'/dir_not_here'''
+     
+      name ⎕NS''
+      opts←⎕NS'' ⋄ opts.source←'ns'
+      {}opts ⎕SE.Link.Create name folder
+      assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
+      assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
+      assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
+      assertError(' ''¯1'' ''foo'' ⎕SE.Link.Fix '''' ')('Not a namespace')
+     
+      z←name'foo'⎕SE.Link.Fix,⊂'foo←{1 2 3}'
+      assert'z≡1'
+      z←'#' 'foo'⎕SE.Link.Fix,⊂'foo←{1 2 3}'
+      assert'z≡0'
+      Breathe ⍝ windows needs some time to clean up the file ties
+     
+      {}⎕SE.Link.Break name        
+      CleanUp folder name
     ∇
 
 
@@ -559,13 +578,7 @@
      
       ⍝ open it back without case coding and with forcefilenames - must fail
       opts.forceFilenames←1
-      :Trap ⎕SE.Link.U.ERRNO
-          {}opts ⎕SE.Link.Import name folder
-          assert'0'
-          ⎕EX name
-      :Else
-          assert'∨/''clashing file names''⍷⊃⎕DM'
-      :EndTrap
+      assertError'opts ⎕SE.Link.Import name folder' 'clashing file names'
      
       opts.caseCode←1
       {}⎕SE.Link.Create name folder
@@ -573,13 +586,7 @@
      
       ⍝ survive clashing apl definitions despite different filenames
       {}(⊂'r←foo x' 'r←''foo'' x')∘QNPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
-      :Trap ⎕SE.Link.U.ERRNO
-          {}opts ⎕SE.Link.Create name folder
-          assert'0'
-          ⎕SE.Link.Break name
-      :Else
-          assert'∨/''clashing APL names''⍷⊃⎕DM'
-      :EndTrap
+      assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
       {}QNDELETE¨1↓files
      
       ⍝ forcefilename will rename file with proper casecoding
@@ -629,13 +636,7 @@
       ⍝ survive clashing apl definitions despite different filenames
       {}(⊂'r←goo x' 'r←''goo'' x')∘QNPUT¨files←folder∘,¨'/goo.apla' '/goo.apln'
       {}(⊂'r←hoo x' 'r←''hoo'' x')QNPUT folder,'/hoo.aplf'  ⍝ this one should remain as is
-      :Trap ⎕SE.Link.U.ERRNO
-          {}opts ⎕SE.Link.Create name folder
-          assert'0'
-          ⎕SE.Link.Break name
-      :Else
-          assert'∨/''clashing APL names''⍷⊃⎕DM'
-      :EndTrap
+      assertError'{}opts ⎕SE.Link.Create name folder' 'clashing APL names'
       {}QNDELETE¨1↓files
      
       ⍝ check forceextensions - should not enforce casecoding
@@ -672,7 +673,7 @@
      
       ⍝ can't rename because it would clash
       Breathe
-      var2←⎕SE.Link.Array.Serialise⍳3 2
+      var2←⎕SE.Dyalog.Array.Serialise⍳3 2
       {}(⊂var2)QNPUT(folder,'/NotDupDup1.aplf')1
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'(⍳2 3)≡',name,'.NotDupDup1'
@@ -688,7 +689,7 @@
       fn←' r←YetAnother' ' r←YetAnother'
       {}(⊂fn)QNPUT folder,'/YetAnother.aplf'
       assert'fn≡⎕NR name,''.YetAnother'''
-      var←⎕SE.Link.Array.Serialise⍳3 4
+      var←⎕SE.Dyalog.Array.Serialise⍳3 4
       {}(⊂var)QNPUT folder,'/YetAnother.apla'
       Breathe
       assert'fn≡⎕NR name,''.YetAnother'''
@@ -814,12 +815,11 @@
       assert'~∨/''failed''⍷z'
      
       ⍝ link issue #109 : fixing invalid function makes it disappear
-      unlikelyname←name,'.unlikelyname'
-      name'unlikelyname'⎕SE.Link.Fix newbody←'unlikelyname x;' '⎕←x'
-      'link issue #109'assert'newbody≡⊃⎕NGET unlikelyfile 1'    ⍝ changes put back to file
-      'link issue #109'assert'unlikelyfn≡⎕NR unlikelyname'  ⍝ fix failed
-      ⍝ TODO : check that editor reads back from file - as ov v2.1.0-alpha this is the case
-      'link issue #109'assert'unlikelyfile≡4⊃5179⌶ name,''.unlikelyname''' ⍝ still tied : is a good sign that editor will read from file next time
+      unlikelyname←name,'.unlikelyname' ⋄ newbody←'unlikelyname x;' '⎕←x'
+      'link issue #109'assertError('name ''unlikelyname''⎕SE.Link.Fix newbody ')('Invalid source')
+      'link issue #109'assert'unlikelyfn≡⊃⎕NGET unlikelyfile 1'    ⍝ changes not put back to file
+      'link issue #109'assert'unlikelyfn≡⎕NR unlikelyname'         ⍝ fix failed
+      'link issue #109'assert'unlikelyfile≡4⊃5179⌶ name,''.unlikelyname''' ⍝ still tied
      
       ⍝ link issue #108 : UCMD returned empty
       'link issue #108'assert'(⎕SE.UCMD '']Link.GetFileName '',unlikelyname)≡,⊂⎕SE.Link.GetFileName unlikelyname'
@@ -828,8 +828,8 @@
       opts←⎕NS ⍬
       opts.watch←'dir'
       opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
+      (⊂newbody)⎕NPUT unlikelyfile 1  ⍝ make it invalid source
       {}opts ⎕SE.Link.Create name folder
-      ⍝ unlikelyname can't fix because of previous test
       assert'⎕SE.Link.Links.inFail≡,⊂,⊂unlikelyfile'
       name⍎'var←1 2 3'
       {}⎕SE.Link.Add name,'.var'
@@ -1203,7 +1203,17 @@
           ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
       }
 
-    ∇ {msg}assert args;clean;expr;maxwait;end;timeout;txt
+    ∇ {txt}←{msg}assertError args;errmsg;errno;expr
+      :If 900⌶⍬ ⋄ msg←⊢ ⋄ :EndIf
+      (expr errmsg errno)←(⊆args),(≢⊆args)↓'' ''⎕SE.Link.U.ERRNO
+      :Trap errno
+          {}⍎expr
+          txt←msg assert'0'
+      :Else
+          txt←msg assert'∨/errmsg⍷⊃⎕DM'  ⍝ always true if errmsg≡''
+      :EndTrap
+    ∇
+    ∇ {txt}←{msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
      
       :If STOP_TESTS
@@ -1222,7 +1232,7 @@
       :If 900⌶⍬ ⍝ Monadic
           msg←'assertion failed'
       :EndIf
-      :If ~timeout ⋄ :Return ⋄ :EndIf
+      :If ~timeout ⋄ txt←'' ⋄ :Return ⋄ :EndIf
      
       txt←msg,': ',expr,' ⍝ at ',(2⊃⎕XSI),'[',(⍕2⊃⎕LC),']'
       :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?

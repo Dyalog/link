@@ -69,7 +69,7 @@
           end←Timeout+3⊃⎕AI
           :While 0=⎕NC q     ⍝ Wait for thread to create the Timer object
               :If end<3⊃⎕AI
-                  'WatcherThread did not create Timer object'⎕SIGNAL 11
+                  ##.U.Warn'WatcherThread did not create Timer object'
               :EndIf
               ⎕DL 0.05
           :EndWhile
@@ -94,14 +94,14 @@
               end←Timeout+3⊃⎕AI
               :While ∨/tids∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
                   :If end<3⊃⎕AI
-                      ('WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request')⎕SIGNAL 11
+                      ##.U.Warn'WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request'
                   :EndIf
                   ⎕DL 0.1
               :EndWhile
               ⎕EX links.fsw.QUEUE
           :Else ⍝ fsw should be a real FSW object
               mask←0≠links.fsw.⎕NC⊂⊂'Dispose'
-              :If ~∧/mask ⋄ ##.U.Warn'FileSystemWatcher: no Dispose method' ⋄ :EndIf
+              :If ~∧/mask ⋄ ##.U.Log'FileSystemWatcher: no Dispose method' ⋄ :EndIf
               :If ∨/mask
                   (mask/links).fsw.EnableRaisingEvents←0
                   ⎕DL 0.1 ⍝ Give any extant events time to be processed
