@@ -15,7 +15,7 @@
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
      →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
-         NOHOLD:
+NOHOLD:
          nosrc←0=≢src
          (ns name oldname)←3↑where,'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
@@ -60,7 +60,7 @@
                  →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)nc(nsname,'.',oldname)src
              :EndIf
 
-             fix←0
+             fix←~nosrc ⍝ no need to update if source was read from APL
              :If update  ⍝ file system must reflect changes
                  :Trap 0
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
@@ -68,24 +68,10 @@
                  :Else
                      U.Error'Unable to write "',nsname,'.',name,'" to file: "',file,'"'
                  :EndTrap
-
-                 :If ~watch  ⍝ bind name to new file unless the filewatcher does it for us
-                     :If 2≠⌊nc   ⍝ interpreter binds it for us - no need to fix from source
-                         :Trap 0
-                             2 ns.⎕FIX'file://',file
-                         :Else
-                             U.Error'Unable to re-fix "',nsname,'.',name,'" from file: "',file,'"'
-                         :EndTrap
-                     :Else
-                         fix←~nosrc  ⍝ source was specified - need to update actual variable
-                     :EndIf
-                 :EndIf
-
+                 fix∧←~watch  ⍝ filewatcher will tie the file for us
                  :If delete  ⍝ old file must be removed
                      ⎕NDELETE oldfile
                  :EndIf
-             :Else  ⍝ just update APL
-                 fix←~nosrc  ⍝ unless we just read source from APL
              :EndIf
 
              :If fix ⋄ :AndIf ¯1 0∊⍨2⊃ns U.Fix name src

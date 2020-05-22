@@ -190,7 +190,7 @@
       assert'z≡0'
       Breathe ⍝ windows needs some time to clean up the file ties
      
-      {}⎕SE.Link.Break name        
+      {}⎕SE.Link.Break name
       CleanUp folder name
     ∇
 
@@ -917,12 +917,12 @@
 
 
       assert_create←{  ⍝ ⍺=newapl ⋄ ⍵=newfile
-          assert(⍺/'new'),'var≡⍎subname,''.var'''
-          assert(⍺/'new'),'foosrc≡⎕NR subname,''.foo'''
-          assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''
-          assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
-          assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
-          assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
+          _←assert(⍺/'new'),'var≡⍎subname,''.var'''
+          _←assert(⍺/'new'),'foosrc≡⎕NR subname,''.foo'''
+          _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''
+          _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
+          _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+          _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
     ∇ r←test_create(folder name);foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;subfolder;subname;var;varsrc;z
@@ -957,7 +957,7 @@
       ⍝ watch=dir must not reflect changes from APL to files
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
-      name'sub.ns'⎕SE.Link.Fix nssrc
+      subname'ns'⎕SE.Link.Fix nssrc
       Breathe
       0 assert_create 1
       z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
@@ -970,7 +970,7 @@
       ⍝ APL changes must be reflected to file
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
-      name'sub.ns'⎕SE.Link.Fix nssrc
+      subname'ns'⎕SE.Link.Fix nssrc
       0 assert_create 0
       ⍝ file changes must not be reflected back to APL
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
@@ -996,7 +996,7 @@
       1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
-      name'sub.ns'⎕SE.Link.Fix nssrc
+      subname'ns'⎕SE.Link.Fix nssrc
       Breathe
       0 assert_create 1
       {}⎕SE.Link.Break name
@@ -1005,6 +1005,7 @@
       ⍝ now try source=ns watch=dir
       opts.source←'ns' ⋄ opts.watch←'dir'
       {}opts ⎕SE.Link.Create name folder
+      {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       0 assert_create 0
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
@@ -1013,7 +1014,7 @@
       Breathe  ⍝ not sure why need a breath here on windows/.netframework
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
-      name'sub.ns'⎕SE.Link.Fix nssrc
+      subname'ns'⎕SE.Link.Fix nssrc
       Breathe
       0 assert_create 1
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
@@ -1021,10 +1022,11 @@
       ⍝ now try source=ns watch=ns
       opts.source←'ns' ⋄ opts.watch←'ns'
       {}opts ⎕SE.Link.Create name folder
+      {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       0 assert_create 0
       subname'var'⎕SE.Link.Fix newvarsrc
       subname'foo'⎕SE.Link.Fix newfoosrc
-      name'sub.ns'⎕SE.Link.Fix newnssrc
+      subname'ns'⎕SE.Link.Fix newnssrc
       1 assert_create 1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
@@ -1036,15 +1038,16 @@
       ⍝ now try source=ns watch=none
       opts.source←'ns' ⋄ opts.watch←'none'
       {}opts ⎕SE.Link.Create name folder
+      {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
-      name'sub.ns'⎕SE.Link.Fix nssrc
+      subname'ns'⎕SE.Link.Fix nssrc
       Breathe
       0 assert_create 1
       subname'var'⎕SE.Link.Fix newvarsrc
       subname'foo'⎕SE.Link.Fix newfoosrc
-      name'sub.ns'⎕SE.Link.Fix newnssrc
+      subname'ns'⎕SE.Link.Fix newnssrc
       1 assert_create 1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
