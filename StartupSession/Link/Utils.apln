@@ -437,18 +437,24 @@
       :EndTrap
     ∇
 
-    ∇ (name nc)←{where}Fix(name src);file;invalid;names;nc;unnamed
+    ∇ (name nc)←{where}Fix(name src);file;invalid;names;nc;stops;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9 if trad namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
       :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
       ⍝ attempt to fix as named script because this is the most commly expected format
+      :If (⌊where.⎕NC⊂name)∊3 4 ⋄ stops←where.⎕STOP name  ⍝ remember stops
+      :Else ⋄ stops←⍬
+      :EndIf
       :Trap 11
           ⍝ actual apl name may be different from what was expected
           names←2 where.⎕FIX src  ⍝ fn/op/script - can work from file
           :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
+          :EndIf
+          :If ((⌊nc)∊3 4)∧(~0∊⍴stops)  ⍝ restore stops
+              stops where.⎕STOP name
           :EndIf
           :Return  ⍝ named script fixed
       :Else

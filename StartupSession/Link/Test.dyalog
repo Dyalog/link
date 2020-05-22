@@ -20,9 +20,9 @@
     ⍝ - test basic git usage
 
     ⍝ TODO test ⎕ED :
-    ⍝ test renaming a function in ⎕ED (to an existing name and to a non-existing name)
-    ⍝ test changing nameclass in ⎕ED
-    ⍝ test updating a function with stops
+    ⍝ - test renaming a function in ⎕ED (to an existing name and to a non-existing name)
+    ⍝ - test changing nameclass in ⎕ED
+    ⍝ - test updating a function with stops
 
 
 

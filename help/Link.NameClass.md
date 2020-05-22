@@ -10,7 +10,7 @@ The only difference is that `¯9` is returned for unscripted namespaces (includi
 
 #### Optional Left Argument
 
-- namespace where to evalue names 
+- namespace where to evaluate names 
 
 #### Result
 
