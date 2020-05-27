@@ -13,7 +13,7 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
-    (canwatch dotnetcore)←U.CanWatch ''
+     (canwatch dotnetcore)←U.CanWatch ''
 
      msg←⍕⍬⊤⍬
 
@@ -65,6 +65,10 @@
              (inFail fsw)←opts FixFiles nsref dir
          :AndIf 0≠≢inFail
              msg,←⊂(⍕≢inFail),' imports failed (⎕SE.Link.Links',ix,'.inFail)'
+         :EndIf
+
+         :If ('ns'≡opts.source)∧(⊂opts.watch)∊'dir' 'both' ⍝ Did not call FixFiles, so
+             fsw←FileSystemWatcher.Watch dir(,'*')         ⍝   we need to create the FSW here
          :EndIf
 
          linkDef←⎕SE.⎕NS opts

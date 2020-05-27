@@ -13,9 +13,13 @@
 
     ASSERT_DORECOVER←1 ⍝ Attempt recovery if expression provided
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
-    PAUSE_LENGTH←0.1   ⍝ Length of delays to insert at strategic points on slow machines - See Breathe
+    PAUSE_LENGTH←0.1   ⍝ Length of delays to insert at strategic points - See Breathe
 
     ∇ Breathe
+    ⍝ Breathe is sometimes required to allow FileSystemWatcher events which are still in the
+    ⍝ queue to be processed. They can sometimes exist despite asserts having succeeded
+    ⍝ Without Breathe, such events can run in parallel with and interfere with the next test
+    ⍝ causing "random" (timing-dependent) failures
       ⎕DL PAUSE_LENGTH
     ∇
 
@@ -710,22 +714,22 @@
       {}(⊂newvarsrc←,↓⎕SE.Link.Serialise newvar←((⊂'world')@2)¨var)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc←(⊂' ⍝ new comment')@2⊢foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc←(⊂' ⍝ new comment')@2⊢nssrc)QNPUT(subfolder,'/ns.apln')1
-      1 assert_create 1
+      1 assert_create 1 ⍝ new in ws, new on file
+      Breathe
       ⍝ watch=dir must not reflect changes from APL to files
-      subname'var'⎕SE.Link.Fix varsrc
+      subname'var'⎕SE.Link.Fix var
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       Breathe
-      0 assert_create 1
+      0 assert_create 1 ⍝ old in ws, new on file (ws reverted)
       {}⎕SE.Link.Break name ⋄ ⎕EX name  ⍝ expunge whole linked namespace
-     
      
       ⍝ now try source=dir watch=ns
       opts.source←'dir' ⋄ opts.watch←'ns'
       {}opts ⎕SE.Link.Create name folder
       1 assert_create 1
       ⍝ APL changes must be reflected to file
-      subname'var'⎕SE.Link.Fix varsrc
+      subname'var'⎕SE.Link.Fix var
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       0 assert_create 0
@@ -751,7 +755,7 @@
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
       Breathe
       1 assert_create 1
-      subname'var'⎕SE.Link.Fix varsrc
+      subname'var'⎕SE.Link.Fix var
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       Breathe
@@ -762,13 +766,14 @@
       ⍝ now try source=ns watch=dir
       opts.source←'ns' ⋄ opts.watch←'dir'
       {}opts ⎕SE.Link.Create name folder
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1 ⍝ Variable is not exported, and with watch=dir Fix won't update the file either
       0 assert_create 0
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
-      Breathe  ⍝ not sure why need a breath here on windows/.netframework
-      subname'var'⎕SE.Link.Fix varsrc
+      Breathe  
+      subname'var'⎕SE.Link.Fix var
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       Breathe
@@ -778,8 +783,9 @@
       ⍝ now try source=ns watch=ns
       opts.source←'ns' ⋄ opts.watch←'ns'
       {}opts ⎕SE.Link.Create name folder
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1 ⍝ Variable is not exported
       0 assert_create 0
-      subname'var'⎕SE.Link.Fix newvarsrc
+      subname'var'⎕SE.Link.Fix newvar
       subname'foo'⎕SE.Link.Fix newfoosrc
       subname'ns'⎕SE.Link.Fix newnssrc
       1 assert_create 1
@@ -792,14 +798,15 @@
      
       ⍝ now try source=ns watch=none
       opts.source←'ns' ⋄ opts.watch←'none'
-      {}opts ⎕SE.Link.Create name folder
+      {}opts ⎕SE.Link.Create name folder  
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1 ⍝ Variable is not exported
       1 assert_create 1
-      subname'var'⎕SE.Link.Fix varsrc
+      subname'var'⎕SE.Link.Fix var
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       Breathe
       0 assert_create 1
-      subname'var'⎕SE.Link.Fix newvarsrc
+      subname'var'⎕SE.Link.Fix newvar
       subname'foo'⎕SE.Link.Fix newfoosrc
       subname'ns'⎕SE.Link.Fix newnssrc
       1 assert_create 1

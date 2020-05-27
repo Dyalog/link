@@ -34,15 +34,16 @@
          source←source↑⍨1-'.'⍳⍨⌽source ⍝ Item name without ns path
          outFail←0⍴⊂0⍴SaveFn source ⍝ single fn/op
      :ElseIf (nc∊okNs)∨(nc∊9.2)∧source≡# ⍝ # is reported as an instance (9.2)
-        failed←0⍴⊂''
-         :If ~0∊⍴fns←source.⎕NL-okFn                            ⍝ tradfn, dfn, tradop, dop
+         failed←0⍴⊂''
+         :If ~0∊⍴fns←source.⎕NL-okFn                        ⍝ tradfn, dfn, tradop, dop
              failed,←0~¨⍨SaveFn U.OnEach fns                ⍝ try to save the functions
          :EndIf
          :If 0∊⍴nss←source.⎕NL-okNs
              failed←unscripted←0⍴⊂''
          :Else
              (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
-             paths←''∘FileName U.OnEach unscripted               ⍝ needed dirs
+             paths←''∘FileName U.OnEach unscripted          ⍝ needed dirs
+             paths←{∊2↑⎕NPARTS ⍵} U.OnEach paths            ⍝ Remove .apln extensions from folder names
              ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
              failed,←paths/⍨~ok                             ⍝ also remember failed paths for nss
              paths/⍨←ok                                     ⍝ the good paths

@@ -39,7 +39,6 @@ NOHOLD:
          :EndIf
 
          :If linked
-
              :If 'none' 'dir'∊⍨⊂link.watch ⍝ Not watching the workspace
              :AndIf 0=≢src
                  →0 ⍝ Just notification, probably editor callback. No more to do.
@@ -74,36 +73,53 @@ NOHOLD:
                  →((⍎link.beforeWrite)ns name oldname nc src file link 0)↓0
              :EndIf
 
-             :If array←2=⌊nc
-                 :Trap 11
-                     src←,↓Serialise src
-                 :Else
-                     'Unsupported array'U.Resignal 1
-                 :EndTrap
-             :EndIf
-
-             :Trap 0
-                 :If fsw←0≠⎕NC⊂'link.fsw.Object.EnableRaisingEvents'
-                     old←link.fsw.Object.EnableRaisingEvents
-                     link.fsw.Object.EnableRaisingEvents←0
+             :If array←2=⌊nc ⍝ Arrays need to be serialised
+                 z←src
+                 :If (⊂link.watch)∊'ns' 'both' ⍝ Need to update the file?
+                 ⍝ The test is repeated in the next :If, but we need to validate ability to serialize and issue error message before setting the value
+                     :Trap 11
+                         src←,↓Serialise src
+                     :Else
+                         'Unsupported array'U.Resignal 1
+                     :EndTrap
                  :EndIf
-                 3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
-                 (⊂src)⎕NPUT file 1
-             :Else
-                 old←0
-                 :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
-                 1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
-             :EndTrap
-             :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
-
-             :If ~array
-                 :Trap 0
-                     2 ns.⎕FIX'file://',file
-                 :Else
-                     1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
-                 :EndTrap
+                 ⍎(⍕ns),'.',name,'←z'
              :EndIf
-         :EndIf
+
+             :If (⊂link.watch)∊'ns' 'both' ⍝ Should we update the file?
+                 :Trap 0
+                     :If fsw←0≠⎕NC⊂'link.fsw.Object.EnableRaisingEvents'
+                         old←link.fsw.Object.EnableRaisingEvents
+                         link.fsw.Object.EnableRaisingEvents←0
+                     :EndIf
+                     3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
+                     (⊂src)⎕NPUT file 1
+                 :Else
+                     old←0
+                     :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
+                     1 U.Resignal⍨' *** Fix: Unable to write "',name,'" to file ',file
+                 :EndTrap
+                 :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
+             :EndIf                        ⍝ Updating file
+
+             :If ~array ⍝ Now ensure the value is updated in the ns
+                 :If link.watch≡'both' ⍝ Refresh link to updated file
+                     :Trap 0
+                         2 ns.⎕FIX'file://',file
+                     :Else
+                         1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
+                     :EndTrap
+                 :Else ⍝ watch=ns: do not read back
+                     :Select ⌊nc
+                     ⍝ no :Case 2, that was handled earlier
+                     :CaseList 3 4
+                         ns.⎕FX src
+                     :Case 9
+                         ns.⎕FIX src
+                     :EndSelect
+                 :EndIf
+             :EndIf ⍝ ~ array
+         :EndIf ⍝ Linked
      :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1
