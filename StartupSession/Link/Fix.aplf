@@ -111,9 +111,9 @@ NOHOLD:
                      :EndTrap
                  :Else ⍝ watch=ns: do not read back
                      :Select ⌊nc
-                     ⍝ no :Case 2, that was handled earlier
-                     :CaseList 3 4
-                         ns.⎕FX src
+                         ⍝ no :Case 2, that was handled earlier
+                     :CaseList 3 4 
+                         2 ns.⎕FIX src
                      :Case 9
                          ns.⎕FIX src
                      :EndSelect
