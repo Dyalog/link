@@ -93,7 +93,11 @@ NOHOLD:
                          link.fsw.Object.EnableRaisingEvents←0
                      :EndIf
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
-                     (⊂src)⎕NPUT file 1
+                    :If ~⎕NEXISTS file
+                    :OrIf src≢⊃⎕NGET file 1
+                        (⊂src)⎕NPUT file 1 ⍝ Write file IF changed
+                    :EndIf
+
                  :Else
                      old←0
                      :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
@@ -105,14 +109,18 @@ NOHOLD:
              :If ~array ⍝ Now ensure the value is updated in the ns
                  :If link.watch≡'both' ⍝ Refresh link to updated file
                      :Trap 0
-                         2 ns.⎕FIX'file://',file
+                         :If file≢4⊃ns U.GetLinkInfo name
+                         :OrIf src≢⊃⎕NGET file 1
+                             2 ns.⎕FIX'file://',file ⍝ Re-establish link if necessary
+                         :EndIf
+
                      :Else
                          1 U.Resignal⍨' *** Fix: Unable to re-fix "',name,'" from file ',file
                      :EndTrap
                  :Else ⍝ watch=ns: do not read back
                      :Select ⌊nc
                          ⍝ no :Case 2, that was handled earlier
-                     :CaseList 3 4 
+                     :CaseList 3 4
                          2 ns.⎕FIX src
                      :Case 9
                          ns.⎕FIX src
