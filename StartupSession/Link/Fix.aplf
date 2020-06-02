@@ -7,12 +7,13 @@
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
 
+
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
 
  :Trap DEBUG↓0
-     →('⎕SE.Link.OnAfterFix'≡⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
+     →('⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
 NOHOLD:
          nosrc←0=≢src
@@ -93,10 +94,10 @@ NOHOLD:
                          link.fsw.Object.EnableRaisingEvents←0
                      :EndIf
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
-                    :If ~⎕NEXISTS file
-                    :OrIf src≢⊃⎕NGET file 1
-                        (⊂src)⎕NPUT file 1 ⍝ Write file IF changed
-                    :EndIf
+                     :If ~⎕NEXISTS file
+                     :OrIf src≢⊃⎕NGET file 1
+                         (⊂src)⎕NPUT file 1 ⍝ Write file IF changed
+                     :EndIf
 
                  :Else
                      old←0
