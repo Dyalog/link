@@ -13,7 +13,10 @@
      :EndTrap
  :ElseIf 'ns' 'both'∊⍨⊂opts.watch ⍝ linked non-array
      :Trap 11 ⍝ fail
-         name←2 target.⎕FIX'file://',src
+            :If src≢4⊃target U.GetLinkInfo name
+            :OrIf ({9≠target.⎕NC ⍵:⍬ ⋄ 0::⍬ ⋄ ⎕SRC target⍎⍵}name)≢⊃⎕NGET src 1 ⍝
+               name←2 target.⎕FIX'file://',src
+            :EndIf
      :Else
          {}target.⎕FIX⍣(121=⎕DMX.ENX)⊢'file://',src ⍝ unnamed?
      :EndTrap
