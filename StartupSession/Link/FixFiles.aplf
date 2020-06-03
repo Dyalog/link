@@ -1,5 +1,5 @@
- (inFail fsw)←{opts}FixFiles(target source);⎕IO;exts ⍝ Load items from files in folders
- ;cands;candLengths;name;d;f;e;list;hideBit;hidden;files;dirs;order;paths;nss
+ (inFail fsw)←{opts}FixFiles(target source) ⍝ Load items from files in folders
+ ;cands;candLengths;name;d;f;e;list;hideBit;hidden;files;dirs;order;paths;nss;⎕IO;exts;mask
  ;RightExtn;Files;RemDir;Target;Fix
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -57,9 +57,15 @@
 
          target U.QFixIfExists(source,'quadVars.apln')opts
          :If ~opts.flatten                                ⍝ If we are not flattening, create nss
-             nss←U.DotSlash¨paths/⍨~'.'∊¨paths            ⍝ transform simple dirs into nss
+             mask←~'.'∊¨paths                             ⍝ keep only simple dirs
+             paths/⍨←mask
+
+             nss←U.DotSlash¨paths                         ⍝ transform into nss
              nss←StripCaseCode nss
-             nss/⍨←¯1≠⎕NC nss                             ⍝ keep only names that are valid
+
+             mask←¯1≠⎕NC nss                              ⍝ keep only valid names
+             (nss paths)/⍨←⊂mask
+
              {}nss{
                  ref←⍎target⍎U.NsExpr ⍺                   ⍝ create ns
                  ref U.QFixIfExists ⍵ opts                ⍝ set sysvars?
