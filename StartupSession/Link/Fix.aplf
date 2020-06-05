@@ -1,4 +1,4 @@
- {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array;oldfile
+ {linked}←where Fix src;link;nss;files;file;src;nc;nosrc;fsw;old;ns;name;⎕TRAP;oldname;z;ext;stop;array;oldfile;afterfix;done
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -13,7 +13,8 @@
  :EndIf
 
  :Trap DEBUG↓0
-     →('⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓⎕XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
+     afterfix←'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓⎕XSI
+     →afterfix/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
 NOHOLD:
          nosrc←0=≢src
@@ -87,7 +88,8 @@ NOHOLD:
                  ⍎(⍕ns),'.',name,'←z'
              :EndIf
 
-             :If (⊂link.watch)∊'ns' 'both' ⍝ Should we update the file?
+             done←afterfix∧file≡4⊃ns U.GetLinkInfo name
+             :If (~done)∧(⊂link.watch)∊'ns' 'both' ⍝ Should we update the file?
                  :Trap 0
                      :If fsw←0≠⎕NC⊂'link.fsw.Object.EnableRaisingEvents'
                          old←link.fsw.Object.EnableRaisingEvents
@@ -107,7 +109,7 @@ NOHOLD:
                  :If fsw ⋄ link.fsw.Object.EnableRaisingEvents←old ⋄ :EndIf
              :EndIf                        ⍝ Updating file
 
-             :If ~array ⍝ Now ensure the value is updated in the ns
+             :If ~array∨done ⍝ Now ensure the value is updated in the ns
                  :If link.watch≡'both' ⍝ Refresh link to updated file
                      :Trap 0
                          :If file≢4⊃ns U.GetLinkInfo name
