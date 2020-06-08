@@ -8,9 +8,9 @@
      ⎕IO←1
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :If U.HasLinks
-         :Hold '⎕SE.Link.Notify'
-             scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
-             :For i :In ⍳≢files
+         scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
+         :For i :In ⍳≢files
+             :Hold '⎕SE.Link.Notify'
                  :If ~0∊⍴link←U.LookupFile file←i⊃files
                      link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents
                      (where expname actname nc)←link U.DetermineAplName file
@@ -18,9 +18,9 @@
                  :Else
                      (i⊃items)←''
                  :EndIf
-             :EndFor
-             items←⊃⍣scal⊢shape⍴items
-         :EndHold ⍝ Notify
+             :EndHold ⍝ Notify
+         :EndFor
+         items←⊃⍣scal⊢shape⍴items
      :Else
          items←⊃⍣(1=≡,items)⊢(⍴⊆items)⍴⊂''
      :EndIf

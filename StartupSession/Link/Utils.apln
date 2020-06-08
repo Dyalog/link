@@ -87,7 +87,12 @@
           ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
           ⍵∘⊃¨5177⌶⍬
       }
-    Untie←{0=⎕NC'⍺':_←5178⌶⍵ ⋄ ⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
+      ⍝ Untie←{0=⎕NC'⍺':_←5178⌶⍵ ⋄ ⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
+    ∇ {ok}←{ns}Untie name;nc
+      :If 900⌶⍬ ⋄ ns←⊢ ⋄ :EndIf
+      nc←2⊃ns Fix name(ns GetAplSource name) ⍝ refix from source because of mantis 18148
+      ok←~nc∊0 ¯1
+    ∇
     ∇ r←GetFileTiesIn rootns;all;allrefs;urefs;mask;t;remove
      ⍝ Find all file system links to objects below rootns
       allrefs←2⊃¨all←5177⌶⍬
@@ -100,16 +105,11 @@
           :EndRepeat ⋄ :EndIf
       r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
     ∇
-    ∇ r←RemoveFileTiesIn rootns;all;allrefs;file;mask;name;nc;ok;parent;remove;t;urefs
+    ∇ r←RemoveFileTiesIn rootns;remove
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken
       :If 0≠r←≢remove←GetFileTiesIn rootns ⍝ links to be removed
-          ⍝r←+/ok←(⍎¨⍕¨2⊃¨remove)Untie¨(⍕¨1⊃¨remove)   ⍝ need ⍎¨⍕¨ on the left argument because of mantis 18147
-          r←0
-          :For (name parent nc file) :In 4↑¨remove
-              name←⍕name  ⍝ first column may have refs
-              r+←parent QFix(file name 0)  ⍝ refix from file contents because of mantis 18148
-          :EndFor
+          r←+/(⍎¨⍕¨2⊃¨remove)Untie¨(⍕¨1⊃¨remove)   ⍝ need ⍎¨⍕¨ on the left argument because of mantis 18147
       :EndIf
     ∇
     ∇ r←ViewMetaData mode
@@ -356,29 +356,28 @@
           ok←×≢⎕SE.Link.Links
       :EndIf
     ∇
-    ∇ linkns←LookupFile file;dirs;inx;mask
+    ∇ linkns←LookupFile file;dirs;inx;links;mask
     ⍝ look up which linked directory has file
       :If HasLinks
-          dirs←⎕SE.Link.Links.dir
+          dirs←(links←⎕SE.Link.Links).dir
       :AndIf ∨/mask←dirs Begins¨⊂file
           inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
-          linkns←inx⊃⎕SE.Link.Links
+          linkns←inx⊃links
       :Else
           linkns←⍬
       :EndIf
     ∇
-    ∇ linkns←LookupRef nsref;linked;nss
+    ∇ linkns←LookupRef nsref;linked;links;nss
     ⍝ lookup which linked namespace has nsref
       linkns←⍬
-      :If 0≠⎕NC'⎕SE.Link.Links'
-      :AndIf 0≠≢⎕SE.Link.Links
-          nss←⍎¨⎕SE.Link.Links.ns
+      :If HasLinks
+          nss←⍎¨(links←⎕SE.Link.Links).ns
           :While ~linked←nsref∊nss
           :AndIf ~IsRoot nsref
               nsref←nsref.##
           :EndWhile
           :If linked
-              linkns←(nss⍳nsref)⊃⎕SE.Link.Links
+              linkns←(nss⍳nsref)⊃links
           :EndIf
       :EndIf
     ∇
@@ -436,7 +435,7 @@
       src←⍬
       :Trap 0
           :If 1=type←1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
-          :ElseIf 2=type ⋄ src←⊃⎕NGET file 1    ⍝ file
+          :ElseIf 2=type ⋄ src←GetFile file     ⍝ file
           :EndIf
       :EndTrap
     ∇
@@ -488,10 +487,13 @@
     ∇
     ∇ ok←target QFix(file name tie);nc;src
       :If tie ⋄ src←file ⍝ tie to file
-      :Else ⋄ src←GetFileSource file  ⍝ pure source - no tied
+      :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
       :EndIf
-      (name nc)←target Fix(name src)
-      ok←~nc∊0 ¯1
+      :If file≢target CurrentFileName name               ⍝ avoid checking source if obviously not in sync
+      :OrIf (target GetAplSource name)≢(GetFileSource⍣tie⊢src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+          (name nc)←target Fix(name src)
+          ok←~nc∊0 ¯1
+      :Else ⋄ ok←1 ⋄ :EndIf
     ∇
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);cache
     ⍝ opts cached for performance on ns lookup
@@ -577,7 +579,7 @@
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
     ∇
-    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;src;subdir;typeExtensions
+    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;src;subdir;subfile;typeExtensions
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
@@ -590,13 +592,14 @@
       file←dir StripCaseCode flatten⊢file  ⍝ always strip case code - apl name can't have them anyways
       (subdir file)←2↑⎕NPARTS file  ⍝ drop extension
       :If 0=≢file ⋄ subdir←¯1↓subdir ⋄ :EndIf  ⍝ drop trailing slash for directories
-      (where expname)←SplitNs fullname←ns,DotSlash(≢dir)↓subdir,file
+      (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,file
       :If flatten ⋄ where←⍕ns ⋄ :EndIf     ⍝ all subdirectories link to linked namespace
       :If fastLoad ⋄ (actname nc)←expname 0  ⍝ settle with expname
       :ElseIf 0=≢src ⋄ (actname nc)←'' 0             ⍝ no source
       :Else ⋄ (actname nc)←Fix expname src           ⍝ inspect source
       :EndIf
-      :If (0=≢where)∧(nc=¯9) ⋄ :AndIf IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
+      :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
+      :ElseIf (0=≢where)∧(nc=¯9) ⋄ :AndIf IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
       :ElseIf ¯1=⎕NC where ⋄ :AndIf ~IsRootName where ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇

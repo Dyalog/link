@@ -4,14 +4,14 @@
 
  startai←⎕AI
  :Select U.debug
- :Case 1 ⋄ ⍝ ⎕←'Notify'args  ⍝ no need for this - Notify calls U.Log a lot
+ :Case 1 ⋄ ⍝⎕←'Notify'args  ⍝ no need for this - Notify calls U.Log a lot
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
 
  :Trap DEBUG↓0
      ⎕IO←1
      recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
-     :Hold '⎕SE.Link.Notify',(recur≠1)/⍕recur ⍝ Avoid deadlock due to recursion
+     :Hold (recur=1)/⊂'⎕SE.Link.Notify' ⍝ Avoid deadlock due to recursion
          r←⍬⊤⍬
          (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
          (path oldpath)←0 U.NormFile¨path oldpath
@@ -91,7 +91,7 @@
              :AndIf 0<≢curfile     ⍝ otherwise it's a regular file creation
                  →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
-                 U.Untie curname
+                 (⍎curnsname)U.Untie curactname
                  U.Log msg,'creating ',affected,' - unlinking previously linked ',curname
              :Else
                  U.Log msg,'creating ',affected
@@ -151,7 +151,7 @@
                  oldnsref.⎕EX oldexpname
              :EndIf
              :If ~curnc∊0 ¯1     ⍝ new file already tied to a name
-                 U.Untie curname
+                 (⍎curnsname)U.Untie curactname
                  U.Warn msg,'moving ',oldname,' to ',affected,' - unlinking previously linked ',curname
              :Else
                  U.Log msg,'moving ',oldname,' to ',affected
@@ -163,7 +163,7 @@
              :ElseIf (0<≢curfile)∧(path≢curfile)  ⍝ name tied to another file - don't expunge
                  →END⊣U.Log msg,'not expunging ',affected,' linked to ',curfile
              :ElseIf (~curnc∊0 ¯1)∧(curname≢affected)     ⍝ a different file was tied to a name
-                 U.Untie curname
+                 (⍎curnsname)U.Untie curactname
                  U.Warn msg,'expunging ',affected,' - unlinking previously linked ',curname
              :Else
                  U.Log msg,'expunging ',affected

@@ -44,7 +44,7 @@
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
 
-    PAUSE_TIME←0.1   ⍝ Seconds of delays to insert at strategic points on slow machines - See Breathe
+    PAUSE_TIME←0.1   ⍝ Seconds of delays to insert at strategic points - See Breathe
     ASSERT_TIME←1    ⍝ Seconds of wait time trying to verify assertions
 
 
@@ -958,7 +958,7 @@
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
-      Breathe
+      Breathe  ⍝ breathe to ensure it's not reflected
       0 assert_create 1
       z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
       assert'(0=≢⎕SE.Link.Links)∧(z≡1)'
@@ -976,7 +976,7 @@
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
-      Breathe
+      Breathe ⍝ breathe to ensure it's not reflected
       0 assert_create 1
       {}⎕SE.Link.Expunge name
      
@@ -1011,7 +1011,6 @@
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
-      Breathe  ⍝ not sure why need a breath here on windows/.netframework
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
@@ -1048,6 +1047,7 @@
       subname'var'⎕SE.Link.Fix newvarsrc
       subname'foo'⎕SE.Link.Fix newfoosrc
       subname'ns'⎕SE.Link.Fix newnssrc
+      Breathe
       1 assert_create 1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
@@ -1129,11 +1129,11 @@
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
           #.SLAVE←#.isolate.New''
           QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
-          QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵}
+          QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵ ⋄ ⎕DL 0.001}  ⍝ ensure QNPUTS are not too tight for filewatcher
       :Else
           #.SLAVE←#.⎕NS''
           QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
-          QNPUT←{⍺ NPUT ⍵}
+          QNPUT←{⍺ NPUT ⍵ ⋄ ⎕DL 0.001}
       :EndIf
       ⍝QNMOVE←#.SLAVE.⎕NMOVE
       ⍝QNCOPY←#.SLAVE.⎕NCOPY
@@ -1198,6 +1198,13 @@
     ∇
 
     ∇ Breathe
+    ⍝ Breathe is sometimes required to allow FileSystemWatcher events which are still in the
+    ⍝ queue to be processed. They can sometimes exist despite asserts having succeeded
+    ⍝ Without Breathe, such events can run in parallel with and interfere with the next test
+    ⍝ causing "random" (timing-dependent) failures
+    ⍝ Also sometimes the FSW has create+change events on file write,
+    ⍝ producing two callbacks to notify, the first one making assert succeeds,
+    ⍝ then the second one conflicting with whichever code is run after the assert (e.g. a ⎕FIX which would be undone by the pending second Notify)
       ⎕DL PAUSE_TIME
     ∇
 

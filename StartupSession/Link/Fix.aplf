@@ -13,7 +13,8 @@
  :Trap DEBUG↓0
      ⎕IO←1 ⋄ XSI←⎕XSI ⋄ RSI←⎕RSI
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
-     →(callback←'⎕SE.Link.OnAfterFix'≡⊃1↓XSI)/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
+     callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
+     →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
      :Hold '⎕SE.Link.Notify'
 NOHOLD:
          nosrc←0=≢src
@@ -24,60 +25,65 @@ NOHOLD:
          nsname←⍕nsref←this(0 U.GetRefTo)ns
 
          :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
+         :If ~linked←~0∊⍴link←U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
 
-         :If linked←~0∊⍴link←U.LookupRef ns←nsref
+         update←added∨'ns' 'both'∊⍨⊂link.watch  ⍝ update files if watching namespace or explicitly added
+         watch←'both' 'dir'∊⍨⊂link.watch  ⍝ watching files
 
-             update←added∨'ns' 'both'∊⍨⊂link.watch  ⍝ update files if watching namespace or explicitly added
-             watch←'both' 'dir'∊⍨⊂link.watch  ⍝ watching files
+         (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src  ⍝ fix in target ns
 
-             (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src  ⍝ fix in target ns
+         :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
+         :ElseIf (0=nc)∧(~0∊⍴src) ⋄ U.Error'Invalid source for ',nsname,'.',name,': ',⍕src
+         :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
+         :EndIf
 
-             :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
-             :ElseIf (0=nc)∧(~0∊⍴src) ⋄ U.Error'Invalid source for ',nsname,'.',name,': ',⍕src
-             :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
+         :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
+             (⊂ns.⎕NR oldname)⎕NPUT oldfile 1  ⍝ editor overwrites oldfile with new definition
+             ns U.Untie name  ⍝ editor ties newname to oldfile
+             :If ~watch  ⍝ FileSystemWatcher should do this for us
+                 2 ns.⎕FIX'file://',oldfile
              :EndIf
+             delete←0  ⍝ old file must be preserved
+         :Else
+             delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
+         :EndIf
 
-             :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
-                 (⊂ns.⎕NR oldname)⎕NPUT oldfile 1  ⍝ editor overwrites oldfile with new definition
-                 ns U.Untie name  ⍝ editor ties newname to oldfile
-                 :If ~watch  ⍝ FileSystemWatcher should do this for us
-                     2 ns.⎕FIX'file://',oldfile
-                 :EndIf
-                 delete←0  ⍝ old file must be preserved
-             :Else
-                 delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
-             :EndIf
+         :If update<callback ⍝ Editor fix when not watching the workspace
+             →0  ⍝ job done
+         :EndIf
 
-             :If update<callback ⍝ Editor fix when not watching the workspace
-                 →0  ⍝ job done
-             :EndIf
+         :If nosrc    ⍝ Source not provided - find it
+             src←ns U.GetAplSource name
+         :EndIf
 
-             :If nosrc    ⍝ Source not provided - find it
-                 src←ns U.GetAplSource name
-             :EndIf
+         :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
+             →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)nc(nsname,'.',oldname)src
+         :EndIf
 
-             :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
-                 →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)nc(nsname,'.',oldname)src
-             :EndIf
+         fix←~nosrc ⍝ no need to update if source was read from APL
+         fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
 
-             fix←~nosrc ⍝ no need to update if source was read from APL
-             :If update  ⍝ file system must reflect changes
-                 :Trap 0
+         :If update  ⍝ file system must reflect changes
+             :Trap 0
+                 :If nc=¯9  ⍝ tradns → folder
+                     3 ⎕MKDIR file
+                 :Else  ⍝ file
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                      (⊂src)⎕NPUT file 1
-                 :Else
-                     U.Error'Unable to write "',nsname,'.',name,'" to file: "',file,'"'
-                 :EndTrap
-                 fix∧←~watch  ⍝ filewatcher will tie the file for us
-                 :If delete  ⍝ old file must be removed
-                     ⎕NDELETE oldfile
                  :EndIf
-             :EndIf
-
-             :If fix ⋄ :AndIf ¯1 0∊⍨2⊃ns U.Fix name src
-                 ##.U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
+             :Else
+                 U.Error'Unable to write "',nsname,'.',name,'" to file: "',file,'"'
+             :EndTrap
+             fix∧←~watch  ⍝ filewatcher will tie the file for us
+             :If delete  ⍝ old file must be removed
+                 ⎕NDELETE oldfile
              :EndIf
          :EndIf
+
+         :If fix ⋄ :AndIf ¯1 0∊⍨2⊃ns U.Fix name src
+             ##.U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
+         :EndIf
+
      :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1

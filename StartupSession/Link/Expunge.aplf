@@ -7,15 +7,15 @@
      ⎕IO←1
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :If U.HasLinks
-         :Hold '⎕SE.Link.Notify'
-             scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
-             :For i :In ⍳≢names
+         scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
+         :For i :In ⍳≢names
+             :Hold '⎕SE.Link.Notify'
                  nc←container U.NameClass name←(⍕container),'.',i⊃names
                  :If 0=nc  ⍝ does not exist
                      r[i]←0 ⋄ :Continue
                  :EndIf
                  :If ¯9=nc  ⍝ trad ns
-                 :AndIf (⊂U.NormNs name)∊Links.ns  ⍝ is a link root
+                 :AndIf (⊂U.NormNs name)∊⎕SE.Link.Links.ns  ⍝ is a link root
                      {}Break name  ⍝ github issue #119: tell user about problems
                      r[i]←⎕EX name
                  :Else
@@ -32,9 +32,9 @@
                          r[i]←parent.⎕EX name
                      :EndIf
                  :EndIf
-             :EndFor
-             r←⊃⍣scal⊢shape⍴r
-         :EndHold ⍝ Notify
+             :EndHold ⍝ Notify
+         :EndFor
+         r←⊃⍣scal⊢shape⍴r
      :Else
          r←container.⎕EX names
      :EndIf

@@ -17,24 +17,26 @@
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
 
-         linked←⍎¨⎕SE.Link.Links.ns
-         :If opts.exact ⋄ Linked←linked∘=
-         :Else ⋄ Linked←U.IsParent¨∘linked
-         :EndIf
-         :If opts.all ⋄ nss←linked ⋄ :EndIf
-
-         broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
-         :For ns :In nss
-             :If ~0∊⍴ns←there(0 U.GetRefTo)ns
-             :AndIf ∨/deleted∨←mask←Linked ns
-                 n+←U.RemoveFileTiesIn ns
-                 FileSystemWatcher.Break∪mask/⎕SE.Link.Links
-                 broken,←mask/linked
-             :Else
-                 missing,←⊂ns
+         :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Notify'  ⍝ Expunge calls Break with the :Hold
+             linked←⍎¨⎕SE.Link.Links.ns
+             :If opts.exact ⋄ Linked←linked∘=
+             :Else ⋄ Linked←U.IsParent¨∘linked
              :EndIf
-         :EndFor
-         ⎕SE.Link.Links/⍨←~deleted
+             :If opts.all ⋄ nss←linked ⋄ :EndIf
+
+             broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
+             :For ns :In nss
+                 :If ~0∊⍴ns←there(0 U.GetRefTo)ns
+                 :AndIf ∨/deleted∨←mask←Linked ns
+                     n+←U.RemoveFileTiesIn ns
+                     FileSystemWatcher.Break∪mask/⎕SE.Link.Links
+                     broken,←mask/linked
+                 :Else
+                     missing,←⊂ns
+                 :EndIf
+             :EndFor
+             ⎕SE.Link.Links/⍨←~deleted
+         :EndHold
 
          msg←''
          :If ×≢broken
