@@ -7,6 +7,7 @@
 ⍝ 2019 05 31 MKrom: Fix ⎕ML sensitivity
 ⍝ 2019 06 19 Adam: Avoid special-cased vars in caller
 ⍝ 2020 05 21 Nic: removed unmaintained version tag
+⍝ 2020 06 08 Adam: Remove Version ucmd (use ⎕SE.Link.Version)
 
     ⎕IO←1 ⋄ ⎕ML←1
 
@@ -31,7 +32,6 @@
       r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       r,←'{"Name":"List",        "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Fully synchronise namespace-directory content"},'
-      r,←'{"Name":"Version",     "args":"",        "Parse":"0", "Desc":"Get current ]link version number"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'
