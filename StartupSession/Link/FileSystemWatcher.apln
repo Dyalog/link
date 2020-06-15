@@ -1,19 +1,19 @@
 ﻿:Namespace FileSystemWatcher
-    
+
     (⎕IO ⎕ML)←1 1
-    
+
     USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.FileSystemWatcher.QUEUE' ⍝ FSW Queue Object name prefix
     DEBUG←1                                 ⍝ Log events
-    
+
     TimerEvent←140
     NotifyEvent←7777
     CloseEvent←7778
     Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
-    
+
     ∇ RequeuedEvent args
      ⍝ Process events redirected via the timer
-      
+     
       :Select 2⊃args
       :Case TimerEvent  ⍝ Timer; do nothing for now
       :Case NotifyEvent ⍝ Re-queued Notify event
@@ -22,26 +22,26 @@
           ⎕EX 1⊃args    ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
       :EndSelect
     ∇
-    
+
     ∇ WatchEvent(obj args);ct;info;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
-      
+     
       {}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
       ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
-      
+     
       nargs←⊂##.U.LCase⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
-      
+     
       :If 0 ⍝ DEBUG≠0
           info←¯1↓{((3↑¨⍵)∊⊂'⎕SE')/⍵}{1↓¨(⍵=⎕UCS 13)⊂⍵}{0::⍬ ⋄ nn⌶⍵}')SI'
           EVENTLOG[EVENTPTR+1]←⊂(3⊃⎕AI)nargs info
           EVENTPTR←(≢EVENTLOG)|EVENTPTR+1
       :EndIf
-      
+     
       :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
          ⍝ Do not split the following line into several lines: thread switch must NOT happen
           :If 0≠≢timers←'Timer'⎕WN ⎕SE.Link.FileSystemWatcher ⋄ ⎕NQ(⊃timers)NotifyEvent nargs ⋄ :EndIf
@@ -49,19 +49,17 @@
           ⎕SE.Link.Notify nargs
       :EndIf
     ∇
-    
+
     ∇ WatchError(obj args)
       ##.U.Log'FileSystemWatcher Error: ',obj.Path
     ∇
-    
+
     ∇ r←Watch args;tid;q;z;end
-    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
-      
+    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]     
       :If 0 ⍝ DEBUG≠0
           EVENTPTR←0
           EVENTLOG←100⍴⊂0 '' ''
-      :EndIf
-      
+      :EndIf     
       :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
           z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
           q←FSWQ,⍕tid←WatcherThread&args
@@ -73,15 +71,14 @@
               :EndIf
               ⎕DL 0.05
           :EndWhile
-          (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
-          
+          (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it     
       :Else ⍝ Make direct calls to Notify: return the FSW object
           r←MakeWatcher args
           r.EnableRaisingEvents←1
       :EndIf
     ∇
-    
-    ∇ Break links;end;mask;tids;timer;timers
+
+    ∇ Break links;end;tids;timer;timers
     ⍝ Cleanly shut down a file system watcher
     ⍝ Called by ⎕SE.Link.Break
       :If ~0∊⍴links
@@ -100,18 +97,15 @@
               :EndWhile
               ⎕EX links.fsw.QUEUE
           :Else ⍝ fsw should be a real FSW object
-              mask←0≠links.fsw.⎕NC⊂⊂'Dispose'
-              :If ~∧/mask ⋄ ##.U.Log'FileSystemWatcher: no Dispose method' ⋄ :EndIf
-              :If ∨/mask
-                  (mask/links).fsw.EnableRaisingEvents←0
-                  ⎕DL 0.1 ⍝ Give any extant events time to be processed
-                  (mask/links).fsw.Dispose
-              :EndIf
+              ⍝ pitfall: must not call Dispose while processing a callback, otherwise the interpreter freezes
+              links.fsw.EnableRaisingEvents←0
+              ⎕DL 0.5 ⍝ Give any extant events time to be processed
+              links.fsw.Dispose
           :EndIf
           links.fsw←⊂⍬
       :EndIf
     ∇
-    
+
     ∇ watcher←MakeWatcher args;⎕USING
      ⍝ Return a FileSystemWatcher object
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
@@ -131,12 +125,12 @@
       :EndIf
       watcher.IncludeSubdirectories←1
     ∇
-    
+
     ∇ WatcherThread args;q;watcher
      ⍝ Run a thread which creates a FileSystemWatcher object
      ⍝ ... makes sure there is a ⎕DQ to allow processing of events
      ⍝ ... and ensures it is disposed of
-      
+     
       :Disposable watcher←MakeWatcher args
           (q←FSWQ,⍕⎕TID)⎕WC'Timer'('Event'(TimerEvent NotifyEvent CloseEvent)'RequeuedEvent')('Interval' 1000)('Data'watcher)
           ⍝ 'Data' for testing purposes.
@@ -146,9 +140,9 @@
           ⎕DL 1 ⍝ Wait for events to stop
       :EndDisposable
     ∇
-    
+
     ∇ r←EventLog limit;log
-      
+     
       log←⌽EVENTPTR⌽EVENTLOG
       :If 0=≢log←↑(0≠¨⊃¨log)/log
           r←'Log is empty' ⋄ →0
@@ -156,5 +150,5 @@
       log[;1]←log[1;1]-log[;1] ⍝ How long ago
       r←⊖log
     ∇
-    
+
 :EndNamespace

@@ -4,9 +4,12 @@
     :Section Constants
     isWindows←'Win'≡3↑⊃# ⎕WG'APLVersion'
     ∇ (canwatch dotnetcore)←_CanWatch;⎕USING
-      :Trap 0
-        ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
-          dotnetcore←(~isWindows)∨(,'1')≡2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_NETCORE'
+    ⍝ Assumptions :
+    ⍝ Dyalog only allows .Net Framework v4 (v1 v2 and v3 are not supported anymore)
+    ⍝ Therefore v3 and v5 must mean .Net Core
+      :Trap 0 ⍝ ⎕USING← has been known to fail
+          ⎕USING←''        ⍝ Ensure that System is present if at all possible
+          dotnetcore←4≠System.Environment.Version.Major
           ⎕USING←',System',(~dotnetcore)/'.dll'
           canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
       :Else

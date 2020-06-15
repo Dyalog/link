@@ -9,16 +9,16 @@
      :If U.HasLinks
          scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
          :For i :In ⍳≢names
-             :Hold '⎕SE.Link.Notify'
-                 nc←container U.NameClass name←(⍕container),'.',i⊃names
-                 :If 0=nc  ⍝ does not exist
-                     r[i]←0 ⋄ :Continue
-                 :EndIf
-                 :If ¯9=nc  ⍝ trad ns
-                 :AndIf (⊂U.NormNs name)∊⎕SE.Link.Links.ns  ⍝ is a link root
-                     {}Break name  ⍝ github issue #119: tell user about problems
-                     r[i]←⎕EX name
-                 :Else
+             nc←container U.NameClass name←(⍕container),'.',i⊃names
+             :If 0=nc  ⍝ does not exist
+                 r[i]←0 ⋄ :Continue
+             :EndIf
+             :If ¯9=nc  ⍝ trad ns
+             :AndIf (⊂U.NormNs name)∊⎕SE.Link.Links.ns  ⍝ is a link root
+                 {}Break name  ⍝ github issue #119: tell user about problems
+                 r[i]←⎕EX name
+             :Else
+                 :Hold '⎕SE.Link.Notify'
                      (parent name)←U.SplitNs name
                      :If ~0∊⍴link←U.LookupRef parent←⍎parent
                          (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
@@ -31,8 +31,8 @@
                      :Else
                          r[i]←parent.⎕EX name
                      :EndIf
-                 :EndIf
-             :EndHold ⍝ Notify
+                 :EndHold ⍝ Notify
+             :EndIf
          :EndFor
          r←⊃⍣scal⊢shape⍴r
      :Else

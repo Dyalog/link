@@ -17,26 +17,27 @@
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
 
-         :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Notify'  ⍝ Expunge calls Break with the :Hold
-             linked←⍎¨⎕SE.Link.Links.ns
-             :If opts.exact ⋄ Linked←linked∘=
-             :Else ⋄ Linked←U.IsParent¨∘linked
-             :EndIf
-             :If opts.all ⋄ nss←linked ⋄ :EndIf
+         linked←⍎¨⎕SE.Link.Links.ns
+         :If opts.exact ⋄ Linked←linked∘=
+         :Else ⋄ Linked←U.IsParent¨∘linked
+         :EndIf
+         :If opts.all ⋄ nss←linked ⋄ :EndIf
 
-             broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
-             :For ns :In nss
-                 :If ~0∊⍴ns←there(0 U.GetRefTo)ns
-                 :AndIf ∨/deleted∨←mask←Linked ns
+         broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
+         :For ns :In nss
+             :If ~0∊⍴ns←there(0 U.GetRefTo)ns
+             :AndIf ∨/deleted∨←mask←Linked ns
+                 ⍝ First stop the file watcher - :Hold-ing '⎕SE.Link.Notify' could prevent the Notify callbacks from completing
+                 FileSystemWatcher.Break∪mask/⎕SE.Link.Links
+                 :Hold '⎕SE.Link.Notify'   ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
                      n+←U.RemoveFileTiesIn ns
-                     FileSystemWatcher.Break∪mask/⎕SE.Link.Links
-                     broken,←mask/linked
-                 :Else
-                     missing,←⊂ns
-                 :EndIf
-             :EndFor
-             ⎕SE.Link.Links/⍨←~deleted
-         :EndHold
+                 :EndHold
+                 broken,←mask/linked
+             :Else
+                 missing,←⊂ns
+             :EndIf
+         :EndFor
+         ⎕SE.Link.Links/⍨←~deleted
 
          msg←''
          :If ×≢broken

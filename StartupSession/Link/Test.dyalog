@@ -64,6 +64,7 @@
       →(0=≢folder←Setup FOLDER NAME)⍴0
       time←⎕AI[3]
       :For test :In tests
+          ⍝⎕←'*** TESTING'test
           z←(⍎test)folder NAME   ⍝ run test_*
       :EndFor
       time←⎕AI[3]-time
@@ -462,7 +463,7 @@
       assert'0=ns.⎕NC ''nil'''
       _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
-     
+
      EXIT: ⍝ →EXIT to aborted test and clean up
       CleanUp folder name
     ∇
@@ -762,7 +763,6 @@
     ∇ r←test_bugs(folder name);newbody;nr;opts;src;sub;unlikelyfile;unlikelyfn;unlikelyname;var;z
     ⍝ Github issues
       r←0
-     
       ⍝ link issue #112 : cannot break an empty link
       name ⎕NS''
       ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
