@@ -435,7 +435,7 @@
       :EndIf
     ∇
     ∇ src←GetFileSource file;type
-      src←⍬
+      src←⍬  ⍝ ⍬ means failure - empty file produces 0⍴⊂''
       :Trap 0
           :If 1=type←1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
           :ElseIf 2=type ⋄ src←GetFile file     ⍝ file

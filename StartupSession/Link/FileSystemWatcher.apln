@@ -12,8 +12,7 @@
     Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
 
     ∇ RequeuedEvent args
-     ⍝ Process events redirected via the timer
-     
+     ⍝ Process events redirected via the timer     
       :Select 2⊃args
       :Case TimerEvent  ⍝ Timer; do nothing for now
       :Case NotifyEvent ⍝ Re-queued Notify event

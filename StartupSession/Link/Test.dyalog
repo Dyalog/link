@@ -35,7 +35,6 @@
     USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
-    USE_NQ←0         ⍝ Value to use for ⎕SE.Link.FileSystemWatcher.USE_NQ
 
     NAME←'#.linktest'  ⍝ namespace used by link tests
     FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
@@ -321,7 +320,7 @@
       assert'ns.one2≡⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET o2file 1'
      
       ⍝ Rename the array
-      Breathe
+      Breathe ⋄ Breathe ⋄ Breathe   ⍝ because the previous Fix can trigger several "changed" filewatcher callbacks, and the following ⎕NMOVE would confuse them
       otfile←folder,'/onetwo.apla'
       z←ns.one2
       _←otfile #.SLAVE.⎕NMOVE o2file
@@ -338,6 +337,7 @@
       value←ns.onetwo
       _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
       assert'value≡ns.sub.one2' 'ns.sub.one2←value'
+      assert'0=⎕NC''ns.onetwo''' '⎕EX''ns.onetwo'''
      
       ⍝ Duplicate array (effect will be checked by looking at ⎕NL after renaming directory)
       ns.sub.onetwo←ns.sub.one2
@@ -385,10 +385,10 @@
       ⍝ Now copy a file containing a function
       old←ns.(5179⌶)'foo'
       _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
-      ⎕DL 0.2 ⍝ Allow FileSystemWatcher time to react (always needed)
+      Breathe ⋄ Breathe ⋄ Breathe ⍝ Allow FileSystemWatcher time to react (always needed)
       goofile←folder,'/goo.dyalog'
       _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
-      ⎕DL 0.2 ⍝ Allow FileSystemWatcher some time to react (always needed)
+      Breathe ⋄ Breathe ⋄ Breathe ⍝ Allow FileSystemWatcher some time to react (always needed)
       ⍝ Verify that the old function is still linked to the original file
       assert'old≡new←ns.(5179⌶)''foo''' '5178⌶''ns.foo'''
      
@@ -463,7 +463,7 @@
       assert'0=ns.⎕NC ''nil'''
       _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
-
+     
      EXIT: ⍝ →EXIT to aborted test and clean up
       CleanUp folder name
     ∇
@@ -602,7 +602,7 @@
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
      
       ⍝ check file rename on-the-fly
-      Breathe
+      Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
       {}(folder,'/NotDup.aplf')#.SLAVE.⎕NMOVE(folder,'/Dup-1.aplf')
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
      
@@ -656,7 +656,7 @@
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
      
       ⍝ check file rename on-the-fly
-      Breathe
+      Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
       {}(folder,'/NotDupDup1.apla')#.SLAVE.⎕NMOVE(folder,'/NotDupDup1.aplf')
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
       assert'fn≡⎕NR name,''.DupDup1'''
@@ -1077,7 +1077,6 @@
       r←'' ⍝ Run will abort if empty
      
       ⍝⎕PW⌈←300
-      ⎕SE.Link.FileSystemWatcher.USE_NQ←USE_NQ
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
      
       :If ~##.U.CanWatch

@@ -27,7 +27,7 @@
          :EndIf
 
          :If ~deleted
-             retry←3 ⍝ occasionnaly, on ⎕NMOVE made by Notify, the watcher rename event will not have access to file
+             retry←3 ⍝ occasionnaly, on ⎕NMOVE made by Notify, the watcher rename event will not have access to file for some time
              :While 0≤retry←retry-1
                  :Trap 0
                      dir←1=1 ⎕NINFO path
