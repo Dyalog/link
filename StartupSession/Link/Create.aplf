@@ -38,7 +38,7 @@
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
          msg←'Already linked: ',U.Arrow link
      :ElseIf {16::0 ⋄ 1⊣⎕SRC ⍵}nsref
-         msg←'Scipted: ',ns
+         msg←'Scripted namespace cannot be linked: ',ns
      :ElseIf ~⎕NEXISTS dir←∊1 ⎕NPARTS dir
      :AndIf ~3 ⎕MKDIR dir
          msg←'Directory not found: ',dir
