@@ -103,7 +103,7 @@
       opts←⎕NS''
       opts.(flatten source)←1 'dir'
       opts.getFilename←'⎕SE.Link.Test.onFlatFilename'
-      z←opts ⎕SE.Link.Create('#.',name)folder
+      z←opts ⎕SE.Link.Create name folder
      
       ns←#⍎name
      
@@ -165,16 +165,16 @@
     ∇ r←test_failures(folder name);opts;z
       r←0
      
-      'not found'assertMsg'⎕SE.Link.Export''#.',name,'.ns_not_here'' ''',folder,''''
-      'not found'assertMsg'⎕SE.Link.Import''#.',name,''' ''',folder,'/dir_not_here'''
+      'not found'assertMsg'⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,''''
+      'not found'assertMsg'⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here'''
      
       opts←⎕NS''
       opts.source←'ns'
-      'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,'.ns_not_here'' ''',folder,''''
+      'not found'assertMsg'opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,''''
      
       opts←⎕NS''
       opts.source←'dir'
-      'not found'assertMsg'opts ⎕SE.Link.Create''#.',name,''' ''',folder,'/dir_not_here'''
+      'not found'assertMsg'opts ⎕SE.Link.Create''',name,''' ''',folder,'/dir_not_here'''
      
       name ⎕NS''
       opts←⎕NS'' ⋄ opts.source←'ns'
@@ -219,7 +219,7 @@
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
       ⍝opts.customExtensions←'charmat' 'charvec'
-      z←opts ⎕SE.Link.Import('#.',name)folder
+      z←opts ⎕SE.Link.Import name folder
       assert'0=≢⎕SE.Link.Links'
      
       ns←#⍎name
@@ -250,7 +250,7 @@
       ⎕EX'ns' ⋄ #.⎕EX name
      
       opts.flatten←1
-      z←opts ⎕SE.Link.Import('#.',name)folder
+      z←opts ⎕SE.Link.Import name folder
       ns←#⍎name
       assert'0=≢⎕SE.Link.Links'
       assert'0=≢ns.⎕NL-9.1'
@@ -291,7 +291,7 @@
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
       opts.customExtensions←'charmat' 'charvec'
       opts.watch←'both'
-      z←opts ⎕SE.Link.Create('#.',name)folder
+      z←opts ⎕SE.Link.Create name folder
       z ⎕SIGNAL(0=≢⎕SE.Link.Links)/11
      
       assert'1=≢⎕SE.Link.Links'
@@ -1060,12 +1060,67 @@
       CleanUp folder name
     ∇
 
+
+
+
+
+    Stringify←{'''',((1+⍵='''')/⍵),''''}
+
+    ∇ r←test_gui(folder name);NO_ERROR;NO_WIN;err;res;ride;win;z
+    ⍝ Test editor and tracer
+      r←0
+      ⎕MKDIR Retry⊢folder
+      {}⎕SE.Link.Create name folder
+      ride←NewGhostRider
+      (NO_WIN NO_ERROR)←ride.(NO_WIN NO_ERROR)
+      (res win err)←ride.Execute'⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+      assert'(∨/''Linked:''⍷res)∧(win≡NO_WIN)∧(err≡NO_ERROR)'
+      (res win err)←ride.Execute'⎕SE.Link.Break ',(Stringify name)
+      assert'(∨/''Unlinked''⍷res)∧(win≡NO_WIN)∧(err≡NO_ERROR)'
+      CleanUp folder name
+    ∇
+
     :EndSection  test_functions
 
 
 
 
 
+
+
+
+
+
+    :Section GhostRider QAs
+    GhostRider←⎕NULL
+    ⍝ WARNING we Import the GhostRider instead of Link.Create because of the ≢⎕SE.Link.Links.
+    ∇ file←GetSourceFile
+      file←4⊃5179⌶⊃⎕SI
+    ∇
+    ∇ instance←NewGhostRider;Env;dir;env;msg;ok
+      :If GhostRider≡⎕NULL
+          dir←(⊃⎕NPARTS GetSourceFile),'GhostRider'  ⍝ directory of the git submodule
+          :If ⎕NEXISTS dir
+          :AndIf 1=1 ⎕NINFO dir
+              ⎕EX'GhostRider'  ⍝ GhostRider≡⎕NULL prevents ⎕SE.Link.Create from creating the namespace
+              ⍝{}⎕SE.Link.Create'GhostRider'dir
+              {}⎕SE.Link.Import'GhostRider'dir  ⍝ would otherwise change ≢⎕SE.Link.Links which is used by QAs
+              :If 0=⎕NC'GhostRider' ⋄ GhostRider←⎕NULL ⋄ :EndIf
+          :AndIf 9.1=⎕NC⊂'GhostRider' ⍝ this namespace maps to the git directory
+          :AndIf 9.4=GhostRider.⎕NC⊂'GhostRider'  ⍝ it must have the GhostRider class
+          :Else
+              ⍝{}⎕SE.Link.Break'⎕SE.Link.Test.GhostRider'  ⍝ necessary if we created the link
+              GhostRider←⎕NULL
+              msg←'GhostRider class not found in "',dir,'"',⎕UCS 13
+              msg,←'Try : git submodule update --init --recursive'
+              msg ⎕SIGNAL 999
+          :EndIf
+      :EndIf
+      Env←{⍵,'="',(2 ⎕NQ'.' 'GetEnvironment'⍵),'"'}
+      env←⍕Env¨'SESSION_FILE' 'MAXWS' 'DYALOGSTARTUPSE' 'DYALOGSTARTUPKEEPLINK' 'DYALOG_NETCORE'
+      instance←⎕NEW GhostRider.GhostRider env
+    ∇
+    :EndSection
 
 
 
@@ -1153,7 +1208,7 @@
     ∇ CleanUp(folder name);z;m
     ⍝ Tidy up after test
       ⍝⎕SE.Link.DEBUG←0
-      z←⎕SE.Link.Break'#.',name
+      z←⎕SE.Link.Break name
       assert'0=≢⎕SE.Link.Links'
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
       :If ∨/m←((≢folder)↑¨z)∊⊂folder

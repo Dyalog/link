@@ -108,11 +108,17 @@
           :EndRepeat ⋄ :EndIf
       r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
     ∇
-    ∇ r←RemoveFileTiesIn rootns;remove
+    ∇ r←RemoveFileTiesIn rootns;mask;parents;remove
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken
       :If 0≠r←≢remove←GetFileTiesIn rootns ⍝ links to be removed
-          r←+/(⍎¨⍕¨2⊃¨remove)Untie¨(⍕¨1⊃¨remove)   ⍝ need ⍎¨⍕¨ on the left argument because of mantis 18147
+          parents←⍎¨⍕¨2⊃¨remove⍝ need ⍎¨⍕¨ because of mantis 18147
+          mask←~IsScripted¨parents  ⍝ scripts items should not be untied ! only the script itself
+          r←+/(mask/parents)Untie¨(⍕¨1⊃¨mask/remove)
+          ⍝ there might be some orphaned script items - interpreter must forget about them
+          :If 0∊mask ⋄ :AndIf 0≠≢remove←GetFileTiesIn rootns ⍝ links to be removed
+              {}(⍎¨⍕¨2⊃¨remove){⍺.(5178⌶)⍵}¨(⍕¨1⊃¨remove)
+          :EndIf
       :EndIf
     ∇
     ∇ r←ViewMetaData mode
@@ -422,7 +428,7 @@
           src←GetRefSource ns
       :Else
           :If 900⌶⍬ ⋄ ns←⎕NS ⍬ ⋄ :EndIf
-          nc←ns.⎕NC⊂,name
+          nc←|ns.⎕NC⊂,name
           :Select nc
           :Case 2.1 ⍝ variable
               :Trap 11 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name

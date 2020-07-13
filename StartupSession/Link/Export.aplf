@@ -10,7 +10,7 @@
      :If ¯9≠nc←U.NameClass ns
          msg←'Source namespace not found: ',ns,' has name class ',(⍕nc)
      :Else
-         opts.watch←'none'
+         opts.watch←'none'   ⍝ prevent tying to the files
          opts.source←'ns'
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir

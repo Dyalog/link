@@ -7,7 +7,7 @@
 
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
-     opts.watch←'none'
+     opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
      :If 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
