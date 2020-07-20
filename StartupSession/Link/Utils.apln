@@ -196,7 +196,8 @@
       Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
           22::0                  ⍝ no file access
           _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
-          1⊣(⊂⍺)⎕NPUT ⍵ 1        ⍝ overwrite
+          11::1⊣(⊂⍺)⎕NPUT⊢⍵ 1        ⍝ overwrite - Dyalog v17.0 Unicode
+          1⊣(⊂⍺)⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1        ⍝ overwrite - Dyalog v17.1+ Classic
       }
 
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO
@@ -300,7 +301,11 @@
 
     Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}             ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
     _IsRootName←∊∘('#') (,'#') ('⎕SE')('⎕DMX')
-    _IsNameChar←∊∘'#.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüþⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ∆⍙'
+    ⍝_NAMECHAR←'#.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüþ∆⍙'
+    ⍝_NAMECHAR,←⎕UCS (82≠⎕DR'')/(9397+⍳26)  ⍝ underscored alphabet for unicode
+    _NAMECHAR←35 46 48 49 50 51 52 53 54 55 56 57 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 95 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 216 217 218 219 220 221 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 250 251 252 254 9398 9399 9400 9401 9402 9403 9404 9405 9406 9407 9408 9409 9410 9411 9412 9413 9414 9415 9416 9417 9418 9419 9420 9421 9422 9423 8710 9049  ⍝ full list of legal name members
+    _NAMECHAR←⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢_NAMECHAR  ⍝ classic interpreter must pick from ⎕AVU
+    _IsNameChar←∊∘_NAMECHAR
     ∇ ok←_IsAplName name;mask
     ⍝ avoid executing any string when trying to reference a namespace with ⍎
       :If ~ok←∧/mask←_IsNameChar name
@@ -308,15 +313,16 @@
           ok←∧/mask←mask∨('⎕SE.'⍷name)∨('⎕DMX.'⍷name)
       :EndIf
     ∇
-    IsRootName←{⍺←⊢ ⋄ _IsRootName ⊂⍵:1 ⋄ ~_IsAplName ⍵:0 ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
+    ⍝IsRootName←{⍺←⊢ ⋄ _IsRootName ⊂⍵:1 ⋄ ~_IsAplName ⍵:0 ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
+    IsRootName←{11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, ''∘⎕WG does it in current space which is not what we want
     ∇ nc←{nsref}NameClass name
     ⍝ safe name class (avoid clash with our stuff)
-    ⍝ return ¯9 for trad ns
+    ⍝ return ¯9 for trad ns that map to directories and not files
       :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
-      :If 9.1=nc←nsref.⎕NC⊂,name
+      :If 9.1=nc←nsref.⎕NC⊂,name  ⍝ that includes ⎕DMX
       :AndIf ~IsScripted nsref⍎name
           nc←¯9
-      :ElseIf ¯1=nc  ⍝ root reports ¯1
+      :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
       :AndIf nsref IsRootName name
           nc←¯9
       :EndIf
@@ -417,7 +423,7 @@
     :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
 
     ∇ src←GetRefSource ns
-      :Trap 16 ⋄ src←⎕SRC ns
+      :Trap 16 ⋄ src←⎕SRC ns  ⍝ scripted namespace
       :Else ⋄ src←⎕NULL  ⍝ traditional namespace
       :EndTrap
     ∇
@@ -449,15 +455,15 @@
       :EndTrap
     ∇
 
-    ∇ (name nc)←{where}Fix(name src);file;invalid;names;nc;stops;unnamed
+    ∇ (name nc)←{where}Fix(name src);file;invalid;monitor;names;nc;stops;trace;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9 if trad namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
       :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
       ⍝ attempt to fix as named script because this is the most commly expected format
-      :If (⌊where.⎕NC⊂name)∊3 4 ⋄ stops←where.⎕STOP name  ⍝ remember stops
-      :Else ⋄ stops←⍬
+      :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ remember stops
+      :Else ⋄ stops←trace←monitor←⍬
       :EndIf
       :Trap 11
           ⍝ actual apl name may be different from what was expected
@@ -465,15 +471,15 @@
           :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
           :EndIf
-          :If ((⌊nc)∊3 4)∧(~0∊⍴stops)  ⍝ restore stops
-              stops where.⎕STOP name
+          :If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
+              stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
           :EndIf
           :Return  ⍝ named script fixed
       :Else
           unnamed←121=⎕DMX.ENX  ⍝ 2 ⎕FIX failed because script was unnamed
       :EndTrap
       ⍝ name must be valid because we define it in the following code
-      :If ¯1=⎕NC,name ⋄ :AndIf ~IsRootName name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
+      :If ¯1=⎕NC,name ⋄ :AndIf ~where IsRootName name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
       :If unnamed  ⍝ unnamed script
           name where.{⍎⍺,'←⎕FIX ⍵'}src  ⍝ can work from file
           nc←where.⎕NC⊂,name
@@ -608,8 +614,8 @@
       :Else ⋄ (actname nc)←Fix expname src           ⍝ inspect source
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
-      :ElseIf (0=≢where)∧(nc=¯9) ⋄ :AndIf IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf ¯1=⎕NC where ⋄ :AndIf ~IsRootName where ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
+      :ElseIf (0=≢where)∧(nc=¯9) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
+      :ElseIf ¯1=⎕NC where ⋄ :AndIf ~# IsRootName where ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇
 
