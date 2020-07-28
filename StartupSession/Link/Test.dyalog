@@ -1066,17 +1066,63 @@
 
     Stringify←{'''',((1+⍵='''')/⍵),''''}
 
-    ∇ r←test_gui(folder name);NO_ERROR;NO_WIN;err;res;ride;win;z
+    ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;errors;foo;foo2;foowin;goo;output;prompt;ride;tracer;var;varsrc;windows;z
     ⍝ Test editor and tracer
       r←0
+     
       ⎕MKDIR Retry⊢folder
-      {}⎕SE.Link.Create name folder
+      varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
+      foo←' res←foo arg' '⍝ this is foo[1]' ' res←arg' ' res←''foo''res'
+      foo2←' res←foo arg' '⍝ this is foo[2]' ' res←arg' ' res←''foo2''res'
+      goo←' res←goo arg' '⍝ this is goo[1]' ' res←arg' ' res←''goo''res'
+      class←':Class class' '    :Field Public Shared var← 4 5 6' '    ∇ res←dup arg' '      :Access Public Shared' '      res←arg arg' '    ∇' ':EndClass'
+      {}(⊂varsrc)QNPUT(folder,'/var.apla')1
+      {}(⊂foo)QNPUT(folder,'/foo.aplf')1
+      {}(⊂class)QNPUT(folder,'/class.aplc')1
+      ⎕MKDIR folder,'/sub'
+      {}(⊂varsrc)QNPUT(folder,'/sub/var.apla')1
+      {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
+      {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
+     
       ride←NewGhostRider
-      (NO_WIN NO_ERROR)←ride.(NO_WIN NO_ERROR)
-      (res win err)←ride.Execute'⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(∨/''Linked:''⍷res)∧(win≡NO_WIN)∧(err≡NO_ERROR)'
-      (res win err)←ride.Execute'⎕SE.Link.Break ',(Stringify name)
-      assert'(∨/''Unlinked''⍷res)∧(win≡NO_WIN)∧(err≡NO_ERROR)'
+      (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
+      (prompt output windows errors)←ride.Execute'⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+      assert'(prompt≡1)∧(∨/''Linked:''⍷output)∧(windows≡NO_WIN)∧(errors≡NO_ERROR)'
+     
+     ⍝https://github.com/Dyalog/link/issues/30
+      tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
+      {}(⊂goo)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
+      'link issue #30'assert'('''')≡2⊃ride.Execute '' ⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
+      'link issue #30'assert'(,(↑goo),NL)≡2⊃ride.Execute '' ⎕CR ''''goo'''' '' '  ⍝ goo is there
+      (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
+      'link issue #30'assert'1 ('' foo  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ traced code has NOT changed - sounds reasonable
+      'link issue #30'assert'('''')≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
+      'link issue #30'assert'(,(↑goo),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is there
+      ⍝ do the same thing without modifying the name of the function
+      {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
+      'link issue #30'assert'('''')≡2⊃ride.Execute '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
+      'link issue #30'assert'(,(↑foo),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
+      tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
+      {}(⊂foo2)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
+      'link issue #30'assert'(,(↑foo2),NL)≡2⊃ride.Execute '' ⎕CR ''''foo'''' '' '  ⍝ foo has changed
+      (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
+      'link issue #30'assert'1 ('' foo2  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ ⎕BUG? traced code HAS changed although the tracer window still displays the old code
+      'link issue #30'assert'(,(↑foo2),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ goo is there
+      ⍝ restore what we've done
+      {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
+      'link issue #30'assert'(,(↑foo),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
+          
+     ⍝https://github.com/Dyalog/link/issues/35
+     ⍝https://github.com/Dyalog/link/issues/48
+     ⍝https://github.com/Dyalog/link/issues/49
+     ⍝https://github.com/Dyalog/link/issues/83
+     ⍝https://github.com/Dyalog/link/issues/109
+     ⍝https://github.com/Dyalog/link/issues/129
+     ⍝https://github.com/Dyalog/link/issues/139
+     ⍝https://github.com/Dyalog/link/issues/143
+     
+      (prompt output windows errors)←ride.Execute'⎕SE.Link.Break ',(Stringify name)
+      assert'(prompt≡1)∧(∨/''Unlinked''⍷output)∧(windows≡NO_WIN)∧(errors≡NO_ERROR)'
       CleanUp folder name
     ∇
 
@@ -1093,32 +1139,29 @@
 
     :Section GhostRider QAs
     GhostRider←⎕NULL
-    ⍝ WARNING we Import the GhostRider instead of Link.Create because of the ≢⎕SE.Link.Links.
+    ⍝ WARNING we Import the GhostRider instead of Link.Create because some QAs check ≢⎕SE.Link.Links.
     ∇ file←GetSourceFile
       file←4⊃5179⌶⊃⎕SI
     ∇
-    ∇ instance←NewGhostRider;Env;dir;env;msg;ok
+
+    ∇ instance←NewGhostRider;Env;env;file;msg;names;ok
       :If GhostRider≡⎕NULL
-          dir←(⊃⎕NPARTS GetSourceFile),'GhostRider'  ⍝ directory of the git submodule
-          :If ⎕NEXISTS dir
-          :AndIf 1=1 ⎕NINFO dir
-              ⎕EX'GhostRider'  ⍝ GhostRider≡⎕NULL prevents ⎕SE.Link.Create from creating the namespace
-              ⍝{}⎕SE.Link.Create'GhostRider'dir
-              {}⎕SE.Link.Import'GhostRider'dir  ⍝ would otherwise change ≢⎕SE.Link.Links which is used by QAs
-              :If 0=⎕NC'GhostRider' ⋄ GhostRider←⎕NULL ⋄ :EndIf
-          :AndIf 9.1=⎕NC⊂'GhostRider' ⍝ this namespace maps to the git directory
-          :AndIf 9.4=GhostRider.⎕NC⊂'GhostRider'  ⍝ it must have the GhostRider class
-          :Else
-              ⍝{}⎕SE.Link.Break'⎕SE.Link.Test.GhostRider'  ⍝ necessary if we created the link
+          file←(⊃⎕NPARTS GetSourceFile),'GhostRider/GhostRider.dyalog'  ⍝ in the directory of the git submodule
+          ⎕EX'GhostRider'  ⍝ GhostRider≡⎕NULL prevents ⎕SE.Link.Create from creating the namespace
+          :Trap 0 ⋄ names←2 ⎕FIX'file://',file
+          :Else ⋄ names←0⍴⊂''
+          :EndTrap
+          :If names≢,⊂'GhostRider'   ⍝ GhostRider correctly fixed
+          :OrIf 9.4≠⎕NC⊂'GhostRider' ⍝ GhostRider class present
               GhostRider←⎕NULL
-              msg←'GhostRider class not found in "',dir,'"',⎕UCS 13
+              msg←'GhostRider class not found in "',file,'"',⎕UCS 13
               msg,←'Try : git submodule update --init --recursive'
               msg ⎕SIGNAL 999
           :EndIf
       :EndIf
       Env←{⍵,'="',(2 ⎕NQ'.' 'GetEnvironment'⍵),'"'}
       env←⍕Env¨'SESSION_FILE' 'MAXWS' 'DYALOGSTARTUPSE' 'DYALOGSTARTUPKEEPLINK' 'DYALOG_NETCORE'
-      instance←⎕NEW GhostRider.GhostRider env
+      instance←⎕NEW GhostRider env
     ∇
     :EndSection
 
@@ -1209,7 +1252,7 @@
     ⍝ Tidy up after test
       ⍝⎕SE.Link.DEBUG←0
       z←⎕SE.Link.Break name
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
       :If ∨/m←((≢folder)↑¨z)∊⊂folder
           ⎕←'*** Links not cleared:'

@@ -14,7 +14,7 @@ Function                                              | Right Argument(s)       
  [List](Link.List.md)<sup>`]`</sup>                   | namespace                  | options: `extended`                            | 
  [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                                 | 
  [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | *&lt;none&gt;*                                 | 
- [Version](Link.Version.md)<sup>`]`</sup>             | *&lt;none&gt;*             | *&lt;none&gt;*                                 | version number as string
+ [Version](Link.Version.md)             | *&lt;none&gt;*             | *&lt;none&gt;*                                 | version number as string
 
  <sup>`]`</sup> These functions have [user command covers](#user-commands).
 
