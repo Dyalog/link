@@ -1066,9 +1066,9 @@
 
     Stringify←{'''',((1+⍵='''')/⍵),''''}
 
-    ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;errors;foo;foo2;foowin;goo;output;prompt;ride;tracer;var;varsrc;windows;z
+    ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;ed;errors;foo;foo2;foowin;goo;new;output;prompt;res;ride;tracer;var;varsrc;windows;z
     ⍝ Test editor and tracer
-      r←0
+      r←0 ⋄ ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
       ⎕MKDIR Retry⊢folder
       varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
@@ -1076,53 +1076,84 @@
       foo2←' res←foo arg' '⍝ this is foo[2]' ' res←arg' ' res←''foo2''res'
       goo←' res←goo arg' '⍝ this is goo[1]' ' res←arg' ' res←''goo''res'
       class←':Class class' '    :Field Public Shared var← 4 5 6' '    ∇ res←dup arg' '      :Access Public Shared' '      res←arg arg' '    ∇' ':EndClass'
-      {}(⊂varsrc)QNPUT(folder,'/var.apla')1
-      {}(⊂foo)QNPUT(folder,'/foo.aplf')1
-      {}(⊂class)QNPUT(folder,'/class.aplc')1
+     
+      ⍝ start with flattened repository
       ⎕MKDIR folder,'/sub'
       {}(⊂varsrc)QNPUT(folder,'/sub/var.apla')1
       {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
+      output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+      assert'(∨/''Linked:''⍷output)'
      
-      ride←NewGhostRider
-      (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
-      (prompt output windows errors)←ride.Execute'⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(prompt≡1)∧(∨/''Linked:''⍷output)∧(windows≡NO_WIN)∧(errors≡NO_ERROR)'
+      ⍝https://github.com/Dyalog/link/issues/48
+      ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
+      'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
+      output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
+      'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
+     
+      ⍝https://github.com/Dyalog/link/issues/49
+      ride.Edit(name,'.foo')(goo)  ⍝ edit foo and type goo in it
+      'link issue #49'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is untouched
+      'link issue #49'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
+      'link issue #49'assert' foo≡⊃⎕NGET (folder,''/sub/foo.aplf'') 1 '   ⍝ foo is untouched
+      'link issue #49'assert' goo≡⊃⎕NGET (folder,''/sub/goo.aplf'') 1 '   ⍝ goo is defined in the same directory as foo
+      {}QNDELETE folder,'/sub/goo.aplf'
+      'link issue #49'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
+     
+      ⍝ now copy files in the root to have two namespace (root and root.sub)
+      output←ride.APL' ⎕SE.Link.Break ',Stringify name
+      assert'(∨/''Unlinked''⍷output)'
+      {}(⊂varsrc)QNPUT(folder,'/var.apla')1
+      {}(⊂foo)QNPUT(folder,'/foo.aplf')1
+      {}(⊂class)QNPUT(folder,'/class.aplc')1
+      output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+      assert'(∨/''Linked:''⍷output)'
      
      ⍝https://github.com/Dyalog/link/issues/30
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
       {}(⊂goo)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
-      'link issue #30'assert'('''')≡2⊃ride.Execute '' ⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
-      'link issue #30'assert'(,(↑goo),NL)≡2⊃ride.Execute '' ⎕CR ''''goo'''' '' '  ⍝ goo is there
+      'link issue #30'assert'('''')≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
+      'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ⎕CR ''''goo'''' '' '  ⍝ goo is there
       (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
       'link issue #30'assert'1 ('' foo  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ traced code has NOT changed - sounds reasonable
-      'link issue #30'assert'('''')≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
-      'link issue #30'assert'(,(↑goo),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is there
+      'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
+      'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is there
       ⍝ do the same thing without modifying the name of the function
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
-      'link issue #30'assert'('''')≡2⊃ride.Execute '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
-      'link issue #30'assert'(,(↑foo),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
+      'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
+      'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
       {}(⊂foo2)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
-      'link issue #30'assert'(,(↑foo2),NL)≡2⊃ride.Execute '' ⎕CR ''''foo'''' '' '  ⍝ foo has changed
+      'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has changed
       (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
       'link issue #30'assert'1 ('' foo2  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ ⎕BUG? traced code HAS changed although the tracer window still displays the old code
-      'link issue #30'assert'(,(↑foo2),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ goo is there
+      'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ goo is there
       ⍝ restore what we've done
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
-      'link issue #30'assert'(,(↑foo),NL)≡2⊃ride.Execute '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
-          
+      'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
+      'link issue #30'assert'(''0'',NL)≡ride.APL'' ⎕NC⊂''''foo2'''' '' '
+     
      ⍝https://github.com/Dyalog/link/issues/35
-     ⍝https://github.com/Dyalog/link/issues/48
-     ⍝https://github.com/Dyalog/link/issues/49
+      ride.Edit(name,'.foo')goo   ⍝ change name in editor
+      ride.Edit(name,'.foo')foo2  ⍝ change original function
+      'link issue #35'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is foo2
+      'link issue #35'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
+      'link issue #35'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo is correctly linked
+      'link issue #35'assert' goo≡⊃⎕NGET (folder,''/goo.aplf'') 1 '   ⍝ goo is correctly linked
+      res←ride.APL'+⎕SE.Link.Expunge ''',name,'.goo'' '  ⍝ delete goo
+      'link issue #35'assert'res≡''1'',NL'
+      ride.Edit(name,'.foo')foo  ⍝ put back original foo
+      'link issue #35'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo is correctly linked
+      'link issue #35'assert' ~⎕NEXISTS folder,''/goo.aplf'' '   ⍝ goo does not exist
+     
      ⍝https://github.com/Dyalog/link/issues/83
      ⍝https://github.com/Dyalog/link/issues/109
      ⍝https://github.com/Dyalog/link/issues/129
      ⍝https://github.com/Dyalog/link/issues/139
      ⍝https://github.com/Dyalog/link/issues/143
      
-      (prompt output windows errors)←ride.Execute'⎕SE.Link.Break ',(Stringify name)
-      assert'(prompt≡1)∧(∨/''Unlinked''⍷output)∧(windows≡NO_WIN)∧(errors≡NO_ERROR)'
+      output←ride.APL'⎕SE.Link.Break ',(Stringify name)
+      assert'(∨/''Unlinked''⍷output)'
       CleanUp folder name
     ∇
 

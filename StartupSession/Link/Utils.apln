@@ -546,6 +546,8 @@
               :If ~flatten                ⍝ flatten prevents subdirectory hierarchy
                   file←(≢ns)↓where              ⍝ Add sub.namespace structure
                   ((file='.')/file)←'/'            ⍝ Convert dots to /
+              :Else  ⍝ when flattening, use the same dir as the old file (if any)
+                  file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile  ⍝ if 0∊⍴oldfile, then file remains empty
               :EndIf
               file←dir,file               ⍝ Add link directory
               file,←'/',name                  ⍝ Add object name
