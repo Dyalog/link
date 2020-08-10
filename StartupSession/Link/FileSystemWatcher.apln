@@ -12,7 +12,7 @@
     Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
 
     ∇ RequeuedEvent args
-     ⍝ Process events redirected via the timer     
+     ⍝ Process events redirected via the timer
       :Select 2⊃args
       :Case TimerEvent  ⍝ Timer; do nothing for now
       :Case NotifyEvent ⍝ Re-queued Notify event
@@ -54,23 +54,23 @@
     ∇
 
     ∇ r←Watch args;tid;q;z;end
-    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]     
+    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       :If 0 ⍝ DEBUG≠0
           EVENTPTR←0
           EVENTLOG←100⍴⊂0 '' ''
-      :EndIf     
+      :EndIf
       :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
           z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
           q←FSWQ,⍕tid←WatcherThread&args
           z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting
           end←Timeout+3⊃⎕AI
           :While 0=⎕NC q     ⍝ Wait for thread to create the Timer object
-              :If end<3⊃⎕AI
-                  ##.U.Warn'WatcherThread did not create Timer object'
-              :EndIf
+              ⍝:If end<3⊃⎕AI
+              ⍝    ##.U.Warn'WatcherThread did not create Timer object'
+              ⍝:EndIf
               ⎕DL 0.05
           :EndWhile
-          (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it     
+          (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
       :Else ⍝ Make direct calls to Notify: return the FSW object
           r←MakeWatcher args
           r.EnableRaisingEvents←1
@@ -89,9 +89,9 @@
               :EndIf
               end←Timeout+3⊃⎕AI
               :While ∨/tids∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
-                  :If end<3⊃⎕AI
-                      ##.U.Warn'WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request'
-                  :EndIf
+                  ⍝:If end<3⊃⎕AI
+                  ⍝    ##.U.Warn'WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request'
+                  ⍝:EndIf
                   ⎕DL 0.1
               :EndWhile
               ⎕EX links.fsw.QUEUE

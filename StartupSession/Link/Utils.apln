@@ -775,7 +775,7 @@
 
     ∇ {msg}←{header}Warn msg
     ⍝ Warn user
-      :If 900⌶⍬ ⋄ header←']Link Warning: ' ⋄ :EndIf
+      :If 900⌶⍬ ⋄ header←'Link Warning: ' ⋄ :EndIf
       ⎕←header,msg
     ∇
 
