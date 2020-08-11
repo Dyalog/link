@@ -769,11 +769,11 @@
       z←⎕SE.Link.Create name folder
       'link issue #112'assert'~∨/''failed''⍷z'
       z←⎕SE.Link.Break name
-      'link issue #112'assert'∨/''Unlinked''⍷z'
+      'link issue #112'assert'(∨/''Unlinked''⍷z)'
       ⎕EX name
      
       ⍝ link issue #118 : create link in #
-      '#.unlikelyname must be non-existent'assert'0=⎕NC''#.unlikelyname'''
+      '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
       (⊂unlikelyfn←' unlikelyname x' ' ⎕←x')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
       z←⎕SE.Link.Create # folder
       'link issue #118'assert'1=≢⎕SE.Link.Links'
@@ -789,19 +789,38 @@
       z←⎕SE.Link.Create(name,'.sub')folder
       assert'~∨/''failed''⍷z'
       assert'2=≢⎕SE.Link.Links'
-      {}'{exact:1}'⎕SE.Link.Break name  ⍝ break only # and not children
+      :Trap ⎕SE.Link.U.ERRNO
+          {}⎕SE.Link.Break name  ⍝ must error because of linked children
+          assert'0'
+      :Else
+          assert'∨/''Cannot break children''⍷⊃⎕DM'
+      :EndTrap
+      {}'{recursive:''off''}'⎕SE.Link.Break name  ⍝ break only name and not children
+      assert'1=≢⎕SE.Link.Links'  ⍝ children remains
+      z←'{recursive:''off''}'⎕SE.Link.Break name
       assert'1=≢⎕SE.Link.Links'
-      {}⎕SE.Link.Break name  ⍝ break all chilren of #
+      z←'{recursive:''on''}'⎕SE.Link.Break name
       assert'0=≢⎕SE.Link.Links'
      
       ⍝ link issue #111 : ]link.break -all must work
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
-      assert'2=≢⎕SE.Link.Links'
+      z←⎕SE.Link.Create'#.unlikelyname.sub'folder
+      assert'3=≢⎕SE.Link.Links'
       {}'{all:1}'⎕SE.Link.Break ⍬
       'link issue #111'assert'0=≢⎕SE.Link.Links'
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
+      z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
+      z←⎕SE.Link.Create'#.unlikelyname'folder
+      z←⎕SE.Link.Create'#.unlikelyname.sub'folder
+      assert'3=≢⎕SE.Link.Links'
+      {}'{recursive:''on''}'⎕SE.Link.Break'#.unlikelyname'
+      'link issue #111'assert'1=≢⎕SE.Link.Links'
+      {}⎕SE.Link.Break'⎕SE.unlikelyname'
+      'link issue #111'assert'0=≢⎕SE.Link.Links'
+      ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
+     
      
       ⍝ link issue #117 : leave trailing slash in dir
       z←⎕SE.Link.Create name(folder,'/')

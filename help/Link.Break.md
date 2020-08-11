@@ -10,6 +10,7 @@ all traces of the link, preventing any further synchronisation from taking place
 #### Options
 
 - `all`: Break all existing links (arguments are then irrelevant)
-- `exact`: Break only the argument namespace, but not children namespaces if some have their own links
+- `recursive` {on|off|**error**}: Break children namespaces too if some have their own links to their own directories
+ 
 
 #### Result

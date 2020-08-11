@@ -1,4 +1,4 @@
- msg←{opts}Break nss;Linked;broken;defopts;deleted;link;linked;mask;missing;n;ns;there;⎕IO
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;n;ns;refs;there;tobreak;⎕IO
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
@@ -11,37 +11,46 @@
      :If U.HasLinks
          ⎕IO←1
 
-         (defopts←⎕NS ⍬).(all exact)←0
+         (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+
+         missing←0⍴⊂'' ⋄ n←0
 
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
+         refs←there(0 U.GetRefTo)U.OnEach nss  ⍝ turn into references
+         missing,←(0=≢¨refs)/nss ⋄ refs←(0<≢¨refs)/refs  ⍝ ⍬ for reference not found
 
-         linked←⍎¨⎕SE.Link.Links.ns
-         :If opts.exact ⋄ Linked←linked∘=
-         :Else ⋄ Linked←U.IsParent¨∘linked
-         :EndIf
-         :If opts.all ⋄ nss←linked ⋄ :EndIf
-
-         broken←0⍴⊂'' ⋄ missing←0⍴⊂'' ⋄ n←0 ⋄ deleted←(⍴linked)⍴0
-         :For ns :In nss
-             :If ~0∊⍴ns←there(0 U.GetRefTo)ns
-             :AndIf ∨/deleted∨←mask←Linked ns
-                 ⍝ First stop the file watcher - :Hold-ing '⎕SE.Link.Notify' could prevent the Notify callbacks from completing
-                 FileSystemWatcher.Break∪mask/⎕SE.Link.Links
-                 :Hold '⎕SE.Link.Notify'   ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
-                     n+←U.RemoveFileTiesIn ns
-                 :EndHold
-                 broken,←mask/linked
-             :Else
-                 missing,←⊂ns
+         linked←⍎¨⎕SE.Link.Links.ns ⋄ links←⎕SE.Link.Links
+         :If opts.all
+             tobreak←refs←linked
+         :ElseIf opts.recursive≡'on'
+             tobreak←(∨⌿refs∘.U.IsParent linked)/linked  ⍝ break namespaces and children
+             missing,←refs~tobreak
+         :ElseIf (⊂opts.recursive)∊'off' 'error'
+             tobreak←(∨⌿refs∘.=linked)/linked  ⍝ break exact namespaces only
+             missing,←refs~tobreak
+             :If opts.recursive≡'error'
+             :AndIf (~0∊⍴tobreak)∧(~0∊⍴linked~refs)
+             :AndIf ∨/mask←∨/tobreak∘.U.IsParent(linked~refs) ⍝ trying to break a parent of a link that remains
+                 U.Error'Cannot break children namespaces linked to their own directories - set ''recursive'' flag to ''on'' or ''off'': ',U.List mask/tobreak
              :EndIf
-         :EndFor
-         ⎕SE.Link.Links/⍨←~deleted
+         :Else
+             U.Error'''recursive'' flag must be one of ''on'' ''off'' ''error'''
+         :EndIf
+
+         :If ~0∊⍴tobreak
+             ⍝ First stop the file watcher - :Hold-ing '⎕SE.Link.Notify' could prevent the Notify callbacks from completing
+             FileSystemWatcher.Break∪(linked∊tobreak)/links
+             :Hold '⎕SE.Link.Notify'
+                 n←+/U.RemoveFileTiesIn¨∪tobreak  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
+             :EndHold
+             ⎕SE.Link.Links/⍨←~linked∊tobreak
+         :EndIf
 
          msg←''
-         :If ×≢broken
-             msg,←⊂'Unlinked ',(⍕n),' items:',U.List∪broken
+         :If ×≢tobreak
+             msg,←⊂'Unlinked ',(⍕n),' items:',U.List∪tobreak
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List∪missing
