@@ -792,12 +792,12 @@
       assert'0=≢⎕SE.Link.Links'
       ⎕EX'#.unlikelyname'
      
-      z←⎕SE.Link.Create name folder
-      assert'~∨/''failed''⍷z'
-      assert'1=≢⎕SE.Link.Links'
-      z←⎕SE.Link.Create(name,'.sub')folder
-      assert'~∨/''failed''⍷z'
-      assert'2=≢⎕SE.Link.Links'
+      z←⎕SE.Link.Create(name,'.⎕THIS')folder
+      'link issue #145'assert'~∨/''failed''⍷z'
+      'link issue #145'assert'1=≢⎕SE.Link.Links'
+      z←⎕SE.Link.Create('⎕THIS.',name,'.sub')folder
+      'link issue #145'assert'~∨/''failed''⍷z'
+      'link issue #145'assert'2=≢⎕SE.Link.Links'
       :Trap ⎕SE.Link.U.ERRNO
           {}⎕SE.Link.Break name  ⍝ must error because of linked children
           assert'0'

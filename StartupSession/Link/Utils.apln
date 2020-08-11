@@ -338,6 +338,7 @@
           n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
           container←⊃n↓rsi
           ns←(⍕container),(0≠≢ns)/'.',ns  ⍝ can't use NormNs because ns may not exist
+          ns←('⎕THIS\.'⎕R'')('\.⎕THIS'⎕R'')ns  ⍝ ignore ⎕THIS which confuses GetRefTo
       :EndIf
     ∇
 
