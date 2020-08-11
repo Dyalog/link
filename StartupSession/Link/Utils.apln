@@ -73,6 +73,7 @@
           lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
           ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
       }
+    HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
 
     :EndSection
 
@@ -336,7 +337,7 @@
       :Else
           n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
           container←⊃n↓rsi
-              ns←(⍕container),(0≠≢ns)/'.',ns  ⍝ can't use NormNs because ns may not exist
+          ns←(⍕container),(0≠≢ns)/'.',ns  ⍝ can't use NormNs because ns may not exist
       :EndIf
     ∇
 
@@ -652,6 +653,10 @@
                       mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)src
                   :EndFor
                   (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
+              :EndIf
+              :If 0∊mask←~HasNewlines¨∊¨src  ⍝ cannot write newlines
+                  outFail,←(ns,'.')∘,¨(~mask)/names
+                  (files oldfiles names src)/⍨←⊂mask
               :EndIf
               mask←src Into¨files  ⍝ failed to write
               outFail,←(ns,'.')∘,¨(~mask)/names

@@ -67,6 +67,9 @@ NOHOLD:
          update∨←fix∧('both'≡link.watch)  ⍝ watching both requires 2 ⎕FIX which in turn requires updating the file
 
          :If update  ⍝ file system must reflect changes
+             :If U.HasNewlines∊src
+                 U.Error'Source code cannot have newlines'
+             :EndIf
              :Trap 0
                  :If nc=¯9.1  ⍝ tradns → folder
                      3 ⎕MKDIR file

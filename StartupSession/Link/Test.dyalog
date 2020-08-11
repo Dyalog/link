@@ -768,7 +768,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);newbody;nr;opts;src;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;src;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
     ⍝ Github issues
       r←0
       name ⎕NS''
@@ -835,6 +835,7 @@
       ⍝ superseeded by issue #146 when trailing slash was disabled altogether
       z←⎕SE.Link.Create name(folder,'/')
       'link issue #146'assert'(∨/''Trailing slash''⍷z)∧(0=≢⎕SE.Link.Links)'
+      'link issue #146'assert'0=≢⎕SE.Link.Links'
       z←⎕SE.Link.Create name folder
       'link issue #117'assert'1=≢⎕SE.Link.Links'
       'link issue #117'assert'~∨/''failed''⍷z'
@@ -911,7 +912,7 @@
      
       ⍝ attempt to change a function to an operator
       {}⎕SE.Link.Create name folder
-      name'foo'⎕SE.Link.Fix' r←(op foo) arg' ' r←op arg' ⍝ turn foo into an operator
+      name'foo'⎕SE.Link.Fix foo←' r←(op foo)arg' ' r←op arg' ⍝ turn foo into an operator
       Breathe
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
@@ -924,12 +925,22 @@
       z,←⎕SE.Link.GetItemName'/nope.nope' '/nope/nope.nope',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
       assert'∧/z≡¨⊂'''' '
      
+      ⍝ attempt to write control characters
+      :Trap 0
+          name'foo'⎕SE.Link.Fix'res←(op foo)arg'('res←''',(⎕UCS 10),''',arg')
+          'link issue #151'assert'0'
+      :Else
+          'link issue #151'assert'∨/''cannot have newlines''⍷⊃⎕DM'
+      :EndTrap
+      'link issue #151'assert'foo≡⎕NR ''',name,'.foo'''
      
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
       'link issue #132 and #133'assert'∨/''Linked:''⍷z'
       {}⎕SE.Link.Break name
-      assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
+      :If ~0∊⍴5177⌶⍬ ⋄ :AndIf ⎕SE∨.≠{⍵.##}⍣≡⊢2⊃¨5177⌶⍬
+          assert'0'  ⍝ no more links in #
+      :EndIf
      
       ⍝ attempt to recover the source after deletion when not watching the directory
       opts←⎕NS ⍬
@@ -946,7 +957,9 @@
      
       ⍝ attempt to export
       3 ⎕NDELETE folder
-      {}⎕SE.UCMD']link.export ',name,' ',folder
+      (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
+      {}⎕SE.UCMD'z←]link.export ',name,' ',folder
+      'link issue #151'assert'∨/''failed: "',name,'.failed"''⍷z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
       CleanUp folder name
@@ -1121,19 +1134,19 @@
     ∇ r←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
       r←0 ⋄ :If 82≠⎕DR'' ⋄ :Return ⋄ :EndIf
       3 ⎕MKDIR folder
-      
+     
       ⍝ check that key and friends are correctly translated in classic edition
       {}⎕SE.Link.Create name folder
       name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⎕U2338 arg'
-      read←{tie←⍵ ⎕NTIE 0 ⋄ r←⎕NREAD tie 83 ¯1 0 ⋄ _←⎕NUNTIE tie ⋄ r} folder,'/foo.aplf'
+      read←{tie←⍵ ⎕NTIE 0 ⋄ r←⎕NREAD tie 83 ¯1 0 ⋄ _←⎕NUNTIE tie ⋄ r}folder,'/foo.aplf'
       foobytes←32 114 101 115 ¯30 ¯122 ¯112 102 111 111 32 97 114 103 13 10 32 114 101 115 ¯30 ¯122 ¯112 123 ¯30 ¯115 ¯70 32 ¯30 ¯115 ¯75 125 ¯30 ¯116 ¯72 32 97 114 103 13 10
-      assert '(read~13)≡(foobytes~13)'
-
+      assert'(read~13)≡(foobytes~13)'
+     
       goobytes←1+@8⊢foobytes  ⍝ turn foo into goo
       goosrc←{'g'@6⊢⍵}¨@1⊢foosrc
-      goobytes {tie←⍵ ⎕NCREATE 0 ⋄ _←⍺ ⎕NAPPEND tie 83 ⋄ 1:_←⎕NUNTIE tie} folder,'/goo.aplf'
-      assert 'goosrc≡⎕NR ''',name,'.goo'''
-
+      goobytes{tie←⍵ ⎕NCREATE 0 ⋄ _←⍺ ⎕NAPPEND tie 83 ⋄ 1:_←⎕NUNTIE tie}folder,'/goo.aplf'
+      assert'goosrc≡⎕NR ''',name,'.goo'''
+     
       {}⎕SE.Link.Break name
       CleanUp folder name
     ∇
