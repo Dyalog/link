@@ -2,7 +2,7 @@
 
 #### Right Argument
 
-- nameclass of item, as returned by [NameClass](Link.NameClass.md)
+- nameclass of item
 
 #### Left argument
 

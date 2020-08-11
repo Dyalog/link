@@ -53,7 +53,7 @@
              :If ~curnc∊0 ¯1 ⋄ actname←curactname ⋄ nc←curnc     ⍝ interpreter remembers that name was linked to file
              :ElseIf ~0∊⍴nsref ⋄ nc←nsref U.NameClass actname←expname  ⍝ rely on expected apl name inferred from file name
              :Else ⋄ nc←¯1  ⍝ nsname is invalid - see U.DetermineAplName
-             :EndIf ⋄ dir←nc=¯9
+             :EndIf ⋄ dir←nc=¯9.1
          :ElseIf 0∊⍴actname ⋄ actname←expname  ⍝ failed to fix source - nc is 0 - only beforeRead can save us
          :EndIf
 
@@ -63,7 +63,7 @@
 
          :If ~deleted  ⍝ won't read a deleted file
          :AndIf 3=⎕NC link.beforeRead ⍝ user exit defined? - must run BEFORE we exit on invalid file contents
-             :If ~(link⍎link.beforeRead)'beforeRead'link path affected ⍝ return 1 to continue else 0
+             :If ~(link⍎link.beforeRead)'beforeRead'link path affected(|nc)  ⍝ return 1 to continue else 0
                  →END⊣U.Log msg,'handled by user'
              :EndIf
          :EndIf
@@ -77,7 +77,7 @@
          ⍝ determine current file tied to name we plan to use
          expfile←U.Deslash⊃link(0 U.DetermineFileName)nsname actname oldname nc
          :If 0∊⍴curfile←0 U.NormFile nsref U.CurrentFileName actname ⍝ not tied by interpreter
-         :AndIf 2 ¯9∊⍨⌊nc   ⍝ only arrays and tradnamespaces don't have ties
+         :AndIf 2.1 ¯9.1∊⍨nc   ⍝ only arrays and tradnamespaces don't have ties
              curfile←(⎕NEXISTS expfile)/expfile    ⍝
          :EndIf
 
@@ -129,7 +129,7 @@
                  oldfile←oldnsref U.CurrentFileName oldexpname
              :Else ⋄ oldnsref←⎕NULL ⋄ oldnc←¯1 ⋄ oldfile←''
              :EndIf
-             :If dir         ⍝ move traditional ns
+             :If dir         ⍝ move unscripted ns
                  :If 9=⌊oldnc ⍝ old name is an existing namespace
                      ⍝actname nsref.⎕NS oldnsref.⍎oldexpname ⍝ deep copy into parent with a nice name
                      actname nsref.⎕NS''  ⍝ create empty namespace

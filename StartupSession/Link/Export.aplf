@@ -7,7 +7,7 @@
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
-     :If ¯9≠nc←U.NameClass ns
+     :If ¯9.1≠nc←U.NameClass ns
          msg←'Source namespace not found: ',ns,' has name class ',(⍕nc)
      :Else
          opts.watch←'none'   ⍝ prevent tying to the files

@@ -172,7 +172,7 @@
     ∇
 
       Tail←{ ⍝ ⍺:typeExtensions; ⍵:nc
-          ¯9=⍵:'/'    ⍝ trad namespace are given name class ¯9
+          ¯9.1=⍵:'/'    ⍝ unscripted namespace are given name class ¯9.1
           (types exts)←↓⍉⍺
           exts,←⊂'dyalog'
           exts,¨⍨←'.'
@@ -317,14 +317,14 @@
     IsRootName←{11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, ''∘⎕WG does it in current space which is not what we want
     ∇ nc←{nsref}NameClass name
     ⍝ safe name class (avoid clash with our stuff)
-    ⍝ return ¯9 for trad ns that map to directories and not files
+    ⍝ return ¯9.1 for trad ns that map to directories and not files
       :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
       :If 9.1=nc←nsref.⎕NC⊂,name  ⍝ that includes ⎕DMX
       :AndIf ~IsScripted nsref⍎name
-          nc←¯9
+          nc←¯9.1
       :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
       :AndIf nsref IsRootName name
-          nc←¯9
+          nc←¯9.1
       :EndIf
     ∇
 
@@ -424,11 +424,11 @@
 
     ∇ src←GetRefSource ns
       :Trap 16 ⋄ src←⎕SRC ns  ⍝ scripted namespace
-      :Else ⋄ src←⎕NULL  ⍝ traditional namespace
+      :Else ⋄ src←⎕NULL  ⍝ unscripted namespace
       :EndTrap
     ∇
     ∇ src←{ns}GetAplSource name;nc
-    ⍝ src is a vector of text vectors, unless traditional namespace with get ⎕NULL
+    ⍝ src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
     ⍝ name may be empty to get the source of ns
       :If 0∊⍴name
           src←GetRefSource ns
@@ -458,7 +458,7 @@
     ∇ (name nc)←{where}Fix(name src);file;invalid;monitor;names;nc;stops;trace;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
-    ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9 if trad namespace
+    ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
       :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
       ⍝ attempt to fix as named script because this is the most commly expected format
@@ -490,7 +490,7 @@
           src←GetFileSource file
       :EndIf
       :If src≡⎕NULL  ⍝ trad namespace - was not tested before because the 1=1⎕NINFO would have been costy
-          name where.⎕NS'' ⋄ nc←¯9
+          name where.⎕NS'' ⋄ nc←¯9.1
           :Return  ⍝ trad ns created
       :EndIf
       :Trap 0
@@ -536,8 +536,8 @@
           (name nc)←Fix name src  ⍝ fix in dummy namespace
       :EndIf
       :If nc∊0 ¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid source or name
-      ⍝ trad namespace are given name class ¯9
-      :If isroot←nc=¯9 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
+      ⍝ trad namespace are given name class ¯9.1
+      :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file                   ⍝ no existing file name for it
       :OrIf forceFilenames     ⍝ force using the default
           :If isroot  ⍝ if we're asking for opts.ns then the answer is opts.dir
@@ -555,7 +555,7 @@
           file,←typeExtensions Tail nc               ⍝ Add extension
       :EndIf
       file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
-      :If ¯9=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
+      :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (subdir file ext)←⎕NPARTS path←file
       :If forceExtensions∨0=≢ext
       ⍝:OrIf ~⎕NEXISTS path    ⍝ why ??? file is not supposed to exist yet
@@ -566,7 +566,7 @@
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
       :If 3=(⍎ns).⎕NC getFilename
-      :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(ns,'.',name)nc(ns,'.',oldname)
+      :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(ns,'.',name)(|nc)(ns,'.',oldname)
           file←userfile
       :EndIf
     ∇
@@ -616,7 +616,7 @@
       :Else ⋄ (actname nc)←Fix expname src           ⍝ inspect source
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
-      :ElseIf (0=≢where)∧(nc=¯9) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
+      :ElseIf (0=≢where)∧(nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
       :ElseIf ¯1=⎕NC where ⋄ :AndIf ~# IsRootName where ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇
@@ -625,7 +625,7 @@
 
     ∇ outFail←opts WriteFiles(ns dir);count;dir;files;i;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
     ⍝ Write items to file in folders
-    ⍝ ns must be a fully specified traditional namespace
+    ⍝ ns must be a fully specified unscripted namespace
     ⍝ arrays not supported
       outFail←0⍴⊂'' ⋄ nsref←⍎ns
       ⍝ Create directory for namesapce
@@ -642,7 +642,7 @@
               names←names[,(mask/inx),[1.5]⍸mask]
               Error'File name case clash - try using caseCode←1:',⍕(ns,'.')∘,¨names
           :EndIf
-          mask←src∊⎕NULL  ⍝ traditional namespaces
+          mask←src∊⎕NULL  ⍝ unscripted namespaces
           (tradnames tradfiles)←mask∘/¨(names files)
           (files oldfiles names src)/⍨←⊂(~mask)
           :If 0≠≢files
@@ -659,7 +659,7 @@
                   ⎕NDELETE¨mask/oldfiles
               :EndIf
           :EndIf
-          :If 0≠≢tradfiles ⍝ recurse on traditional namespaces
+          :If 0≠≢tradfiles ⍝ recurse on unscripted namespaces
               tradnames←(ns,'.')∘,¨tradnames
               outFail,←⊃,/opts∘WriteFiles¨↓tradnames,[1.5]tradfiles
           :EndIf
@@ -721,7 +721,7 @@
       :If 3=⎕NC opts.beforeRead ⍝ user handler defined?
           mask←(⍴allfiles)⍴1
           :For i :In ⍳⍴allfiles
-              mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(i⊃actnc) ⍝ return 1 to continue else 0
+              mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actnc) ⍝ return 1 to continue else 0
           :EndFor
           (allfiles parents expnames actnames actnc)/⍨←⊂mask    ⍝ keep what was not processed by user
       :EndIf

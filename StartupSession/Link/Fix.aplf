@@ -59,7 +59,7 @@ NOHOLD:
          :EndIf
 
          :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
-             →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)nc(nsname,'.',oldname)src
+             →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)(|nc)(nsname,'.',oldname)src
          :EndIf
 
          fix←~nosrc ⍝ no need to update if source was read from APL
@@ -68,7 +68,7 @@ NOHOLD:
 
          :If update  ⍝ file system must reflect changes
              :Trap 0
-                 :If nc=¯9  ⍝ tradns → folder
+                 :If nc=¯9.1  ⍝ tradns → folder
                      3 ⎕MKDIR file
                  :Else  ⍝ file
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there

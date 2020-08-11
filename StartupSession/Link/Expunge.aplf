@@ -13,7 +13,7 @@
              :If 0=nc  ⍝ does not exist
                  r[i]←0 ⋄ :Continue
              :EndIf
-             :If ¯9=nc  ⍝ trad ns
+             :If ¯9.1=nc  ⍝ trad ns
              :AndIf (⊂U.NormNs name)∊⎕SE.Link.Links.ns  ⍝ is a link root
                  {}Break name  ⍝ github issue #119: tell user about problems
                  r[i]←⎕EX name

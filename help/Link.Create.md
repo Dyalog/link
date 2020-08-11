@@ -73,14 +73,14 @@
 
 - **beforeWrite** `ns.hookname` name of function to call before writing to file
 
-  > If you specify a **beforeWrite** function, it will be called before Link updates a file, allowing support of custom code or data formats. 
+  > If you specify a **beforeWrite** function, it will be called before Link updates a file or directory, allowing support of custom code or data formats. 
   >
   > Your function will be called with a nested right argument containing the following elements:\
   > [1] Event name (`'beforeWrite'`)\
   > [2] Reference to a namespace containing link options for the active link.\
-  > [3] Fully qualified filename that Link intends to write to\
+  > [3] Fully qualified filename that Link intends to write to (directories end with a slash)\
   > [4] Fully qualified APL name of the item that Link intends to write\
-  > [5] [Name class](Link.NameClass.md) of the APL item to write\
+  > [5] Name class of the APL item to write\
   > [6] Old APL name (different from APL name if the write is due to a rename)\
   > [7] Source code that Link intends to write to file\
   > Note: Do not assume a specific length, more elements may be added in the future.\
@@ -91,29 +91,29 @@
 
 - **beforeRead** `ns.hookname` name of function to call before before reading a file
 
-  > If you specify a **beforeRead** function, it will be called before Link reads source from a file, allowing support of custom code or data formats.
+  > If you specify a **beforeRead** function, it will be called before Link reads source from a file or directory, allowing support of custom code or data formats.
   > 
   > Your function will be called with a nested right argument containing the following elements:\
   > [1] Event name (`'beforeRead'`)\
   > [2] Reference to a namespace containing link options for the active link.\
-  > [3] Fully qualified filename that Link intends to read from\
+  > [3] Fully qualified filename that Link intends to read from (directories end with a slash)\
   > [4] Fully qualified APL name of the item that Link intends to update\
-  > [5] [Name class](Link.NameClass.md) of the APL item to be read\
+  > [5] Name class of the APL item to be read\
   > Note: Do not assume a specific length, more elements may be added in the future.\
   > \
   >Your callback function must return one of the following results:
   >  - `0`: The **beforeRead** function has completed all necessary actions. Link should not update the workspace.
   >  - `1`: The **beforeRead** function wishes to "pass" on this read: Link should proceed as planned.
 
-- **getFilename** `ns.hookname` name of the function to call to decide of the file name linked to an APL item
-  > If you specify a **getFilename** function, it will be called before Link updates a file, allowing to customise the file name attached to an APL item. Changing the file name this way will override the **caseCode**, **forceFilenames** and **forceExtensions** options (however the suggested file name however will observe them)
+- **getFilename** `ns.hookname` name of the function to call to decide the file or directory name linked to an APL item
+  > If you specify a **getFilename** function, it will be called before Link updates a file or directory, allowing to customise the name attached to an APL item. Changing the file name this way will override the **caseCode**, **forceFilenames** and **forceExtensions** options (however the suggested file name will observe them)
   >
   > Your function will be called with a nested right argument containing the following elements:\
   > [1] Event name (`'getFilename'`)\
   > [2] Reference to a namespace containing link options for the active link.\
-  > [3] Fully qualified filename that Link intends to write to\
+  > [3] Fully qualified filename that Link intends to use (directories end with a slash)\
   > [4] Fully qualified APL name of the item\
-  > [5] [Name class](Link.NameClass.md) of the APL item\
+  > [5] Name class of the APL item\
   > [6] Old APL name (different from APL name if the write is due to a rename)\
   > Note: Do not assume a specific length, more elements may be added in the future.\
   > \

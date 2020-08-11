@@ -26,7 +26,6 @@ Function                                              | Right Argument(s)       
  [Fix](Link.Fix.md)                                   | source                     | array: namespace name oldname                  | 
  [GetFileName](Link.GetFileName.md)<sup>`]`</sup>     | items                      | *&lt;none&gt;*                                 | filenames
  [GetItemName](Link.GetItemName.md)<sup>`]`</sup>     | filenames                  | *&lt;none&gt;*                                 | items
- [NameClass](Link.NameClass.md)                       | items                      | array: namespace                               | numeric vector of name classes
  [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                                 | 
  [StripCaseCode](Link.StripCaseCode.md)               | filename                   | *&lt;none&gt;*                                 | filename without case code
  [TypeExtension](Link.TypeExtension.md)               | name class                 | option namespace used for [Create](Link.Create.md) | file extension (without leading `'.'`)                         |                                                |
