@@ -768,7 +768,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;src;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;src;src2;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
     ⍝ Github issues
       r←0
       name ⎕NS''
@@ -876,7 +876,7 @@
       :For sub :In name∘,¨'' '.sub'
           ⍎sub,'.var←',⍕var←1 2 3 4
           (⍎sub).⎕FX nr←' r←foo r' ' r←r'
-          (⍎sub).⎕FIX src←':Namespace script' ':EndNamespace'
+          (⍎sub).⎕FIX src←,¨':Namespace script' '∇ res←function arg' 'res←arg' '∇' ':EndNamespace'
       :EndFor
      
       RDFILES←RDNAMES←WRFILES←WRNAMES←⍬
@@ -898,7 +898,6 @@
       'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'''
       'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'''
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
-      {}⎕SE.Link.Break name
      
       ⍝ .apln must clash with directory of the same name
       {}(⊂':Namespace sub' ':EndNamespace')QNPUT folder,'/sub.apln'
@@ -916,6 +915,15 @@
       Breathe
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
+     
+      ⍝ attempt to rename a script
+      src2←,¨':Namespace script2' '∇ res←function2 arg' 'res←arg' '∇' ':EndNamespace'
+      {}(⊂src2)QNPUT(folder,'/script.apln')1
+      'link issue #36'assert'0=⎕NC ''',name,'.script'''
+      'link issue #36'assert'src2≡⎕SRC ',name,'.script2'
+      {}(⊂src)QNPUT(folder,'/script.apln')1
+      'link issue #36'assert'0=⎕NC ''',name,'.script2'''
+      'link issue #36'assert'src≡⎕SRC ',name,'.script'
      
       z←⎕SE.Link.GetFileName 1 NSTREE name
       'link issue #128'assert'({⍵[⍋⍵]}z)≡({⍵[⍋⍵]} 1 NTREE folder)'
