@@ -190,7 +190,7 @@
       z←⎕SE.Link.Break'#'
       assert'∨/''Not linked:''⍷z'
       z←⎕SE.Link.Break'#.unlikelyname'
-      assert'∨/''Not found:''⍷z'     
+      assert'∨/''Not found:''⍷z'
      
       z←name'foo'⎕SE.Link.Fix,⊂'foo←{1 2 3}'
       assert'z≡1'
@@ -899,6 +899,16 @@
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
       {}⎕SE.Link.Break name
      
+      ⍝ .apln must clash with directory of the same name
+      {}(⊂':Namespace sub' ':EndNamespace')QNPUT folder,'/sub.apln'
+      :Trap ⎕SE.Link.U.ERRNO
+          z←⎕SE.Link.Create name folder
+          assert'0'
+      :Else
+          assert'∨/''clashing APL names''⍷⊃⎕DM'
+      :EndTrap
+      ⎕NDELETE folder,'/sub.apln'
+     
       ⍝ attempt to change a function to an operator
       {}⎕SE.Link.Create name folder
       name'foo'⎕SE.Link.Fix' r←(op foo) arg' ' r←op arg' ⍝ turn foo into an operator
@@ -1106,6 +1116,27 @@
     ∇
 
 
+
+
+    ∇ r←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
+      r←0 ⋄ :If 82≠⎕DR'' ⋄ :Return ⋄ :EndIf
+      3 ⎕MKDIR folder
+      
+      ⍝ check that key and friends are correctly translated in classic edition
+      {}⎕SE.Link.Create name folder
+      name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⎕U2338 arg'
+      read←{tie←⍵ ⎕NTIE 0 ⋄ r←⎕NREAD tie 83 ¯1 0 ⋄ _←⎕NUNTIE tie ⋄ r} folder,'/foo.aplf'
+      foobytes←32 114 101 115 ¯30 ¯122 ¯112 102 111 111 32 97 114 103 13 10 32 114 101 115 ¯30 ¯122 ¯112 123 ¯30 ¯115 ¯70 32 ¯30 ¯115 ¯75 125 ¯30 ¯116 ¯72 32 97 114 103 13 10
+      assert '(read~13)≡(foobytes~13)'
+
+      goobytes←1+@8⊢foobytes  ⍝ turn foo into goo
+      goosrc←{'g'@6⊢⍵}¨@1⊢foosrc
+      goobytes {tie←⍵ ⎕NCREATE 0 ⋄ _←⍺ ⎕NAPPEND tie 83 ⋄ 1:_←⎕NUNTIE tie} folder,'/goo.aplf'
+      assert 'goosrc≡⎕NR ''',name,'.goo'''
+
+      {}⎕SE.Link.Break name
+      CleanUp folder name
+    ∇
 
 
 
