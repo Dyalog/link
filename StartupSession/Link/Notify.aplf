@@ -193,7 +193,7 @@
          :EndIf
 
          ⍝ fix file
-         tie←'both' 'ns'∊⍨⊂link.watch ⍝ tie to file if watching namespace
+         tie←'both'≡link.watch ⍝ tie to file if watching both ways
          :If dir  ⍝ create namespace - optimisation to avoid the call to ⎕NINFO that QFix would cause through GetFileSource
              actname nsref.⎕NS''
          :ElseIf ~nsref U.QFix path actname tie

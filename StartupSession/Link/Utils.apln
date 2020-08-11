@@ -194,10 +194,10 @@
     IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
 
       Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
-          22::0                  ⍝ no file access
+          22::_←0                  ⍝ no file access
           _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
-          11::1⊣(⊂⍺)⎕NPUT⊢⍵ 1        ⍝ overwrite - Dyalog v17.0 Unicode
-          1⊣(⊂⍺)⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1        ⍝ overwrite - Dyalog v17.1+ Classic
+          11::_←1⊣(⊂⍺)⎕NPUT⊢⍵ 1        ⍝ overwrite - Dyalog v17.0 Unicode
+          1:_←1⊣(⊂⍺)⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1        ⍝ overwrite - Dyalog v17.1+ Classic
       }
 
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO
@@ -726,7 +726,7 @@
           (allfiles parents expnames actnames actnc)/⍨←⊂mask    ⍝ keep what was not processed by user
       :EndIf
      
-      tie←'both' 'ns'∊⍨⊂opts.watch ⍝ tie to file if watching namespace - cached for performance
+      tie←'both'≡opts.watch ⍝ tie to file if watching both ways
       FixFile←tie∘{(target file name)←⍵ ⋄ target QFix file name ⍺}
       ⍝ create namespaces for directories and load quadVars.apln
       (dirs names)←ndirs↑¨(allfiles allnames)

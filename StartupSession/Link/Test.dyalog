@@ -760,7 +760,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);newbody;nr;opts;src;sub;unlikelyfile;unlikelyfn;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);newbody;nr;opts;src;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
     ⍝ Github issues
       r←0
       ⍝ link issue #112 : cannot break an empty link
@@ -883,9 +883,23 @@
       z,←⎕SE.Link.GetItemName'/nope.nope' '/nope/nope.nope',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
       assert'∧/z≡¨⊂'''' '
      
+     
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
       'link issue #132 and #133'assert'∨/''Linked:''⍷z'
+      {}⎕SE.Link.Break name
+      assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
+     
+      ⍝ attempt to recover the source after deletion when not watching the directory
+      opts←⎕NS ⍬
+      opts.watch←'ns'
+      {}(⊂todelete←':Namespace todelete' 'todelete←1' ':EndNamespace')QNPUT(folder,'/todelete.apln')1
+      {}opts ⎕SE.Link.Create name folder
+      'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete'
+      ⎕NDELETE folder,'/todelete.apln'
+      Breathe ⋄ Breathe
+      'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete' ⍝ source still available
+      ⎕SE.Link.Expunge name,'.todelete'
       {}⎕SE.Link.Break name
       assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
      
@@ -1066,7 +1080,7 @@
 
     Stringify←{'''',((1+⍵='''')/⍵),''''}
 
-    ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
+    ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
       r←0 ⋄ ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
@@ -1078,6 +1092,8 @@
       goo←' res←goo arg' '⍝ this is goo[1]' ' res←arg' ' res←''goo''res'
       class←':Class class' '    :Field Public Shared var← 4 5 6' '    ∇ res←dup arg' '      :Access Public Shared' '      res←arg arg' '    ∇' ':EndClass'
       classbad←(¯1↓class),⊂':EndNamespace'
+      class2←(1↑class),(⊂':Field Public Shared class2←1'),(1↓class)
+      ns←':Namespace ns' '    var← 4 5 6' '    ∇ res←dup arg' '      res←arg arg' '    ∇' ':EndNamespace'
      
       ⍝ start with flattened repository
       ⎕MKDIR folder,'/sub'
@@ -1137,11 +1153,13 @@
      
      ⍝ https://github.com/Dyalog/link/issues/35
       ride.Edit(name,'.foo')goo   ⍝ change name in editor
+      'link issue #35'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
+      'link issue #35'assert' goo≡⊃⎕NGET (folder,''/goo.aplf'') 1 '   ⍝ goo is correctly linked
+      'link issue #35'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo hasn't changed
+      'link issue #35'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo hasn't changed
       ride.Edit(name,'.foo')foo2  ⍝ change original function
       'link issue #35'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is foo2
-      'link issue #35'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
       'link issue #35'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo is correctly linked
-      'link issue #35'assert' goo≡⊃⎕NGET (folder,''/goo.aplf'') 1 '   ⍝ goo is correctly linked
       res←ride.APL'+⎕SE.Link.Expunge ''',name,'.goo'' '  ⍝ delete goo
       'link issue #35'assert'res≡''1'',NL'
       ride.Edit(name,'.foo')foo  ⍝ put back original foo
@@ -1167,7 +1185,7 @@
       'link issue #109'assert'res≡¯1 '''' (,ed) NO_ERROR'
       'link issue #109'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
       ride.CloseWindow ed
-      'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ foo has not changed within workspace because fix has failed
+      'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ Mantis 18412 foo has not changed within workspace because fix has failed
       'link issue #109'assert'foobad≡⊃⎕NGET(folder,''/foo.aplf'')1'  ⍝ but file correctly has new code
       ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
       'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
@@ -1193,7 +1211,7 @@
       :EndIf
      
      ⍝ https://github.com/Dyalog/link/issues/143
-      :If 1 ⍝ requires fix to Mantis 18409
+      :If 0 ⍝ requires fix to Mantis 18409, 18410 and 18411
           ed←ride.EditOpen name,'.class'
           res←ed ride.EditFix classbad
           'link issue #143'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
@@ -1208,13 +1226,29 @@
           'link issue #143'assert'res≡¯1 '''' (,ed) NO_ERROR'
           'link issue #143'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
           ride.CloseWindow ed
-          'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ class has changed within workspace even though fix has failed
+          'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ Mantis 18412 class has changed within workspace even though fix has failed
           'link issue #143'assert'classbad≡⊃⎕NGET(folder,''/class.aplc'')1'  ⍝ file correctly has new code
           ride.Edit(name,'.class')class  ⍝ put back original class
           'link issue #143'assert'(,(↑class),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '
           'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
       :EndIf
      
+      ⍝ https://github.com/Dyalog/link/issues/152
+      :If 0   ⍝ attempt to change the name and script type of a class in editor
+          ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
+          assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
+          assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
+          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
+          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
+          ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
+          assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
+          assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
+          ⎕NDELETE folder,'/sub/ns.apln'
+          assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
+          ride.Edit(name,'.sub.class')(class) ⍝ put back original class
+          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
+          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
+      :EndIf
      
       output←ride.APL'⎕SE.Link.Break ',(Stringify name)
       assert'(∨/''Unlinked''⍷output)'

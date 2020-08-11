@@ -38,7 +38,7 @@ NOHOLD:
          :EndIf
 
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
-             (⊂ns.⎕NR oldname)⎕NPUT oldfile 1  ⍝ editor overwrites oldfile with new definition
+             (ns U.GetAplSource oldname)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
              ns U.Untie name  ⍝ editor ties newname to oldfile
              :If ~watch  ⍝ FileSystemWatcher should do this for us
                  2 ns.⎕FIX'file://',oldfile
@@ -69,7 +69,7 @@ NOHOLD:
                      3 ⎕MKDIR file
                  :Else  ⍝ file
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
-                     (⊂src)⎕NPUT file 1
+                     src U.Into file
                  :EndIf
              :Else
                  U.Error'Unable to write "',nsname,'.',name,'" to file: "',file,'"'
