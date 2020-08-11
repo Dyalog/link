@@ -51,7 +51,7 @@
 
          msg←''
          :If ×≢tobreak
-             msg,←⊂'Unlinked ',(⍕n),' items:',U.List∪tobreak
+             msg,←⊂'Unlinked ',(⍕n),' items in:',U.List∪tobreak
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List∪missing

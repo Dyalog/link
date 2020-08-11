@@ -22,7 +22,7 @@
       ⍝ Name, group, short description and parsing rules
       r←'['
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
-      r,←'{"Name":"Break",       "args":"[ns1]",     "Parse":"1S -all -exact",  "Desc":"Break link between namespace and corresponding directory"},'
+      r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"1S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
       r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames  -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one or both if absent)"},'
       r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
@@ -46,7 +46,6 @@
       m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
       m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
       m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
-      m⍪←'-exact' '' 'break only the argument namespace, and not its children if they have their own links'
       m⍪←'-extended' '' 'include additional properties for each link'
       m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
       m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
@@ -54,6 +53,7 @@
       m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
+      m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
       m⍪←'-source' '={ns|dir|both}' 'which source is authoritative if both are populated'
       m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
       m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
@@ -104,7 +104,7 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all'  'beforeread'  'beforewrite'  'casecode'  'codeextensions'  'exact'  'extended'  'extension'  'fastload'  'flatten'  'forceextensions'  'forcefilenames'  'getfilename'  'source'  'typeextensions'  'watch' 
+          names←'all'  'beforeread'  'beforewrite'  'casecode'  'codeextensions'  'extended'  'extension'  'fastload'  'flatten'  'forceextensions'  'forcefilenames'  'getfilename'  'recursive'  'source'  'typeextensions'  'watch' 
           :For name :In names
               lc←L name
               :If ×args.⎕NC lc
