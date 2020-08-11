@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir)
+ msg←{opts}Create(ns dir);slashed
  ;isWin;container;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
  ;dotnetcore;canwatch
  :If U.debug=2
@@ -13,14 +13,15 @@
  ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
-     (canwatch dotnetcore)←U.CanWatch ''
+     (canwatch dotnetcore)←U.CanWatch''
 
      msg←⍕⍬⊤⍬
 
      opts←canwatch DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
 
      (container ns)←⎕RSI ⎕XSI U.ContainerNs ns
-     dir←0 U.NormDir dir
+     slashed←U.Slash⊃⌽dir
+     dir←0 U.NormDir dir ⍝ remove trailing slash
 
      :If ~canwatch
      :AndIf (⊂opts.watch)∊'both' 'dir'
@@ -30,6 +31,9 @@
      :ElseIf opts.source≡'dir'
      :AndIf ~⎕NEXISTS dir
          msg←'Source directory not found: ',dir
+     :ElseIf opts.source≡'dir'
+     :AndIf slashed
+         msg←'Trailing slash reserved for future extension'
      :ElseIf opts.source≡'ns'
      :AndIf 0=⎕NC ns
          msg←'Source namespace not found: ',ns

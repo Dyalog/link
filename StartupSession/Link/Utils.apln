@@ -111,7 +111,7 @@
     ∇ dir←trail NormDir dir
       dir←∊1 ⎕NPARTS dir                 ⍝ normalise - '' means current dir
       :If trail ⋄ dir,←'/'/⍨~'/\'∊⍨⊃⌽dir ⍝ append trailing slash if missing
-      :Else ⋄ dir↓⍨←+/∧\⌽dir∊'/\'        ⍝ remove trailing slash
+      :Else ⋄ dir↓⍨←-+/∧\⌽dir∊'/\'       ⍝ remove trailing slash
       :EndIf
       dir←WinSlash dir                 ⍝ use windows slash on windows machines
     ∇
