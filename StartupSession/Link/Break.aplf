@@ -1,4 +1,4 @@
- msg←{opts}Break nss;defopts;link;linked;links;mask;missing;n;ns;refs;there;tobreak;⎕IO
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;n;ns;refs;there;tobreak;unlinked;⎕IO
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
@@ -14,22 +14,22 @@
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
 
-         missing←0⍴⊂'' ⋄ n←0
+         tobreak←unlinked←missing←0⍴# ⋄ n←0
 
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
          refs←there(0 U.GetRefTo)U.OnEach nss  ⍝ turn into references
-         missing,←(0=≢¨refs)/nss ⋄ refs←(0<≢¨refs)/refs  ⍝ ⍬ for reference not found
+         missing,←(0=≢¨refs)/nss ⋄ refs←(0⍴#),(0<≢¨refs)/refs  ⍝ ⍬ for reference not found - ensure prototype is ref
 
          linked←⍎¨⎕SE.Link.Links.ns ⋄ links←⎕SE.Link.Links
          :If opts.all
              tobreak←refs←linked
+         :ElseIf 0∊⍴refs
+             tobreak←refs
          :ElseIf opts.recursive≡'on'
              tobreak←(∨⌿refs∘.U.IsParent linked)/linked  ⍝ break namespaces and children
-             missing,←refs~tobreak
          :ElseIf (⊂opts.recursive)∊'off' 'error'
              tobreak←(∨⌿refs∘.=linked)/linked  ⍝ break exact namespaces only
-             missing,←refs~tobreak
              :If opts.recursive≡'error'
              :AndIf (~0∊⍴tobreak)∧(~0∊⍴linked~refs)
              :AndIf ∨/mask←∨/tobreak∘.U.IsParent(linked~refs) ⍝ trying to break a parent of a link that remains
@@ -38,6 +38,7 @@
          :Else
              U.Error'''recursive'' flag must be one of ''on'' ''off'' ''error'''
          :EndIf
+         unlinked,←refs~tobreak
 
          :If ~0∊⍴tobreak
              ⍝ First stop the file watcher - :Hold-ing '⎕SE.Link.Notify' could prevent the Notify callbacks from completing
@@ -54,6 +55,9 @@
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List∪missing
+         :EndIf
+         :If ×≢unlinked
+             msg,←⊂'Not linked:',U.List∪unlinked
          :EndIf
          :If ~0∊⍴msg ⋄ msg←'; 'U.JoinList msg ⋄ :EndIf
      :Else

@@ -21,8 +21,10 @@
      :AndIf (⊂opts.watch)∊'both' 'dir'
          msg←'Watching directories is only supported if .NET is available'
      :ElseIf opts.source≡'dir'
-     :AndIf ~⎕NEXISTS dir
+     :AndIf {22::1 ⋄ 1≠1 ⎕NINFO ⍵}dir
          msg←'Source directory not found: ',dir
+     :ElseIf U.Slash⊃⌽dir
+         msg←'Trailing slash reserved for future extension'
      :ElseIf opts.source≡'ns'
      :AndIf 0=⎕NC ns
          msg←'Source namespace not found: ',ns

@@ -168,6 +168,9 @@
       'not found'assertMsg'⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,''''
       'not found'assertMsg'⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here'''
      
+      z←⎕SE.Link.Break'#'
+      assert'∨/''No active links''⍷z'
+     
       opts←⎕NS''
       opts.source←'ns'
       'not found'assertMsg'opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,''''
@@ -183,6 +186,11 @@
       assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
       assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
       assertError(' ''¯1'' ''foo'' ⎕SE.Link.Fix '''' ')('Not a namespace')
+     
+      z←⎕SE.Link.Break'#'
+      assert'∨/''Not linked:''⍷z'
+      z←⎕SE.Link.Break'#.unlikelyname'
+      assert'∨/''Not found:''⍷z'     
      
       z←name'foo'⎕SE.Link.Fix,⊂'foo←{1 2 3}'
       assert'z≡1'
@@ -763,9 +771,10 @@
     ∇ r←test_bugs(folder name);newbody;nr;opts;src;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
     ⍝ Github issues
       r←0
-      ⍝ link issue #112 : cannot break an empty link
       name ⎕NS''
       ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
+     
+      ⍝ link issue #112 : cannot break an empty link
       z←⎕SE.Link.Create name folder
       'link issue #112'assert'~∨/''failed''⍷z'
       z←⎕SE.Link.Break name
@@ -823,7 +832,10 @@
      
      
       ⍝ link issue #117 : leave trailing slash in dir
+      ⍝ superseeded by issue #146 when trailing slash was disabled altogether
       z←⎕SE.Link.Create name(folder,'/')
+      'link issue #146'assert'(∨/''Trailing slash''⍷z)∧(0=≢⎕SE.Link.Links)'
+      z←⎕SE.Link.Create name folder
       'link issue #117'assert'1=≢⎕SE.Link.Links'
       'link issue #117'assert'~∨/''failed''⍷z'
      ⍝ link issue #116 : ⎕SE.Link.Refresh should not error when given a dir
