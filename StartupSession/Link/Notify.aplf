@@ -37,7 +37,7 @@
                  :EndTrap
              :EndWhile
              :If retry<0 ⋄ →END⊣U.Log msg,'not accessible' ⋄ :EndIf
-             :If hidden ⋄ →END⊣U.Log'hidden' ⋄ :EndIf
+             :If hidden ⋄ →END⊣U.Log msg,'hidden' ⋄ :EndIf
              :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
                  →END⊣U.Log msg,'file type not managed by link'
              :EndIf
