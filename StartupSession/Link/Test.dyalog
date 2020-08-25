@@ -47,7 +47,7 @@
     ASSERT_TIME←1    ⍝ Seconds of wait time trying to verify assertions
 
 
-    ∇ r←{debug}Run test_filter;aplv;core;dnv;folder;opts;test;tests;time;z
+    ∇ {debug}Run test_filter;aplv;core;dnv;folder;opts;test;tests;time;z
     ⍝ Do (⎕SE.Link.Test.Run'') to run all the Link Tests.
     ⍝ If no folder name provided,
       :If 0≠⎕NC'debug' ⋄ ⎕SE.Link.DEBUG←debug ⋄ :EndIf
@@ -63,7 +63,7 @@
       →(0=≢folder←Setup FOLDER NAME)⍴0
       time←⎕AI[3]
       :For test :In tests
-          ⍝⎕←'*** TESTING'test
+          ⍝Log'TESTING'test
           z←(⍎test)folder NAME   ⍝ run test_*
       :EndFor
       time←⎕AI[3]-time
@@ -73,7 +73,7 @@
       core←(1+##.U.DotNetCore)⊃'Framework' 'Core'
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
       opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
-      r←(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+      Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
     ∇
 
     :EndSection Main entry point and global settings
@@ -376,7 +376,7 @@
      
       ⍝ Check that the derived class works
       :Trap 0 ⋄ {}⎕NEW ns.sub.aClass
-      :Else ⋄ ⎕←'NB: Unable to instantiate aClass: ',⊃⎕DM
+      :Else ⋄ Log'Unable to instantiate aClass: ',⊃⎕DM
       :EndTrap
      
       ⍝ Rename the sub-folder
@@ -1140,7 +1140,11 @@
 
 
     ∇ r←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
-      r←0 ⋄ :If 82≠⎕DR'' ⋄ :Return ⋄ :EndIf
+      r←0
+      :If 82≠⎕DR''
+          Log'Not a classic interpreter - not running ',⊃⎕SI
+          :Return
+      :EndIf
       3 ⎕MKDIR folder
      
       ⍝ check that key and friends are correctly translated in classic edition
@@ -1390,7 +1394,7 @@
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
      
       :If ~##.U.CanWatch
-          ⎕←'Unable to run Link.Tests - .Net is required to test the FileSystemWatcher'
+          Log'Unable to run Link.Test - .Net is required to test the FileSystemWatcher'
           →0
       :EndIf
      
@@ -1401,8 +1405,8 @@
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
-          Log ⎕SE.UCMD'link.list'
-          Log'      ]Link.Break -all    ⍝ to break all links'
+          ⎕←⎕SE.UCMD'link.list'
+          ⎕←'      ]Link.Break -all    ⍝ to break all links'
           →0
       :EndIf
      
@@ -1418,11 +1422,11 @@
       :If ~0∊⍴folder  ⍝ specific folder
           folder←∊1 ⎕NPARTS folder,(0=≢folder)/(739⌶0),'/linktest'
           :If ⎕NEXISTS folder
-              ⎕←folder,' exists. Clean it out? [Y|n] '
+              Log folder,' exists. Clean it out? [Y|n] '
               :If 'yYjJ1 '∊⍨⊃⍞~' '
                   3 ⎕NDELETE Retry⊢folder
               :Else
-                  ⎕→'Directory must be non-existent.'
+                  Log'Directory must be non-existent.'
                   →0
               :EndIf
           :EndIf
@@ -1467,23 +1471,22 @@
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
       :If ∨/m←((≢folder)↑¨z)∊⊂folder
-          ⎕←'*** Links not cleared:'
-          ⎕←⍪m/z
+          Log'Links not cleared:'(⍪m/z)
       :EndIf
       3 ⎕NDELETE folder
       #.⎕EX name
     ∇
 
 
-    ∇ Log x
-      ⎕←x ⍝ This might get more sophisticated someday
+    ∇ {title}Log msg
+      :If 900⌶⍬ ⋄ title←⊃1↓⎕XSI ⋄ :EndIf
+      ⎕←1↓⍤1⊢⍕(title,':')msg ⍝ This might get more sophisticated someday
     ∇
 
     ∇ PauseTest folder;z
       :If 2=⎕NC'pause_tests'
       :AndIf pause_tests=1
-          ⎕←4(↑⍤1)↑(((≢folder)↑¨4⊃¨z)∊⊂folder)/z←5177⌶⍬
-          ⎕←''
+          Log 4(↑⍤1)↑(((≢folder)↑¨4⊃¨z)∊⊂folder)/z←5177⌶⍬
           ⎕←'*** ',(2⊃⎕SI),' paused. To continue,'
           ⎕←'      →RESUME'
           RESUME ⎕STOP'PauseTest'
@@ -1536,7 +1539,7 @@
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
      
       :If STOP_TESTS
-          ⎕←'STOP_TESTS detected...'
+          Log'STOP_TESTS detected...'
           (1+⊃⎕LC)⎕STOP'assert'
       :EndIf
      
@@ -1557,8 +1560,7 @@
       :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?
           ⍎clean
       :AndIf ~0∊{0::0 ⋄ ⍎⍵}expr ⍝ Did it work?
-          ⎕←'*** Warning: ',txt
-          ⎕←'***    recovered via ',clean
+          Log'Warning: ',txt,(~0∊⍴clean)/'- Recovered via ',clean
           :Return
       :EndIf
      
@@ -1566,7 +1568,7 @@
       :If ASSERT_ERROR
           txt ⎕SIGNAL 11
       :Else ⍝ Just muddle on, not recommended!
-          ⎕←txt
+          Log txt
       :EndIf
     ∇
 
@@ -1714,7 +1716,7 @@
       name←'#.largelink'
       :If temp←0∊⍴folder
           folder←CreateTempDir 0
-          ⎕←'building ',folder,' ...'
+          Log'building ',folder,' ...'
           clear build_large folder
       :EndIf
       filetype←⊃1 ⎕NINFO⍠1⍠'Recurse' 1⊢folder,'/*'
@@ -1722,14 +1724,14 @@
       opts←⎕NS ⍬
       opts.source←'dir'
       opts.fastLoad←fastload
-      ⎕←'linking ',name,' ...'
+      Log'linking ',name,' ...'
       :If profile ⋄ ⎕PROFILE¨'clear' 'start' ⋄ :EndIf
       time←3⊃⎕AI
       opts ⎕SE.Link.Create name folder
       time←(3⊃⎕AI)-time
       :If profile ⋄ ⎕PROFILE'stop' ⋄ :EndIf
-      ⍝⎕←⎕SE.Link.List name
-      ⎕←'cleaning up...'
+      Log ⎕SE.Link.List name
+      Log'cleaning up...'
       ⎕EX name
       {}⎕SE.Link.Break name
       :If temp
