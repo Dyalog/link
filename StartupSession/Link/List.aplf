@@ -1,36 +1,45 @@
- list←{opts}List ns;L;infos;lineages;nss;prop;ref;there;⎕IO
+ list←{opts}List ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;there;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If U.HasLinks
-         ⎕IO←1
-         list←↑⎕SE.Link.Links.(ns dir)
-         :If ×≢ns
-             there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
-             ref←9∊⎕NC'ns'
-         :AndIf ref∨×there.⎕NC⍕ns
-             ns←⍕there⍎⍣(~ref)⊢ns
-             nss←⍕¨⎕SE.Link.Links.ns
-             list⌿⍨←ns∘(⊃⍷)¨nss
-         :EndIf
-         infos←U.GetInfos ⍬
-         :If ×≢infos
-             lineages←{⍕¨{∪(⊃⍵).##,⍵}⍣≡2⊃⍵}¨infos
-         :Else
-             lineages←0⍴⊂0⍴⊂''
-         :EndIf
-         list,←+/lineages∘.∊⍨⊂¨⊣/list
-         list⍪⍨←'Namespace' 'Directory' 'Items'
-         :If ~900⌶⍬ ⍝ dyadic
-         :AndIf 1≡⍎∘'extended'⍣(2∊⎕NC'opts.extended')⊢opts
-             L←819⌶
-             :For prop :In ('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
-                 list,←(⊂↑prop),⎕SE.Link.Links⍎¨⊂L@1∊prop
-             :EndFor
-         :EndIf
-     :Else
+     :If ~U.HasLinks
          list←'No active links'
+         :Return
+     :EndIf
+     ⎕IO←1
+     links←⎕SE.Link.Links
+     :If ×≢ns
+         there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
+         ref←9∊⎕NC'ns'
+     :AndIf ref∨×there.⎕NC⍕ns
+         ns←⍕there⍎⍣(~ref)⊢ns
+         nss←⍕¨links.ns
+         links/⍨←ns∘(⊃⍷)¨nss
+     :EndIf
+     :If 0=≢links
+         list←'No active links in ',⍕ns
+         :Return
+     :EndIf
+     ⍝ items←+/¨~3⊃¨U.GetFileTiesIn¨nss    ⍝ tied files (not script items, nor arrays)
+     ⍝ items+←¯1+≢¨dirs←U.ListNamespaces¨⍎¨nss  ⍝ directories (excluding self)
+     ⍝ list,←items
+     list←↑links.(ns dir)
+     list,←¯1++/¨≢¨¨links U.ListFiles¨list[;2]  ⍝ exclude root
+     list⍪⍨←'Namespace' 'Directory' 'Items'
+
+     (defopts←⎕NS ⍬).(extended)←0
+     opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+     props←('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
+     :If (opts.extended)
+         :If ×≢links
+             L←819⌶
+             :For prop :In props
+                 list,←(⊂↑prop),links⍎¨⊂L@1∊prop
+             :EndFor
+         :Else
+             list,←,[0.5]↑¨props
+         :EndIf
      :EndIf
  :Else
      U.Resignal 1

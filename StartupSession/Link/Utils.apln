@@ -97,7 +97,12 @@
       nc←2⊃ns Fix name(ns GetAplSource name) ⍝ refix from source because of mantis 18148
       ok←~nc∊0 ¯1
     ∇
-    ∇ r←GetFileTiesIn rootns;all;allrefs;urefs;mask;t;remove
+
+    ∇ res←(Fn EachUnique)arg;inx;mask;unq
+      unq←(mask←(inx←⍳⍨arg)=(⍳⍴arg))/arg
+      res←(Fn¨unq)[(+\mask)[inx]]
+    ∇
+    ∇ (names parents scriptitems)←GetFileTiesIn rootns;all;allrefs;mask;parents;r;t;urefs
      ⍝ Find all file system links to objects below rootns
       allrefs←2⊃¨all←5177⌶⍬
       t←urefs←∪allrefs
@@ -107,19 +112,26 @@
               :If t≡t.## ⋄ :Leave ⋄ :EndIf  ⍝ continue until everything is root
               t←t.##         ⍝ Move all pointers up to parent
           :EndRepeat ⋄ :EndIf
-      r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
+      :If 0=≢r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
+          names←0⍴⊂'' ⋄ parents←0⍴# ⋄ scriptitems←⍬
+      :Else
+          names←⍕¨1⊃¨r
+          parents←⍎¨⍕¨2⊃¨r ⍝ need ⍎¨⍕¨ because of mantis 18147
+          scriptitems←IsScripted EachUnique parents  ⍝ parent is scripted → item is a script item
+      :EndIf
     ∇
-    ∇ r←RemoveFileTiesIn rootns;mask;parents;remove
+    ∇ r←RemoveFileTiesIn rootns;names;parents;scriptitems
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken
-      :If 0≠r←≢remove←GetFileTiesIn rootns ⍝ links to be removed
-          parents←⍎¨⍕¨2⊃¨remove⍝ need ⍎¨⍕¨ because of mantis 18147
-          mask←~IsScripted¨parents  ⍝ scripts items should not be untied ! only the script itself
-          r←+/(mask/parents)Untie¨(⍕¨1⊃¨mask/remove)
-          ⍝ there might be some orphaned script items - interpreter must forget about them
-          :If 0∊mask ⋄ :AndIf 0≠≢remove←GetFileTiesIn rootns ⍝ links to be removed
-              {}(⍎¨⍕¨2⊃¨remove){⍺.(5178⌶)⍵}¨(⍕¨1⊃¨remove)
-          :EndIf
+      (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
+      :If 0∊scriptitems
+          r←+/((~scriptitems)/parents)Untie¨((~scriptitems)/names)
+      :Else
+          r←0
+      :EndIf
+      ⍝ there might be some orphaned script items - interpreter must forget about them
+      :If 1∊scriptitems ⍝ links to be removed
+          {}(scriptitems/parents){⍺.(5178⌶)⍵}¨(scriptitems/names)
       :EndIf
     ∇
     ∇ r←ViewMetaData mode
@@ -357,6 +369,14 @@
     ∇
 
     NormNs←{⍺←⊢ ⋄ ⍕⍺(0 GetRefTo)⍵}    ⍝ normalise a namespace name - can swallow a ref too
+
+    ∇ refs←ListNamespaces ref;newrefs;next;prev
+    ⍝ List unscripted namespaces under ref
+      refs←prev←,ref
+      :While ~0∊⍴next←{0∊⍴⍵:⍵ ⋄ (~IsScripted OnEach ⍵)/⍵}∊prev.{0∊⍴nl←⎕NL ⍵:0⍴# ⋄ ⍎¨nl}¯9  ⍝ unscripted children
+          refs,←next ⋄ prev←next
+      :EndWhile
+    ∇
 
     :EndSection
 
@@ -672,25 +692,27 @@
       :EndIf
     ∇
 
+    ∇ (files dirs)←opts ListFiles dir;hidden;list;mask
+      list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+     
+      mask←1=list[3;] ⋄ list←¯1↓list                ⍝ mask for hidden items
+      hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
+      hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
+      hidden←hidden,¨'/'                            ⍝ protect against similarly named files
+      list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
+     
+      dirs←(1=list[2;])/list[1;]                    ⍝ second column has 1 for dirs
+      dirs←((⊂dir),{⍵[⍋⍵]}dirs),¨'/'                ⍝ all directories (including self)
+     
+      files←(2=list[2;])/list[1;]                   ⍝ second column has 2 for files; first column is filename
+      files/⍨←opts HasExtn files                    ⍝ must be of correct extension
+      files←files[GradeFiles files]                 ⍝ dirs then quads then files
+    ∇
+
     ∇ {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
     ⍝ Load items from files in folders
       inFail←⍬
-      list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢source,'/*'    ⍝ recursive listing of everything  list[filename type hidden;]
-     
-      mask←1=list[3;] ⋄ list←¯1↓list                  ⍝ mask for hidden items
-      hidden←mask/list ⋄ list/⍨←~mask                 ⍝ crop hidden (files and) folders
-      hidden←(1=hidden[2;])/hidden[1;]                ⍝ keep directories only (files have already been removed from list)
-      hidden←hidden,¨'/'                              ⍝ protect against similarly named files
-      list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
-     
-      dirs←(1=list[2;])/list[1;]                      ⍝ second column has 1 for dirs
-      dirs←((⊂opts.dir),{⍵[⍋⍵]}dirs),¨'/'             ⍝ all directories (including link root)
-     
-      files←(2=list[2;])/list[1;]                     ⍝ second column has 2 for files; first column is filename
-      files/⍨←opts HasExtn files                    ⍝ must be of correct extension
-      files←files[GradeFiles files]                 ⍝ dirs then quads then files
-      :If 0∊⍴files ⋄ :Return ⋄ :EndIf
-     
+      (files dirs)←opts ListFiles source
       ndirs←≢dirs ⋄ allfiles←dirs,files
      
       (parents expnames actnames actnc)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)

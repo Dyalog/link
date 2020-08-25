@@ -768,7 +768,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;src;src2;sub;todelete;unlikelyfile;unlikelyfn;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z
     ⍝ Github issues
       r←0
       name ⎕NS''
@@ -783,11 +783,11 @@
      
       ⍝ link issue #118 : create link in #
       '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
-      (⊂unlikelyfn←' unlikelyname x' ' ⎕←x')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
+      (⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
       z←⎕SE.Link.Create # folder
       'link issue #118'assert'1=≢⎕SE.Link.Links'
       'link issue #118'assert'~∨/''failed''⍷z'
-      'link issue #118'assert'3=⎕NC''#.unlikelyname'''
+      'link issue #118'assert'9.4=⎕NC⊂''#.unlikelyname'''
       z←⎕SE.Link.Break #
       assert'0=≢⎕SE.Link.Links'
       ⎕EX'#.unlikelyname'
@@ -817,6 +817,9 @@
       z←⎕SE.Link.Create'#.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname.sub'folder
       assert'3=≢⎕SE.Link.Links'
+      'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 2⍴folder 1)≡⎕SE.Link.List '''''
+      'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.List ⎕SE'
+     
       {}'{all:1}'⎕SE.Link.Break ⍬
       'link issue #111'assert'0=≢⎕SE.Link.Links'
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
@@ -849,8 +852,8 @@
       ⍝ link issue #109 : fixing invalid function makes it disappear
       unlikelyname←name,'.unlikelyname' ⋄ newbody←'unlikelyname x;' '⎕←x'
       'link issue #109'assertError('name ''unlikelyname''⎕SE.Link.Fix newbody ')('Invalid source')
-      'link issue #109'assert'unlikelyfn≡⊃⎕NGET unlikelyfile 1'    ⍝ changes not put back to file
-      'link issue #109'assert'unlikelyfn≡⎕NR unlikelyname'         ⍝ fix failed
+      'link issue #109'assert'unlikelyclass≡⊃⎕NGET unlikelyfile 1'    ⍝ changes not put back to file
+      'link issue #109'assert'unlikelyclass≡⎕SRC ⍎unlikelyname'         ⍝ fix failed
       'link issue #109'assert'unlikelyfile≡4⊃5179⌶ name,''.unlikelyname''' ⍝ still tied
      
       ⍝ link issue #108 : UCMD returned empty
@@ -876,7 +879,7 @@
       :For sub :In name∘,¨'' '.sub'
           ⍎sub,'.var←',⍕var←1 2 3 4
           (⍎sub).⎕FX nr←' r←foo r' ' r←r'
-          (⍎sub).⎕FIX src←,¨':Namespace script' '∇ res←function arg' 'res←arg' '∇' ':EndNamespace'
+          (⍎sub).⎕FIX src←,¨':Namespace script' '∇ res←function arg' 'res←arg' '∇' '∇ goo' '∇' 'var←123' ':EndNamespace'
       :EndFor
      
       RDFILES←RDNAMES←WRFILES←WRNAMES←⍬
@@ -915,6 +918,7 @@
       Breathe
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
+      'link issue #142'assert'(props,[.5]name folder 7)≡⎕SE.Link.List name'
      
       ⍝ attempt to rename a script
       src2←,¨':Namespace script2' '∇ res←function2 arg' 'res←arg' '∇' ':EndNamespace'

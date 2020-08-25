@@ -67,7 +67,7 @@ NOHOLD:
          update∨←fix∧('both'≡link.watch)  ⍝ watching both requires 2 ⎕FIX which in turn requires updating the file
 
          :If update  ⍝ file system must reflect changes
-             :If U.HasNewlines∊src
+             :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src
                  U.Error'Source code cannot have newlines'
              :EndIf
              :Trap 0
