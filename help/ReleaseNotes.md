@@ -1,6 +1,7 @@
 # Link Release Notes
 
  ## Version 2.1.0
+  - Link.List has been renamed to [Link.Status](Link.Status.md)
   - [Link.Fix](Link.Fix.md) now correctly expects text source for arrays (as produced by ⎕SE.Dyalog.Array.Serialise), as documented, whereas Link 2.0 expected the array itself. Similarly, the source (rather than the array itself) is correctly reported by the `beforeWrite` callback.
   - [Link.Break](Link.Break.md) has a `recursive` flag to break all children namespaces if they are linked to their own directories
   - [Link.Create](Link.Create.md) has a `fastLoad` flag to reduce the load time by not inspecting source to detect name clashes
@@ -10,4 +11,4 @@
  ## Version 2.0.0
   - [Link.Break](Link.Break.md) has an `all` flag to break all links
   - [Link.Version](Link.Version.md) reports the current version number  
-  - initial public release
+  - Initial public release

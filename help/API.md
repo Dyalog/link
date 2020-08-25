@@ -11,9 +11,9 @@ Function                                              | Right Argument(s)       
  [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: same as [Create](Link.Create.md)      | 
  [Expunge](Link.Expunge.md)<sup>`]`</sup>             | items                      | *&lt;none&gt;*                                 | boolean array
  [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: same as [Create](Link.Create.md)      | 
- [List](Link.List.md)<sup>`]`</sup>                   | namespace                  | options: `extended`                            | 
  [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                                 | 
  [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | *&lt;none&gt;*                                 | 
+ [Status](Link.Status.md)<sup>`]`</sup>                   | namespace                  | options: `extended`                            | 
  [Version](Link.Version.md)             | *&lt;none&gt;*             | *&lt;none&gt;*                                 | version number as string
 
  <sup>`]`</sup> These functions have [user command covers](#user-commands).

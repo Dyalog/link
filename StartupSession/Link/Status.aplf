@@ -1,10 +1,10 @@
- list←{opts}List ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;there;⎕IO
+ status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;there;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :If ~U.HasLinks
-         list←'No active links'
+         status←'No active links'
          :Return
      :EndIf
      ⎕IO←1
@@ -18,15 +18,15 @@
          links/⍨←ns∘(⊃⍷)¨nss
      :EndIf
      :If 0=≢links
-         list←'No active links in ',⍕ns
+         status←'No active links in ',⍕ns
          :Return
      :EndIf
      ⍝ items←+/¨~3⊃¨U.GetFileTiesIn¨nss    ⍝ tied files (not script items, nor arrays)
      ⍝ items+←¯1+≢¨dirs←U.ListNamespaces¨⍎¨nss  ⍝ directories (excluding self)
-     ⍝ list,←items
-     list←↑links.(ns dir)
-     list,←¯1++/¨≢¨¨links U.ListFiles¨list[;2]  ⍝ exclude root
-     list⍪⍨←'Namespace' 'Directory' 'Items'
+     ⍝ status,←items
+     status←↑links.(ns dir)
+     status,←¯1++/¨≢¨¨links U.ListFiles¨status[;2]  ⍝ exclude root
+     status⍪⍨←'Namespace' 'Directory' 'Items'
 
      (defopts←⎕NS ⍬).(extended)←0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
@@ -35,10 +35,10 @@
          :If ×≢links
              L←819⌶
              :For prop :In props
-                 list,←(⊂↑prop),links⍎¨⊂L@1∊prop
+                 status,←(⊂↑prop),links⍎¨⊂L@1∊prop
              :EndFor
          :Else
-             list,←,[0.5]↑¨props
+             status,←,[0.5]↑¨props
          :EndIf
      :EndIf
  :Else

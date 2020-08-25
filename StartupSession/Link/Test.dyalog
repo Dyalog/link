@@ -768,7 +768,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;props;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z
     ⍝ Github issues
       r←0
       name ⎕NS''
@@ -817,8 +817,9 @@
       z←⎕SE.Link.Create'#.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname.sub'folder
       assert'3=≢⎕SE.Link.Links'
-      'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 2⍴folder 1)≡⎕SE.Link.List '''''
-      'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.List ⎕SE'
+      props←'Namespace' 'Directory' 'Items'
+      'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 2⍴folder 1)≡⎕SE.Link.Status '''''
+      'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
      
       {}'{all:1}'⎕SE.Link.Break ⍬
       'link issue #111'assert'0=≢⎕SE.Link.Links'
@@ -918,7 +919,7 @@
       Breathe
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
-      'link issue #142'assert'(props,[.5]name folder 7)≡⎕SE.Link.List name'
+      'link issue #142'assert'(props,[.5]name folder 7)≡⎕SE.Link.Status name'
      
       ⍝ attempt to rename a script
       src2←,¨':Namespace script2' '∇ res←function2 arg' 'res←arg' '∇' ':EndNamespace'
@@ -1734,7 +1735,7 @@
       opts ⎕SE.Link.Create name folder
       time←(3⊃⎕AI)-time
       :If profile ⋄ ⎕PROFILE'stop' ⋄ :EndIf
-      Log ⎕SE.Link.List name
+      Log ⎕SE.Link.Status name
       Log'cleaning up...'
       ⎕EX name
       {}⎕SE.Link.Break name

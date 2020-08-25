@@ -1,4 +1,4 @@
-# Link.List
+# Link.Status
 
 This function provides details of texisting links.
 

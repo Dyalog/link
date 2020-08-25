@@ -30,7 +30,7 @@
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
       r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
-      r,←'{"Name":"List",        "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
+      r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Synchronise namespace-directory content"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
