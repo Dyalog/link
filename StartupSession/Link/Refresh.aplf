@@ -1,18 +1,39 @@
- msg←Refresh nss;ko;link;ns;nsref;ok;⎕IO
+ msg←{opts}Refresh nss;inFail;ix;ko;link;links;ns;nsref;ok;outFail;rsi;source;xsi;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
+     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
      ok←ko←⍬
+     links←⎕SE.Link.Links
+     (rsi xsi)←(⎕RSI ⎕XSI)
      :For ns :In nss
-         ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+         ns←⊃⌽rsi xsi U.ContainerNs ns
          :If ~0∊⍴nsref←(0 U.GetRefTo)ns
-         :AndIf ~0∊⍴link←U.LookupRef nsref
-             {}Break nsref
-             link.source←'both'
-             ok,←⊂link Create nsref link.dir
+         :AndIf ~0∊⍴link←links U.LookupRef nsref
+             ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+links⍳link),']'     ⍝ fix ⎕IO!
+
+             :If opts.source≡'auto' ⋄ source←link.source   ⍝ use actual source used at Create time
+             :Else ⋄ source←opts.source  ⍝ use specified source
+             :EndIf
+
+             :If 'ns'≡source
+                 :If 0≠≢outFail←link U.WriteFiles(⍎link.ns)link.dir
+                     ko,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
+                     link.outFail←outFail
+                 :Else
+                     ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
+                 :EndIf
+             :ElseIf 'dir'≡source
+                 :If 0≠≢inFail←link U.FixFiles(⍎link.ns)link.dir
+                     msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
+                     link.inFail←inFail
+                 :Else
+                     ok,←⊂'Imported: ',ns,' ← ',U.WinSlash link.dir
+                 :EndIf
+             :EndIf
          :Else
              ko,←⊂'Not linked: ',ns
          :EndIf

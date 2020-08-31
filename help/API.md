@@ -7,13 +7,12 @@ Function                                              | Right Argument(s)       
 ------------------------------------------------------|----------------------------|------------------------------------------------|-------
  [Add](Link.Add.md)<sup>`]`</sup>                     | items                      | *&lt;none&gt;*                                 | 
  [Break](Link.Break.md)<sup>`]`</sup>                 | namespaces                 | options: `all` `exact`                         | 
- [Create](Link.Create.md)<sup>`]`</sup>               | namespace directory        | options: `source` `watch` [and many more]      | 
+ [Create](Link.Create.md)<sup>`]`</sup>               | namespace directory        | options: `source` `watch` [and [many more](Link.Create.md#common-options)]      | 
  [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: same as [Create](Link.Create.md)      | 
  [Expunge](Link.Expunge.md)<sup>`]`</sup>             | items                      | *&lt;none&gt;*                                 | boolean array
  [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: same as [Create](Link.Create.md)      | 
- [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                                 | 
- [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | *&lt;none&gt;*                                 | 
- [Status](Link.Status.md)<sup>`]`</sup>                   | namespace                  | options: `extended`                            | 
+ [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | options: `source`                              | 
+ [Status](Link.Status.md)<sup>`]`</sup>               | namespace                  | options: `extended`                            | 
  [Version](Link.Version.md)             | *&lt;none&gt;*             | *&lt;none&gt;*                                 | version number as string
 
  <sup>`]`</sup> These functions have [user command covers](#user-commands).
@@ -26,7 +25,7 @@ Function                                              | Right Argument(s)       
  [Fix](Link.Fix.md)                                   | source                     | array: namespace name oldname                  | 
  [GetFileName](Link.GetFileName.md)<sup>`]`</sup>     | items                      | *&lt;none&gt;*                                 | filenames
  [GetItemName](Link.GetItemName.md)<sup>`]`</sup>     | filenames                  | *&lt;none&gt;*                                 | items
- [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                                 | 
+ [Notify](Link.Notify.md)                             | event filename oldfilename | *&lt;none&gt;*                
  [StripCaseCode](Link.StripCaseCode.md)               | filename                   | *&lt;none&gt;*                                 | filename without case code
  [TypeExtension](Link.TypeExtension.md)               | name class                 | option namespace used for [Create](Link.Create.md) | file extension (without leading `'.'`)                         |                                                |
 

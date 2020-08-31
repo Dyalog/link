@@ -24,7 +24,7 @@
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
       r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"1S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames  -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one or both if absent)"},'
+      r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"1-2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames  -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one or both if absent)"},'
       r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
@@ -97,6 +97,9 @@
     ∇ r←Run(cmd args);opts;name;lc;names;L
       L←819⌶
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
+      :if (cmd≡'Create')∧(1=≢args.Arguments)
+        args.Arguments,⍨←⊂'⎕THIS'  ⍝ in the UCMD, namespace defaults to caller's ⎕THIS
+      :EndIf
       :Select |1 2⊃⎕SE.Link.⎕AT cmd
       :Case 0  ⍝ niladic
          opts←⊃  ⍝ hack : rslt← ⊃ (⍎Niladic)args

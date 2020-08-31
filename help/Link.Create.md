@@ -11,14 +11,14 @@
 
 #### Common Options
 
-- **source**	{ns|**dir**|both}  
+- **source**	{ns|dir|**auto**}  
   > Whether to consider the ns or dir as the authoritative source when [creating](Link.Create.md) or [refreshing](Link.Refresh.md) the link.
-  > - `dir` means that items in the namespace will be overwritten by items in files.
-  > - `ns` means that items in files will be overwritten by items in the namespace.
-  > - `both` will first copy from ns to dir, and then the other way.
+  > - `dir` means that the namespace must be non-existent or empty and will be overwritten by items in files.
+  > - `ns` means that the directory must be non-existent or empty and will be overwritten by items in the namespace.
+  > - `auto` will use whichever of ns or dir that is not empty. If both are empty, it will fail.
   >
   > \
-  > Defaults to `dir`.
+  > Defaults to `auto`.
 
  - **watch**	{none|ns|dir|**both**} 
    > Specifies which sides of the link to watch for changes (and synchronise).

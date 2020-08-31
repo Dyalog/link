@@ -64,7 +64,7 @@
       time←⎕AI[3]
       :For test :In tests
           ⍝Log'TESTING'test
-          z←(⍎test)folder NAME   ⍝ run test_*
+          z←(⍎test)folder NAME   ⍝ run test_*    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       :EndFor
       time←⎕AI[3]-time
       UnSetup
@@ -591,7 +591,7 @@
      
       opts.caseCode←1
       {}⎕SE.Link.Create name folder
-      {}⎕SE.Link.Break name
+      {}⎕SE.Link.Break name ⋄ ⎕EX name
      
       ⍝ survive clashing apl definitions despite different filenames
       {}(⊂'r←foo x' 'r←''foo'' x')∘QNPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
@@ -637,7 +637,7 @@
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'fn≡⎕NR name,''.DupduP'''
      
-      {}⎕SE.Link.Break name
+      {}⎕SE.Link.Break name ⋄ ⎕EX name
      
       opts.forceFilenames←0
       opts.forceExtensions←1
@@ -777,9 +777,8 @@
       ⍝ link issue #112 : cannot break an empty link
       z←⎕SE.Link.Create name folder
       'link issue #112'assert'~∨/''failed''⍷z'
-      z←⎕SE.Link.Break name
+      z←⎕SE.Link.Break name ⋄ ⎕EX name
       'link issue #112'assert'(∨/''Unlinked''⍷z)'
-      ⎕EX name
      
       ⍝ link issue #118 : create link in #
       '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
@@ -810,6 +809,7 @@
       assert'1=≢⎕SE.Link.Links'
       z←'{recursive:''on''}'⎕SE.Link.Break name
       assert'0=≢⎕SE.Link.Links'
+      ⎕EX name
      
       ⍝ link issue #111 : ]link.break -all must work
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
@@ -847,7 +847,7 @@
       z←⎕SE.Link.Refresh folder
       'link issue #117'assert'∨/''Not linked''⍷z'
       z←⎕SE.Link.Refresh name
-      assert'''Linked:''≡7↑z'
+      assert'⊃''Imported:''⍷z'
       assert'~∨/''failed''⍷z'
      
       ⍝ link issue #109 : fixing invalid function makes it disappear
@@ -859,7 +859,7 @@
      
       ⍝ link issue #108 : UCMD returned empty
       'link issue #108'assert'(⎕SE.UCMD '']Link.GetFileName '',unlikelyname)≡,⊂⎕SE.Link.GetFileName unlikelyname'
-      {}⎕SE.Link.Break name
+      {}⎕SE.Link.Break name ⋄ ⎕EX name
      
       opts←⎕NS ⍬
       opts.watch←'dir'
@@ -902,6 +902,7 @@
       'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'''
       'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'''
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
+      ⎕EX name
      
       ⍝ .apln must clash with directory of the same name
       {}(⊂':Namespace sub' ':EndNamespace')QNPUT folder,'/sub.apln'
@@ -949,11 +950,12 @@
      
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
-      'link issue #132 and #133'assert'∨/''Linked:''⍷z'
+      'link issue #132 and #133'assert'⊃''Imported:''⍷z'
       {}⎕SE.Link.Break name
       :If ~0∊⍴5177⌶⍬ ⋄ :AndIf ⎕SE∨.≠{⍵.##}⍣≡⊢2⊃¨5177⌶⍬
           assert'0'  ⍝ no more links in #
       :EndIf
+      ⎕EX name
      
       ⍝ attempt to recover the source after deletion when not watching the directory
       opts←⎕NS ⍬
@@ -1008,20 +1010,82 @@
 
     ∇ r←test_create(folder name);foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;subfolder;subname;var;varsrc;z
       r←0 ⋄ opts←⎕NS ⍬
+      subfolder←folder,'/sub' ⋄ subname←name,'.sub'
+     
+      ⍝ test default UCMD to ⎕THIS
+      2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
+      :With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith
+      assert'∨/''Linked:''⍷z'
+      assert'1=≢⎕SE.Link.Links'
+      :With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
+      assert'∨/''Unlinked''⍷z'
+      assert'0=≢⎕SE.Link.Links'
+      ⎕EX name ⋄ 3 ⎕NDELETE folder
      
       ⍝ test failing creations
-      3 ⎕NDELETE folder ⋄ opts.source←'dir'
+      3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'dir'
       z←opts ⎕SE.Link.Create name folder
       assert'∨/''not found''⍷z'
-      ⎕EX name ⋄ opts.source←'ns'
+      2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
       z←opts ⎕SE.Link.Create name folder
-      assert'∨/''not found''⍷z'
+      assert'∨/''not empty''⍷z'
       assert'0=≢⎕SE.Link.Links'
+      3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'ns'
+      z←opts ⎕SE.Link.Create name folder
+      assert'∨/''not found''⍷z'
+      2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      assert'∨/''not empty''⍷z'
+      assert'0=≢⎕SE.Link.Links'
+      ⎕EX name ⋄ 3 ⎕NDELETE folder
+     
+      ⍝ test source=auto
+      opts.source←'auto'
+      ⍝ both don't exist
+      z←opts ⎕SE.Link.Create name folder
+      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
+      assert'⎕SE.Link.Links.source≡,⊂''dir'''
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      ⍝ only dir exists
+      2 ⎕MKDIR folder
+      z←opts ⎕SE.Link.Create name folder
+      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
+      assert'⎕SE.Link.Links.source≡,⊂''dir'''
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      ⍝ only ns exists
+      name ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
+      assert'⎕SE.Link.Links.source≡,⊂''ns'''
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      ⍝ both exist
+      2 ⎕MKDIR folder ⋄ name ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
+      assert'⎕SE.Link.Links.source≡,⊂''dir'''
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      ⍝ only dir is populated
+      2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
+      assert'⎕SE.Link.Links.source≡,⊂''dir'''
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      ⍝ only ns is populated
+      2 ⎕MKDIR folder ⋄ subname ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
+      assert'⎕SE.Link.Links.source≡,⊂''ns'''
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      ⍝ both are populated
+      2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      assert'∨/''Cannot link''⍷z'
+      assert'0=≢⎕SE.Link.Links'
+      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
      
       ⍝ test source=dir watch=dir
       opts.source←'dir' ⋄ opts.watch←'dir'
-      2 ⎕MKDIR folder
-      2 ⎕MKDIR subfolder←folder,'/sub' ⋄ subname←name,'.sub'
+      2 ⎕MKDIR subfolder
       (⊂foosrc←' r←foo x' ' ⍝ comment' ' r←''foo''x')∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
@@ -1211,13 +1275,13 @@
       'link issue #49'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
      
       ⍝ now copy files in the root to have two namespace (root and root.sub)
-      output←ride.APL' ⎕SE.Link.Break ',Stringify name
-      assert'(∨/''Unlinked''⍷output)'
+      output←ride.APL' ⎕SE.Link.Break ',(Stringify name),' ⋄ ⎕EX ',(Stringify name)
+      assert'(⊃''Unlinked''⍷output)'
       {}(⊂varsrc)QNPUT(folder,'/var.apla')1
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/class.aplc')1
       output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(∨/''Linked:''⍷output)'
+      assert'(⊃''Linked:''⍷output)'
      
      ⍝ https://github.com/Dyalog/link/issues/30
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
@@ -1410,7 +1474,7 @@
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
-          ⎕←⎕SE.UCMD'link.list'
+          ⎕←⎕SE.UCMD']Link.Status'
           ⎕←'      ]Link.Break -all    ⍝ to break all links'
           →0
       :EndIf

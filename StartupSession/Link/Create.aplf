@@ -1,5 +1,5 @@
- msg←{opts}Create(ns dir)
- ;isWin;z;links;fsw;ix;linkDef;outFail;inFail;nsref;win;nsrefs;link;arrow;⎕IO
+ msg←{opts}Create(ns dir);emptydir;emptyns;hasdir;hasns;rsi;xsi
+ ;links;fsw;ix;outFail;inFail;nsref;nsrefs;link;arrow;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -14,67 +14,89 @@
      :EndIf
 
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+     ns←⊃⌽(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
      msg←⍕⍬⊤⍬
+
+     :Trap 22 ⋄ hasdir←1 ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
+     :Else ⋄ hasdir←0 ⋄ emptydir←1
+     :EndTrap
+     :If hasns←9=⎕NC ns ⋄ emptyns←0∊⍴(⍎ns).⎕NL-⍳10
+     :Else ⋄ emptyns←1
+     :EndIf
 
      :If ~U.CanWatch
      :AndIf (⊂opts.watch)∊'both' 'dir'
          msg←'Watching directories is only supported if .NET is available'
      :ElseIf opts.source≡'dir'
-     :AndIf {22::1 ⋄ 1≠1 ⎕NINFO ⍵}dir
+     :AndIf ~hasdir
          msg←'Source directory not found: ',dir
-     :ElseIf U.Slash⊃⌽dir
-         msg←'Trailing slash reserved for future extension'
+     :ElseIf opts.source≡'dir'
+     :AndIf ~emptyns
+         msg←'Destination namespace not empty: ',ns
      :ElseIf opts.source≡'ns'
-     :AndIf 0=⎕NC ns
+     :AndIf ~hasns
          msg←'Source namespace not found: ',ns
-     :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
+     :ElseIf opts.source≡'ns'
+     :AndIf ~emptydir
+         msg←'Destination directory not empty: ',dir
+     :ElseIf opts.source≡'auto'
+     :AndIf emptydir⍱emptyns
+         msg←'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
+     :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
          msg←'Not a namespace: ',ns
+     :ElseIf U.IsScripted nsref
+         msg←'Cannot link to scripted namespaces: ',ns
      :ElseIf ×≢⎕SE.Link.Links
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
          msg←'Already linked: ',U.Arrow link
-     :ElseIf U.IsScripted nsref
-         msg←'Cannot link to scripted namespaces: ',ns
-     :ElseIf ~⎕NEXISTS dir
-     :AndIf ~3 ⎕MKDIR dir
+     :ElseIf ~hasdir
+     :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
          msg←'Directory not found: ',dir
-     :ElseIf 0⊣'both'≡opts.source
-     :AndIf ∧/0≠(≢nsref.⎕NL-⍳10),≢⊃(⎕NINFO⍠1)dir,'/*'
-         msg←'Source must be specified when linking a non-empty namespace to a non-empty directory'
-     :ElseIf opts.(flatten∧source≢'dir')
-         msg←'flatten≡1 requires source≡''dir'''
+     :ElseIf U.Slash⊃⌽dir
+         msg←'Trailing slash reserved for future extension'
      :Else
+         :If opts.source≡'auto'  ⍝ detect actual source
+             :If hasns<hasdir
+             :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
+                 opts.source←'dir'
+             :Else
+                 opts.source←'ns'
+             :EndIf
+         :EndIf
+         :If opts.(flatten∧source≢'dir')
+             msg←'flatten≡1 requires source≡''dir'''
+             :Return
+         :EndIf
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
 
          inFail←outFail←fsw←⍬
-         ix←'[',(⍕(0(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
+         ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
          msg←0⍴⊂''
-         :If 'ns' 'both'∊⍨⊂opts.source
+         :If 'ns'≡opts.source
              outFail←opts U.WriteFiles ns dir
          :AndIf 0≠≢outFail
              msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
          :EndIf
 
-         :If 'dir' 'both'∊⍨⊂opts.source
+         :If 'dir'≡opts.source
              inFail←opts U.FixFiles nsref dir
          :AndIf 0≠≢inFail
-             msg,←⊂(⍕≢inFail),' imports failed (⎕SE.Link.Links',ix,'.inFail)'
+             msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
          :EndIf
 
-         linkDef←⎕SE.⎕NS opts
-         'linkDef'⎕NS'inFail' 'outFail'
+         'opts'⎕NS'inFail' 'outFail'
          :If 'dir' 'both'∊⍨⊂opts.watch
-             linkDef.fsw←FileSystemWatcher.Watch dir(,'*')
+             opts.fsw←FileSystemWatcher.Watch dir(,'*')
          :Else
-             linkDef.fsw←⍬
+             opts.fsw←⍬
          :EndIf
 
-         arrow←U.Arrow linkDef
-         linkDef.⎕DF 1⌽'][',arrow
-         ⎕SE.Link.Links,←linkDef
+         arrow←U.Arrow opts
+         opts.⎕DF 1⌽'][',arrow
+         ⎕SE.Link.Links,←opts
          msg←⊃{⍺,'; ',⍵}/msg,⍨⊂'Linked: ',arrow
      :EndIf
  :Else

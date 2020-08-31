@@ -341,16 +341,17 @@
       :EndIf
     ∇
 
+    ∇ n←UcmdStacks xsi
+      n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
+    ∇
     ∇ (container ns)←rsi_xsi ContainerNs ns;n;xsi;rsi
     ⍝ container is a reference, and namespace is fully qualified namespace name
       (rsi xsi)←rsi_xsi
       :If 9=⎕NC'ns'
           (container ns)←#(⍕ns)
       :Else
-          n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
-          container←⊃n↓rsi
+          container←⊃(UcmdStacks xsi)↓rsi
           ns←(⍕container),(0≠≢ns)/'.',ns  ⍝ can't use NormNs because ns may not exist
-          ns←('⎕THIS\.'⎕R'')('\.⎕THIS'⎕R'')ns  ⍝ ignore ⎕THIS which confuses GetRefTo
       :EndIf
     ∇
 
@@ -358,6 +359,12 @@
     ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
       :If 9=⎕NC'ns' ⋄ r←ns ⋄ :Return ⋄ :EndIf ⍝ already a ref
       r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
+      :If '⎕THIS'≡ns
+          :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing
+          :Return
+      :Else  ⍝ ignore ⎕THIS within a namespace path because ⎕NC doesn't recognise it
+          ns←('⎕THIS\.'⎕R'')('\.⎕THIS'⎕R'')ns
+      :EndIf
       :If 9=⌊|nc←where NameClass ns      ⍝ is a fully qualified name
           r←⍎ns
       :ElseIf 0≠nc ⍝ Invalid or used name, not worth trying
@@ -404,27 +411,32 @@
           linkns←⍬
       :EndIf
     ∇
-    ∇ linkns←LookupRef nsref;linked;links;nss
+    ∇ linkns←{links}LookupRef nsref;linked;links;nss
     ⍝ lookup which linked namespace has nsref
       linkns←⍬
-      :If HasLinks
-          nss←⍎¨(links←⎕SE.Link.Links).ns
-          :While ~linked←nsref∊nss
-          :AndIf ~IsRoot nsref
-              nsref←nsref.##
-          :EndWhile
-          :If linked
-              linkns←(nss⍳nsref)⊃links
+      :If 900⌶⍬
+          :If HasLinks
+              links←⎕SE.Link.Links
+          :Else
+              :Return
           :EndIf
+      :EndIf
+      nss←⍎¨links.ns
+      :While ~linked←nsref∊nss
+      :AndIf ~IsRoot nsref
+          nsref←nsref.##
+      :EndWhile
+      :If linked
+          linkns←(nss⍳nsref)⊃links
       :EndIf
     ∇
     ∇ {opts}←{defopts}DefaultOpts opts;Default;nl
     ⍝ Get default modifiers for link options namespace
       :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
-      :Else ⋄ opts←⎕NS opts  ⍝ duplicate namespace to avoid changing caller's
+      :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
       :EndIf
       Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
-      'source'Default'dir'
+      'source'Default'auto'
       'watch'Default(1+CanWatch)⊃'ns' 'both'
       'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Default 0
       'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions'Default''
