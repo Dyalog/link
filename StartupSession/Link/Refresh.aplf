@@ -19,6 +19,8 @@
              :Else ⋄ source←opts.source  ⍝ use specified source
              :EndIf
 
+             :If ~0∊⍴link.fsw ⋄ link.fsw.EnableRaisingEvents←0 ⋄ :EndIf
+
              :If 'ns'≡source
                  :If 0≠≢outFail←link U.WriteFiles(⍎link.ns)link.dir
                      ko,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
@@ -34,6 +36,8 @@
                      ok,←⊂'Imported: ',ns,' ← ',U.WinSlash link.dir
                  :EndIf
              :EndIf
+
+             :If ~0∊⍴link.fsw ⋄ link.fsw.EnableRaisingEvents←1 ⋄ :EndIf
          :Else
              ko,←⊂'Not linked: ',ns
          :EndIf

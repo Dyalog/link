@@ -87,10 +87,6 @@
           11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
           ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
       }
-      GetInfos←{
-          ''≡0⍴⍵:∇'name' 'parent' 'nc' 'file' 'line' 'lines' 'hash' 'ts'⍳⊂⍵
-          ⍵∘⊃¨5177⌶⍬
-      }
       ⍝ Untie←{0=⎕NC'⍺':_←5178⌶⍵ ⋄ ⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
     ∇ {ok}←{ns}Untie name;nc
       :If 900⌶⍬ ⋄ ns←⊢ ⋄ :EndIf
@@ -134,6 +130,19 @@
           {}(scriptitems/parents){⍺.(5178⌶)⍵}¨(scriptitems/names)
       :EndIf
     ∇
+
+    ∇ changed←FileHasChanged(ns name file src);file2;hash;line;lines;name2;nameref;nc;parent;ts
+      (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
+      :If 0∊⍴name2 ⋄ changed←0 ⍝ not tied at all - need to compare sources directly
+      :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
+      :ElseIf hash≢2 ⎕NQ'.' 'GetBuildID'file ⋄ changed←1 ⍝ not the same hash
+      :Else ⋄ changed←0  ⍝ unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes
+      :EndIf
+      :If changed ⋄ :Return ⋄ :EndIf ⍝ otherwise needs a closer look
+      :If 0∊⍴src ⋄ src←GetFileSource file ⋄ :EndIf
+      changed←src≢ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+    ∇
+
     ∇ r←ViewMetaData mode
     ⍝ Experiemental function to inspect Link meta data.
     ⍝ For debugging only.

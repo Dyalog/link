@@ -557,8 +557,8 @@
       opts.caseCode←1
       z←opts ⎕SE.Link.Export name folder
       assert'z≡''Exported: ',name,' → ',winfolder,''''
-      actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
-      expfiles←'SUB-7/DUP-7.aplf' 'SUB-7/SUBSUB-77/DUPDUP-77.aplf' 'sub-0/dup-0.aplf'
+      actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder    ⍝ NB sorting is different in classic VS unicode
+      expfiles←{⍵[⍋⍵]}'SUB-7/DUP-7.aplf' 'SUB-7/SUBSUB-77/DUPDUP-77.aplf' 'sub-0/dup-0.aplf'
       'link issue #43'assert'actfiles≡expfiles'
       ⍝ TODO : export cannot export arrays ? (ns.var)
       3 ⎕NDELETE folder
@@ -570,7 +570,7 @@
       'link issue #43'assert'actfiles≡expfiles'
       {}⎕SE.Link.Add name,'.var'  ⍝ BUG : ⍝ BUG : watcher create event produces a warning that file attempts to redefine existing variable
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
-      expfiles,←⊂'var-0.apla'
+      expfiles←{⍵[⍋⍵]}expfiles,⊂'var-0.apla'
       assert'actfiles≡expfiles'
      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
@@ -1210,7 +1210,7 @@
 
     ∇ r←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
       r←0
-      :If 82≠⎕DR''
+      :If 82≠⎕DR''  ⍝ Classic interpreter required for classic QA !
           Log'Not a classic interpreter - not running ',⊃⎕SI
           :Return
       :EndIf
@@ -1238,7 +1238,13 @@
 
     ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
-      r←0 ⋄ ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
+      r←0
+      :If 82=⎕DR''  ⍝ GhostRider requires Unicode
+          Log'Not a unicode interpreter - not running ',⊃⎕SI
+          :Return
+      :EndIf
+     
+      ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
       ⎕MKDIR Retry⊢folder
       varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
@@ -1390,7 +1396,7 @@
       :EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/152
-      :If 0   ⍝ attempt to change the name and script type of a class in editor
+      :If 0   ⍝ attempt to change the name and script type of a class in editor - requires fix to Mantis 18460 and 18410
           ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
           assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
           assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
