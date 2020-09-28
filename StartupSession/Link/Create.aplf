@@ -72,7 +72,7 @@
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
 
-         inFail←outFail←fsw←⍬
+         inFail←outFail←0⍴⊂'' ⋄ fsw←⍬
          ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
          msg←0⍴⊂''
          :If 'ns'≡opts.source

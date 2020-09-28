@@ -209,7 +209,8 @@
           ⍵
       }
 
-    Ancestry←{((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}
+    SplitDir←{(~Slash ⍵)⊆⍵}
+    Ancestry←{,\(1@1⊢Slash ⍵)⊂⍵}    ⍝ {((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}   ⍝ ⍪⎕SE.Link.U.Ancestry¨ 'C:' '.' '',¨⊂'/a/bb/ccc'
 
     FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
 
@@ -719,6 +720,8 @@
       mask←1=list[3;] ⋄ list←¯1↓list                ⍝ mask for hidden items
       hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
       hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
+      dirs←(1=list[2;])/list[1;]                    ⍝ non-hidden directories
+      hidden,←('.'=⊃¨∊¨1↓¨⎕NPARTS¨dirs)/dirs        ⍝ directories that start with a '.' are considered hidden too (link issue #156)
       hidden←hidden,¨'/'                            ⍝ protect against similarly named files
       list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
      
@@ -732,7 +735,7 @@
 
     ∇ {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
     ⍝ Load items from files in folders
-      inFail←⍬
+      inFail←0⍴⊂''
       (files dirs)←opts ListFiles source
       ndirs←≢dirs ⋄ allfiles←dirs,files
      
@@ -808,9 +811,6 @@
           mask←~FixFile¨↓nss,files,[1.5]names ⍝ try it and return only failures
           inFail,←mask/files
       :EndIf
-     
-      ⍝ return list of failures
-      inFail←⍕¨inFail
     ∇
 
     :EndSection
@@ -821,20 +821,18 @@
 
     :Section UI
 
+    WARNING←LOG←0⍴⊂''
 
     ∇ {msg}←{header}Warn msg
     ⍝ Warn user
       :If 900⌶⍬ ⋄ header←'Link Warning: ' ⋄ :EndIf
-      ⎕←header,msg
+      WARNING,←⊂⎕←header,msg
     ∇
-
     ∇ {msg}←Log msg
     ⍝ Debug information
-      :If debug≠0
-          ⎕←msg
-      :EndIf
+      LOG,←⊂msg
+      :If debug≠0 ⋄ ⎕←msg ⋄ :EndIf
     ∇
-
 
     :EndSection
 

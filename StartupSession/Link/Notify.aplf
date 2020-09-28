@@ -1,4 +1,4 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO;expfile
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 
@@ -26,22 +26,22 @@
              msg←(¯2↓msg),'←',oldpath,': '
          :EndIf
 
+         :If '.'∨.=⊃¨U.SplitDir path ⋄ →END⊣U.Log msg,'file/directory name has a leading dot' ⋄ :EndIf  ⍝ link issue #156 - due to unreliable 6∘⎕NINFO
+
          :If ~deleted
+             parents←(¯1+≢U.Ancestry link.dir)↓U.Ancestry path
              retry←3 ⍝ occasionnaly, on ⎕NMOVE made by Notify, the watcher rename event will not have access to file for some time
              :While 0≤retry←retry-1
                  :Trap 0
                      dir←1=1 ⎕NINFO path
-                     hidden←∨/6 ⎕NINFO(¯1+≢U.Ancestry link.dir)↓U.Ancestry path
+                     hidden←∨/6 ⎕NINFO parents
                      :Leave
                  :Else ⋄ ⎕DL 0.000001
                  :EndTrap
              :EndWhile
              :If retry<0 ⋄ →END⊣U.Log msg,'not accessible' ⋄ :EndIf
              :If hidden ⋄ →END⊣U.Log msg,'hidden' ⋄ :EndIf
-             :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
-                 →END⊣U.Log msg,'file type not managed by link'
-             :EndIf
-         :EndIf
+         :EndIf  ⍝ dir cannot yet be tested for deleted files
 
          ⍝ determine expected apl name from file name, and actual apl name from source
          (nsname expname actname nc)←link U.DetermineAplName path
@@ -57,6 +57,10 @@
          :ElseIf 0∊⍴actname ⋄ actname←expname  ⍝ failed to fix source - nc is 0 - only beforeRead can save us
          :EndIf
 
+         :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
+             →END⊣U.Log msg,'file extension not managed by link'
+         :EndIf
+
          oldname←actname
          affected←nsname,'.',actname
          :If curnc=¯1 ⋄ curname←'' ⋄ :Else ⋄ curname←curnsname,'.',curactname ⋄ :EndIf
@@ -69,7 +73,7 @@
          :EndIf
 
          :If 0=≢nsref ⋄ →END⊣U.Warn msg,'file does not reflect in a valid namespace'
-         :ElseIf (nc=¯1) ⋄ →END⊣U.Warn msg,'invalid name defined by file: ',path
+         :ElseIf nc=¯1 ⋄ →END⊣U.Warn msg,'invalid name defined by file: ',path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              →END⊣U.Log msg,(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
          :EndIf
@@ -78,7 +82,7 @@
          expfile←U.Deslash⊃link(0 U.DetermineFileName)nsname actname oldname nc
          :If 0∊⍴curfile←0 U.NormFile nsref U.CurrentFileName actname ⍝ not tied by interpreter
          :AndIf 2.1 ¯9.1∊⍨nc   ⍝ only arrays and tradnamespaces don't have ties
-             curfile←(⎕NEXISTS expfile)/expfile    ⍝
+             curfile←(⎕NEXISTS expfile)/expfile
          :EndIf
 
          :Select type

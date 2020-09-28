@@ -162,7 +162,7 @@
 
 
 
-    ∇ r←test_failures(folder name);opts;z
+    ∇ r←test_failures(folder name);names;opts;z
       r←0
      
       'not found'assertMsg'⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,''''
@@ -192,13 +192,44 @@
       z←⎕SE.Link.Break'#.unlikelyname'
       assert'∨/''Not found:''⍷z'
      
-      z←name'foo'⎕SE.Link.Fix,⊂'foo←{1 2 3}'
+      z←name'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'
       assert'z≡1'
-      z←'#' 'foo'⎕SE.Link.Fix,⊂'foo←{1 2 3}'
+      z←'#' 'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'
       assert'z≡0'
       Breathe ⍝ windows needs some time to clean up the file ties
      
+      {}⎕SE.Link.Break name ⋄ ⎕EX name
+     
+      3 ⎕MKDIR folder,'/sub/.git/info'
+      {}(⊂,⊂'goo←{''goo'' arg}')QNPUT(folder,'/sub/goo.aplf')1
+      {}(⊂'hoo arg' '⎕←''hoo'' arg')QNPUT(folder,'/sub/.git/info/hoo.aplf')1
+      {}(⊂'joo arg' '⎕←''joo'' arg')QNPUT(folder,'/.joo.aplf')1
+      {}(⊂'koo arg' '⎕←''koo'' arg')QNPUT(folder,'/koo.tmp')1
+      ⎕SE.Link.U.WARNING/⍨←0
+      {}⎕SE.Link.Create name folder
+      assert'(,⊂0⍴⊂'''')≡⎕SE.Link.Links.inFail'
+      names←'#.linktest.foo' '#.linktest.sub' '#.linktest.sub.goo'
+      'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
+     
+      {}(⊂,⊂'foo2←{''foo2'' arg}')QNPUT(folder,'/foo2.aplf')1
+      {}(⊂,⊂'goo2←{''goo2'' arg}')QNPUT(folder,'/sub/goo2.aplf')1
+      {}(⊂'hoo2 arg' '⎕←''hoo2'' arg')QNPUT(folder,'/sub/.git/info/hoo2.aplf')1
+      {}(⊂'joo2 arg' '⎕←''joo2'' arg')QNPUT(folder,'/.joo2.aplf')1
+      {}(⊂'koo2 arg' '⎕←''koo2'' arg')QNPUT(folder,'/koo2.tmp')1
+      names,←'#.linktest.foo2' '#.linktest.sub.goo2'
+      'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
+     
+      {}QNDELETE(folder,'/foo2.aplf')
+      {}QNDELETE(folder,'/sub/goo2.aplf')
+      {}QNDELETE(folder,'/sub/.git/info/hoo2.aplf')
+          {}QNDELETE(folder,'/.joo2.aplf')
+          {}QNDELETE(folder,'/koo2.tmp')
+      names↓⍨←¯2
+      'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
+      'link issue #158'assert'0=≢⎕SE.Link.U.WARNING'
+     
       {}⎕SE.Link.Break name
+     
       CleanUp folder name
     ∇
 
