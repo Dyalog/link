@@ -222,8 +222,8 @@
       {}QNDELETE(folder,'/foo2.aplf')
       {}QNDELETE(folder,'/sub/goo2.aplf')
       {}QNDELETE(folder,'/sub/.git/info/hoo2.aplf')
-          {}QNDELETE(folder,'/.joo2.aplf')
-          {}QNDELETE(folder,'/koo2.tmp')
+      {}QNDELETE(folder,'/.joo2.aplf')
+      {}QNDELETE(folder,'/koo2.tmp')
       names↓⍨←¯2
       'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
       'link issue #158'assert'0=≢⎕SE.Link.U.WARNING'
@@ -1319,6 +1319,16 @@
       {}(⊂class)QNPUT(folder,'/class.aplc')1
       output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(⊃''Linked:''⍷output)'
+     
+     ⍝ https://github.com/Dyalog/link/issues/154
+      z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
+      'link issue #154'assert'2=≢z'
+      {}ride.APL')CLEAR'
+      z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']Link.Status'
+      'link issue #154'assert'(1=≢z)∧(∨/''No active links''⍷∊z)'
+      output←ride.APL']Link.Create ',(Stringify name),' ',(Stringify folder)
+      assert'(⊃''Linked:''⍷output)'
+     
      
      ⍝ https://github.com/Dyalog/link/issues/30
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
