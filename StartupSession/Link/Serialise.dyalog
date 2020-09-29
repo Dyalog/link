@@ -111,7 +111,7 @@
          :EndSelect
          text←'['Encl text
      :EndIf
-     text←⎕FMT text
+     text←⎕FMT⍣(~inner)⊢text
  :Else
      ⎕SIGNAL⊂⎕DMX.(('EN'EN)('Message'Message))
  :EndTrap
