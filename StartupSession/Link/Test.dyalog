@@ -1416,6 +1416,25 @@
       'link issue #109'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
       'link issue #109'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
      
+      ⍝ https://github.com/Dyalog/link/issues/153
+      'link issue #153'assert'~⎕NEXISTS folder,''/text.apla'' '
+      {}ride.APL name,'.text←''hello'''
+      ed←ride.EditOpen name,'.text'
+      res←ed ride.EditFix'hello world'
+      ride.CloseWindow ed
+      'link issue #153'assert'1≡res'  ⍝ fix succeeded
+      'link issue #153'assert' (''hello world'',NL) ≡ ride.APL name,''.text'' '
+      'link issue #153'assert'~⎕NEXISTS folder,''/text.apla'' ' ⍝ file must NOT be created
+      {}ride.APL')ERASE ',name,'.text'
+      'link issue #153'assert'~⎕NEXISTS folder,''/text.aplf'' '
+      {}ride.APL name,'.⎕FX ''text'' ''⎕←1 2 3'''
+      ed←ride.EditOpen name,'.text'
+      res←ed ride.EditFix'res←text' 'res←4 5 6'
+      ride.CloseWindow ed
+      'link issue #153'assert'1≡res'  ⍝ fix succeeded
+      'link issue #153'assert' (''4 5 6'',NL) ≡ ride.APL name,''.text'' '
+      'link issue #153'assert' '' res←text'' '' res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must NOT be created
+     
       ⍝ https://github.com/Dyalog/link/issues/129 https://github.com/Dyalog/link/issues/148
       :If 0 ⍝ requires fix to Mantis 18408
           res←ride.APL' (+1 3 ⎕STOP ''',name,'.foo'')(+1 2⎕TRACE ''',name,'.foo'')(+2 3⎕MONITOR ''',name,'.foo'') '

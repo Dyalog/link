@@ -844,8 +844,9 @@
     ∇ UpdateUCMD;from;to
       from←(⊃⎕NPARTS 4⊃5179⌶⎕SE.Link.U),'../../SALT/spice/Link.dyalog'
       to←(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/SALT/spice/Link.dyalog'
+      ⎕←'Copying "',from,'" → "',to,'"'
       to ⎕NCOPY⍠'IfExists' 'Replace'⊢from
-      ⎕SE.UCMD']UReset'
+      ⎕←⎕SE.UCMD']UReset'
     ∇
     :EndSection
 

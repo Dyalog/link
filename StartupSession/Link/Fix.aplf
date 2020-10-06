@@ -34,8 +34,9 @@ NOHOLD:
          :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
          :EndIf
 
-         update←'ns'≡link.watch  ⍝ update files if watching namespace (not tied to file with 2 ⎕FIX)
-         update∨←('both'≡link.watch)∧(2=⌊nc)∨(~⎕NEXISTS file)  ⍝ arrays need to update file even if watching both ways - new files too
+         update←('ns'≡link.watch)      ⍝  watching namespace : update file (not tied to file with 2 ⎕FIX)
+         update∨←('both'≡link.watch)∧(2=⌊nc)∨(~⎕NEXISTS file)  ⍝ watching both ways : new file need to be created - file needs to be updated if editing a linked array
+         update>←(2=⌊nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
          update∨←added  ⍝ explicit add must update file
          watch←'both' 'dir'∊⍨⊂link.watch  ⍝ watching files
 
