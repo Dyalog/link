@@ -1024,6 +1024,15 @@
       ⎕EX'#.UnlikelyName'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
+      :If 0 ⍝ link issue #155 - :Require doesn't work
+          ⎕EX name
+          {}(⊂':Require file://Engine.apln' ':Namespace Server' 'dup←##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
+          {}(⊂':Namespace Engine' 'dup←{⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
+          z←⎕SE.Link.Create name folder
+          'link issue #159'assert'1=≢⎕SE.Link.Links'
+          'link issue #159'assert'~∨/''failed''⍷z'
+          {}⎕SE.Link.Break name
+      :EndIf     
      
       CleanUp folder name
     ∇

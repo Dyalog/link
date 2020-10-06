@@ -523,6 +523,7 @@
           :EndIf
           :Return  ⍝ named script fixed
       :Else
+          ⍝required←116=⎕DMX.ENX  ⍝ 2 ⎕FIX failed because cannot read :Required file
           unnamed←121=⎕DMX.ENX  ⍝ 2 ⎕FIX failed because script was unnamed
       :EndTrap
       ⍝ name must be valid because we define it in the following code
@@ -551,8 +552,7 @@
       :If tie ⋄ src←file ⍝ tie to file
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
       :EndIf
-      :If file≢target CurrentFileName name               ⍝ avoid checking source if obviously not in sync
-      :OrIf (target GetAplSource name)≢(GetFileSource⍣tie⊢src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+      :If FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
           (name nc)←target Fix(name src)
           ok←~nc∊0 ¯1
       :Else ⋄ ok←1 ⋄ :EndIf
