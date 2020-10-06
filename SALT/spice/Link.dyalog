@@ -47,14 +47,14 @@
       m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
       m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
       m⍪←'-extended' '' 'include additional properties for each link'
-      m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
+      ⍝m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
       m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
       m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
       m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
-      m⍪←'-source' '={ns|dir|both}' 'which source is authoritative if both are populated'
+      m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
       m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
       m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
       (mods modVals modTxts)←↓⍉m
@@ -94,7 +94,7 @@
       r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
     ∇
 
-    ∇ r←Run(cmd args);opts;name;lc;names;L
+    ∇ r←Run(cmd args);opts;name;lc;names;L;isvar
       L←819⌶
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
       :if (cmd≡'Create')∧(1=≢args.Arguments)
@@ -107,12 +107,13 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all'  'beforeread'  'beforewrite'  'casecode'  'codeextensions'  'extended'  'extension'  'fastload'  'flatten'  'forceextensions'  'forcefilenames'  'getfilename'  'recursive'  'source'  'typeextensions'  'watch' 
+          names←'all'  'beforeRead'  'beforeWrite'  'caseCode'  'codeExtensions'  'extended'    'fastLoad'  'flatten'  'forceExtensions'  'forceFilenames'  'getFilename'  'recursive'  'source'  'typeExtensions'  'watch' 
           :For name :In names
               lc←L name
               :If ×args.⎕NC lc
               :AndIf 0≢args⍎lc
-                  name opts.{⍎⍺,'←⍵'}##.THIS⍎⍣(∨/'Extensions'⍷name)⍎'args.',lc
+                  isvar←(⊂name)∊'codeExtensions' 'customExtensions' 'typeExtensions'
+                  name opts.{⍎⍺,'←⍵'}##.THIS⍎⍣isvar⍎'args.',lc
               :EndIf
           :EndFor
       :EndSelect
@@ -120,6 +121,8 @@
       OPTS←opts
       ARGS←args.Arguments
       CMD←cmd
+     ⍝ Clean locals otherwise CMD will see them because of the :With
+      ⎕EX 'L' 'cmd' 'lc' 'name' 'names' 'isvar' 'opts' 'cmd' 'args'
      ⍝ Simulate calling directly from the original ns
       :With ##.THIS  ⍝ We know THIS has been set for us
           ⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS) ⍝ dot our way home

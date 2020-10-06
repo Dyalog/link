@@ -20,7 +20,7 @@
      :Trap 22 ⋄ hasdir←1 ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
      :Else ⋄ hasdir←0 ⋄ emptydir←1
      :EndTrap
-     :If hasns←9=⎕NC ns ⋄ emptyns←0∊⍴(⍎ns).⎕NL-⍳10
+     :If hasns←¯9.1=U.NameClass ns ⋄ emptyns←0∊⍴(⍎ns).⎕NL-⍳10
      :Else ⋄ emptyns←1
      :EndIf
 

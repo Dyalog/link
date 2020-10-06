@@ -51,4 +51,4 @@ Most, but not all, API functions have a corresponding user command, to make them
 ```apl
       ]LINK.Create myapp /sources/myapp -source=dir -flatten
 ```
-***Specifying extensions:*** Two options require arrays identifying file extensions: `codeExtensions` and `typeExtensions`. For convenience, the `]Link.Create` user command accepts the *name* of a variable containing the array, rather than the array values. However, in this case, it is highly recommended to use the API function directly rather than the user command.
+***Specifying extensions:*** Two options require arrays identifying file extensions: `codeExtensions`, `customExtensions` and `typeExtensions`. For convenience, the `]Link.Create` user command accepts the *name* of a variable containing the array, rather than the array values. 

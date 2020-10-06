@@ -127,7 +127,7 @@
   > 
   > The default is `'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'`
   >
-  > See **customExtensions** and **typeExtensions** for more information.
+  > From a user command, the syntax is `-codeExtensions=var` where `var` holds the expected array.
 
 - **customExtensions** Specifies additional file extensions handled by **beforeRead** functions
   > If you have specified a **beforeRead** handler function, and your code
@@ -136,6 +136,8 @@
   > to these file types.
   >
   > default is `''` - no custom extensions
+  >
+  > From a user command, the syntax is `-customExtensions=var` where `var` holds the expected array.
 
 - **typeExtensions** Specify the file extensions to use for each name class
   > The **typeExtensions** table specifies the default extension
@@ -158,6 +160,9 @@
   > | 9.1  | apln      |
   > | 9.4  | aplc      |
   > | 9.5  | apli      |
+  >
+  > From a user command, the syntax is `-typeExtensions=var` where `var` holds the expected array.
+
 
 - **fastLoad** (default off) Flag to reduce the load time by not inspecting source to detect name clashes
   >   This affects only initial directory loading, but not subsequent editor or file system watcher events. Worth doing for very large projects with users that don't produce name clashes (two files defining the same APL name). Side effects are (again, only at initial load time, not at subsequent events):

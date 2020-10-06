@@ -32,9 +32,10 @@
 
     ⎕IO←1 ⋄ ⎕ML←1
 
-    USE_ISOLATES←1   ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
+    USE_ISOLATES←1     ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
+    ⍝ unfortunately isolates have to be put in # because they copy DRC into #, and therefore hold references to #, and can't be held in ⎕SE at the cost of preventing )CLEAR.
 
     NAME←'#.linktest'  ⍝ namespace used by link tests
     FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
@@ -799,7 +800,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;props;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z
     ⍝ Github issues
       r←0
       name ⎕NS''
@@ -812,15 +813,17 @@
       'link issue #112'assert'(∨/''Unlinked''⍷z)'
      
       ⍝ link issue #118 : create link in #
+      root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
       '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
       (⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
-      z←⎕SE.Link.Create # folder
+      z←'{source:''dir''}'⎕SE.Link.Create # folder
       'link issue #118'assert'1=≢⎕SE.Link.Links'
       'link issue #118'assert'~∨/''failed''⍷z'
       'link issue #118'assert'9.4=⎕NC⊂''#.unlikelyname'''
       z←⎕SE.Link.Break #
       assert'0=≢⎕SE.Link.Links'
       ⎕EX'#.unlikelyname'
+      # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
       z←⎕SE.Link.Create(name,'.⎕THIS')folder
       'link issue #145'assert'~∨/''failed''⍷z'
@@ -1008,6 +1011,20 @@
       'link issue #151'assert'∨/''failed: "',name,'.failed"''⍷z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
+      ⍝ link issue #159 - using casecode from namespace
+      3 ⎕NDELETE folder
+      root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
+      #.⎕FX'UnlikelyName' '⎕←''UnlikelyName'''
+      {}⎕SE.UCMD'z←]link.create -casecode # "',folder,'"'
+      'link issue #159'assert'1=≢⎕SE.Link.Links'
+      'link issue #159'assert'~∨/''failed''⍷z'
+      'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
+      z←⎕SE.Link.Break #
+      assert'0=≢⎕SE.Link.Links'
+      ⎕EX'#.UnlikelyName'
+      # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
+     
+     
       CleanUp folder name
     ∇
 
@@ -1045,10 +1062,12 @@
      
       ⍝ test default UCMD to ⎕THIS
       2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
-      :With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith
+      ⍝:With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith  ⍝ not goot - :With brings in locals into the target namespace
+      z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ',folder
       assert'∨/''Linked:''⍷z'
       assert'1=≢⎕SE.Link.Links'
-      :With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
+      ⍝:With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
+      z←(⍎name).{⎕SE.UCMD ⍵}']Link.Break ⎕THIS.⎕THIS'
       assert'∨/''Unlinked''⍷z'
       assert'0=≢⎕SE.Link.Links'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
@@ -1126,7 +1145,7 @@
       assert'foosrc∘≡¨⎕NR¨name subname,¨⊂''.foo'''
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
       ⍝ watch=dir must reflect changes from files to APL
-      {}(⊂newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'world')@2)¨var)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'new hello')@2)¨var)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc←(⊂' ⍝ new comment')@2⊢foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc←(⊂' ⍝ new comment')@2⊢nssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
@@ -1551,8 +1570,8 @@
       :EndIf
      
       :If USE_ISOLATES
-          :If 9.1≠⎕NC⊂'#.isolate'
-              #.⎕CY'isolate.dws'
+          :If 9.1≠#.⎕NC⊂'isolate'
+              'isolate'#.⎕CY'isolate.dws'
           :EndIf
           {}#.isolate.Reset 0  ⍝ in case not closed properly last time
           {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
@@ -1560,7 +1579,7 @@
           QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
           QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵ ⋄ ⎕DL 0.001}  ⍝ ensure QNPUTS are not too tight for filewatcher
       :Else
-          #.SLAVE←#.⎕NS''
+          #.SLAVE←⎕NS''
           QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
           QNPUT←{⍺ NPUT ⍵ ⋄ ⎕DL 0.001}
       :EndIf
@@ -1576,7 +1595,7 @@
       :If USE_ISOLATES
           z←4=#.SLAVE.(2+2) ⍝ Make sure it finished what it was doing
           {}#.isolate.Reset 0
-          ⎕EX'#.SLAVE'
+          #.SLAVE←⎕NULL
       :EndIf
     ∇
 
@@ -1746,6 +1765,18 @@
           :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
           names,←⊃,/trad NSTREE¨tradns
       :EndIf
+    ∇
+
+    ∇ to NSMOVE from;name;nl
+      :If ~0∊⍴to.⎕NL-⍳10 ⋄ 'Destination must be empty'⎕SIGNAL 11 ⋄ :EndIf
+      :For name :In nl←from.⎕NL-⍳10
+          :If (⌊|from.⎕NC⊂name)∊2 9  ⍝ array (or scalar ref)
+              name(to{⍺⍺⍎⍺,'←⍵'})from⍎name
+          :Else  ⍝ function or operator
+              to.⎕FX from.⎕NR name
+          :EndIf
+      :EndFor
+      from.⎕EX nl
     ∇
 
     ∇ nsname Watch watch;fsw;link
