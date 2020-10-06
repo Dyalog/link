@@ -1,9 +1,16 @@
 # Link.Refresh 
 
-If synchronisation is not enabled, or you have made changes to
-linked folders or namespaces which are not tracked (such as
-using `⎕FIX`, `⎕FX`, `⎕NS`, `⎕CY` or assignment), you can use this function to re-synchronise the namespace and the directory.\
+Refresh is a one-way operation: it will read one side of the link and update the other side of the link accordingly. 
+
+It means that changes on the other side of the link may be lost: if there are un-synchronised changes on both sides of the link, then Refresh will destroy one set of changes (the non-source side will be overwritten by the source side).
+
+It is useful when not watching the directory, to force updating the namespace from files by using `source=dir`.
+
+It is also useful if you have made changes to linked namespaces which are not tracked (such as using `⎕FIX`, `⎕FX`, `⎕NS`, `⎕CY` or assignment), you can use this function with `source=ns` to re-synchronise the directory.\
 In the latter case, it is preferable to modify workspace items with [Fix](Link.Fix), so that the Refresh is not necessary.
+
+
+
 
 #### Arguments
 
@@ -15,7 +22,7 @@ In the latter case, it is preferable to modify workspace items with [Fix](Link.F
   > Whether to consider the ns or dir as the authoritative source for the link.
   > - `dir` means that items in the namespace will be overwritten by items in files.
   > - `ns` means that items in files will be overwritten by items in the namespace.
-  > - `auto` re-uses the same source that was determined at [Create](Link.Create.md) time (that is, the non-empty side of the link at create time)
+  > - `auto` re-uses the same source that was determined at [Create](Link.Create.md) time.
   >
   > Defaults to `auto`.
 

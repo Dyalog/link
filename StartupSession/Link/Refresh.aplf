@@ -1,4 +1,4 @@
- msg←{opts}Refresh nss;inFail;ix;ko;link;links;ns;nsref;ok;outFail;rsi;source;xsi;⎕IO
+ msg←{opts}Refresh nss;inFail;ix;ko;link;links;ns;nsref;ok;outFail;rsi;source;stacks;xsi;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -9,11 +9,12 @@
      ok←ko←⍬
      links←⎕SE.Link.Links
      (rsi xsi)←(⎕RSI ⎕XSI)
+     stacks←U.UcmdStacks xsi
      :For ns :In nss
          ns←⊃⌽rsi xsi U.ContainerNs ns
          :If ~0∊⍴nsref←(0 U.GetRefTo)ns
          :AndIf ~0∊⍴link←links U.LookupRef nsref
-             ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+links⍳link),']'     ⍝ fix ⎕IO!
+             ix←'[',(⍕(stacks(86⌶)'⎕IO')+links⍳link),']'     ⍝ fix ⎕IO!
 
              :If opts.source≡'auto' ⋄ source←link.source   ⍝ use actual source used at Create time
              :Else ⋄ source←opts.source  ⍝ use specified source

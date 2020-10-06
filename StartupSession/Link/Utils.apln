@@ -133,7 +133,8 @@
 
     ∇ changed←FileHasChanged(ns name file src);file2;hash;line;lines;name2;nameref;nc;parent;ts
       (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
-      :If 0∊⍴name2 ⋄ changed←0 ⍝ not tied at all - need to compare sources directly
+      :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
+      :ElseIf 0∊⍴name2 ⋄ changed←0 ⍝ not tied at all - need to compare sources directly
       :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
       :ElseIf hash≢2 ⎕NQ'.' 'GetBuildID'file ⋄ changed←1 ⍝ not the same hash
       :Else ⋄ changed←0  ⍝ unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes
@@ -552,7 +553,10 @@
       :If tie ⋄ src←file ⍝ tie to file
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
       :EndIf
-      :If FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+      ⍝ ⎕TODO the following line doesn't work
+      ⍝:If FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+      :If file≢target CurrentFileName name               ⍝ avoid checking source if obviously not in sync
+      :OrIf (target GetAplSource name)≢(GetFileSource⍣tie⊢src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
           (name nc)←target Fix(name src)
           ok←~nc∊0 ¯1
       :Else ⋄ ok←1 ⋄ :EndIf
@@ -632,8 +636,9 @@
     ∇ (ns name nc)←CurrentAplName file;fullname;info;row
       :If 0≠≢info←↑GetFileInfo file  ⍝ file actually linked by interpreter
       :AndIf (≢info)≥row←info[;5 6]⍳0 0  ⍝ file defines a single object
-          ns←NormNs⍕⊃info[row;2] ⋄ name←⍕⊃info[row;1]  ⍝ NormNs due to 5174⌶ sometimes reporting full path in first column
-          nc←# NameClass ns,'.',name  ⍝ no need to protect fully-qualified name
+          (name ns)←info[row;1 2] ⋄ name←⍕name ⍝ first column is sometimes refs
+          nc←ns NameClass name  ⍝ no need to protect fully-qualified name
+          (ns name)←SplitNs(⍕ns),'.',name ⋄ ns←NormNs ns  ⍝ NormNs due to 5174⌶ sometimes reporting full path in first column
       :Else
           ns←name←'' ⋄ nc←¯1
       :EndIf

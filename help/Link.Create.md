@@ -15,7 +15,7 @@
   > Whether to consider the ns or dir as the authoritative source when [creating](Link.Create.md) or [refreshing](Link.Refresh.md) the link.
   > - `dir` means that the namespace must be non-existent or empty and will be overwritten by items in files.
   > - `ns` means that the directory must be non-existent or empty and will be overwritten by items in the namespace.
-  > - `auto` will use whichever of ns or dir that is not empty. If both are empty, it will fail.
+  > - `auto` will use whichever of ns or dir that is not empty. If both are empty, it will use `dir`.
   >
   > \
   > Defaults to `auto`.
