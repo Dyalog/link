@@ -1,4 +1,4 @@
-﻿:Namespace Link ⍝ V 2.09
+﻿:Namespace Link ⍝ V 2.10
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
@@ -8,6 +8,7 @@
 ⍝ 2019 06 19 Adam: Avoid special-cased vars in caller
 ⍝ 2020 05 14 Nic: updated to link v2.1 API
 ⍝ 2020 06 08 Adam: Remove Version ucmd (use ⎕SE.Link.Version)
+⍝ 2020 10 07 Adam: Fix Help parsing ranged arg count as -mod
 
     ⎕IO←1 ⋄ ⎕ML←1
 
@@ -58,7 +59,7 @@
       m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
       m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
       (mods modVals modTxts)←↓⍉m
-      myMods←'-\w+'⎕S'&'⊢info.Parse
+      myMods←'-\pL+'⎕S'&'⊢info.Parse
       myModI←⊂mods⍳myMods
       myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
      
