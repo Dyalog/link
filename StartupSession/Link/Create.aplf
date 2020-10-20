@@ -42,6 +42,9 @@
      :ElseIf opts.source≡'auto'
      :AndIf emptydir⍱emptyns
          msg←'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
+     :ElseIf opts.source≡'auto'
+     :AndIf hasdir⍱hasns  ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
+         msg←'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
      :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
          msg←'Not a namespace: ',ns
      :ElseIf U.IsScripted nsref
@@ -59,8 +62,8 @@
          :If opts.source≡'auto'  ⍝ detect actual source
              :If hasns<hasdir
              :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
-                 opts.source←'dir'
-             :Else
+                 opts.source←'dir'                    ⍝ will also happen if neither exist
+             :Else  ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
                  opts.source←'ns'
              :EndIf
          :EndIf

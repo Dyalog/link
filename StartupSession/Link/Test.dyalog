@@ -1102,8 +1102,9 @@
       opts.source←'auto'
       ⍝ both don't exist
       z←opts ⎕SE.Link.Create name folder
-      assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
-      assert'⎕SE.Link.Links.source≡,⊂''dir'''
+      assert'⊃''Cannot link''⍷z'
+      assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
+      assert'0=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ only dir exists
       2 ⎕MKDIR folder
