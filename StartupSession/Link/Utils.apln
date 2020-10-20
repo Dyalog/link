@@ -549,14 +549,13 @@
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
     ∇
-    ∇ ok←target QFix(file name tie);nc;src
+    ∇ ok←target QFix(file name tie);changed;nc;src
       :If tie ⋄ src←file ⍝ tie to file
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
       :EndIf
-      ⍝ ⎕TODO the following line doesn't work
-      ⍝:If FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
-      :If file≢target CurrentFileName name               ⍝ avoid checking source if obviously not in sync
-      :OrIf (target GetAplSource name)≢(GetFileSource⍣tie⊢src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+      :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
+      :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
+      :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
           (name nc)←target Fix(name src)
           ok←~nc∊0 ¯1
       :Else ⋄ ok←1 ⋄ :EndIf
