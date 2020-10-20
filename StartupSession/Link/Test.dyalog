@@ -1444,15 +1444,14 @@
       'link issue #153'assert' (''4 5 6'',NL) ≡ ride.APL name,''.text'' '
       'link issue #153'assert' '' res←text'' '' res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must NOT be created
      
-      :If 0 ⍝ link issue #139 and #86
-          ⍝ we're not anywhere close to not spuriously fixing scripts
-          {}ride.APL'#.FIXCOUNT←0'
+      :If 0 ⍝ link issue #139 and #86 - we're not anywhere close to not spuriously fixing scripts because of ⎕SE.Link.U.DetermineAplName + ⎕SE.Link.U.DetermineFileName
+          {}ride.APL'#.FIXCOUNT←0'  ⍝ just write the file
           {}(⊂':Namespace FixCount' '#.FIXCOUNT+←1' ':EndNamespace')QNPUT(folder,'/FixCount.apln')1  ⍝ could produce two Notify events (created + changed), where each one fix in U.DetermineAplName, plus the actual QFix
           'link issue #139'assert' (''1'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
-          {}ride.APL'#.FIXCOUNT←0'
+          {}ride.APL'#.FIXCOUNT←0'  ⍝ force a Notify event
           {}ride.APL'⎕SE.Link.Notify ''changed'' (''',folder,'/FixCount.apln'') '  ⍝ spurious notify when no change has happened
           'link issue #139'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
-          {}ride.APL'#.FIXCOUNT←0'
+          {}ride.APL'#.FIXCOUNT←0'    ⍝ change through editor
           ed←ride.EditOpen name,'.FixCount'
           res←ed ride.EditFix':Namespace FixCount' '#.FIXCOUNT+←1' ':EndNamespace'
           100 ride.Reply res
@@ -1462,8 +1461,8 @@
           assert'ed.saved≡0'  ⍝ save OK
           ride.CloseWindow ed
           'link issue #139'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
-          {}ride.APL'#.FIXCOUNT←0'
-          '{source:''dir''}'⎕SE.Link.Refresh name
+          {}ride.APL'#.FIXCOUNT←0'   ⍝ force a Refresh
+          {}ride.APL' ''{source:''''dir''''}'' ⎕SE.Link.Refresh ',name
           'link issue #86'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
           {}ride.APL' ⎕SE.Link.Expunge ''',name,'.FixCount'' '
           {}ride.APL' ⎕EX''#.FIXCOUNT'' '
