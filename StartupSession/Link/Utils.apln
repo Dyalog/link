@@ -313,6 +313,7 @@
     _NameClasses,←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
     _NameClasses,←9.1 9.4 9.5     ⍝ ns/class/interface
     NameClasses←{(~⍵)↓_NameClasses}  ⍝ 0=exclude arrays ⋄ 1=include arrays
+    ListNames←{nl←⍵.⎕NL-⍳10 ⋄ (0≤⍵.⎕NC nl)/nl} ⍝ ignore OO attributes (in particular exposed Root properties)
 
       IsScripted←{
           0<≢# CurrentFileName ⍵:1          ⍝ tied namespaces are always scripted !!! tied scripted namespace where file is lost produce a pop up at ⎕SRC time !!!

@@ -817,7 +817,11 @@
       '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
       (⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
       z←'{source:''dir''}'⎕SE.Link.Create # folder
-      'link issue #118'assert'1=≢⎕SE.Link.Links'
+      :If ~0.6∊1||#.⎕NC #.⎕NL-⍳10  ⍝ Options → Configure → Object Syntax → Expose Root Properties
+          Log'"Expose Root Properties" not turned on - cannot QA issue #161'
+      :EndIf
+      'link issue #118 or #161'assert'1=≢⎕SE.Link.Links'
+      'link issue #161'assert'~∨/''not empty''⍷z'
       'link issue #118'assert'~∨/''failed''⍷z'
       'link issue #118'assert'9.4=⎕NC⊂''#.unlikelyname'''
       z←⎕SE.Link.Break #
@@ -1858,7 +1862,7 @@
 
     ∇ names←trad NSTREE ns;mask;pre;ref;refs;subns;tradns
       ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
-      names←pre∘,¨ref.(⎕NL-⍳10)    ⍝ all names
+      names←pre∘,¨⎕SE.Link.U.ListNames ref    ⍝ all names
       :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
           refs←ref⍎¨subns
       :AndIf ∨/mask←{0::1 ⋄ 0⊣⎕SRC ⍵}¨refs  ⍝ trad ns
@@ -1869,8 +1873,8 @@
     ∇
 
     ∇ to NSMOVE from;name;nl
-      :If ~0∊⍴to.⎕NL-⍳10 ⋄ 'Destination must be empty'⎕SIGNAL 11 ⋄ :EndIf
-      :For name :In nl←from.⎕NL-⍳10
+      :If ~0∊⍴⎕SE.Link.U.ListNames to ⋄ 'Destination must be empty'⎕SIGNAL 11 ⋄ :EndIf
+      :For name :In nl←⎕SE.Link.U.ListNames from
           :If (⌊|from.⎕NC⊂name)∊2 9  ⍝ array (or scalar ref)
               name(to{⍺⍺⍎⍺,'←⍵'})from⍎name
           :Else  ⍝ function or operator
