@@ -9,6 +9,7 @@
   - [Link.Create](Link.Create.md) has a `fastLoad` flag to reduce the load time by not inspecting source to detect name clashes
   - `beforeWrite` had been split into two callbacks : `beforeWrite` when actually about to write to file, and `getFilename` when querying the file name to use (see the [Link.Create documentation](Link.Create.md) for more details).
   - `beforeWrite` and `beforeRead` arguments have been refactored into a more consistent set.
+  - Public functions now throw errors rather than return an error message when they fail.
 
  ## Version 2.0.0
   - [Link.Break](Link.Break.md) has an `all` flag to break all links

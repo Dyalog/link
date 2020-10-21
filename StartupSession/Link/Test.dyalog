@@ -163,25 +163,39 @@
 
 
 
-    ∇ r←test_failures(folder name);names;opts;z
+    ∇ r←test_failures(folder name);errf;erru;mod;names;opts;z
       r←0
      
-      'not found'assertMsg'⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,''''
-      'not found'assertMsg'⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here'''
+      assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
+      assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
      
       z←⎕SE.Link.Break'#'
       assert'∨/''No active links''⍷z'
      
       opts←⎕NS''
       opts.source←'ns'
-      'not found'assertMsg'opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,''''
+      assertError('opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
      
       opts←⎕NS''
       opts.source←'dir'
-      'not found'assertMsg'opts ⎕SE.Link.Create''',name,''' ''',folder,'/dir_not_here'''
+      assertError('opts ⎕SE.Link.Create''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
      
       name ⎕NS''
       opts←⎕NS'' ⋄ opts.source←'ns'
+     
+      ⍝ link issue #162 test unknown modifiers and invalid values
+      'link issue #162'assertError('⎕SE.UCMD '']link.create -BADMOD=BADVAL '',name,'' "'',folder,''"'' ')'unknown modifier' 911
+      'link issue #162'assertError'''{BADMOD:1 2 3}''⎕SE.Link.Create name folder' 'Unknown modifier'
+      :For mod :In 'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename'
+          :Select mod
+          :CaseList 'source' 'watch' ⋄ erru←819⌶errf←'Invalid value'
+          :CaseList 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' ⋄ erru←'no value allowed' ⋄ errf←'Invalid value'
+          :CaseList 'beforeWrite' 'beforeRead' 'getFilename' ⋄ erru←errf←'must be the name of an APL function'
+          :EndSelect
+          'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(819⌶mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 911
+          'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
+      :EndFor
+     
       {}opts ⎕SE.Link.Create name folder
       assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
       assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
@@ -875,8 +889,7 @@
      
       ⍝ link issue #117 : leave trailing slash in dir
       ⍝ superseeded by issue #146 when trailing slash was disabled altogether
-      z←⎕SE.Link.Create name(folder,'/')
-      'link issue #146'assert'(∨/''Trailing slash''⍷z)∧(0=≢⎕SE.Link.Links)'
+      'link issue #146'assertError'⎕SE.Link.Create name(folder,''/'')' 'Trailing slash reserved'
       'link issue #146'assert'0=≢⎕SE.Link.Links'
       z←⎕SE.Link.Create name folder
       'link issue #117'assert'1=≢⎕SE.Link.Links'
@@ -1086,27 +1099,22 @@
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
       ⍝ test failing creations
+      assert'0=≢⎕SE.Link.Links'
       3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'dir'
-      z←opts ⎕SE.Link.Create name folder
-      assert'∨/''not found''⍷z'
+      assertError'opts ⎕SE.Link.Create name folder' 'Source directory not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
-      z←opts ⎕SE.Link.Create name folder
-      assert'∨/''not empty''⍷z'
-      assert'0=≢⎕SE.Link.Links'
+      assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
       3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'ns'
-      z←opts ⎕SE.Link.Create name folder
-      assert'∨/''not found''⍷z'
+      assertError'opts ⎕SE.Link.Create name folder' 'Source namespace not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
-      z←opts ⎕SE.Link.Create name folder
-      assert'∨/''not empty''⍷z'
-      assert'0=≢⎕SE.Link.Links'
+      assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
+      assert'0=≢⎕SE.Link.Links'
      
       ⍝ test source=auto
       opts.source←'auto'
       ⍝ both don't exist
-      z←opts ⎕SE.Link.Create name folder
-      assert'⊃''Cannot link''⍷z'
+      assertError 'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existing namespace to a non-existing directory'
       assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
       assert'0=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
@@ -1142,8 +1150,7 @@
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ both are populated
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
-      z←opts ⎕SE.Link.Create name folder
-      assert'∨/''Cannot link''⍷z'
+      assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
       assert'0=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
      
@@ -1287,9 +1294,8 @@
       2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace
       opts.source←'dir' ⋄ opts.watch←'both'  ⍝ try source=dir
       assert'0=≢⎕SE.Link.Links'
-      z←opts ⎕SE.Link.Create name folder
+      'link issue #160' assertError 'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
       assert'0=≢⎕SE.Link.Links'
-      'link issue #160'assert'⊃''Destination namespace not empty''⍷z'
       ⎕EX subname
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'
@@ -1300,9 +1306,8 @@
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       assert'0=≢⎕SE.Link.Links'
-      z←opts ⎕SE.Link.Create name folder
+          assertError 'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
       'link issue #160'assert'0=≢⎕SE.Link.Links'
-      'link issue #160'assert'⊃''Destination directory not empty''⍷z'
       3 ⎕NDELETE folder
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'

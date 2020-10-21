@@ -46,83 +46,81 @@
 
      :If ~U.CanWatch
      :AndIf (⊂opts.watch)∊'both' 'dir'
-         msg←'Watching directories is only supported if .NET is available'
+         U.Error'Watching directories is only supported if .NET is available'
      :ElseIf opts.source≡'dir'
      :AndIf ~hasdir
-         msg←'Source directory not found: ',dir
+         U.Error'Source directory not found: ',dir
      :ElseIf opts.source≡'dir'
      :AndIf ~emptyns
-         msg←'Destination namespace not empty: ',ns
+         U.Error'Destination namespace not empty: ',ns
      :ElseIf opts.source≡'ns'
      :AndIf ~hasns
-         msg←'Source namespace not found: ',ns
+         U.Error'Source namespace not found: ',ns
      :ElseIf opts.source≡'ns'
      :AndIf ~emptydir
-         msg←'Destination directory not empty: ',dir
+         U.Error'Destination directory not empty: ',dir
      :ElseIf opts.source≡'auto'
      :AndIf emptydir⍱emptyns
-         msg←'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
+         U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
      :ElseIf opts.source≡'auto'
      :AndIf hasdir⍱hasns  ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
-         msg←'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
+         U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
      :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
-         msg←'Not a namespace: ',ns
+         U.Error'Not a namespace: ',ns
      :ElseIf U.IsScripted nsref
-         msg←'Cannot link to scripted namespaces: ',ns
+         U.Error'Cannot link to scripted namespaces: ',ns
      :ElseIf ×≢⎕SE.Link.Links
      :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
          link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
-         msg←'Already linked: ',U.Arrow link
+         U.Error'Already linked: ',U.Arrow link
      :ElseIf ~hasdir
      :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
-         msg←'Directory not found: ',dir
+         U.Error'Directory not found: ',dir
      :ElseIf U.Slash⊃⌽dir
-         msg←'Trailing slash reserved for future extension'
-     :Else
-         :If opts.source≡'auto'  ⍝ detect actual source
-             :If hasns<hasdir
-             :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
-                 opts.source←'dir'                    ⍝ will also happen if neither exist
-             :Else   ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
-                 opts.source←'ns'
-             :EndIf
+         U.Error'Trailing slash reserved for future extension'
+     :EndIf
+     :If opts.source≡'auto'  ⍝ detect actual source
+         :If hasns<hasdir
+         :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
+             opts.source←'dir'                    ⍝ will also happen if neither exist
+         :Else   ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
+             opts.source←'ns'
          :EndIf
-         :If opts.(flatten∧source≢'dir')
-             msg←'flatten≡1 requires source≡''dir'''
-             :Return
-         :EndIf
+     :EndIf
+     :If opts.(flatten∧source≢'dir')
+         U.Error'flatten≡1 requires source≡''dir'''
+     :EndIf
 
          ⍝ We're all good; do it!
-         opts.ns←ns←U.NormNs ns
-         opts.dir←dir←0 U.NormDir dir
+     opts.ns←ns←U.NormNs ns
+     opts.dir←dir←0 U.NormDir dir
 
-         inFail←outFail←0⍴⊂'' ⋄ fsw←⍬
-         ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
-         msg←0⍴⊂''
-         :If 'ns'≡opts.source
-             outFail←opts U.WriteFiles ns dir
-         :AndIf 0≠≢outFail
-             msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
-         :EndIf
-
-         :If 'dir'≡opts.source
-             inFail←opts U.FixFiles nsref dir
-         :AndIf 0≠≢inFail
-             msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
-         :EndIf
-
-         'opts'⎕NS'inFail' 'outFail'
-         :If 'dir' 'both'∊⍨⊂opts.watch
-             opts.fsw←FileSystemWatcher.Watch dir(,'*')
-         :Else
-             opts.fsw←⍬
-         :EndIf
-
-         arrow←U.Arrow opts
-         opts.⎕DF 1⌽'][',arrow
-         ⎕SE.Link.Links,←opts
-         msg←⊃{⍺,'; ',⍵}/msg,⍨⊂'Linked: ',arrow
+     inFail←outFail←0⍴⊂'' ⋄ fsw←⍬
+     ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
+     msg←0⍴⊂''
+     :If 'ns'≡opts.source
+         outFail←opts U.WriteFiles ns dir
+     :AndIf 0≠≢outFail
+         msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
      :EndIf
+
+     :If 'dir'≡opts.source
+         inFail←opts U.FixFiles nsref dir
+     :AndIf 0≠≢inFail
+         msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
+     :EndIf
+
+     'opts'⎕NS'inFail' 'outFail'
+     :If 'dir' 'both'∊⍨⊂opts.watch
+         opts.fsw←FileSystemWatcher.Watch dir(,'*')
+     :Else
+         opts.fsw←⍬
+     :EndIf
+
+     arrow←U.Arrow opts
+     opts.⎕DF 1⌽'][',arrow
+     ⎕SE.Link.Links,←opts
+     msg←⊃{⍺,'; ',⍵}/msg,⍨⊂'Linked: ',arrow
  :Else
      U.Resignal 1
  :EndTrap

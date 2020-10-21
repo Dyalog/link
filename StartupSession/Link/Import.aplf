@@ -11,11 +11,11 @@
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
      :If 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
-         msg←'Unable to import to namespace: ',ns
+         U.Error'Unable to import to namespace: ',ns
      :ElseIf ~⎕NEXISTS dir
-         msg←'Source directory not found: ',dir
+         U.Error'Source directory not found: ',dir
      :ElseIf 1≠1 ⎕NINFO dir
-         msg←'Not a directory: ',dir
+         U.Error'Not a directory: ',dir
      :Else
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir

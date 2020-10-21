@@ -90,7 +90,7 @@ NOHOLD:
          :If fix
              :If 'both'≡link.watch ⋄ src←file ⋄ :EndIf   ⍝ tie to file with 2 ⎕FIX - see U.QFix
              :If ¯1 0∊⍨2⊃ns U.Fix name src
-                 ##.U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
+                 U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
              :EndIf
          :EndIf
 
