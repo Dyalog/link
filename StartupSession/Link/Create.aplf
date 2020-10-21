@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir);emptydir;emptyns;hasdir;hasns;rsi;xsi
+ msg←{opts}Create(ns dir);emptydir;emptyns;files;hasdir;hasns;mask;names;parents;rsi;scriptitems;xsi
  ;links;fsw;ix;outFail;inFail;nsref;nsrefs;link;arrow;⎕IO
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -20,7 +20,27 @@
      :Trap 22 ⋄ hasdir←1 ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
      :Else ⋄ hasdir←0 ⋄ emptydir←1
      :EndTrap
-     :If hasns←¯9.1=U.NameClass ns ⋄ emptyns←0∊⍴(⍎ns).⎕NL-⍳10
+     
+     :If hasns←¯9.1=U.NameClass ns
+         :If ~emptyns←0∊⍴(nsref←⍎ns).⎕NL-⍳10  ⍝ some APL names defined
+         :Andif ~emptydir  ⍝ some dir/files defined
+         :AndIf (⊂opts.source)∊'auto' 'dir'   ⍝ will not erase dir
+             ⍝ link issue #160: allow some APL names to be tied to source files when source is dir - typically happens when starting dyalog with load=boot.aplf - won't work with arrays
+             (names parents scriptitems)←U.GetFileTiesIn nsref
+             (names parents)/⍨←⊂~scriptitems  ⍝ not interested in script items
+             :If ~0∊⍴names  ⍝ some names are tied
+                 files←parents U.CurrentFileName¨names
+             :AndIf ∧/dir∘≡¨(≢dir)↑¨files  ⍝ all tied to a file in linked directory
+             :AndIf ~∨/U.FileHasChanged¨↓⍉↑parents names files((⍴names)⍴⊂'')  ⍝ APL definition is still valid - no code can be lost
+                 parents{⍺.⎕EX ⍵}¨names  ⍝ expunge APL names
+                 parents~←nsref  ⍝ do not expunge root namespace
+                 :While ~0∊⍴parents
+                 :AndIf ∨/mask←0=⊃∘⍴¨parents.⎕NL⊂-⍳10  ⍝ recursively expunge parents with no more children
+                     ⎕EX⍕¨mask/parents ⋄ parents←(~mask)/parents
+                 :EndWhile
+                 emptyns←0∊⍴nsref.⎕NL-⍳10  ⍝ see if anyone survived
+             :EndIf
+         :EndIf
      :Else ⋄ emptyns←1
      :EndIf
 
@@ -63,7 +83,7 @@
              :If hasns<hasdir
              :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
                  opts.source←'dir'                    ⍝ will also happen if neither exist
-             :Else  ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
+             :Else   ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
                  opts.source←'ns'
              :EndIf
          :EndIf
@@ -71,6 +91,7 @@
              msg←'flatten≡1 requires source≡''dir'''
              :Return
          :EndIf
+
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir

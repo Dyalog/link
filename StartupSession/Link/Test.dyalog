@@ -1261,6 +1261,53 @@
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
+      ⍝ link issue #160 try having items in the namespace already tied to items in the folder
+      ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 ⎕MKDIR subfolder
+      {}(⊂varsrc)QNPUT(folder,'/var.apla')1
+      {}(⊂foosrc)QNPUT(folder,'/foo.aplf')1
+      {}(⊂nssrc)QNPUT(folder,'/ns.apln')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
+      2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
+      opts.source←'auto' ⋄ opts.watch←'both'  ⍝ try source=auto
+      assert'0=≢⎕SE.Link.Links'
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #160'assert'1=≢⎕SE.Link.Links'
+      'link issue #160'assert'(,⊂''dir'')≡⎕SE.Link.Links.source'
+      1 assert_create 1
+      'link issue #160'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
+      z←⎕SE.Link.Break name
+      ⎕EX name ⋄ subname ⎕NS''
+      2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace
+      opts.source←'dir' ⋄ opts.watch←'both'  ⍝ try source=dir
+      assert'0=≢⎕SE.Link.Links'
+      z←opts ⎕SE.Link.Create name folder
+      assert'0=≢⎕SE.Link.Links'
+      'link issue #160'assert'⊃''Destination namespace not empty''⍷z'
+      ⎕EX subname
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #160'assert'1=≢⎕SE.Link.Links'
+      1 assert_create 1
+      'link issue #160'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
+      z←⎕SE.Link.Break name
+      opts.source←'ns' ⋄ opts.watch←'both'  ⍝ try source=ns
+      2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
+      2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
+      assert'0=≢⎕SE.Link.Links'
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #160'assert'0=≢⎕SE.Link.Links'
+      'link issue #160'assert'⊃''Destination directory not empty''⍷z'
+      3 ⎕NDELETE folder
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #160'assert'1=≢⎕SE.Link.Links'
+      {}⎕SE.Link.Add name subname,¨⊂'.var'
+      1 assert_create 1
+      assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
+      z←⎕SE.Link.Break name
+      assert'0=≢⎕SE.Link.Links'
+      ⎕EX name ⋄ 3 ⎕NDELETE folder
      
       CleanUp folder name
     ∇
@@ -1911,7 +1958,8 @@
     ⍝ times with (ndirs nfiles nlines maxdepth)←10 10 0 3 → (dirs files)≡1110 11100
     ⍝ v2.0:        fastLoad=1:1500 ⋄ fastLoad=0:N/A
     ⍝ v2.1-alpha1: fastLoad=1:1800 ⋄ fastLoad=0:3500
-    ⍝ v2.1.0:      fastLoad=1:650  ⋄ fastLoad=0:1250
+    ⍝ v2.1-alpha2: fastLoad=1:650  ⋄ fastLoad=0:1250
+    ⍝ v2.1-alpha3: fastLoad=1:850  ⋄ fastLoad=0:1600
       :If 900⌶⍬ ⋄ opts←⍬ ⋄ :EndIf
       (fastload profile clear)←opts,(≢opts)↓1 0 0
       name←'#.largelink'

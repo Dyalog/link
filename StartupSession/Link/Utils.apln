@@ -131,17 +131,18 @@
       :EndIf
     ∇
 
-    ∇ changed←FileHasChanged(ns name file src);file2;hash;line;lines;name2;nameref;nc;parent;ts
+    ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts
+      compsrc←0 ⋄ changed←0
       (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
       :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
-      :ElseIf 0∊⍴name2 ⋄ changed←0 ⍝ not tied at all - need to compare sources directly
+      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly (arrays only)
       :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
-      :ElseIf hash≢2 ⎕NQ'.' 'GetBuildID'file ⋄ changed←1 ⍝ not the same hash
-      :Else ⋄ changed←0  ⍝ unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes
+      :ElseIf hash≢2 ⎕NQ'.' 'GetBuildID'file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
       :EndIf
-      :If changed ⋄ :Return ⋄ :EndIf ⍝ otherwise needs a closer look
-      :If 0∊⍴src ⋄ src←GetFileSource file ⋄ :EndIf
-      changed←src≢ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+      :If compsrc ⋄ ⍝ need a closer look
+          :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
+          changed←filesrc≢ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+      :EndIf
     ∇
 
     ∇ r←ViewMetaData mode
