@@ -181,7 +181,7 @@
           pl←ParenLev w
           ∨/0>pl:'Unmatched brackets'⎕SIGNAL 2
           ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
-          ⍎⍣⍺⊢pl Parse w
+          (⊃⎕RSI)⍎⍣⍺⊢pl Parse w    ⍝ materialise namespace as child of calling namespace
       }
 
 
