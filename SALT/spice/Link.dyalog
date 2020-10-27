@@ -114,9 +114,9 @@
       ARGS←args.Arguments
       CMD←cmd
      ⍝ Simulate calling directly from the original ns
-      :With ##.THIS  ⍝ We know THIS has been set for us
-          ⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS) ⍝ dot our way home
-      :EndWith
+      ⍝ :With ##.THIS  ⍝ We know THIS has been set for us - Link issue #163 : :With is bad because it makes locals visible
+      {}##.THIS.{⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS)}⍬ ⍝ dot our way home
+      ⍝ :EndWith
       r←RSLT ⍝ fetch result from global
     ∇
 
