@@ -2,6 +2,6 @@
 ⍝ Action to be taken upon )LOAD or )CLEAR
  :If U.HasLinks
  :AndIf 0∊keep←⎕SE=U.RootOf⍎¨⎕SE.Link.Links.ns
-     FileSystemWatcher.Break (~keep)/⎕SE.Link.Links
+     FileSystemWatcher.Break(~keep)/⎕SE.Link.Links
      ⎕SE.Link.Links/⍨←keep
  :EndIf

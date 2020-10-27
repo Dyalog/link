@@ -1,4 +1,10 @@
- OnFix←{ ⍝ Thin cover in preparation for Link 3.0
-     3=⎕NC'⎕SE.Link.Sync':⍵[4 6 5]⎕SE.Link.Sync ⍬
-     1
- }
+ {res}←OnFix(obj evt src ns oldname name file)
+ ⍝ Thin cover for editor onFix event
+
+ ⍝ link issue #152: keep track of last fix to recover source as typed
+ :If (name≢oldname)∧(0≠≢name)  ⍝ rename : get old source as typed before it disappears
+     src←ns U.GetAplSource oldname  ⍝ when name is empty, it means that we create a new object that doesn't yet have a source
+ :EndIf
+ ⎕SE.Link.U.LASTFIX←src(⍕ns)oldname  ⍝ format nsref to avoid cross-references between # and ⎕SE
+
+ res←1

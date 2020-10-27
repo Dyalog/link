@@ -1383,7 +1383,7 @@
       foo2←' res←foo arg' '⍝ this is foo[2]' ' res←arg' ' res←''foo2''res'
       foobad←' res←foo arg;' '⍝ this is foobad[1]' ' res←arg' ' res←''foobad''res'
       goo←' res←goo arg' '⍝ this is goo[1]' ' res←arg' ' res←''goo''res'
-      class←':Class class' '    :Field Public Shared var← 4 5 6' '    ∇ res←dup arg' '      :Access Public Shared' '      res←arg arg' '    ∇' ':EndClass'
+      class←':Class class' '    :Field Public Shared    var   ←    4 5 6' '    ∇ res   ←   dup    arg' '      :Access Public Shared' '      res←arg arg' '    ∇' ':EndClass'
       classbad←(¯1↓class),⊂':EndNamespace'
       class2←(1↑class),(⊂':Field Public Shared class2←1'),(1↓class)
       ns←':Namespace ns' '    var← 4 5 6' '    ∇ res←dup arg' '      res←arg arg' '    ∇' ':EndNamespace'
@@ -1580,22 +1580,20 @@
           'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
       :EndIf
      
-      ⍝ https://github.com/Dyalog/link/issues/152
-      :If 0   ⍝ attempt to change the name and script type of a class in editor - requires fix to Mantis 18460 and 18410
-          ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
-          assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
-          assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
-          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
-          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
-          ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
-          assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
-          assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
-          ⎕NDELETE folder,'/sub/ns.apln'
-          assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
-          ride.Edit(name,'.sub.class')(class) ⍝ put back original class
-          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
-          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
-      :EndIf
+      ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
+      ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
+      assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
+      assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
+      assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
+      assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
+      ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
+      assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
+      assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
+      ⎕NDELETE folder,'/sub/ns.apln'
+      assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
+      ride.Edit(name,'.sub.class')(class) ⍝ put back original class
+      assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
+      assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
      
       output←ride.APL'⎕SE.Link.Break ',(Stringify name)
       assert'(∨/''Unlinked''⍷output)'

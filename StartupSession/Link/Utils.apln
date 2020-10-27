@@ -23,7 +23,7 @@
       :Else ⋄ d←##.DEBUG
       :EndIf
     ∇
-
+    LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
 
 
@@ -401,7 +401,7 @@
       :EndWhile
     ∇
 
-    ∇ emptyns←emptyns EmptyNamespace (nsref dir);files;mask;names;parents;scriptitems
+    ∇ emptyns←emptyns EmptyNamespace(nsref dir);files;mask;names;parents;scriptitems
     ⍝ is namespace really empty, ignoring APL items that match files in dir
     ⍝ TODO: should provide a way to undo the ⎕EX's if the subsequent link.create fails
     ⍝ TODO: should really compare all items found in the namespace with the ones in the dir

@@ -41,8 +41,9 @@ NOHOLD:
          watch←'both' 'dir'∊⍨⊂link.watch  ⍝ watching files
 
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
-             (ns U.GetAplSource oldname)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
+             :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
+             (⊃U.LASTFIX)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
              :If ~watch  ⍝ FileSystemWatcher should do this for us
                  2 ns.⎕FIX'file://',oldfile
              :EndIf
