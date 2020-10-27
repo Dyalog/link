@@ -13,6 +13,9 @@
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+         :If ~opts.all∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.all),' for modifier "all" - must be one of: 0 1'
+         :ElseIf ~(⊂opts.recursive)∊'on' 'off' 'error' ⋄ U.Error'Invalid value ',(⍕opts.recursive),' for modifier "recursive" - must be one of: on off error'
+         :EndIf
 
          tobreak←unlinked←missing←0⍴# ⋄ n←0
 

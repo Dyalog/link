@@ -1,21 +1,26 @@
- msg←{opts}Import(ns dir)
+ msg←{opts}Import(ns dir);defopts
  ;opts;nsref;inFail;numFail
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
 
-     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     (defopts←⎕NS ⍬).(overwrite)←0
+     opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
 
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     :If 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
-         U.Error'Unable to import to namespace: ',ns
-     :ElseIf ~⎕NEXISTS dir
+     :If ~⎕NEXISTS dir
          U.Error'Source directory not found: ',dir
      :ElseIf 1≠1 ⎕NINFO dir
          U.Error'Not a directory: ',dir
+     :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
+         U.Error'Unable to import to namespace: ',ns
+     :ElseIf ~opts.overwrite
+     :AndIf ~0∊⍴U.ListNames nsref  ⍝ some APL names defined
+         U.Error'Destination namespace not empty: ',ns,' - use overwrite modifier to force the import'
      :Else
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir

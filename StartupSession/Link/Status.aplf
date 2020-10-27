@@ -30,6 +30,8 @@
 
      (defopts←⎕NS ⍬).(extended)←0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+     :If ~opts.extended∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.extended),' for modifier "extended" - must be one of: 0 1' ⋄ :EndIf
+
      props←('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
      :If (opts.extended)
          :If ×≢links

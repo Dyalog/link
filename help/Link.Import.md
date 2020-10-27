@@ -7,4 +7,8 @@ This function takes the same arguments as [Create](Link.Create.md), but loads a 
 - namespace
 - directory
 
+#### Options
+
+- `overwrite`: Allow importing into a non-empty namespace, possibly overwriting APL names
+
 #### Result

@@ -8,4 +8,8 @@ creating a Link.
 - namespace
 - directory
 
+#### Options
+
+- `overwrite`: Allow exporting into a non-empty directory, possibly overwriting files
+
 #### Result

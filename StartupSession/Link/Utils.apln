@@ -401,6 +401,29 @@
       :EndWhile
     ∇
 
+    ∇ emptyns←emptyns EmptyNamespace (nsref dir);files;mask;names;parents;scriptitems
+    ⍝ is namespace really empty, ignoring APL items that match files in dir
+    ⍝ TODO: should provide a way to undo the ⎕EX's if the subsequent link.create fails
+    ⍝ TODO: should really compare all items found in the namespace with the ones in the dir
+    ⍝ TODO: should also return whether dir is empty or not
+    ⍝ for now it only looks for APL items tied (2∘⎕FIX'file://...') to files in dir
+    ⍝ to solve link issue #160 when Dyalog is started with load=dir/boot.aplf which starts by linking # to dir
+      (names parents scriptitems)←GetFileTiesIn nsref
+      (names parents)/⍨←⊂~scriptitems  ⍝ not interested in script items
+      :If ~0∊⍴names  ⍝ some names are tied
+          files←parents CurrentFileName¨names
+      :AndIf ∧/dir∘≡¨(≢dir)↑¨files  ⍝ all tied to a file in linked directory
+      :AndIf ~∨/FileHasChanged¨↓⍉↑parents names files((⍴names)⍴⊂'')  ⍝ APL definition is still valid - no code can be lost
+          parents{⍺.⎕EX ⍵}¨names  ⍝ expunge APL names
+          parents~←nsref  ⍝ do not expunge root namespace
+          :While ~0∊⍴parents
+          :AndIf ∨/mask←0=⊃∘⍴¨ListNames¨parents  ⍝ recursively expunge parents with no more children
+              ⎕EX⍕¨mask/parents ⋄ parents←(~mask)/parents
+          :EndWhile
+          emptyns←0∊⍴ListNames nsref  ⍝ see if anyone survived
+      :EndIf
+    ∇
+
     :EndSection
 
 
@@ -457,18 +480,18 @@
           Error('Unknown modifiers: ',⍕mask/nl)
       :EndIf
       Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
-      Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier ',⍺,' - must be one of ',⍕⍵}opts
+      Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
       'watch'Default(1+CanWatch)⊃'ns' 'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
       'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Default 0 ⋄ 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Check¨⊂0 1
-      Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier ',⍵,' must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
+      Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
-      Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier ',⍵,' must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
+      Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
       'customExtensions'Default''
       'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
       opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
       Check¨'customExtensions' 'codeExtensions'
-      Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier ',⍵,' must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
+      Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier "',⍵,'" must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
           (2≠≢⍴v)∨(2≠⊃⌽⍴v):⍺⍺ error ⋄ (⍬≢0⍴v[;1])∨(∨/{''≢0⍴⍵}¨v[;2]):⍺⍺ error ⋄ 1:_←1}opts
       'typeExtensions'Default 0 2⍴0 ''
       opts.typeExtensions{_←⍺⍪⍵ ⋄ _[∪⍳⍨⊣/_;]}←↑(2 'apla')(3 'aplf')(4 'aplo')(9.1 'apln')(9.4 'aplc')(9.5 'apli')

@@ -1,14 +1,22 @@
- msg←{opts}Export(ns dir)
+ msg←{opts}Export(ns dir);defopts
  ;outFail;numFail;nc
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+
+     (defopts←⎕NS ⍬).(overwrite)←0
+     opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
+
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
      :If ¯9.1≠nc←U.NameClass ns
          U.Error'Source namespace not found: ',ns,' has name class ',(⍕nc)
+     :ElseIf ~opts.overwrite
+     :AndIf ⎕NEXISTS dir
+     :AndIf ~0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
+         U.Error'Destination directory not empty: ',dir,,' - use overwrite modifier to force the export'
      :Else
          opts.watch←'none'   ⍝ prevent tying to the files
          opts.source←'ns'
