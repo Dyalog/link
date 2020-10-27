@@ -98,7 +98,7 @@
     ∇ r←Run(cmd args);opts;name;lc;names;L;isvar
       L←819⌶
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
-      :if (cmd≡'Create')∧(1=≢args.Arguments)
+      :If (cmd≡'Create')∧(1=≢args.Arguments)
         args.Arguments,⍨←⊂'⎕THIS'  ⍝ in the UCMD, namespace defaults to caller's ⎕THIS
       :EndIf
       :Select |1 2⊃⎕SE.Link.⎕AT cmd
@@ -125,9 +125,9 @@
      ⍝ Clean locals otherwise CMD will see them because of the :With
       ⎕EX 'L' 'cmd' 'lc' 'name' 'names' 'isvar' 'opts' 'cmd' 'args'
      ⍝ Simulate calling directly from the original ns
-      :With ##.THIS  ⍝ We know THIS has been set for us
-          ⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS) ⍝ dot our way home
-      :EndWith
+      ⍝ :With ##.THIS  ⍝ We know THIS has been set for us - Link issue #163 : :With is bad because it makes locals visible
+      {}##.THIS.{⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS)}⍬ ⍝ dot our way home
+      ⍝ :EndWith
       r←RSLT ⍝ fetch result from global
     ∇
 

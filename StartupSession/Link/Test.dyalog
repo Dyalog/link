@@ -829,7 +829,7 @@
       ⍝ link issue #118 : create link in #
       root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
       '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
-      (⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
+      {}(⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
       z←'{source:''dir''}'⎕SE.Link.Create # folder
       :If ~0.6∊1||#.⎕NC #.⎕NL-⍳10  ⍝ Options → Configure → Object Syntax → Expose Root Properties
           Log'"Expose Root Properties" not turned on - cannot QA issue #161'
@@ -1082,7 +1082,7 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ r←test_create(folder name);foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;subfolder;subname;var;varsrc;z
+    ∇ r←test_create(folder name);foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;root;subfolder;subname;var;varsrc;z
       r←0 ⋄ opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1111,10 +1111,23 @@
       ⎕EX name ⋄ 3 ⎕NDELETE folder
       assert'0=≢⎕SE.Link.Links'
      
+      ⍝ link issue #163
+      2 ⎕MKDIR folder
+      root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
+      (⊂' uc←{' ' ⍝ uppercase conversion' '     1 ⎕C ⍵' ' }')⎕NPUT folder,'/uc.aplf'
+      (⊂' lc←{' ' ⍝ lowercase conversion' '     ¯1 ⎕C ⍵' ' }')⎕NPUT folder,'/lc.aplf'
+      z←#.{⎕SE.UCMD ⍵}']Link.Create # ',folder  ⍝ Run UCMD from #
+      'link issue #163'assert'1=≢⎕SE.Link.Links'
+      'link issue #163'assert'3.2 3.2≡#.⎕NC''uc'' ''lc'''
+      {}⎕SE.Link.Break #
+      #.⎕EX #.⎕NL-⍳10
+      # NSMOVE root ⋄ ⎕EX'root'  ⍝ restore #
+      3 ⎕NDELETE folder
+     
       ⍝ test source=auto
       opts.source←'auto'
       ⍝ both don't exist
-      assertError 'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existing namespace to a non-existing directory'
+      assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existing namespace to a non-existing directory'
       assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
       assert'0=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
@@ -1154,12 +1167,14 @@
       assert'0=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
      
-      ⍝ test source=dir watch=dir
-      opts.source←'dir' ⋄ opts.watch←'dir'
       2 ⎕MKDIR subfolder
       (⊂foosrc←' r←foo x' ' ⍝ comment' ' r←''foo''x')∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
+      (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
+     
+      ⍝ test source=dir watch=dir
+      opts.source←'dir' ⋄ opts.watch←'dir'
       z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
@@ -1294,7 +1309,7 @@
       2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace
       opts.source←'dir' ⋄ opts.watch←'both'  ⍝ try source=dir
       assert'0=≢⎕SE.Link.Links'
-      'link issue #160' assertError 'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
+      'link issue #160'assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
       assert'0=≢⎕SE.Link.Links'
       ⎕EX subname
       z←opts ⎕SE.Link.Create name folder
@@ -1306,7 +1321,7 @@
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       assert'0=≢⎕SE.Link.Links'
-          assertError 'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
+      assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
       'link issue #160'assert'0=≢⎕SE.Link.Links'
       3 ⎕NDELETE folder
       z←opts ⎕SE.Link.Create name folder
