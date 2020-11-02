@@ -1,4 +1,4 @@
-﻿:Namespace Link ⍝ V 2.10
+﻿:Namespace Link ⍝ V 2.11
 ⍝ 2018 12 17 Adam: Rewrite to thin covers
 ⍝ 2018 02 01 Adam: Help text
 ⍝ 2018 02 14 Adam: List -e
@@ -9,6 +9,8 @@
 ⍝ 2020 05 14 Nic: updated to link v2.1 API
 ⍝ 2020 06 08 Adam: Remove Version ucmd (use ⎕SE.Link.Version)
 ⍝ 2020 10 07 Adam: Fix Help parsing ranged arg count as -mod
+⍝ 2020 10 27 Nic: Run: Fix :With making locals visible to ⎕SE.Link.*
+⍝ 2020 11 02 Nic: Run: Cleaned calls to ⎕SE.Link.*
 
     ⎕IO←1 ⋄ ⎕ML←1
 
@@ -118,17 +120,7 @@
               :EndIf
           :EndFor
       :EndSelect
-     ⍝ Set up GLOBALS in this ucmd ns:
-      OPTS←opts
-      ARGS←args.Arguments
-      CMD←cmd
-     ⍝ Clean locals otherwise CMD will see them because of the :With
-      ⎕EX 'L' 'cmd' 'lc' 'name' 'names' 'isvar' 'opts' 'cmd' 'args'
-     ⍝ Simulate calling directly from the original ns
-      ⍝ :With ##.THIS  ⍝ We know THIS has been set for us - Link issue #163 : :With is bad because it makes locals visible
-      {}##.THIS.{⎕SE.SALTUtils.c.Link.(RSLT←OPTS(⎕SE.Link⍎CMD)ARGS)}⍬ ⍝ dot our way home
-      ⍝ :EndWith
-      r←RSLT ⍝ fetch result from global
+      r←opts(cmd ##.THIS.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
     ∇
 
 :EndNamespace
