@@ -71,7 +71,7 @@
       UnSetup
      
       dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
-      core←(1+##.U.DotNetCore)⊃'Framework' 'Core'
+      core←(1+##.U.DOTNETCORE)⊃'Framework' 'Core'
       aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
       opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
       Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
@@ -814,7 +814,7 @@
 
 
 
-    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z
+    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z;engine;server
     ⍝ Github issues
       r←0
       name ⎕NS''
@@ -1041,13 +1041,16 @@
       ⎕EX'#.UnlikelyName'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
-      :If 0 ⍝ link issue #155 - :Require doesn't work
+      :If ##.U.IS190 ⍝ link issue #155 - :Require doesn't work
           ⎕EX name
-          {}(⊂':Require file://Engine.apln' ':Namespace Server' 'dup←##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
-          {}(⊂':Namespace Engine' 'dup←{⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
+          {}(⊂server←':Require file://Engine.apln' ':Namespace  Server' ' dup ← ##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
+          {}(⊂engine←':Namespace  Engine' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
           z←⎕SE.Link.Create name folder
           'link issue #155'assert'1=≢⎕SE.Link.Links'
           'link issue #155'assert'~∨/''failed''⍷z'
+          'link issue #155'assert' ''Engine''  ''Server'' ''UnlikelyName'' ≡ (⍎name).⎕NL -⍳10'
+          'link issue #155'assert'(1↓server)≡⎕SRC ',name,'.Server'    ⍝ :Require statement missing from ⎕SRC but shown in editor
+          'link issue #155'assert'(engine)≡⎕SRC ',name,'.Engine'
           {}⎕SE.Link.Break name
       :EndIf
      
@@ -1082,7 +1085,7 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ r←test_create(folder name);foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;root;subfolder;subname;var;varsrc;z
+    ∇ r←test_create(folder name);badsrc1;badsrc2;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;root;subfolder;subname;var;varsrc;z
       r←0 ⋄ opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1172,6 +1175,16 @@
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
       (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
+      (⊂badsrc1←,¨':Namespace badns1' '  ∇  res  ←  foo  arg  ;  ' '  res  ←  arg  ' '∇' ':EndNamespace')⎕NPUT folder,'/badns1.apln'
+      (⊂badsrc2←,¨':Namespace badns2' '  ∇  res  ←  foo  arg  ' '  res  ←  arg  ' '∇' ':EndClass')⎕NPUT folder,'/badns2.apln'
+     
+      :If ##.U.IS190 ⍝ link issue #144
+          opts.source←'dir' ⋄ opts.watch←'dir'
+          z←opts ⎕SE.Link.Create name folder
+          'link issue #144'assert'badsrc1≡⎕SRC ',name,'.badns1'
+          'link issue #144'assert'badsrc2≡⎕SRC ',name,'.badns2'
+          {}⎕SE.Link.Break name ⋄ ⎕EX name
+      :EndIf
      
       ⍝ test source=dir watch=dir
       opts.source←'dir' ⋄ opts.watch←'dir'
@@ -1580,20 +1593,23 @@
           'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
       :EndIf
      
-      ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
-      ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
-      assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
-      assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
-      assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
-      assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
-      ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
-      assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
-      assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
-      ⎕NDELETE folder,'/sub/ns.apln'
-      assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
-      ride.Edit(name,'.sub.class')(class) ⍝ put back original class
-      assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
-      assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
+      :If ##.U.IS190
+          Log'Not testing issue #152 until http://mantis.dyalog.com/view.php?id=18604 is fixed'
+      :Else    ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
+          ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
+          assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
+          assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
+          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
+          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
+          ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
+          assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
+          assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
+          ⎕NDELETE folder,'/sub/ns.apln'
+          assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
+          ride.Edit(name,'.sub.class')(class) ⍝ put back original class
+          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
+          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
+      :EndIf
      
       output←ride.APL'⎕SE.Link.Break ',(Stringify name)
       assert'(∨/''Unlinked''⍷output)'
@@ -1651,21 +1667,24 @@
       ⍝⎕PW⌈←300
       ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
      
-      :If ~##.U.CanWatch
+      :If ~##.U.CANWATCH
           Log'Unable to run Link.Test - .Net is required to test the FileSystemWatcher'
-          →0
+          :Return
+      :ElseIf ~##.U.IS190
+          Log'Not running Dyalog v19.0 or later - some tests will be skipped'
       :EndIf
      
       :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
-      {}⎕SE.UCMD'udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
-      ⍝⎕SE.Link.DEBUG←1 ⍝ 1 = Trace, 2 = Stop on entry
+      {}⎕SE.UCMD']udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
+     
+      ⍝ TODO : should turn ⎕SE.Link.U.Warn off if ⎕SE.Link.DEBUG≥0
      
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
           ⎕←⎕SE.UCMD']Link.Status'
           ⎕←'      ]Link.Break -all    ⍝ to break all links'
-          →0
+          :Return
       :EndIf
      
       :If 0≠⎕NC name
@@ -1674,7 +1693,7 @@
           ⎕EX name
           ⍝:Else
           ⍝    ⎕→name,' must be non-existent.'
-          ⍝    →0
+          ⍝    :Return
           ⍝:EndIf
       :EndIf
       :If ~0∊⍴folder  ⍝ specific folder
@@ -1685,7 +1704,7 @@
                   3 ⎕NDELETE Retry⊢folder
               :Else
                   Log'Directory must be non-existent.'
-                  →0
+                  :Return
               :EndIf
           :EndIf
       :Else  ⍝ generate a new directory - avoids prompting for deletion

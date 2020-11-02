@@ -27,7 +27,7 @@ NOHOLD:
          :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
          :If ~linked←~0∊⍴link←U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
 
-         (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src  ⍝ fix in target ns
+         (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src    ⍝ must fix in dummy namespace to determine nameclass
 
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
          :ElseIf (0=nc)∧(~0∊⍴src) ⋄ U.Error'Invalid source for ',nsname,'.',name,': ',⍕src
@@ -44,9 +44,11 @@ NOHOLD:
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
              (⊃U.LASTFIX)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
-             :If ~watch  ⍝ FileSystemWatcher should do this for us
-                 2 ns.⎕FIX'file://',oldfile
+             :If ~watch  ⍝ FileSystemWatcher should fix the change for us
+             :AndIf 0 ¯1∊⍨ns U.Fix oldname oldfile  ⍝ fix must succeed !
+                 U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
+             U.LASTFIX←⍬  ⍝ last fix event consumed
              delete←0  ⍝ old file must be preserved
          :Else
              delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions

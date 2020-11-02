@@ -108,7 +108,7 @@
     ∇ watcher←MakeWatcher args;⎕USING
      ⍝ Return a FileSystemWatcher object
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
-      ⎕USING←',System',(~##.U.DotNetCore)/'.dll'
+      ⎕USING←',System',(~##.U.DOTNETCORE)/'.dll'
       watcher←⎕NEW System.IO.FileSystemWatcher
       watcher.(Path Filter)←args
       :If 1

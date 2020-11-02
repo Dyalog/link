@@ -2,10 +2,11 @@
     ⎕IO←⎕ML←1
 
     :Section Constants
-    isWindows←'Win'≡3↑⊃# ⎕WG'APLVersion'
+    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
+        IS190←{19≤⊃⊃(//)⎕VFI(¯1+⍵⍳'.')↑⍵}2⊃# ⎕WG'APLVersion'
     ∇ (canwatch dotnetcore)←_CanWatch;⎕USING
     ⍝ Assumptions :
-    ⍝ Dyalog only allows .Net Framework v4 (v1 v2 and v3 are not supported anymore)
+    ⍝ Dyalog only allows .Net Framework v4 (v1 v2 and v3.x are not supported anymore)
     ⍝ Therefore v3 and v5 must mean .Net Core
       :Trap 0 ⍝ ⎕USING← has been known to fail
           ⎕USING←''        ⍝ Ensure that System is present if at all possible
@@ -16,7 +17,7 @@
           canwatch←dotnetcore←0
       :EndTrap
     ∇
-    (CanWatch DotNetCore)←_CanWatch ⍝ cache result
+    (CANWATCH DOTNETCORE)←_CanWatch ⍝ cache result
     ⍝ constants with defaults
     ∇ d←debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -65,7 +66,7 @@
     PadThis←{⍵,'⎕THIS'/⍨0=≢⍵}               ⍝ Default path to here
     NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
     Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
-    WinSlash←'\'@Slash⍣isWindows            ⍝ force windows slashes only on windows machines
+    WinSlash←'\'@Slash⍣ISWIN                ⍝ force windows slashes only on windows machines
     DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
         Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
     List←{∊{' ',⍕⍵}¨⍵}
@@ -87,9 +88,8 @@
           11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
           ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
       }
-      ⍝ Untie←{0=⎕NC'⍺':_←5178⌶⍵ ⋄ ⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
-    ∇ {ok}←{ns}Untie name;nc
-      :If 900⌶⍬ ⋄ ns←⊢ ⋄ :EndIf
+      ⍝ Untie←{⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
+    ∇ {ok}←ns Untie name;nc
       nc←2⊃ns Fix name(ns GetAplSource name) ⍝ refix from source because of mantis 18148
       ok←~nc∊0 ¯1
     ∇
@@ -482,7 +482,7 @@
       Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
-      'watch'Default(1+CanWatch)⊃'ns' 'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
+      'watch'Default(1+CANWATCH)⊃'ns' 'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
       'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Default 0 ⋄ 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
@@ -541,19 +541,27 @@
       :EndTrap
     ∇
 
-    ∇ (name nc)←{where}Fix(name src);file;invalid;monitor;names;nc;stops;trace;unnamed
+    ∇ (name nc)←{where}Fix(name src);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
       :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
-      ⍝ attempt to fix as named script because this is the most commly expected format
-      :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ remember stops
+      :If ~IS190 ⋄ FIX←where.⎕FIX ⋄ :Else
+          ⍝ Quiet            0|1     (default 0)   ⍝ do not output status messages - link issue #149
+          ⍝ AllowLateBinding 0|1     (default 1)   ⍝ allow missing dependencies
+          ⍝ FixWithErrors    0|1|2   (default 0,2=prompt)  ⍝ allow errors in script - link issue #144
+          ⍝ Link             0|1     (default 1)   ⍝ maintain the link to the file - link issue #155
+          FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors' 1)('Link'(~0∊⍴file))
+      :EndIf
+      :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
       :Else ⋄ stops←trace←monitor←⍬
       :EndIf
-      :Trap 11
-          ⍝ actual apl name may be different from what was expected
-          names←2 where.⎕FIX src  ⍝ fn/op/script - can work from file
+      ⍝ attempt to fix as named script because this is the most commly expected format
+      :Trap 0 ⋄ names←2 FIX src  ⍝ fn/op/script - can work from file
+      :Else ⋄ names←0⍴⊂''
+      :EndTrap
+      :If ~0∊⍴names  ⍝ fix succeeded - this is the only case where actual apl name may be different from what was expected
           :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
           :EndIf
@@ -561,14 +569,15 @@
               stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
           :EndIf
           :Return  ⍝ named script fixed
-      :Else
-          ⍝required←116=⎕DMX.ENX  ⍝ 2 ⎕FIX failed because cannot read :Required file
-          unnamed←121=⎕DMX.ENX  ⍝ 2 ⎕FIX failed because script was unnamed
-      :EndTrap
+      :EndIf
+      ⍝required←11 116≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because cannot read :Required file
+      unnamed←11 121≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because script was unnamed
+      ⍝noaccess←19 12≡⎕DMX.(EN ENX)   ⍝ 2 ⎕FIX 'file://' on directory
+      ⍝nofile←22 12≡⎕DMX.(EN ENX)   ⍝ 2 ⎕FIX 'file://' on missing file
       ⍝ name must be valid because we define it in the following code
       :If ¯1=⎕NC,name ⋄ :AndIf ~where IsRootName name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
       :If unnamed  ⍝ unnamed script
-          name where.{⍎⍺,'←⎕FIX ⍵'}src  ⍝ can work from file
+          name{⍎⍺,'←⍵'}FIX src  ⍝ can work from file
           nc←where.⎕NC⊂,name
           :Return  ⍝ unnamed script fixed
       :EndIf
@@ -685,24 +694,21 @@
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
     ∇
-    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;src;subdir;subfile;typeExtensions
+    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
     ⍝ nc is name class of name - returns ¯1 on invalid name and 0 on invalid/missing source
     ⍝ opts cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      :If fastLoad ⋄ src←''     ⍝ do not spend time inspecting source
-      :Else ⋄ src←GetFileSource file
-      :EndIf
-      file←dir StripCaseCode flatten⊢file  ⍝ always strip case code - apl name can't have them anyways
-      (subdir file)←2↑⎕NPARTS file  ⍝ drop extension
-      :If 0=≢file ⋄ subdir←¯1↓subdir ⋄ :EndIf  ⍝ drop trailing slash for directories
-      (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,file
+      subfile←dir StripCaseCode flatten⊢file  ⍝ always strip case code - apl name can't have them anyways
+      (subdir subfile)←2↑⎕NPARTS subfile  ⍝ drop extension
+      :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf  ⍝ drop trailing slash for directories
+      (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
       :If flatten ⋄ where←⍕ns ⋄ :EndIf     ⍝ all subdirectories link to linked namespace
-      :If fastLoad ⋄ (actname nc)←expname 0  ⍝ settle with expname
-      :ElseIf 0=≢src ⋄ (actname nc)←'' 0             ⍝ no source
-      :Else ⋄ (actname nc)←Fix expname src           ⍝ inspect source
+      :If fastLoad ⋄ (actname nc)←expname 0  ⍝ settle with expname - do not spend time inspecting source
+      ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
+      :Else ⋄ (actname nc)←Fix expname file           ⍝ inspect source
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0=≢where)∧(nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
@@ -973,7 +979,7 @@
       spice←⊃⎕RSI ⋄ this←spice.##.THIS   ⍝ spice namespace (should be ⎕SE.SALTUtils.c.Link) ⋄ UCMD caller's namespace
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
       :If (cmd≡'Create')∧(1=≢args.Arguments)
-        args.Arguments,⍨←⊂'⎕THIS'  ⍝ in the UCMD, namespace defaults to caller's ⎕THIS
+          args.Arguments,⍨←⊂'⎕THIS'  ⍝ in the UCMD, namespace defaults to caller's ⎕THIS
       :EndIf
       :Select |1 2⊃⎕SE.Link.⎕AT cmd
       :Case 0  ⍝ niladic
@@ -982,9 +988,9 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all'  'beforeRead'  'beforeWrite'  'caseCode'  'codeExtensions'  'extended'    'fastLoad'  'flatten'  'forceExtensions'  'forceFilenames'  'getFilename'  'recursive'  'source'  'typeExtensions'  'watch' 
+          names←'all' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'recursive' 'source' 'typeExtensions' 'watch'
           :For name :In names
-              lc←819⌶ name
+              lc←819⌶name
               :If ×args.⎕NC lc
               :AndIf 0≢args⍎lc
                   isvar←(⊂name)∊'codeExtensions' 'customExtensions' 'typeExtensions'
@@ -993,7 +999,7 @@
           :EndFor
       :EndSelect
       ⍝ must not use :With because of link issue #163
-      r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home 
+      r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
     ∇
 
     :EndSection

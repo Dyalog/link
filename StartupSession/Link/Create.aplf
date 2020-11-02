@@ -31,7 +31,7 @@
      :Else ⋄ emptyns←1
      :EndIf
 
-     :If ~U.CanWatch
+     :If ~U.CANWATCH
      :AndIf (⊂opts.watch)∊'both' 'dir'
          U.Error'Watching directories is only supported if .NET is available'
      :ElseIf opts.source≡'dir'
