@@ -48,10 +48,9 @@
     ASSERT_TIME←1    ⍝ Seconds of wait time trying to verify assertions
 
 
-    ∇ {debug}Run test_filter;aplv;core;dnv;folder;opts;test;tests;time;z
+    ∇ {debug}Run test_filter;aplv;core;dnv;folder;opts;test;tests;time;udebug;warn;z
     ⍝ Do (⎕SE.Link.Test.Run'') to run all the Link Tests.
     ⍝ If no folder name provided,
-      :If 0≠⎕NC'debug' ⋄ ⎕SE.Link.DEBUG←debug ⋄ :EndIf
      
       tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ by default: run all tests
       pause_tests←0                             ⍝ no manual testing
@@ -61,20 +60,31 @@
           tests←(∨⌿1∊¨(,⊆test_filter)∘.⍷tests)/tests
       :EndIf
      
-      →(0=≢folder←Setup FOLDER NAME)⍴0
-      time←⎕AI[3]
-      :For test :In tests
-          ⍝Log'TESTING'test
-          z←(⍎test)folder NAME   ⍝ run test_*    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      :EndFor
-      time←⎕AI[3]-time
-      UnSetup
+      :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
+      :If 0=⎕NC'debug' ⋄ debug←⎕SE.Link.DEBUG ⋄ :EndIf
+      (⎕SE.Link.DEBUG debug)←(debug ⎕SE.Link.DEBUG)
+      udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN)(0<⎕SE.Link.DEBUG)  ⍝ disable warnings if not debugging
      
-      dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
-      core←(1+##.U.DOTNETCORE)⊃'Framework' 'Core'
-      aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-      opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
-      Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+      :If 0≠≢folder←Setup FOLDER NAME
+          time←⎕AI[3]
+          :For test :In tests
+          ⍝Log'TESTING'test
+              z←(⍎test)folder NAME   ⍝ run test_*    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          :EndFor
+          time←⎕AI[3]-time
+          UnSetup
+     
+          dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
+          core←(1+##.U.DOTNETCORE)⊃'Framework' 'Core'
+          aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
+          opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
+          Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+      :EndIf
+     
+      {}⎕SE.UCMD']udebug ',udebug
+      ⎕SE.Link.DEBUG←debug
+      ⎕SE.Link.U.WARN←warn
     ∇
 
     :EndSection Main entry point and global settings
@@ -220,7 +230,7 @@
       {}(⊂'hoo arg' '⎕←''hoo'' arg')QNPUT(folder,'/sub/.git/info/hoo.aplf')1
       {}(⊂'joo arg' '⎕←''joo'' arg')QNPUT(folder,'/.joo.aplf')1
       {}(⊂'koo arg' '⎕←''koo'' arg')QNPUT(folder,'/koo.tmp')1
-      ⎕SE.Link.U.WARNING/⍨←0
+      ⎕SE.Link.U.WARNLOG/⍨←0
       {}⎕SE.Link.Create name folder
       assert'(,⊂0⍴⊂'''')≡⎕SE.Link.Links.inFail'
       names←'#.linktest.foo' '#.linktest.sub' '#.linktest.sub.goo'
@@ -241,7 +251,7 @@
       {}QNDELETE(folder,'/koo2.tmp')
       names↓⍨←¯2
       'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
-      'link issue #158'assert'0=≢⎕SE.Link.U.WARNING'
+      'link issue #158'assert'0=≢⎕SE.Link.U.WARNLOG'
      
       {}⎕SE.Link.Break name
      
@@ -1389,6 +1399,7 @@
       :EndIf
      
       ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
+      {}ride.APL'⎕SE.Link.DEBUG←0 ⋄ ⎕SE.Link.U.WARN←0'  ⍝ keep quiet
      
       ⎕MKDIR Retry⊢folder
       varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
@@ -1661,7 +1672,7 @@
 
     :Section Setup and Utils
 
-    ∇ r←Setup(folder name)
+    ∇ r←Setup(folder name);udebug
       r←'' ⍝ Run will abort if empty
      
       ⍝⎕PW⌈←300
@@ -1673,9 +1684,6 @@
       :ElseIf ~##.U.IS190
           Log'Not running Dyalog v19.0 or later - some tests will be skipped'
       :EndIf
-     
-      :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
-      {}⎕SE.UCMD']udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
      
       ⍝ TODO : should turn ⎕SE.Link.U.Warn off if ⎕SE.Link.DEBUG≥0
      

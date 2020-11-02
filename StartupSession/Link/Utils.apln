@@ -871,17 +871,19 @@
 
     :Section UI
 
-    WARNING←LOG←0⍴⊂''
+    WARN←1 ⍝ flag to enable/disable display of warnings
+    WARNLOG←DEBUGLOG←0⍴⊂''  ⍝ actual logs
 
     ∇ {msg}←{header}Warn msg
     ⍝ Warn user
       :If 900⌶⍬ ⋄ header←'Link Warning: ' ⋄ :EndIf
-      WARNING,←⊂⎕←header,msg
+      WARNLOG,←⊂msg←header,msg
+      :If WARN ⋄ ⎕←msg ⋄ :EndIf
     ∇
     ∇ {msg}←Log msg
     ⍝ Debug information
-      LOG,←⊂msg
-      :If debug≠0 ⋄ ⎕←msg ⋄ :EndIf
+      DEBUGLOG,←⊂msg
+      :If debug>0 ⋄ ⎕←msg ⋄ :EndIf
     ∇
 
     :EndSection
