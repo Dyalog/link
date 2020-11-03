@@ -9,8 +9,8 @@
      '⎕SE.Link'⎕NS ⍬
      :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure
          ⎕SE.Link.Links←⍬         ⍝ Start with no links
- ⍝ Link namespaces will record switch values
- ⍝    and also contain fsw, the FileSystemWatcher object
+     ⍝ Link namespaces will record switch values
+     ⍝    and also contain fsw, the FileSystemWatcher object
      :EndIf
 
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
@@ -99,7 +99,7 @@
 
      'opts'⎕NS'inFail' 'outFail'
      :If 'dir' 'both'∊⍨⊂opts.watch
-         opts.fsw←FileSystemWatcher.Watch dir(,'*')
+         opts.fsw←Watcher.Watch dir(,'*')
      :Else
          opts.fsw←⍬
      :EndIf

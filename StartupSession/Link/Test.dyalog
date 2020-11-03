@@ -78,7 +78,7 @@
           dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
           core←(1+##.U.DOTNETCORE)⊃'Framework' 'Core'
           aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-          opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.FileSystemWatcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
+          opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕##.Watcher.USE_NQ),', PAUSE_TIME: ',(⍕PAUSE_TIME),')'
           Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
       :EndIf
      
@@ -1674,9 +1674,6 @@
 
     ∇ r←Setup(folder name);udebug
       r←'' ⍝ Run will abort if empty
-     
-      ⍝⎕PW⌈←300
-      ⎕SE.Link.FileSystemWatcher.DEBUG←1 ⍝ Turn on event logging
      
       :If ~##.U.CANWATCH
           Log'Unable to run Link.Test - .Net is required to test the FileSystemWatcher'
