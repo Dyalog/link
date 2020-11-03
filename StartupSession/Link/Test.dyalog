@@ -772,7 +772,7 @@
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
-      Breathe  
+      Breathe
       subname'var'⎕SE.Link.Fix var
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
@@ -783,7 +783,8 @@
       ⍝ now try source=ns watch=ns
       opts.source←'ns' ⋄ opts.watch←'ns'
       {}opts ⎕SE.Link.Create name folder
-      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1 ⍝ Variable is not exported
+      (subname,'.var'){⍎⍺,'←⍵'}var
+      {}⎕SE.Link.Add subname,'.var'  ⍝ variable should be duplicated onto file
       0 assert_create 0
       subname'var'⎕SE.Link.Fix newvar
       subname'foo'⎕SE.Link.Fix newfoosrc
@@ -798,7 +799,7 @@
      
       ⍝ now try source=ns watch=none
       opts.source←'ns' ⋄ opts.watch←'none'
-      {}opts ⎕SE.Link.Create name folder  
+      {}opts ⎕SE.Link.Create name folder
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1 ⍝ Variable is not exported
       1 assert_create 1
       subname'var'⎕SE.Link.Fix var

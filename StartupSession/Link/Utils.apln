@@ -153,7 +153,7 @@
       :Else
           n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
           container←⊃n↓rsi
-          text←NormNs(⍕container),'.',ns
+              text←NormNs(⍕container),(0≠≢ns)/'.',ns
       :EndIf
     ∇
 

@@ -4,7 +4,6 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :Hold '⎕SE.Link.Notify'
      ⎕IO←1
 
      opts←DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
@@ -32,8 +31,6 @@
          msg,←⊂'Not found:',∊' ',¨unfound
      :EndIf
      msg←↑msg
-     :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1
  :EndTrap
- 
