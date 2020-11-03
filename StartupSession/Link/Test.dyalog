@@ -1088,14 +1088,14 @@
 
       assert_create←{  ⍝ ⍺=newapl ⋄ ⍵=newfile
           _←assert(⍺/'new'),'var≡⍎subname,''.var'''
-          _←assert(⍺/'new'),'foosrc≡⎕NR subname,''.foo'''
+          _←assert(⍺/'new'),'foonr≡NR subname,''.foo'''
           _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''
           _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
-          _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+          _←assert(⍵/'new'),'foonget≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ r←test_create(folder name);badsrc1;badsrc2;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;nssrc;opts;root;subfolder;subname;var;varsrc;z
+    ∇ r←test_create(folder name);badsrc1;badsrc2;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;opts;root;subfolder;subname;var;varsrc;z
       r←0 ⋄ opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1181,12 +1181,22 @@
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
      
       2 ⎕MKDIR subfolder
-      (⊂foosrc←' r←foo x' ' ⍝ comment' ' r←''foo''x')∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
+      ⍝ actual contents
+      foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ whitespace-preserved
+      footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form
+      (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
       (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
       (⊂badsrc1←,¨':Namespace badns1' '  ∇  res  ←  foo  arg  ;  ' '  res  ←  arg  ' '∇' ':EndNamespace')⎕NPUT folder,'/badns1.apln'
       (⊂badsrc2←,¨':Namespace badns2' '  ∇  res  ←  foo  arg  ' '  res  ←  arg  ' '∇' ':EndClass')⎕NPUT folder,'/badns2.apln'
+      newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'new hello')@2)¨var
+      newfoosrc←(⊂'  ⍝  new  comment  ')@2⊢foosrc
+      newnssrc←(⊂'  ⍝  new  comment  ')@2⊢nssrc
+      newfootok←(⊂'  ⍝  new  comment')@2⊢footok
+      ⍝ expected results
+      (foonr newfoonr)←(1+##.U.IS190)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
+      (foonget newfoonget)←(foosrc newfoosrc)
      
       :If ##.U.IS190 ⍝ link issue #144
           opts.source←'dir' ⋄ opts.watch←'dir'
@@ -1201,12 +1211,14 @@
       z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
-      assert'foosrc∘≡¨⎕NR¨name subname,¨⊂''.foo'''
+      :If ##.U.IS190 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''
+      :Else ⋄ assert'foonr∘≡¨NR¨name subname,¨⊂''.foo'''
+      :EndIf
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
       ⍝ watch=dir must reflect changes from files to APL
-      {}(⊂newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'new hello')@2)¨var)QNPUT(subfolder,'/var.apla')1
-      {}(⊂newfoosrc←(⊂' ⍝ new comment')@2⊢foosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂newnssrc←(⊂' ⍝ new comment')@2⊢nssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
       1 assert_create 1
       ⍝ watch=dir must not reflect changes from APL to files
       subname'var'⎕SE.Link.Fix varsrc
@@ -1256,7 +1268,9 @@
       {}⎕SE.Link.Break name
       3 ⎕NDELETE folder
      
+     
       ⍝ now try source=ns watch=dir
+      :If ~##.U.IS190 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ source=ns means 18.0 can't export whitespace-preserved
       opts.source←'ns' ⋄ opts.watch←'dir'
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
@@ -1264,6 +1278,7 @@
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      :If ~##.U.IS190 ⋄ newfoonget←newfoosrc ⋄ :EndIf   ⍝ we just wrote it to file
       1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
@@ -1284,11 +1299,13 @@
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      :If ~##.U.IS190 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
       ⍝ now try source=ns watch=none
+      :If ~##.U.IS190 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
       opts.source←'ns' ⋄ opts.watch←'none'
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
@@ -1306,11 +1323,13 @@
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      :If ~##.U.IS190 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
       ⍝ link issue #160 try having items in the namespace already tied to items in the folder
+      :If ~##.U.IS190 ⋄ (foonget newfoonget)←(foosrc newfoosrc) ⋄ :EndIf  ⍝ start again from dir
       ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 ⎕MKDIR subfolder
       {}(⊂varsrc)QNPUT(folder,'/var.apla')1
       {}(⊂foosrc)QNPUT(folder,'/foo.aplf')1
@@ -1344,8 +1363,10 @@
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       assert'0=≢⎕SE.Link.Links'
-      assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
+      assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'  ⍝ TODO : should recognise that the files are correctly linked to the namespace
       'link issue #160'assert'0=≢⎕SE.Link.Links'
+      :If ##.U.IS190 ⋄ 2(⍎name).⎕FIX NR name,'.foo' ⋄ 2(⍎subname).⎕FIX NR subname,'.foo'  ⍝ the ⎕NDELETE would make (0⎕INFO) produce ⎕NULL
+      :Else ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
       3 ⎕NDELETE folder
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'
@@ -1923,6 +1944,8 @@
       :EndFor
       from.⎕EX nl
     ∇
+
+    NR←{⍺←⊢ ⋄ ⍺ ⎕SE.Link.U.GetAplSource ⍵} ⍝ cover for ⎕NR
 
     ∇ nsname Watch watch;fsw;link
     ⍝ pause/resume file watching
