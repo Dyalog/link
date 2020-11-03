@@ -2,6 +2,9 @@
 
     (⎕IO ⎕ML)←1 1
 
+
+    ⍝⍝⍝⍝⍝ .Net System.IO.FileSystemWatcher ⍝⍝⍝⍝⍝
+
     USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.Watcher.QUEUE'           ⍝ FSW Queue Object name prefix
     DEBUG←1                                 ⍝ Log events
@@ -129,7 +132,18 @@
 
 
 
-    
+    ⍝⍝⍝⍝⍝ File Crawler ⍝⍝⍝⍝⍝
+
+    PERIOD←0.1   ⍝ timer period in seconds
+    GRANULARITY←0.02  ⍝ timer granularity in seconds (20ms on Windows, 1ms on Linux)
+    WORKLOAD←0.1   ⍝ workload ratio (in [0;1])
+
+    Time←(211⌶⍬)∘{(210⌶⍬)÷⍺}  ⍝ time in seconds
+
+    ∇ FileCrawl
+      
+    ∇
+
 
 
 :EndNamespace

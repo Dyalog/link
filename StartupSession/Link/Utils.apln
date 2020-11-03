@@ -88,9 +88,10 @@
           11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
           ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
       }
-      ⍝ Untie←{⍺.(5178⌶)⍵}  ⍝ untie an apl name from its file - doesnt work because of mantis 18148
-    ∇ {ok}←ns Untie name;nc
-      nc←2⊃ns Fix name(ns GetAplSource name) ⍝ refix from source because of mantis 18148
+    ∇ {ok}←ns Untie name;nc;src
+      src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
+      {}ns.(5178⌶) name   ⍝ mants 18606 : ⎕FIX∘⎕SRC may leave ghost ties 
+      nc←2⊃ns Fix name src
       ok←~nc∊0 ¯1
     ∇
 
@@ -120,14 +121,15 @@
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken
       (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
-      :If 0∊scriptitems
+      ⍝ there might be some orphaned script items - interpreter must forget about them
+      ⍝ do it first because of mantis 18606
+      :If 1∊scriptitems ⍝ script items are simply untied
+          {}(scriptitems/parents){⍺.(5178⌶)⍵}¨(scriptitems/names)
+      :EndIf
+      :If 0∊scriptitems  ⍝ scripts are more complicated because of Mantis 18148
           r←+/((~scriptitems)/parents)Untie¨((~scriptitems)/names)
       :Else
           r←0
-      :EndIf
-      ⍝ there might be some orphaned script items - interpreter must forget about them
-      :If 1∊scriptitems ⍝ links to be removed
-          {}(scriptitems/parents){⍺.(5178⌶)⍵}¨(scriptitems/names)
       :EndIf
     ∇
 

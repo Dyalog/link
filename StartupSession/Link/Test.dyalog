@@ -1421,6 +1421,7 @@
       assert'(∨/''Linked:''⍷output)'
      
       ⍝ https://github.com/Dyalog/link/issues/48
+      ∘∘∘
       ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
       'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
       output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
@@ -1604,23 +1605,20 @@
           'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
       :EndIf
      
-      :If ##.U.IS190
-          Log'Not testing issue #152 until http://mantis.dyalog.com/view.php?id=18604 is fixed'
-      :Else    ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
-          ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
-          assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
-          assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
-          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
-          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
-          ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
-          assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
-          assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
-          ⎕NDELETE folder,'/sub/ns.apln'
-          assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
-          ride.Edit(name,'.sub.class')(class) ⍝ put back original class
-          assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
-          assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
-      :EndIf
+      ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
+      ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
+      assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
+      assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
+      assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
+      assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
+      ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
+      assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
+      assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
+      ⎕NDELETE folder,'/sub/ns.apln'
+      assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
+      ride.Edit(name,'.sub.class')(class) ⍝ put back original class
+      assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
+      assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
      
       output←ride.APL'⎕SE.Link.Break ',(Stringify name)
       assert'(∨/''Unlinked''⍷output)'
@@ -2036,6 +2034,8 @@
     ∇
 
     :EndSection Benchmarks
+
+
 
 
 
