@@ -1442,7 +1442,6 @@
       assert'(∨/''Linked:''⍷output)'
      
       ⍝ https://github.com/Dyalog/link/issues/48
-      ∘∘∘
       ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
       'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
       output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
