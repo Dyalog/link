@@ -75,6 +75,8 @@
           ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
       }
     HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
+    FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
+    FmtLines←(⎕UCS 13)∘{∊⍺,∘⍕¨⍵}             ⍝ join with newlines (including a leading one)
 
     :EndSection
 
@@ -479,7 +481,7 @@
       modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions'
       :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
-          Error('Unknown modifiers: ',⍕mask/nl)
+          Error'Unknown modifiers: ',FmtEach mask/nl
       :EndIf
       Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
@@ -752,7 +754,7 @@
           :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
               names←names[,(mask/inx),[1.5]⍸mask]
-              Error'File name case clash - try using caseCode←1:',⍕(ns,'.')∘,¨names
+              Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names
           :EndIf
           mask←src∊⎕NULL  ⍝ unscripted namespaces
           (tradnames tradfiles)←mask∘/¨(names files)
@@ -817,7 +819,7 @@
           allnames←parents('.'JoinEach)actnames  ⍝ fully qualified names
           :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
               files←allfiles[,(mask/inx),[1.5]⍸mask]
-              Error'Files produce clashing APL names:',⍕files
+              Error'Files produce clashing APL names:',FmtLines files   
           :EndIf
       :EndIf
      
