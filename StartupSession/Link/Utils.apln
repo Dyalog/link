@@ -890,12 +890,14 @@
       ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
       names←pre∘,¨ref.⎕NL-⍳10    ⍝ all names
       :If ~0∊⍴subns←ref.(⎕NL ¯9)   ⍝ sub-namespaces
-          names,←⊃,/1 NSTREE¨pre∘,¨subns
+          names,←⊃,/1 NsTree¨pre∘,¨subns
       :EndIf
       :If 900⌶⍬ ⋄ :OrIf ~recur ⋄ names,⍨←⊂ns ⋄ :EndIf
     ∇
-    ∇ mat←FixTree src;mask;names;nc
-      mask←9=⌊|nc←⎕NC names←('.',⍨⍕⎕THIS)∘,¨2 ⎕FIX⍠'FixWithErrors' 1⊢,,¨⊆,src
+    ∇ mat←{errors}FixTree src;FIX;mask;names;nc
+      :If 900⌶⍬ ⋄ errors←IS190 ⋄ :EndIf ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
+      :If errors ⋄ FIX←⎕FIX⍠'FixWithErrors' 1 ⋄ :Else ⋄ FIX←⎕FIX ⋄ :EndIf
+      mask←9=⌊|nc←⎕NC names←('.',⍨⍕⎕THIS)∘,¨2 FIX,,¨⊆,src
       :If 1∊mask ⋄ names←((~mask)/names),⊃,/NsTree¨(mask/names) ⋄ :EndIf
       mat←↑names(⎕NC names)
     ∇
@@ -997,6 +999,7 @@
           :EndIf
           ⍝      1   2   3  4    5     6       7     8     9    10  11  12/13/14 15/16/17  ⍝ changing these require carefully looking for these constants in the code below
           patt←dfno dfnc lb rb deldfn delfn1 delfn2 delop delo delc'∇',,,,so,,,,,,,sc     ⍝ dfn must win over braces - delfn/delop must win over delo - delo and delc must win over '∇'
+          src←(0<≢¨src)/src                                             ⍝ remove empty lines otherwise ⍺⊂⍵ cannot reconstruct it
           openclose←(∊(≢¨src)↑¨1)⊂{+\+⌿1 ¯1×[1]'{}'∘.=⍵}∊src            ⍝ raw open/close brace state
           :If 0∊⍴where←patt Where oldsrc←src ⋄ ⋄ :Return ⋄ :EndIf       ⍝ nothing found
           (pos line patti)←↓⍉↑where ⋄ open←close←(4,≢src)⍴0             ⍝ (open close):[brace dfn del script;line]
@@ -1062,25 +1065,6 @@
           :EndSelect
       :EndIf
     ∇
-
-    ⍝ BUGS :
-    ⍝      +2 ⎕FIX⍠'FixWithErrors' 1⊢,¨' ' ' ∇ foo arg' ' ∇'
-    ⍝ DOMAIN ERROR: could not fix function
-    ⍝      +2 ⎕FIX⍠'FixWithErrors' 1⊢,¨' ' ' ∇ foo arg' ' ∇' '∇ goo arg' '∇'
-    ⍝ goo  foo
-    ⍝      FixTree ' foo arg' ':Namespace inner' '∇ goo arg' 'arg' '∇' ':EndNamespace '
-    ⍝      FixTree ':Namespace outer' '∇ foo arg' ':Namespace inner' 'var1←1 2 3' ':EndNamespace' '∇
-    ⍝      FixTree ':Namespace outer' '∇ foo arg' ':Namespace inner' '∇ goo arg' 'arg' '∇' ':EndNamespace' '∇
-    ⍝      FixTree ':Namespace ns1' ':EndClass' ':Class class' ':EndNamespace'
-    ⍝      FixTree ':Namespace ns1' ':End     ' ':Class class' ':EndNamespace'
-    ⍝      FixTree ':Namespace ns1' ':EndNamespace' ' ∇ foo arg'  '∇ goo arg' 'arg'  '∇' '∇'
-    ⍝      FixTree '∇ goo arg' 'arg'  '∇' ⋄ FixTree '∇ goo arg' 'arg'  '∇'  ' '
-    ⍝ "∇{(ⓍØvÙFXÍxⓄN)}←{Ô}(Ë ãdM⍙ámìÃ Ô)(TⓌⓃtoïNⓎYo)%∇" gave ãdM⍙ámìÃ  4.1 instead of   0
-    ⍝ "{( öⒼⒸã _RW ÊⒷÚ ÍⓂvZⓍmS ÛⒿßûúYiⒹNT æìß6Wq èÔô5ôqdKhÐ)}←{ÆäÈcî∆}(Ð Ù0Ⓣ J)( J Z PÏõ7ⓋUò êⓌ⍙ ÜÊXⒽ ⒷⒾhpÑG ⓅÌbÊÈLCAⒶ)" gave Ù0Ⓣ  4.1 instead of   0
-    ⍝ "∇{ÎⒹy5EI}←{Í}(Í ⓃÙÃ ⓄóRⒾNaM4ã) rÒÜⓈ%∇" gave ⓃÙÃ  4.1 instead of   0
-    ⍝ "dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}" gave   0 instead of dfn  3.2
-    ⍝ "dfn←{ % } arg" gave   0 instead of dfn  3.2
-    ⍝ "  {MKⒽⒷ6è}←g (èL ÈⓃmSI⍙) (	lÔTfGÖLÒ g)⍝)" gave ÈⓃmSI⍙  4.1 instead of   0
 
     ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;Space;Test;c;f;file;filebad;h;h1;h2;o;objs;t;tn;valid;valid1;valid2;w;where
       ⍝ All possible traditional function/operator headers
@@ -1153,12 +1137,13 @@
       where.⎕FIX':Interface Interface2' ':EndInterface'
       where.⎕FIX':Class BaseClass' ':EndClass'
       f←'' ' % ' 'this is total garbage' 'this is total garbage !!! ;;;'
+      f,←'%∇foo%∇' ' %∇foo%∇' '∇foo%∇%' '∇foo%∇% '    ⍝ Mantis 18621
       f,←'r←(op foo)arg%r←op arg' 'r←larg(op foo)arg%r←op arg'
-      f,←'dfn←{%}%arg' 'dfn←{%}arg' 'dfn←{}arg' 'dfn←{arg}arg'
+      f,←'dfn←{%}%arg' 'dfn←{%}arg' 'dfn←{}arg' 'dfn←{arg}arg'  ⍝ Mantis 18619	
       f,←'dop←+{⍺⍺}' 'dop←+{%⍺⍺%}' 'dop←+{⍺⍺}arg' 'dop←+{%⍺⍺%}arg'
       f,←'dop←{⍵}{⍺⍺}' 'dop←{⍵}{%⍺⍺%}' 'dop←{⍵}{⍺⍺}arg' 'dop←{⍵}{%⍺⍺%}arg'
       f,←'dfn←var∘{⍺+⍵}' 'dfn←var∘{%⍺+⍵%}'
-      f,←'dfn←+{⍺ ⍺⍺ ⍵⍵ ⍵}+' 'dfn←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}+' 'dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}' 'dfn←{⍺}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{⍵}'
+      f,←'dfn←+{⍺ ⍺⍺ ⍵⍵ ⍵}+' 'dfn←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}+' 'dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}' 'dfn←{⍺}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{⍵}' ⍝ Mantis 18619
       f,←'dfn←{' 'dop←{%⍺⍺' 'dfn←{%{⍺⍺}' 'dfn←{%}{%}' 'dop←{%}{%⍺⍺%}'
       f,←':Namespace' 'Namespace +' ':Namespace % :EndNamespace' ':Namespace + % :EndNamespace'  ⍝ unnamed namespace must fail
       f,←⊂':Namespace ns % :EndNamespace % :Class class % :EndClass'   ⍝ two definitions - must fail
