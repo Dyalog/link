@@ -818,8 +818,7 @@
           ndirs←+/ndirs↑~mask
           allnames←parents('.'JoinEach)actnames  ⍝ fully qualified names
           :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
-              files←allfiles[,(mask/inx),[1.5]⍸mask]
-              Error'Files produce clashing APL names:',FmtLines files   
+              Error'Files produce clashing APL names:',FmtLines ↓⍕(allfiles,(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]   
           :EndIf
       :EndIf
      
