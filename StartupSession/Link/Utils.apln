@@ -539,7 +539,7 @@
       :EndIf
     ∇
     ∇ src←GetFileSource file;type
-      src←⍬  ⍝ ⍬ means failure - empty file produces 0⍴⊂''
+      src←⍬  ⍝ ⍬ means failure to read file - empty file produces 0⍴⊂''
       :Trap 0
           :If 1=type←1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
           :ElseIf 2=type ⋄ src←GetFile file     ⍝ file
@@ -552,6 +552,7 @@
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
+      :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
       :If ~IS190 ⋄ FIX←where.⎕FIX ⋄ :Else
           ⍝ Quiet            0|1     (default 0)   ⍝ do not output status messages - link issue #149
@@ -588,9 +589,8 @@
           :Return  ⍝ unnamed script fixed
       :EndIf
       ⍝ remaining possibilities are array or trad ns
-      :If ~0∊⍴file  ⍝ they both require source, not filename
-          src←GetFileSource file
-      :EndIf
+      :If ~0∊⍴file ⋄ src←GetFileSource file ⋄ :EndIf ⍝ they both require source, not filename
+      :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If src≡⎕NULL  ⍝ trad namespace - was not tested before because the 1=1⎕NINFO would have been costy
           name where.⎕NS'' ⋄ nc←¯9.1
           :Return  ⍝ trad ns created
@@ -606,12 +606,24 @@
       :If tie ⋄ src←file ⍝ tie to file
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
       :EndIf
+      :If src≡⍬ ⋄ ok←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
       :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
       :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
           (name nc)←target Fix(name src)
           ok←~nc∊0 ¯1
       :Else ⋄ ok←1 ⋄ :EndIf
+    ∇
+    ∇ (actname nameclass)←{errors}Sniff(expname src);array
+      :If 900⌶⍬ ⋄ errors←⊢ ⋄ :EndIf
+      :If (src≢⎕NULL)∧(1=≡,src) ⋄ src←GetFileSource src ⋄ :EndIf
+      :If src≡⍬ ⋄ actname←'' ⋄ nameclass←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+      :If src≡⎕NULL ⋄ actname←expname ⋄ nameclass←¯9.1 ⋄ :Return ⋄ :EndIf  ⍝ trad ns
+      (actname nameclass)←errors SniffScript(expname src)
+      :If 0=nameclass ⋄ :Trap 0
+              array←⎕SE.Dyalog.Array.Deserialise src
+              actname←expname ⋄ nameclass←⎕NC⊂'array'
+          :EndTrap ⋄ :EndIf
     ∇
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);cache
     ⍝ opts cached for performance on ns lookup
@@ -635,8 +647,7 @@
           ⍝:If 0=nc ⋄ Warn'Source of name ',where,'.',name,' doesn''t exist' ⋄ :EndIf
       :ElseIf 0=≡src ⋄ nc←src ⍝ name class is given
       ⍝:ElseIf opts.fastLoad ⋄ nc←0  ⍝ nope - fastLoad is used only by FixFiles which then shouldn't call DetermineFileName
-      :Else   ⍝ infer name class from (non-empty) source
-          (name nc)←Fix name src  ⍝ fix in dummy namespace
+      :Else ⋄ (name nc)←Sniff name src  ⍝ infer name class from (non-empty) source
       :EndIf
       :If nc∊0 ¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid source or name
       ⍝ trad namespace are given name class ¯9.1
@@ -714,7 +725,7 @@
       :If flatten ⋄ where←⍕ns ⋄ :EndIf     ⍝ all subdirectories link to linked namespace
       :If fastLoad ⋄ (actname nc)←expname 0  ⍝ settle with expname - do not spend time inspecting source
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
-      :Else ⋄ (actname nc)←Fix expname file           ⍝ inspect source
+      :Else ⋄ (actname nc)←Sniff expname file           ⍝ inspect source
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0=≢where)∧(nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
@@ -875,14 +886,6 @@
 
     :Section File sniffing
 
-    ⍝ preamble :
-    ⍝  :Require, empty lines
-    ⍝ Open/Close keywords :
-    ⍝   ∇/∇  :Namespace/:EndNamespace :Class/:EndClass :Interface/:EndInterface
-
-    ⍝ If there is no keyword on first line,
-
-
     ∇ names←{recur}NsTree ns;pre;ref;refs;subns
       ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
       names←pre∘,¨ref.⎕NL-⍳10    ⍝ all names
@@ -897,25 +900,24 @@
       mat←↑names(⎕NC names)
     ∇
 
-    ∇ (actname nameclass)←Sniff(expname src);Decase;Find;Key;Repl;ReplD;S;UCP;Where;after;b;before;close;com;delc;deldfn;delfn1;delfn2;delop;dfn;dfnc;dfno;e;fn;hd;larg;lb;line;locals;lp;mask;name;namechars;names;names23;op;open;openclose;part;patt;patti;pnames;pos;qname;qvar;rarg;rb;req;reqd;res;rp;s;sc;so;str;tradfn1;tradfn2;tradop;where
-    ⍝ Sniff source for a single name defined, and find out its name class. False negatives are bad because we won't fix the script. False positives are not too bad since the fix will fail anyway.
-    ⍝ TODO : check that :Require file exists ? May produce false positive, which is not too bad.
-      :If src≡⎕NULL ⋄ actname←expname ⋄ nameclass←¯9.1 ⋄ :Return ⋄ :EndIf  ⍝ trad ns
-      src←,⊆,src ⋄ actname←'' ⋄ nameclass←0
+    ∇ (actname nameclass)←{errors}SniffScript(expname src);Decase;Find;Key;NS;Repl;ReplD;S;Srarg;UCP;Where;after;b;base;before;close;com;delc;deldfn;delfn1;delfn2;delo;delop;dfnc;dfno;e;fn;hd;largS;largs;lb;line;locals;lp;mask;name;namechars;names;names23;ns;oldsrc;op;open;openclose;part;patt;pattd;patti;pattsc;pattso;pnames;pos;qname;qvar;rb;req;reqd;res;rp;s;sc;so;srarg;str;tradfn1;tradfn2;tradop;where
+    ⍝ Sniff source for a single name defined, and find out its name class.
+    ⍝ False negatives are bad because we won't fix the script.
+    ⍝ False positives are not too bad since the fix will fail anyway.
+      :If 900⌶⍬ ⋄ errors←IS190 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
+      src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
       ⍝ define useful regular expressions
-      Decase←{,'[',']',⍨(0(819⌶)⍵),[1.5](1(819⌶)⍵)}  ⍝ case-insensitive word
-      UCP←⍠'UCP' 1                    ⍝ recognise non-ASCII
-      Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ Replace (1⊃⍵) with (2⊃⍵) in ⍺
-      ReplD←{(fm to)←⍵ ⋄ fm ⎕R to⍠'Mode' 'D'UCP ⍺}             ⍝ Replace (1⊃⍵) with (2⊃⍵) in ⍺ as a whole document
-      Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}         ⍝ find at which position on which line is which pattern
-      Find←{⍺ ⎕S'&'UCP ⍵}         ⍝ extract match
-      b←'^'                           ⍝ beginning of line
-      e←'$'                           ⍝ end of line
-      S←'\s+'                         ⍝ necessary white-space
-      s←'\s*'                         ⍝ optional white-space
+      Decase←{,'[',']',⍨(0(819⌶)⍵),[1.5](1(819⌶)⍵)} ⍝ case-insensitive word
+      UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII
+      Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺
+      ReplD←{(fm to)←⍵ ⋄ fm ⎕R to⍠'Mode' 'D'UCP ⍺}  ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺ as a whole document
+      Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}                  ⍝ find at which position on which line is which pattern
+      Find←{⍺ ⎕S'&'UCP ⍵}                           ⍝ extract matches
+      b←'^' ⋄ e←'$'                   ⍝ beginning/end of line
+      S←'\s+' ⋄ s←'\s*'               ⍝ necessary/optional whitespaces
+      NS←'\S+' ⋄ ns←'\S*'             ⍝ necessary/optional non-whitespace
       com←'⍝.+',e                     ⍝ comment
-      ⍝(lb rb lp rp)←{s,'\',⍵,s}¨'{}()' ⍝ enclosing chars
-      (lb rb lp rp)←'\',¨'{}()' ⍝ enclosing chars
+      (lb rb lp rp)←'\',¨'{}()'       ⍝ enclosing chars
       str←'''([^'']|'''')*'''         ⍝ strings
       namechars←65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 95 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 216 217 218 219 220 221 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 250 251 252 254 48 49 50 51 52 53 54 55 56 57 8710 9049 9398 9399 9400 9401 9402 9403 9404 9405 9406 9407 9408 9409 9410 9411 9412 9413 9414 9415 9416 9417 9418 9419 9420 9421 9422 9423
       :If 82=⎕DR'' ⋄ namechars∩←⎕AVU ⋄ :EndIf
@@ -929,20 +931,23 @@
       pnames←'(',name,'|\(',s,names,s,'\))'      ⍝ name or parenthesised list of names
       res←'(',pnames,'|\{',s,pnames,s,'\})'      ⍝ result is pnames, optionally wrapped in braces
       res←'(',res,s,'←)'                         ⍝ result must be followed by an assignment
-      larg←'(',name,S,'|\{',s,name,s,'\}',s,')'  ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
+      largs←'(',name,s,'|\{',s,name,s,'\}',s,')' ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
+      largS←'(',name,S,'|\{',s,name,s,'\}',s,')' ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
       fn←name                                    ⍝ function is a single name
       op←'\(',s,names23,s,'\)'                   ⍝ operator is parenthesised list of 2 to 3 names
-      rarg←'(',S,name,'|',s,'\(',s,names,s,'\))' ⍝ right arg is name or list of names - but single name needs a space before
+      srarg←'(',s,name,'|',s,'\(',s,names,s,'\))'⍝ right arg is name or list of names - but single name needs a space before
+      Srarg←'(',S,name,'|',s,'\(',s,names,s,'\))'⍝ right arg is name or list of names - but single name needs a space before
       locals←'(',s,';',s,'(',name,'|',qvar,'))*' ⍝ trad locals
-      ⍝ actual line matchers - todo operators require rarg
-      tradfn1←res,'?',s,fn,rarg,'?',locals,s,e        ⍝ must have no larg to allow missing rarg
-      tradfn2←res,'?',s,larg,'?',fn,rarg,locals,s,e  ⍝ must have a rarg to allow a rarg
-      tradop←res,'?',s,larg,'?',op,rarg,locals,s,e  ⍝ tradop must have a rarg
+      ⍝ actual line matchers
+      tradfn1←res,'?',s,fn,Srarg,'?',locals,s,e                     ⍝ must have no larg to allow missing rarg
+      tradfn2←res,'?',s,largS,'?',fn,Srarg,locals,s,e               ⍝ must have a rarg to allow a rarg
+      tradop←res,'?',s,largs,'?',op,srarg,locals,s,e                ⍝ tradop must have a rarg
       (delfn1 delfn2 delop)←(b,s,'∇',s)∘,¨(tradfn1 tradfn2 tradop)  ⍝ ∇ functions and operators
-      (tradfn1 tradfn2 tradop)←(b,s)∘,¨(tradfn1 tradfn2 tradop)  ⍝ trad functions and operators
-      delc←b,s,'∇',s,e                               ⍝ del closer - must have no trailing garbage
-      dfn←b,s,name,s,'←',s,lb                    ⍝ dfn header
-      dfno←lb ⋄ dfnc←rb                          ⍝ dfn opener/closer
+      (tradfn1 tradfn2 tradop)←(b,s)∘,¨(tradfn1 tradfn2 tradop)     ⍝ trad functions and operators
+      delo←b,s,'∇',s,NS                          ⍝ del opener - must have at least on trailing non-whitespace character
+      delc←b,s,'∇',s,e                           ⍝ del closer - must have no trailing garbage
+      dfno←b,s,name,s,'←',s,lb                   ⍝ dfn header
+      dfnc←rb,s,e                                ⍝ dfn closer
       deldfn←b,s,'∇',s,name,s,'←',s,lb           ⍝ del-dfn header
       Key←{b,s,':',(Decase ⍵),'(',S,'|',e,')'}   ⍝ regex from keyword - they may have trailing garbage
       req←Key'Require'
@@ -955,69 +960,104 @@
           hd Repl←(b,s,res)''     ⍝ remove leading result if any
           hd Repl←(locals,s,e)''  ⍝ remove trailing locals if any
           :Select patti
-          :Case 1 ⋄ nameclass←3.1 ⍝ tradfn1 has no larg
-              hd Repl←(b,s)''  ⍝ remove leading space
-              actname←⊃(b,fn)Find hd  ⍝ extract fn
-          :Case 2 ⋄ nameclass←3.1 ⍝ tradfn2/tradop have a rarg
-              hd Repl←(rarg,s,e)''    ⍝ remove trailing rarg if any
-              actname←⊃(fn,e)Find hd  ⍝ extract fn
-          :Case 3 ⋄ nameclass←4.1 ⍝ tradfn2/tradop have a rarg
-              hd Repl←(rarg,s,e)''    ⍝ remove trailing rarg if any
-              hd←⊃(op,e)Find hd  ⍝ extract (lop op rop)
-              hd Repl←S' '  ⍝ replace whitespace by space character
+          :Case 1 ⋄ nameclass←3.1   ⍝ tradfn1 has no larg
+              hd Repl←(b,s)''           ⍝ remove leading space
+              actname←⊃(b,fn)Find hd    ⍝ extract fn
+          :Case 2 ⋄ nameclass←3.1   ⍝ tradfn2/tradop have a rarg
+              hd Repl←(srarg,s,e)''     ⍝ remove trailing rarg if any
+              actname←⊃(fn,e)Find hd    ⍝ extract fn
+          :Case 3 ⋄ nameclass←4.1   ⍝ tradfn2/tradop have a rarg
+              hd Repl←(srarg,s,e)''     ⍝ remove trailing rarg if any
+              hd←⊃(op,e)Find hd         ⍝ extract (lop op rop)
+              hd Repl←S' '              ⍝ replace whitespace by space character
               actname←2⊃(~hd∊' ()')⊆hd  ⍝ extract op
           :EndSelect
           :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in tradfn' ⋄ :EndIf
-      :Else  ⍝ expect a script with several items
-          src Repl←str''''''  ⍝ replace strings with empty strings
-          ⍝src Repl←(req,'.*',e)''   ⍝ remove :Require lines
-          ⍝src Repl←(b,s,e)''   ⍝ remove whitespace from empty lines
-          ⍝src←(0<≢¨src)/src    ⍝ remove empty lines
-          :If 0 ⍝ ~0∊⍴reqd←(req,'.*',e)Find src  ⍝ Some :Require keywords
-              reqd Repl←(req,s)''  ⍝ drop leading keyword
-              :If '"'=⊃reqd
-                  reqd←1↓¯1↓(b,'"([^"]|\\")*"')Find reqd  ⍝ watch escaped quotes '\"' - unmatched quote make the whole argument ignored
-                  reqd Repl←'\\"' '"'
-              :Else ⋄ reqd←'\S*'Find reqd  ⍝ stop at first space
+      :Else  ⍝ expect a script, possibly with several items
+          src Repl←str''''''    ⍝ replace strings with empty strings
+          :If ~0∊⍴reqd←(req,'.*',e)Find src  ⍝ Some :Require keywords
+              reqd Repl←(req,s)''                   ⍝ drop leading keyword
+              :If 1∊mask←'"'=⊃¨reqd                 ⍝ process quoted arguments
+                  (mask/reqd)←1↓¨¯1↓¨(b,'"([^"]|\\")*"')Find(mask/reqd)  ⍝ watch escaped quotes '\"' - unmatched quote make the whole argument ignored
+                  (mask/reqd)←(mask/reqd)Repl'\\"' '"'
+              :EndIf ⋄ :If 1∊mask←~mask             ⍝ process unquoted arguments
+                  (mask/reqd)←(b,ns)Find(mask/reqd)  ⍝ stop at first space
               :EndIf
-              :If ~0∊⍴reqd←reqd Repl(b,'file://')''  ⍝ otherwise ignore the :Require statement
-              :AndIf ⎕NEXISTS reqd  ⍝ ignore file names that don't exist
-              :AndIf 0≠2⊃Sniff''(⊃⎕NGET reqd 1)  ⍝ file does not contain valid source
-                  :Return  ⍝ can't fix if file contains invalid script
+              :If ~errors ⋄ :AndIf (≢reqd)≠(≢'file://'Find reqd)  ⍝ not tolerant to invalid arguments to :Require
+                  :Return
               :EndIf
+              reqd←reqd Repl(b,'file://')''         ⍝ otherwise ignore the :Require statement
+              :If ~errors                           ⍝ :Require must point to a valid file
+                  :If 0∊⎕NEXISTS reqd               ⍝ at least one file doesn't exist
+                  :OrIf 0∨.={2⊃Sniff''(⊃⎕NGET ⍵ 1)}¨reqd  ⍝ at least one file contains invalid source
+                      :Return                       ⍝ can't fix if anything went wrong
+                  :EndIf
+              :EndIf
+              src Repl←(req,'.*',e)''               ⍝ remove :Require lines
           :EndIf
-          patt←dfn dfno dfnc deldfn delfn1 delfn2 delop delc,so,sc  ⍝ dfn must win over dfno
-          :If 0∊⍴where←patt Where src ⋄ ⋄ :Return ⋄ :EndIf  ⍝ nothing found
-          (pos line patti)←↓⍉↑where ⋄ open←close←(3,≢src)⍴0  ⍝ openclose[dfn del script;line]
-          open[1;(patti∊1 2)/line]+←1 ⋄ close[1;(patti∊3)/line]+←1  ⍝ dfns
-          open[2;(patti∊4 5 6 7)/line]+←1 ⋄ close[2;(patti∊8)/line]+←1  ⍝ dels
-          open[3;(patti∊9 10 11)/line]+←1 ⋄ close[3;(patti∊12 13 14)/line]+←1  ⍝ scripts
+          ⍝      1   2   3  4    5     6       7     8     9    10  11  12/13/14 15/16/17  ⍝ changing these require carefully looking for these constants in the code below
+          patt←dfno dfnc lb rb deldfn delfn1 delfn2 delop delo delc'∇',,,,so,,,,,,,sc     ⍝ dfn must win over braces - delfn/delop must win over delo - delo and delc must win over '∇'
+          openclose←(∊(≢¨src)↑¨1)⊂{+\+⌿1 ¯1×[1]'{}'∘.=⍵}∊src            ⍝ raw open/close brace state
+          :If 0∊⍴where←patt Where oldsrc←src ⋄ ⋄ :Return ⋄ :EndIf       ⍝ nothing found
+          (pos line patti)←↓⍉↑where ⋄ open←close←(4,≢src)⍴0             ⍝ (open close):[brace dfn del script;line]
+          mask←1≤openclose[↓⍉↑(patti∊pattd←5 6 7 8 9 10 11)∘/¨line pos] ⍝ for each del : is it within them
+          (pos line patti)/⍨←⊂(patti∊pattd){(~⍺)∨(⍺\⍵)}~mask            ⍝ if so ignore them
+          :If 11∊patti ⋄ :Return ⋄ :EndIf  ⍝ meaningless ∇ outside a dfn
+          open[1;(patti∊3)/line]+←1 ⋄ close[1;(patti∊4)/line]+←1        ⍝ non-dfn braces - may have several open/close in a single line - others can't - also note that {res} and {larg} are taken as non-proper dfns !
+          open[2;(patti∊1)/line]+←1 ⋄ close[2;(patti∊2)/line]+←1        ⍝ dfns
+          open[3;(patti∊5 6 7 8)/line]+←1 ⋄ close[3;(patti∊10)/line]+←1 ⍝ dels
+          open[4;(patti∊pattso←12 13 14)/line]+←1 ⋄ close[4;(patti∊pattsc←15 16 17)/line]+←1  ⍝ scripts
           before←0,¯1↓[2]after←+\open-close
-          :If 0≠after[2;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf  ⍝ ∇ must end in a clean state
-          ⍝mask←(0∨.≠open)∨(0∨.≠before)       ⍝ ignore gargabe that is not in a block
-          ⍝(src open close before after)/⍨←⊂mask
-          src←(part←(0∨.≠open)∧(0∧.=before))⊂src  ⍝ cut on open that is not in a block
-          :If 1≠≢src ⋄ :Return ⋄ :EndIf ⋄ hd←⊃src←⊃src ⍝ script must define only one item
-          :Select ×⊣/part/open  ⍝ dfns may have several opens in a single line - others can't
-          :Case 1 0 0  ⍝ dfn : look for ⍺⍺/⍵⍵ excepted in an inner dfn
-              hd Repl←(b,s)''  ⍝ remove leading space
-              actname←⊃(b,name)Find hd  ⍝ find first name
-              :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf
-              (pos line patti)←↓⍉↑where←dfno dfnc Where src←∊src  ⍝ process source as a whole string
-              :If pos≢∪pos ⋄ Error'Internal sniffing error: failed to parse dfn braces' ⋄ :EndIf
-              openclose←+\¯1@((patti=2)/pos)⊢1@((patti=1)/pos)⊢(≢src)⍴0  ⍝ there cannot be two opencloses at the same pos
-              src←(openclose=1)/src ⍝ keep the main dfn body
-              :If ~0∊⍴'⍺⍺|⍵⍵'Where src ⋄ nameclass←4.2 ⋄ :Else ⋄ nameclass←3.2 ⋄ :EndIf
-          :CaseList (0 1 0)(1 1 0) ⋄ ⍝ del : parse tradfn/dfn
-              (⊃src)Repl←(b,s,'∇')''  ⍝ remove leading del
-              (⊃⌽src)Repl←(b,s,'∇')'' ⍝ remove closing del
-              (actname nameclass)←Sniff(expname src)  ⍝ recur on tradfn within dels
-              :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf
-          :Case 0 0 1 ⋄ ⍝ script : expect name after keyword
-              hd Repl←(so,¨⊂s)''  ⍝ remove keyword and trailing space
-              :If ~0∊⍴actname←⊃(b,name)Find hd  ⍝ find first name - script may be unnamed in which case it's not supported by Link
-                  nameclass←(9 10 11⍳⊃patti∩9 10 11)⊃9.1 9.4 9.5  ⍝ relies on matches being reported in order of appearance by ⎕S
+          :If errors    ⍝ any del opener is valid
+              openclose←open[3;]-close[3;] ⋄ openclose[(patti∊9)/line]+←1  ⍝ allow del opener
+              :If 0≠+/openclose ⋄ :Return ⋄ :EndIf          ⍝ mismatched dels are unacceptable
+          :Else         ⍝ only delfn and delop are valid del openers
+              :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
+          :EndIf
+          part←(0∨.≠1↓open)∧(0∧.=before)                ⍝ cut on open that is not in a block
+          src←part⊂src
+          :If 1≠≢src ⋄ :Return ⋄ :EndIf                 ⍝ script must define only one item
+          hd←⊃src←⊃src
+          :Select 1↓⊣/⊃part⊂open    ⍝ ignore braces
+          :Case 1 0 0               ⍝ dfn : look for ⍺⍺/⍵⍵ excepted in an inner dfn
+              openclose←{+\+⌿1 ¯1×[1]'{}'∘.=⍵}src←∊src      ⍝ raw open/close brace state
+              :If (0≠⊃⌽openclose)∨(0=+/(⊃part⊂close)[2;])   ⍝ no proper closing
+              :OrIf 0∊{(∨\⍵)/⍵}{⌽⍺⍺⌽⍺⍺ ⍵}openclose          ⍝ braces close midway
+                  :Return
               :EndIf
+              hd Repl←(b,s)''                               ⍝ remove leading space
+              actname←⊃(b,name)Find hd                      ⍝ find first name
+              :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf
+              src←(openclose=1)/src                         ⍝ keep only main dfn body
+              :If ~0∊⍴'⍺⍺|⍵⍵'Where src ⋄ nameclass←4.2 ⋄ :Else ⋄ nameclass←3.2 ⋄ :EndIf
+          :CaseList (0 1 0)(1 1 0)  ⍝ del : parse tradfn/dfn
+              (⊃src)Repl←(b,s,'∇')''                        ⍝ remove leading del
+              (⊃⌽src)Repl←(b,s,'∇')''                       ⍝ remove closing del
+              (actname nameclass)←Sniff(expname src)        ⍝ recur on tradfn within dels
+              ⍝ :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf  ⍝ nope - could well be a tradfn with invalid header
+          :Case 0 0 1               ⍝ script : expect name after keyword
+              :If ~errors
+                  openclose←(3,≢oldsrc)⍴0
+                  openclose[1;(patti∊1⊃pattso)/line]+←1 ⋄ openclose[1;(patti∊1⊃pattsc)/line]-←1 ⍝ namespaces
+                  openclose[2;(patti∊2⊃pattso)/line]+←1 ⋄ openclose[2;(patti∊2⊃pattsc)/line]-←1 ⍝ classes
+                  openclose[3;(patti∊3⊃pattso)/line]+←1 ⋄ openclose[3;(patti∊3⊃pattsc)/line]-←1 ⍝ interfaces
+                  :If 0∨.>∊+\openclose                                              ⍝ un-matched close - todo: doesn't detect :Namespace ⋄ :Class ⋄ :EndNamespace
+                  :OrIf ~0∊⍴NS Find((0∧.=before)∧(0∧.=after))/oldsrc              ⍝ do not allow garbage outside script
+                      :Return
+                  :EndIf
+              :EndIf
+              patti←⊃patti∩pattso                           ⍝ type of script found
+              :If 0≠after[2;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ any included dfn must end
+              hd Repl←(so,¨⊂s)''                            ⍝ remove keyword and trailing space
+              :If errors ⋄ patt←b,name ⋄ :Else              ⍝ FixWithErrors allows garbage after name
+                  base←s,'(:',s,name,'|:',s,'(',name,')?(',s,',',s,name,')*)?'  ⍝ :Class (pattern 11) may have name:base
+                  patt←b,name,((patti=2⊃pattso)/base),s,e   ⍝ allowed trailing spaces must be trimmed later
+              :EndIf
+              :If ~0∊⍴actname←⊃patt Find hd                 ⍝ find first name - script may be unnamed in which case it's not supported by Link
+              :AndIf ~0∊⍴actname←⊃(b,name)Find actname      ⍝ take first name, avoid trailing :base and whitespace
+                  nameclass←(pattso⍳patti)⊃9.1 9.4 9.5      ⍝ relies on matches being reported in order of appearance by ⎕S
+              :EndIf
+          :Case 0 0 0 ⋄ :Return  ⍝ non-proper dfn or res←{larg} in a bad non-del tradfn
           :Else ⋄ Error'Internal sniffing error: bad block open/close'
           :EndSelect
       :EndIf
@@ -1035,38 +1075,14 @@
     ⍝      FixTree ':Namespace ns1' ':End     ' ':Class class' ':EndNamespace'
     ⍝      FixTree ':Namespace ns1' ':EndNamespace' ' ∇ foo arg'  '∇ goo arg' 'arg'  '∇' '∇'
     ⍝      FixTree '∇ goo arg' 'arg'  '∇' ⋄ FixTree '∇ goo arg' 'arg'  '∇'  ' '
-    ∇ ok←Sniff_QA1;Assert;Split;Test;src
-      Assert←{1≢⍵:Error'QA failed' ⋄ 1:_←1} ⋄ Split←'%'∘(≠⊆⊢)
-      Test←{Assert(Fix'expname'⍵)≡(Sniff'expname'⍵)}∘Split
-      Assert(Fix'expname'⎕NULL)≡(Sniff'expname'⎕NULL)  ⍝ unscripted namespace
-      src←''(0⍴⊂'')'this is total garbage'
-      src,←'∇ foo arg;bad;;bad ⍝ comment % foo' '∇ foo bad; ⍝ comment % foo'
-      src,←⊂'∇ foo ; local ⍝ comment % ∇ bad'
-      src,←⊂':Namespace % :EndNamespace'  ⍝ unnamed namespace must fail
-      src,←⊂':Namespace ns % :EndNamespace % :Class class % :EndClass'   ⍝ two definitions - must fail
-      src,←⊂':Namespace ns2 % :EndClass % :Class class2 % :EndNamespace' ⍝ two definitions (arguable) - must fail
-      src,←⊂'dfn←{ % ''⍺⍺'' ⍝ ⍺⍺ % ⍺{⍺⍺ {⍵}}⍵ % }'   ⍝ dfn
-      src,←⊂' dfn2 ← {  %  ''{{'' ⍺⍺ { ⍺ {{} ⍵ } ⍵  %  } } '  ⍝ dop
-      src,←⊂' dfn3 ← {{  % ⍺⍺ % } % ''⍺⍺'' ⍝ ⍺⍺ % } '  ⍝ dfn
-      src,←⊂'this is total garbage  %  :Namespace ns./garbage % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % :EndClass'
-      src,←⊂'% :Require stuff % % :Class    class % ∇ foo arg % arg←{ % ⍺⍺'  ⍝ unmatched ∇ are prohibitive
-      src,←⊂'% :Require stuff % % :Class    class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % goo ← { % :Namespace foo'  ⍝ the rest can be left wide open
-      src,←'∇{res1 res2}←{larg}foo(rarg)%∇' ' ∇ { ( res ) } ← { ( larg ) } foo ( rarg1 rarg2 ) % ∇ '  ⍝ invalid parentheses
-      src,←'∇{(res1 res2)}←{larg}foo(rarg)%∇' ' ∇ { ( res ) } ← { larg } foo ( rarg1 rarg2 ) % ∇ '
-      src,←'∇{(res)}←{(larg)}foo(rarg)%∇' ' ∇ { ( res1 res2 ) } ← { ( larg1 larg2 ) } foo ( rarg1 rarg2 ) % ∇ '
-      src,←'∇{(res)}←{larg}foo(rarg)%∇' ' ∇ { ( res1 res2 ) } ← { larg } foo ( rarg1 rarg2 ) % ∇ '
-      ok←⍬
-      :For src :In src
-          ok,←Test src
-      :EndFor
-      ok←∧/ok
-    ∇
-
-
     ⍝ "∇{(ⓍØvÙFXÍxⓄN)}←{Ô}(Ë ãdM⍙ámìÃ Ô)(TⓌⓃtoïNⓎYo)%∇" gave ãdM⍙ámìÃ  4.1 instead of   0
     ⍝ "{( öⒼⒸã _RW ÊⒷÚ ÍⓂvZⓍmS ÛⒿßûúYiⒹNT æìß6Wq èÔô5ôqdKhÐ)}←{ÆäÈcî∆}(Ð Ù0Ⓣ J)( J Z PÏõ7ⓋUò êⓌ⍙ ÜÊXⒽ ⒷⒾhpÑG ⓅÌbÊÈLCAⒶ)" gave Ù0Ⓣ  4.1 instead of   0
     ⍝ "∇{ÎⒹy5EI}←{Í}(Í ⓃÙÃ ⓄóRⒾNaM4ã) rÒÜⓈ%∇" gave ⓃÙÃ  4.1 instead of   0
-    ∇ ok←Sniff_QA2 stop;Comment;Fluff;Name;Space;Test;c;file;h;h1;h2;o;objs;t;tn;valid;valid1;valid2;w
+    ⍝ "dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}" gave   0 instead of dfn  3.2
+    ⍝ "dfn←{ % } arg" gave   0 instead of dfn  3.2
+    ⍝ "  {MKⒽⒷ6è}←g (èL ÈⓃmSI⍙) (	lÔTfGÖLÒ g)⍝)" gave ÈⓃmSI⍙  4.1 instead of   0
+
+    ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;Space;Test;c;f;file;filebad;h;h1;h2;o;objs;t;tn;valid;valid1;valid2;w;where
       ⍝ All possible traditional function/operator headers
       h←'f1' 'f1 a1' 'f1(a d)' 'la f1 a1' 'la f1(a d)'
       h,←'{la2}f1 a1' '{la2}f1(a d)' 'R←f1' 'R←f1 a1' 'R←f1(a d)'
@@ -1075,25 +1091,37 @@
       h,←'{R}←{la2}f1(a d)' '(r1 r2)←f1' '(r1 r2)←f1 a1' '(r1 r2)←f1(a d)' '(r1 r2)←la f1 a1'
       h,←'(r1 r2)←la f1(a d)' '(r1 r2)←{la2}f1 a1' '(r1 r2)←{la2}f1(a d)' '{(r1 r2)}←f1' '{(r1 r2)}←f1 a1'
       h,←'{(r1 r2)}←f1(a d)' '{(r1 r2)}←la f1 a1' '{(r1 r2)}←la f1(a d)' '{(r1 r2)}←{la2}f1 a1' '{(r1 r2)}←{la2}f1(a d)'
-      h,←'(lo f1) a1' '(lo f1)(a d)' 'la (lo f1) a1' 'la (lo f1)(a d)' '{la2}(lo f1) a1'
-      h,←'{la2}(lo f1)(a d)' 'R←(lo f1) a1' 'R←(lo f1)(a d)' 'R←la (lo f1) a1' 'R←la (lo f1)(a d)'
-      h,←'R←{la2}(lo f1) a1' 'R←{la2}(lo f1)(a d)' '{R}←(lo f1) a1' '{R}←(lo f1)(a d)' '{R}←la (lo f1) a1'
-      h,←'{R}←la (lo f1)(a d)' '{R}←{la2}(lo f1) a1' '{R}←{la2}(lo f1)(a d)' '(r1 r2)←(lo f1) a1' '(r1 r2)←(lo f1)(a d)'
-      h,←'(r1 r2)←la (lo f1) a1' '(r1 r2)←la (lo f1)(a d)' '(r1 r2)←{la2}(lo f1) a1' '(r1 r2)←{la2}(lo f1)(a d)' '{(r1 r2)}←(lo f1) a1'
-      h,←'{(r1 r2)}←(lo f1)(a d)' '{(r1 r2)}←la (lo f1) a1' '{(r1 r2)}←la (lo f1)(a d)' '{(r1 r2)}←{la2}(lo f1) a1' '{(r1 r2)}←{la2}(lo f1)(a d)'
-      h,←'(lo f1 ro) a1' '(lo f1 ro)(a d)' 'la (lo f1 ro) a1' 'la (lo f1 ro)(a d)' '{la2}(lo f1 ro) a1'
-      h,←'{la2}(lo f1 ro)(a d)' 'R←(lo f1 ro) a1' 'R←(lo f1 ro)(a d)' 'R←la (lo f1 ro) a1' 'R←la (lo f1 ro)(a d)'
-      h,←'R←{la2}(lo f1 ro) a1' 'R←{la2}(lo f1 ro)(a d)' '{R}←(lo f1 ro) a1' '{R}←(lo f1 ro)(a d)' '{R}←la (lo f1 ro) a1'
-      h,←'{R}←la (lo f1 ro)(a d)' '{R}←{la2}(lo f1 ro) a1' '{R}←{la2}(lo f1 ro)(a d)' '(r1 r2)←(lo f1 ro) a1' '(r1 r2)←(lo f1 ro)(a d)'
-      h,←'(r1 r2)←la (lo f1 ro) a1' '(r1 r2)←la (lo f1 ro)(a d)' '(r1 r2)←{la2}(lo f1 ro) a1' '(r1 r2)←{la2}(lo f1 ro)(a d)' '{(r1 r2)}←(lo f1 ro) a1'
-      h,←'{(r1 r2)}←(lo f1 ro)(a d)' '{(r1 r2)}←la (lo f1 ro) a1' '{(r1 r2)}←la (lo f1 ro)(a d)' '{(r1 r2)}←{la2}(lo f1 ro) a1' '{(r1 r2)}←{la2}(lo f1 ro)(a d)'
+      h,←'(lo f1)a1' '(lo f1)(a d)' 'la(lo f1)a1' 'la (lo f1)(a d)' '{la2}(lo f1)a1'
+      h,←'{la2}(lo f1)(a d)' 'R←(lo f1)a1' 'R←(lo f1)(a d)' 'R←la(lo f1)a1' 'R←la(lo f1)(a d)'
+      h,←'R←{la2}(lo f1)a1' 'R←{la2}(lo f1)(a d)' '{R}←(lo f1)a1' '{R}←(lo f1)(a d)' '{R}←la(lo f1)a1'
+      h,←'{R}←la(lo f1)(a d)' '{R}←{la2}(lo f1) a1' '{R}←{la2}(lo f1)(a d)' '(r1 r2)←(lo f1)a1' '(r1 r2)←(lo f1)(a d)'
+      h,←'(r1 r2)←la(lo f1)a1' '(r1 r2)←la(lo f1)(a d)' '(r1 r2)←{la2}(lo f1)a1' '(r1 r2)←{la2}(lo f1)(a d)' '{(r1 r2)}←(lo f1)a1'
+      h,←'{(r1 r2)}←(lo f1)(a d)' '{(r1 r2)}←la(lo f1)a1' '{(r1 r2)}←la(lo f1)(a d)' '{(r1 r2)}←{la2}(lo f1)a1' '{(r1 r2)}←{la2}(lo f1)(a d)'
+      h,←'(lo f1 ro)a1' '(lo f1 ro)(a d)' 'la(lo f1 ro)a1' 'la(lo f1 ro)(a d)' '{la2}(lo f1 ro)a1'
+      h,←'{la2}(lo f1 ro)(a d)' 'R←(lo f1 ro)a1' 'R←(lo f1 ro)(a d)' 'R←la(lo f1 ro)a1' 'R←la(lo f1 ro)(a d)'
+      h,←'R←{la2}(lo f1 ro)a1' 'R←{la2}(lo f1 ro)(a d)' '{R}←(lo f1 ro)a1' '{R}←(lo f1 ro)(a d)' '{R}←la(lo f1 ro)a1'
+      h,←'{R}←la(lo f1 ro)(a d)' '{R}←{la2}(lo f1 ro)a1' '{R}←{la2}(lo f1 ro)(a d)' '(r1 r2)←(lo f1 ro)a1' '(r1 r2)←(lo f1 ro)(a d)'
+      h,←'(r1 r2)←la(lo f1 ro)a1' '(r1 r2)←la(lo f1 ro)(a d)' '(r1 r2)←{la2}(lo f1 ro)a1' '(r1 r2)←{la2}(lo f1 ro)(a d)' '{(r1 r2)}←(lo f1 ro)a1'
+      h,←'{(r1 r2)}←(lo f1 ro)(a d)' '{(r1 r2)}←la(lo f1 ro)a1' '{(r1 r2)}←la(lo f1 ro)(a d)' '{(r1 r2)}←{la2}(lo f1 ro)a1' '{(r1 r2)}←{la2}(lo f1 ro)(a d)'
       ⍝ add single name in lists and many (3-7) names in lists
       h,←('a d' 'r1 r2'⎕R(,¨'a' 'r')⊢h),('a d' 'r1 r2'⎕R{l←¯2↑⊃⍵.Match ⋄ ∊l∘,∘⍕¨⍳2+?5}h)
+      ⍝ add failing headers
+      h,←'{res1 res2}←{larg}foo(rarg)' '{(res)}←{(larg)}foo(rarg1 rarg2)'  ⍝ invalid parentheses
+      h,←'res←{larg1 larg2}foo rarg' 'res←{(larg1 larg2)}foo res'  ⍝ multiple larg
+      h,←'{(res)}←{larg1 larg2}foo(rarg)' '{(res1 res2)} ←{(larg1 larg2)}foo(rarg1 rarg2)'  ⍝ multiple larg
+      ⍝ add locals
+      h,←{⍵,∊';a'∘,¨⍕¨⍳?5}¨h
+      h,←'res←larg foo rarg;local;;bad' '{(res1 res2)}←{larg}foo(rarg1 rarg2);local;bad;'  ⍝ faililng cases
       ⍝ Dfns and dfn look-alikes
       h,←'f1←{}' 'f1←{⍺⍺}' 'f1←{⍵⍵}' 'f1←{%⍺⍺}' 'f1←{%⍵⍵}' 'f1←{''⍺⍺''}' 'f1←{''⍵⍵''}' 'f1←{⍝ ⍺⍺%}' 'f1←{⍝ ⍵⍵%}'
       h,←'f1←{+{⍺⍺ ⍵}⍵}' 'a←{b{}c d%}' 'a←{b}c d%}' 'a←{b⍝}c d%}' 'a←{b''}c{''d}' 'a←{b}⍝c d'
+      h,←'f1←{a}{⍺ ⍺⍺ ⍵⍵ ⍵}{b}' 'f1←{%a%}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{%b%}'
+      h,←'f1←+{⍺ ⍺⍺ ⍵⍵ ⍵}÷' 'f1←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}÷'
       ⍝ wrap them all in dels
       h,←{'∇',⍵,'%∇'}¨h
+      ⍝ add failing cases
+      h,←⊂'∇foo arg;local%arg'  ⍝ no closing del
+      h,←⊂'∇foo;local%arg%∇bad'
       ⍝ add random names
       valid2←⎕D,valid1←⎕UCS ¯1+⍸¯1≠⎕NC⍪⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢0,⍳10000 ⍝ valid chars - first char can't be digit
       Name←{valid1[?≢valid1],valid2[?(¯1+?10)⍴(≢valid2)]} ⍝ random valid name
@@ -1102,28 +1130,93 @@
       Space←{⎕UCS 9 32[?(¯1+???5)⍴2]} ⍝ random whitespace
       c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' ⍝ evil comments
       Comment←{⍵.Match,⍨c⊃⍨?3}
-      w←'[^',valid2,']'
+      w←'[^:/⍺⍵',valid2,']'  ⍝ for :Namespace, file:///tmp/file {⍺⍺}{⍵⍵}
       h,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢h   ⍝ randomise code
       ⍝ create some namespace scripts - empty for now
-      file←'/sniffnc_qa.dyalog',⍨739⌶0 ⋄ 'foo0'⎕NPUT file 1
+      file←'/sniff_qa_ok.dyalog',⍨739⌶0 ⋄ 'foo0'⎕NPUT file 1
+      filebad←'/sniff_qa_bad.dyalog',⍨739⌶0 ⋄ 'this is total garbage !!!;;;'⎕NPUT filebad 1
       Fluff←{
-          l←c,(⊂''),':',¨'rR',¨⊂'equire file://',file
+          file←{'"',⍵,'"'}⍣(1=?2)⊢file
+          l←':',¨'rR',¨⊂'equire file://',file
+          l,←c,'' 'this is total garbage !!!;;;'
           ∊l[?(1+?10)⍴≢l],¨'%'
       }
       o←'.+'⎕R':& ∆\%:End&'⊢'Namespace' 'Class' 'Interface'
+      o,←'.+'⎕R':&.∆\%:End&'⊢'Namespace' 'Class' 'Interface'
+      o,←('∆'⎕R{'∆ ',Name ⍬}o),('∆'⎕R{'∆.',Name ⍬}o)
       o,←'.+'⎕R'\l&'⊢o
       o,←'^'⎕R Fluff o
       o,←'∆'⎕R Name⊢o
+      ⍝ failing cases
+      where←⎕NS ⍬
+      where.⎕FIX':Interface Interface1' ':EndInterface'
+      where.⎕FIX':Interface Interface2' ':EndInterface'
+      where.⎕FIX':Class BaseClass' ':EndClass'
+      f←'' ' % ' 'this is total garbage' 'this is total garbage !!! ;;;'
+      f,←'r←(op foo)arg%r←op arg' 'r←larg(op foo)arg%r←op arg'
+      f,←'dfn←{%}%arg' 'dfn←{%}arg' 'dfn←{}arg' 'dfn←{arg}arg'
+      f,←'dop←+{⍺⍺}' 'dop←+{%⍺⍺%}' 'dop←+{⍺⍺}arg' 'dop←+{%⍺⍺%}arg'
+      f,←'dop←{⍵}{⍺⍺}' 'dop←{⍵}{%⍺⍺%}' 'dop←{⍵}{⍺⍺}arg' 'dop←{⍵}{%⍺⍺%}arg'
+      f,←'dfn←var∘{⍺+⍵}' 'dfn←var∘{%⍺+⍵%}'
+      f,←'dfn←+{⍺ ⍺⍺ ⍵⍵ ⍵}+' 'dfn←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}+' 'dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}' 'dfn←{⍺}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{⍵}'
+      f,←'dfn←{' 'dop←{%⍺⍺' 'dfn←{%{⍺⍺}' 'dfn←{%}{%}' 'dop←{%}{%⍺⍺%}'
+      f,←':Namespace' 'Namespace +' ':Namespace % :EndNamespace' ':Namespace + % :EndNamespace'  ⍝ unnamed namespace must fail
+      f,←⊂':Namespace ns % :EndNamespace % :Class class % :EndClass'   ⍝ two definitions - must fail
+      f,←⊂':Namespace ns2 % :EndClass % :Class class2 % :EndNamespace' ⍝ two definitions (arguable) - must fail
+      f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % '
+      f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % :EndClass'
+      f,←⊂':Namespace ns % :EndNamespace % :EndClass'
+      f,←⊂':Namespace ns % :EndClass % :EndNamespace'
+      f,←⊂':Namespace ns % :Class class'
+      f,←⊂':Namespace ns % :Class class % :EndClass'
+      f,←⊂':Namespace ns % :Class class % :EndNamespace'
+      f,←⊂':Namespace ns % :Class class % :EndClass % :EndNamespace'
+      f,←⊂':Namespace ns % :Class class % :EndClass % :EndClass'
+      f,←⊂':Namespace ns % :Class class % :EndNamespace % :EndNamespace'
+      f,←⊂':Require%:Class class % :EndClass'
+      f,←⊂':Require %:Class class % :EndClass'
+      f,←⊂':Require stu ff % :Class class % :EndClass'
+      f,←⊂':Require "stu ff" % :Class class % :EndClass'
+      f,←⊂':Require file:///stuff/notfound % :Class class % :EndClass'
+      f,←⊂':Require "file:///stuff/notfound" % :Class class % :EndClass'
+      f,←⊂':Require ',filebad,' % :Class class % :EndClass'
+      f,←⊂':Require "',filebad,'" % :Class class % :EndClass'
+      f,←⊂':Class Class % ∇ constructor % :Access Public % :Implements Constructor % ∇ % :EndClass'
+      f,←':Class Class:BaseClass % :EndClass' ':Class Class:,Interface1 % :EndClass' ':Class Class:,Interface1,Interface2 % :EndClass' ':Class Class:BaseClass,Interface1,Interface2 % :EndClass'
+      f,←':Class Class:BaseClassNotFound % :EndClass' ':Class Class:,Interface1NotFound % :EndClass' ':Class Class:,Interface1NotFound,Interface2NotFound % :EndClass' ':Class Class:BaseClassNotFound,Interface1NotFound,Interface2NotFound % :EndClass'
+      f,←⊂':Class Class % :Include #.NOT.FOUND % ∇ constructor % :Access Public % :Implements Constructor % ∇ % :EndClass'
+      f,←⊂':Class Class % :Access Public % :Require nonsense % :EndClass'
+      f,←':Class class' ':Namespace ns'
+      f,←':Class class % goo←{' ':Namespace ns % goo←{'
+      f,←':Class class % :Namespace ns' ':Namespace ns % :Class class'
+      f,←⊂':Class class % ∇ foo arg ' ⍝ unmatched ∇ are prohibitive
+      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺'  ⍝ unmatched ∇ are prohibitive
+      f,←⊂':Class class % ∇ foo arg % ∇ % goo ← { '  ⍝ neither can dfns
+      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % goo ← { '  ⍝ neither can dfns
+      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % :Namespace foo'  ⍝ the rest can be left wide open
+      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % :Namespace ns'  ⍝ the rest can be left wide open
+      f,←⊂':Class class % ∇ foo arg % ∇ % :Namespace foo'  ⍝ the rest can be left wide open
+      f,←⊂':Class class % ∇ foo arg % ∇ % :Namespace ns'  ⍝ the rest can be left wide open
+      f,←⊂':Namespace badns1%∇res←foo arg;%res←arg%∇%:EndNamespace'  ⍝ foo is invalid, but ∇'s are ok
+      f,←⊂':Namespace badns1%∇this is total garbage!!!%∇%:EndNamespace'  ⍝ ∇ seem ok
+      f,←⊂':Namespace badns1%∇!!!%∇%:EndNamespace'  ⍝ ∇ seem ok
+      f,←':Namespace badns%∇%:EndNamespace' ':Namespace badns%∇%∇%:EndNamespace'
+      f,←':Namespace badns%test∇test%:EndNamespace' ':Namespace badns%test∇test%test∇test%:EndNamespace'
+      f,←⊂':Namespace ns%test←{⍺∇⍵}%∇foo%dfn←{⍺∇⍵}%∇%:EndNamespace'  ⍝ ∇ within dfns must be ignored
+      f,←':Namespace ns%dfn←{%∇%}%:EndNamespace' ':Namespace ns%dfn←{%∇res←{larg}foo arg%}%:EndNamespace'  ⍝ even when on single line
+      f,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢f   ⍝ randomise code
+      ⍝ actually run the tests
       Test←{
           src←'%'(≠⊆⊢)⍵ ⋄ expname←Name ⍬
-          (exp←Fix expname src)≡(res←Sniff expname src):1
+          (exp←where Fix expname src)≡(res←SniffScript expname src):1
           msg←⍕'"',⍵,'" gave',res,'instead of',exp
           stop:⎕SIGNAL⊂('EN' 8)('EM' 'ASSERTION ERROR')('Message'msg)
           ⎕←msg ⋄ 0
       }
       ok←⍬
-      :For t :In h,o
+      :For t :In h,o,f
           ok,←Test t
+          where.⎕EX(where.⎕NL-⍳10)~'BaseClass' 'Interface1' 'Interface2'  ⍝ other dyalog crashes after fixing too many wild names
       :EndFor
       ok←∧/ok
       ⎕NDELETE file
