@@ -1,4 +1,4 @@
- text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items ⍝ Convert Array to text
+ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP ⍝ Convert Array to text
  ⎕IO←1
  :If 900⌶⍬ ⋄ inner←0 ⋄ :EndIf  ⍝ flag for outer call of Serialise
  q←''''
@@ -10,11 +10,40 @@
  }
  Esc←'([\x00-\x1F\x80-\xA0]+)(.?)'⎕R MkEsc⍠'Mode' 'D'
  DelQQ←'^(\()'''',' ',''''(\))$'⎕R'\1'
- Quot←DelQQ∘Esc∘DblQuot∘⍕⍤1
- Encl←{(l↑⍺⍺),(¯1⊖l↑w),')]'['(['⍳⍺⍺]↑⍨-l←2+≢w←⎕FMT ⍵}
+ RSP←{ ⍝ Remove String Parens
+     '⎕'∊'''[^'']*'''⎕R''⊢⍵:⍵
+     '^\((''.*'')\)$'⎕R'\1'⊢⍵
+ }
+ Quot←RSP∘DelQQ∘Esc∘DblQuot∘⍕⍤1
+ Encl←{
+     r←')]'['(['⍳⍺⍺]
+     w←⎕FMT ⍵
+     c←≢w
+     2≤c:(c↑⍺⍺),w,r↑⍨-c
+     (l↑⍺⍺),(¯1⊖l↑w),r↑⍨-l←2+c
+ }
  Brack←{(⎕FMT'['Encl⍤2)⍣⍺⍺⊢⍵}
  SubMat←{(¯2+≢⍴⍵)Brack ⍺⍺ ⍵}
- Dia←{1⌽')(',' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
+ RRP←{ ⍝ Remove Redundant Parens
+     x←'''[^'']+'''⎕R{''↑⍨≢⍵.Match}⍵
+     b←-⌿'()'∘.=x
+     d←(+\+0∘>)b
+     I←⌷⍨∘⊂⍨ ⋄ R←⊢⍴⍨÷⍨∘≢,⊣ ⋄ E←⊢∘≢≥⍳⍨
+     ⍵/⍨~(⍳≢⍵)∊,(+∘1 ¯1⍤¯1(E⊢⍤⌿⊣)⊢)2 R((⍋I∘d)I⊢)⍸|b
+ }
+ RRD←{ ⍝ Remove Redundant Diamonds
+     x←'''[^'']+'''⎕R''⊢⍵
+     x←'^ +| +$'⎕R''⊢x
+     x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
+     ' *⋄ *\) *$'⎕R')'⍣(1<≢x∩'⋄')⊢⍵
+ }
+ ROP←{ ⍝ Remove Outer Parens
+     x←' |''[^'']'⎕R''⊢⍵
+     x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
+     '()'≢'^(.)[^⋄]+(.)$'⎕R'\1\2'⊢x:⍵
+     '^( *)\((.+)\)'⎕R'\1\2'⊢⍵
+ }
+ Dia←{RRP 1⌽')(',' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
  :Trap (~inner)/0   ⍝ trap only outer call
      :If 0=≡array ⍝ simple scalar
          :Select 10|⎕DR array
@@ -34,7 +63,7 @@
                      :CaseList 2.1 2.2 2.3 2.6 ⍝ var
                          text,←⊂⎕FMT(name,':')(1 Serialise array⍎name)
                      :CaseList 3.2 4.2 ⍝ dfn/dop
-                         text,←⊂↑('^( ',name,')←')⎕R'\1:'@1 array.⎕NR name
+                         text,←⊂↑('^ *(',name,') *←')⎕R'\1:'@1 array.⎕NR name
                      :CaseList 9+0.1×⍳9
                          text,←⊂(name,':')(1 Serialise array⍎name)
                      :Else
@@ -105,13 +134,17 @@
              :If ⍬≡array
              :ElseIf (1↑⍨-≢⍴array)≡0=⍴array
                  text←('⍬'⍴⍨1,⍨¯1↓⍴)SubMat array
+             :ElseIf 2=≢⍴array
+                 text←⎕FMT array
              :Else
                  text←(1∘Serialise)⍤1 SubMat array
              :EndIf
          :EndSelect
          text←'['Encl text
      :EndIf
-     text←⎕FMT⍣(~inner)⊢text
+     :If ~inner
+         text←RRD∘ROP⍤1 ⎕FMT text
+     :EndIf
  :Else
      ⎕SIGNAL⊂⎕DMX.(('EN'EN)('Message'Message))
  :EndTrap
