@@ -1051,16 +1051,20 @@
       ⎕EX'#.UnlikelyName'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
-      :If ##.U.IS190 ⍝ link issue #155 - :Require doesn't work
-          ⎕EX name
+      :If ##.U.IS190 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
+          ⎕EX name  
           {}(⊂server←':Require file://Engine.apln' ':Namespace  Server' ' dup ← ##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
           {}(⊂engine←':Namespace  Engine' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
+          {}(⊂master←':Require file://Slave.apln' ':Namespace  Master' ' dup ← ##.Slave.dup' ':EndNamespace')QNPUT(folder,'/Master.apln')1
+          {}(⊂slave←':Namespace  Slave' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Slave.apln')1
           z←⎕SE.Link.Create name folder
           'link issue #155'assert'1=≢⎕SE.Link.Links'
           'link issue #155'assert'~∨/''failed''⍷z'
-          'link issue #155'assert' ''Engine''  ''Server'' ''UnlikelyName'' ≡ (⍎name).⎕NL -⍳10'
+          'link issue #155'assert' ''Engine'' ''Master''  ''Server'' ''Slave'' ''UnlikelyName'' ≡ (⍎name).⎕NL -⍳10'
           'link issue #155'assert'(1↓server)≡⎕SRC ',name,'.Server'    ⍝ :Require statement missing from ⎕SRC but shown in editor
+          'link issue #155'assert'(1↓master)≡⎕SRC ',name,'.Master'    ⍝ :Require statement missing from ⎕SRC but shown in editor
           'link issue #155'assert'(engine)≡⎕SRC ',name,'.Engine'
+          'link issue #155'assert'(slave)≡⎕SRC ',name,'.Slave'
           {}⎕SE.Link.Break name
       :EndIf
      
