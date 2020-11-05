@@ -6,7 +6,6 @@
  :Trap DEBUG↓0
      ⎕IO←1
 
-     '⎕SE.Link'⎕NS ⍬
      :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure
          ⎕SE.Link.Links←⍬         ⍝ Start with no links
      ⍝ Link namespaces will record switch values
