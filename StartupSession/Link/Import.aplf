@@ -1,5 +1,4 @@
- msg←{opts}Import(ns dir);defopts
- ;opts;nsref;inFail;numFail
+ msg←{opts}Import(ns dir);defopts;inFail;nsref
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -25,11 +24,11 @@
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
          inFail←opts U.FixFiles nsref dir opts.overwrite
-         msg←'Imported: ',ns,' ← ',U.WinSlash dir
-         numFail←≢inFail
-         :If ×numFail
-             msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓⎕JSON inFail
+         msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
+         :If ×≢inFail
+             msg,←⊂(⊂(⍕≢inFail),' failed:'),inFail
          :EndIf
+         msg←1↓U.FmtLines msg
      :EndIf
  :Else
      U.Resignal 1

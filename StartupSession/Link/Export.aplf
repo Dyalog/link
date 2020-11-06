@@ -1,5 +1,4 @@
- msg←{opts}Export(ns dir);defopts
- ;outFail;numFail;nc
+ msg←{opts}Export(ns dir);defopts;outFail
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -25,11 +24,11 @@
 
          outFail←opts U.WriteFiles ns dir
 
-         msg←'Exported: ',ns,' → ',U.WinSlash dir
-         numFail←≢outFail
-         :If ×numFail
-             msg,←'; ',(⍕numFail),' failed: ',1↓¯1↓1 ⎕JSON⍕¨outFail
+         msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
+         :If ×≢outFail
+             msg,←(⊂(⍕≢outFail),' failed:'),outFail
          :EndIf
+         msg←1↓U.FmtLines msg
      :EndIf
  :Else
      U.Resignal 1

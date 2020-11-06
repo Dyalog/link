@@ -231,8 +231,8 @@
       {}(⊂'joo arg' '⎕←''joo'' arg')QNPUT(folder,'/.joo.aplf')1
       {}(⊂'koo arg' '⎕←''koo'' arg')QNPUT(folder,'/koo.tmp')1
       ⎕SE.Link.U.WARNLOG/⍨←0
-      {}⎕SE.Link.Create name folder
-      assert'(,⊂0⍴⊂'''')≡⎕SE.Link.Links.inFail'
+      z←⎕SE.Link.Create name folder
+      assert'~∨/''failed''⍷z'
       names←'#.linktest.foo' '#.linktest.sub' '#.linktest.sub.goo'
       'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
      
@@ -947,8 +947,8 @@
       opts.watch←'dir'
       opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
       (⊂newbody)⎕NPUT unlikelyfile 1  ⍝ make it invalid source
-      {}opts ⎕SE.Link.Create name folder
-      assert'⎕SE.Link.Links.inFail≡,⊂,⊂unlikelyfile'
+      z←opts ⎕SE.Link.Create name folder
+      assert'∧/∨/¨''failed'' unlikelyfile⍷¨⊂z'
       name⍎'var←1 2 3'
       {}⎕SE.Link.Add name,'.var'
       'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'
@@ -1056,7 +1056,7 @@
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
       {}⎕SE.UCMD'z←]link.export ',name,' ',folder
-      'link issue #151'assert'∨/''failed: "',name,'.failed"''⍷z'
+      'link issue #151'assert'∧/∨/¨''failed:'' ''',name,'.failed''⍷¨⊂z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
       ⍝ link issue #159 - using casecode from namespace

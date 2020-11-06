@@ -87,16 +87,16 @@
      :If 'ns'≡opts.source
          outFail←opts U.WriteFiles ns dir
      :AndIf 0≠≢outFail
-         msg,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
+         msg,←(⊂(⍕≢outFail),' export(s) failed:'),outFail
      :EndIf
 
      :If 'dir'≡opts.source
          inFail←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
      :AndIf 0≠≢inFail
-         msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
+         msg,←(⊂(⍕≢inFail),' import(s) failed:'),inFail
      :EndIf
 
-     'opts'⎕NS'inFail' 'outFail'
+     'opts'⎕NS''
      :If 'dir' 'both'∊⍨⊂opts.watch
          opts.fsw←Watcher.Watch dir(,'*')
      :Else
@@ -106,7 +106,7 @@
      arrow←U.Arrow opts
      opts.⎕DF 1⌽'][',arrow
      ⎕SE.Link.Links,←opts
-     msg←⊃{⍺,'; ',⍵}/msg,⍨⊂'Linked: ',arrow
+     msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
  :Else
      U.Resignal 1
  :EndTrap

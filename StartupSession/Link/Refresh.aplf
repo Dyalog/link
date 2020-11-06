@@ -4,6 +4,7 @@
  :EndIf
  :Trap DEBUG↓0
      ⎕IO←1
+     :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
      ok←ko←⍬
@@ -23,18 +24,14 @@
              :If ~0∊⍴link.fsw ⋄ link.fsw.EnableRaisingEvents←0 ⋄ :EndIf
 
              :If 'ns'≡source
+                 ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
                  :If 0≠≢outFail←link U.WriteFiles(⍎link.ns)link.dir
-                     ko,←⊂(⍕≢outFail),' export(s) failed (⎕SE.Link.Links',ix,'.outFail)'
-                     link.outFail←outFail
-                 :Else
-                     ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
+                     ko,←(⊂(⍕≢outFail),' export(s) failed:',),outFail
                  :EndIf
              :ElseIf 'dir'≡source
+                 ok,←⊂'Imported: ',ns,' ← ',U.WinSlash link.dir
                  :If 0≠≢inFail←link U.FixFiles(⍎link.ns)link.dir 1  ⍝ always overwrite
-                     msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
-                     link.inFail←inFail
-                 :Else
-                     ok,←⊂'Imported: ',ns,' ← ',U.WinSlash link.dir
+                     ko,←(⊂(⍕≢inFail),' import(s) failed:'),inFail
                  :EndIf
              :EndIf
 
@@ -43,7 +40,7 @@
              ko,←⊂'Not linked: ',ns
          :EndIf
      :EndFor
-     msg←1↓¯1↓⍕ko,ok
+     msg←1↓U.FmtLines ok,ko
  :Else
      U.Resignal 1
  :EndTrap
