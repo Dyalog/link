@@ -405,13 +405,15 @@
       :EndWhile
     ∇
 
-    ∇ emptyns←emptyns EmptyNamespace(nsref dir);files;mask;names;parents;scriptitems
+    ∇ emptyns←{emptyns}EmptyNamespace(nsref dir);files;mask;names;parents;scriptitems
     ⍝ is namespace really empty, ignoring APL items that match files in dir
     ⍝ TODO: should provide a way to undo the ⎕EX's if the subsequent link.create fails
     ⍝ TODO: should really compare all items found in the namespace with the ones in the dir
     ⍝ TODO: should also return whether dir is empty or not
     ⍝ for now it only looks for APL items tied (2∘⎕FIX'file://...') to files in dir
     ⍝ to solve link issue #160 when Dyalog is started with load=dir/boot.aplf which starts by linking # to dir
+      :If 900⌶⍬ ⋄ emptyns←0∊⍴ListNames nsref ⋄ :EndIf
+      :If emptyns ⋄ :Return ⋄ :EndIf  ⍝ no more to say
       (names parents scriptitems)←GetFileTiesIn nsref
       (names parents)/⍨←⊂~scriptitems  ⍝ not interested in script items
       :If ~0∊⍴names  ⍝ some names are tied
@@ -811,8 +813,11 @@
       files←files[GradeFiles files]                 ⍝ dirs then quads then files
     ∇
 
-    ∇ {inFail}←opts FixFiles(target source);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
+    ∇ {inFail}←opts FixFiles(target source overwrite);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
     ⍝ Load items from files in folders
+    ⍝ overwrite=¯1 : empty target - no overwrite
+    ⍝ overwrite=0 : non-empty target - no overwrite
+    ⍝ overwrite=1 : non-empty target - overwrite
       inFail←0⍴⊂''
       (files dirs)←opts ListFiles source
       ndirs←≢dirs ⋄ allfiles←dirs,files
@@ -852,8 +857,17 @@
           :For i :In ⍳⍴allfiles
               mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actnc) ⍝ return 1 to continue else 0
           :EndFor
-          (allfiles parents expnames actnames actnc)/⍨←⊂mask    ⍝ keep what was not processed by user
+          (allfiles parents expnames actnames actnc allnames)/⍨←⊂mask    ⍝ keep what was not processed by user
       :EndIf
+     
+      :Select overwrite
+      :Case ¯1 ⋄ :If ~EmptyNamespace target source   ⍝ target must be empty (or already linked to the matching file)
+              Error'Destination namespace not empty: ',(⍕target) ⋄ :EndIf
+      :Case 0 ⋄ :If ∨/mask←0<⎕NC allnames~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
+              Error'Files produce clashing APL names : use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
+      :Else ⋄ ⍝ otherwise silently overwrite - excepted root namespace
+          ⎕EX(⊂⍕target)~⍨(⌊|actnc){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
+      :EndSelect
      
       tie←'both'≡opts.watch ⍝ tie to file if watching both ways
       FixFile←tie∘{(target file name)←⍵ ⋄ target QFix file name ⍺}
@@ -861,7 +875,7 @@
       (dirs names)←ndirs↑¨(allfiles allnames)
       :If ~0∊⍴dirs
           :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-              nss←names ⎕NS¨⊂⍬
+              nss←names ⎕NS¨⊂⍬       ⍝ preserve root namespace in case it has non-imported stuff
               :If ∨/mask←0=≢¨nss   ⍝ could not create namespace
                   inFail,←mask/names
               :EndIf

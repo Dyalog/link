@@ -91,7 +91,7 @@
      :EndIf
 
      :If 'dir'≡opts.source
-         inFail←opts U.FixFiles nsref dir
+         inFail←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
      :AndIf 0≠≢inFail
          msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
      :EndIf

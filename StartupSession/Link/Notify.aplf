@@ -145,7 +145,7 @@
                      Notify¨{'changed'⍵}¨children
                  :Else                                    ⍝ no old ns
                      U.Warn msg,'not found namespace ',oldname,' - loading ',affected,' from ',path
-                     :If 0<≢inFail←link U.FixFiles nsref path
+                     :If 0<≢inFail←link U.FixFiles nsref path 1  ⍝ always overwrite
                          U.Warn msg,'failed to load: ',⍕inFail
                      :EndIf
                  :EndIf
@@ -204,7 +204,7 @@
              U.Warn msg,'Unable to fix file'
          :EndIf
 
-         END:
+END:
          ⍝:If U.debug≠0 ⋄ ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3] ⋄ :EndIf
      :EndHold ⍝ 'Notify'
  :Else

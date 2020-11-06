@@ -30,7 +30,7 @@
                      ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
                  :EndIf
              :ElseIf 'dir'≡source
-                 :If 0≠≢inFail←link U.FixFiles(⍎link.ns)link.dir
+                 :If 0≠≢inFail←link U.FixFiles(⍎link.ns)link.dir 1  ⍝ always overwrite
                      msg,←⊂(⍕≢inFail),' import(s) failed (⎕SE.Link.Links',ix,'.inFail)'
                      link.inFail←inFail
                  :Else

@@ -283,6 +283,27 @@
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
       ⍝opts.customExtensions←'charmat' 'charvec'
+     
+      ⍝ link issue #174
+      ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
+      opts.overwrite←0
+      name⍎'foo←''this seat is taken'' ⋄ sub←{''this one is too''}'
+      'link issue #174'assertError'opts ⎕SE.Link.Import name folder' 'clashing APL names'
+      'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.foo')
+      'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.sub')
+      opts.overwrite←1
+      z←opts ⎕SE.Link.Import name folder
+      'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''failed''⍷z)'
+      'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
+      'link issue #174'assert'foo≡',name,'.⎕NR ''foo'''
+      'link issue #174'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.sub.sub2.one2'
+      ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
+      opts.overwrite←0
+      z←opts ⎕SE.Link.Import name folder
+      'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''failed''⍷z)'
+      'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
+      ⎕EX name
+     
       z←opts ⎕SE.Link.Import name folder
       assert'0=≢⎕SE.Link.Links'
      
@@ -1221,7 +1242,7 @@
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨(##.U.IS190/'#.linktest.badns1' '#.linktest.badns2'),'#.linktest.foo' '#.linktest.ns' '#.linktest.required' '#.linktest.sub' '#.linktest.var' '#.linktest.sub.foo' '#.linktest.sub.ns' '#.linktest.sub.require' '#.linktest.sub.required' '#.linktest.sub.var'
       ⍝ in the following line, ##.U.IS190 is due to Mantis 18626
-      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(##.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(##.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
       {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ ⎕NDELETE reqfile
      
       ⍝ test source=dir watch=dir
