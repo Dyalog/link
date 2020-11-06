@@ -1052,7 +1052,7 @@
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
       :If ##.U.IS190 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
-          ⎕EX name  
+          ⎕EX name
           {}(⊂server←':Require file://Engine.apln' ':Namespace  Server' ' dup ← ##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
           {}(⊂engine←':Namespace  Engine' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
           {}(⊂master←':Require file://Slave.apln' ':Namespace  Master' ' dup ← ##.Slave.dup' ':EndNamespace')QNPUT(folder,'/Master.apln')1
@@ -1093,13 +1093,13 @@
       assert_create←{  ⍝ ⍺=newapl ⋄ ⍵=newfile
           _←assert(⍺/'new'),'var≡⍎subname,''.var'''
           _←assert(⍺/'new'),'foonr≡NR subname,''.foo'''
-          _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''
+          _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''   ⍝ problem is that ⎕SRC reads directly from file !
           _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
           _←assert(⍵/'new'),'foonget≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ r←test_create(folder name);badsrc1;badsrc2;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;opts;root;subfolder;subname;var;varsrc;z
+    ∇ r←test_create(folder name);badsrc1;badsrc2;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
       r←0 ⋄ opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1190,14 +1190,17 @@
       footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form
       (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
-      (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo←{''foo''⍵}' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
+      (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo ← { ''foo'' ⍵ } ' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
       (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
       (⊂badsrc1←,¨':Namespace badns1' '  ∇  res  ←  foo  arg  ;  ' '  res  ←  arg  ' '∇' ':EndNamespace')⎕NPUT folder,'/badns1.apln'
       (⊂badsrc2←,¨':Namespace badns2' '  ∇  res  ←  foo  arg  ' '  res  ←  arg  ' '∇' ':EndClass')⎕NPUT folder,'/badns2.apln'
       newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'new hello')@2)¨var
-      newfoosrc←(⊂'  ⍝  new  comment  ')@2⊢foosrc
-      newnssrc←(⊂'  ⍝  new  comment  ')@2⊢nssrc
-      newfootok←(⊂'  ⍝  new  comment')@2⊢footok
+      newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
+      newnssrc←('  ⍝  new  comment  ' 'foo ← { ''newfoo'' ⍵ } ')@2 3⊢nssrc
+      newfootok←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢footok
+      (⊂':Namespace required' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/required.apln'
+      reqfile←subfolder,'/require.apln'
+      reqsrc←(':Require "file://',folder,'/required.apln"')':Namespace require' 'testvar←##.required.testvar' ':EndNamespace'
       ⍝ expected results
       (foonr newfoonr)←(1+##.U.IS190)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
       (foonget newfoonget)←(foosrc newfoosrc)
@@ -1210,65 +1213,73 @@
           {}⎕SE.Link.Break name ⋄ ⎕EX name
       :EndIf
      
+      ⍝ Link issue #173
+      (⊂reqsrc)⎕NPUT reqfile 1 ⋄ opts.source←'dir'
+      opts.watch←'dir' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
+      opts.watch←'ns' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
+      opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
+      opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
+      'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨(##.U.IS190/'#.linktest.badns1' '#.linktest.badns2'),'#.linktest.foo' '#.linktest.ns' '#.linktest.required' '#.linktest.sub' '#.linktest.var' '#.linktest.sub.foo' '#.linktest.sub.ns' '#.linktest.sub.require' '#.linktest.sub.required' '#.linktest.sub.var'
+      ⍝ in the following line, ##.U.IS190 is due to Mantis 18626
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(##.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  
+      {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ ⎕NDELETE reqfile
+     
       ⍝ test source=dir watch=dir
-      opts.source←'dir' ⋄ opts.watch←'dir'
-      z←opts ⎕SE.Link.Create name folder
+      opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
       :If ##.U.IS190 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''
       :Else ⋄ assert'foonr∘≡¨NR¨name subname,¨⊂''.foo'''
       :EndIf
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
+      0 assert_create 0
+      'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ watch=dir must reflect changes from files to APL
-      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       1 assert_create 1
       ⍝ watch=dir must not reflect changes from APL to files
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
-      Breathe  ⍝ breathe to ensure it's not reflected
-      0 assert_create 1
+      Breathe ⋄ 0 assert_create 1   ⍝ breathe to ensure it's not reflected
       z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
       assert'(0=≢⎕SE.Link.Links)∧(z≡1)'
      
       ⍝ now try source=dir watch=ns
-      opts.source←'dir' ⋄ opts.watch←'ns'
-      {}opts ⎕SE.Link.Create name folder
+      opts.source←'dir' ⋄ opts.watch←'ns' ⋄ {}opts ⎕SE.Link.Create name folder
       1 assert_create 1
+      'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ APL changes must be reflected to file
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       0 assert_create 0
       ⍝ file changes must not be reflected back to APL
-      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       Breathe ⍝ breathe to ensure it's not reflected
       0 assert_create 1
       {}⎕SE.Link.Expunge name
      
       ⍝ now try source=dir watch=none
-      opts.source←'dir' ⋄ opts.watch←'none'
-      {}opts ⎕SE.Link.Create name folder
+      opts.source←'dir' ⋄ opts.watch←'none' ⋄ {}opts ⎕SE.Link.Create name folder
       1 assert_create 1
-      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
-      Breathe
-      1 assert_create 0
-      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      Breathe ⋄ 1 assert_create 0
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
-      Breathe
-      1 assert_create 1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      Breathe ⋄ 1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
-      Breathe
-      0 assert_create 1
+      Breathe ⋄ 0 assert_create 1
       {}⎕SE.Link.Break name
       3 ⎕NDELETE folder
      
@@ -1279,9 +1290,9 @@
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       0 assert_create 0
-      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       :If ~##.U.IS190 ⋄ newfoonget←newfoosrc ⋄ :EndIf   ⍝ we just wrote it to file
       1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
@@ -1296,13 +1307,14 @@
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       0 assert_create 0
+      'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       subname'var'⎕SE.Link.Fix newvarsrc
       subname'foo'⎕SE.Link.Fix newfoosrc
       subname'ns'⎕SE.Link.Fix newnssrc
       1 assert_create 1
-      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       :If ~##.U.IS190 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
@@ -1314,6 +1326,7 @@
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       1 assert_create 1
+      'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
@@ -1324,9 +1337,9 @@
       subname'ns'⎕SE.Link.Fix newnssrc
       Breathe
       1 assert_create 1
-      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
       :If ~##.U.IS190 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
@@ -1335,12 +1348,12 @@
       ⍝ link issue #160 try having items in the namespace already tied to items in the folder
       :If ~##.U.IS190 ⋄ (foonget newfoonget)←(foosrc newfoosrc) ⋄ :EndIf  ⍝ start again from dir
       ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 ⎕MKDIR subfolder
-      {}(⊂varsrc)QNPUT(folder,'/var.apla')1
+      {}(⊂nssrc)QNPUT(folder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(folder,'/foo.aplf')1
-      {}(⊂nssrc)QNPUT(folder,'/ns.apln')1
-      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      {}(⊂varsrc)QNPUT(folder,'/var.apla')1
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
-      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       opts.source←'auto' ⋄ opts.watch←'both'  ⍝ try source=auto
@@ -1350,6 +1363,7 @@
       'link issue #160'assert'(,⊂''dir'')≡⎕SE.Link.Links.source'
       1 assert_create 1
       'link issue #160'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
       z←⎕SE.Link.Break name
       ⎕EX name ⋄ subname ⎕NS''
       2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace

@@ -549,13 +549,21 @@
       :EndTrap
     ∇
 
+    ∇ has←HasRequire src;line;patt;req
+    ⍝ does script have :Require statements ?
+      :If has←~0∊⍴req←⎕IO+'^\s*:[rR][eE][qQ][uU][iI][rR][eE]\s+' '^\s*$'⎕S 2 3⊢src  ⍝ lines startting with ':Require ' and empty lines
+      :AndIf has←1∊2⊃(line patt)←↓⍉↑req   ⍝ just because ↓⍉↑ won't work on empty ⎕S, which yields ⊂⍬
+          has←1∊(⍳⍴line)=(line[⍋line])/patt  ⍝ found at top of script (consecutive row of empty lines and :Require's
+      :EndIf
+    ∇
+
     ∇ (name nc)←{where}Fix(name src);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
       :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
-      :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf  ⍝ file name given instead of source
+      :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf ⍝ file name given instead of source
       :If ~IS190 ⋄ FIX←where.⎕FIX ⋄ :Else
           ⍝ Quiet            0|1     (default 0)   ⍝ do not output status messages - link issue #149
           ⍝ AllowLateBinding 0|1     (default 1)   ⍝ allow missing dependencies
@@ -607,6 +615,7 @@
     ∇ ok←target QFix(file name tie);changed;nc;src
       :If tie ⋄ src←file ⍝ tie to file
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
+          :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both or watch=dir' ⋄ :EndIf
       :EndIf
       :If src≡⍬ ⋄ ok←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
@@ -818,7 +827,7 @@
           ndirs←+/ndirs↑~mask
           allnames←parents('.'JoinEach)actnames  ⍝ fully qualified names
           :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
-              Error'Files produce clashing APL names:',FmtLines ↓⍕(allfiles,(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]   
+              Error'Files produce clashing APL names:',FmtLines↓⍕(allfiles,(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
           :EndIf
       :EndIf
      

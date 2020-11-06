@@ -68,7 +68,8 @@ NOHOLD:
 
          fix←~nosrc ⍝ no need to update if source was read from APL
          fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
-         update∨←fix∧('both'≡link.watch)  ⍝ watching both requires 2 ⎕FIX which in turn requires updating the file
+         update∨←fix∧('both' 'ns'∊⍨⊂link.watch)  ⍝ update file if watching namespace
+         U.Log'⎕SE.Link.Fix: name=',nsname,'.',name,' file="',file,'" fix=',(⍕fix),' update=',(⍕update)
 
          :If update  ⍝ file system must reflect changes
              :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src
@@ -91,7 +92,7 @@ NOHOLD:
          :EndIf
 
          :If fix
-             :If 'both'≡link.watch ⋄ src←file ⋄ :EndIf   ⍝ tie to file with 2 ⎕FIX - see U.QFix
+             :If 'both'≡link.watch ⋄ src←file ⋄ :EndIf   ⍝ tie if watching both ways
              :If ¯1 0∊⍨2⊃ns U.Fix name src
                  U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
              :EndIf

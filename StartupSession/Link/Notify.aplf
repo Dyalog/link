@@ -21,7 +21,7 @@
 
 
          deleted←type≡'deleted'
-         msg←'Notify: ',type,' ',path,': '
+         msg←'⎕SE.Link.Notify: ',type,' ',path,': '
          :If DEBUG>0 ⋄ :AndIf type≡'renamed'
              msg←(¯2↓msg),'←',oldpath,': '
          :EndIf
@@ -204,7 +204,7 @@
              U.Warn msg,'Unable to fix file'
          :EndIf
 
-END:
+         END:
          ⍝:If U.debug≠0 ⋄ ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3] ⋄ :EndIf
      :EndHold ⍝ 'Notify'
  :Else
