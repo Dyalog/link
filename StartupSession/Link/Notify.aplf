@@ -11,7 +11,7 @@
  :Trap DEBUG↓0
      ⎕IO←1
      recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
-     :Hold (recur=1)/⊂'⎕SE.Link.Notify' ⍝ Avoid deadlock due to recursion
+     :Hold (recur=1)/⊂'⎕SE.Link.Notify' ⍝ Avoid deadlock due to recursion - NB Notify doesn't need to :Hold ⎕SE.Link.Links because it only affect files and APL objects
          r←⍬⊤⍬
          (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
          (path oldpath)←0 U.NormFile¨path oldpath

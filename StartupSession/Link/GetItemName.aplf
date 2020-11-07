@@ -7,23 +7,20 @@
  :Trap DEBUG↓0
      ⎕IO←1
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-     :If U.HasLinks
+     :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
+         :If ~U.HasLinks ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf
          scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
          :For i :In ⍳≢files
-             :Hold '⎕SE.Link.Notify'
-                 :If ~0∊⍴link←U.LookupFile file←i⊃files
-                     link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents
-                     (where expname actname nc)←link U.DetermineAplName file
-                     (i⊃items)←(~nc∊0 ¯1)/where,'.',actname
-                 :Else
-                     (i⊃items)←''
-                 :EndIf
-             :EndHold ⍝ Notify
+             :If ~0∊⍴link←U.LookupFile file←i⊃files
+                 link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents
+                 (where expname actname nc)←link U.DetermineAplName file
+                 (i⊃items)←(~nc∊0 ¯1)/where,'.',actname
+             :Else
+                 (i⊃items)←''
+             :EndIf
          :EndFor
          items←⊃⍣scal⊢shape⍴items
-     :Else
-         items←⊃⍣(1=≡,items)⊢(⍴⊆items)⍴⊂''
-     :EndIf
+     :EndHold
  :Else
      U.Resignal 1
  :EndTrap

@@ -7,25 +7,22 @@
  :Trap DEBUG↓0
      ⎕IO←1
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-     :If U.HasLinks
-         :Hold '⎕SE.Link.Notify'
-             scal←1=≡,items ⋄ shape←⍴items←⊆items ⋄ files←(≢items←,items)⍴''
-             :For i :In ⍳≢items
-                 nc←container U.NameClass name←(⍕container),'.',i⊃items
-                 (parent name)←U.SplitNs name
-                 :If ~nc∊0 ¯1
-                 :AndIf ~0∊⍴link←U.LookupRef parent←⍎parent
-                     (file oldfile nc)←link(0 U.DetermineFileName)(⍕parent)name name ⍬  ⍝ U.NormNs parent
-                     (i⊃files)←(~nc∊0 ¯1)/(1+0<≢oldfile)⊃file oldfile
-                 :Else
-                     (i⊃files)←''
-                 :EndIf
-             :EndFor
-             files←⊃⍣scal⊢shape⍴files
-         :EndHold ⍝ Notify
-     :Else
-         files←⊃⍣(1=≡,items)⊢(⍴⊆items)⍴⊂''
-     :EndIf
+     :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
+         :If ~U.HasLinks ⋄ files←⊃⍣(1=≡,items)⊢(⍴⊆items)⍴⊂'' ⋄ :Return ⋄ :EndIf
+         scal←1=≡,items ⋄ shape←⍴items←⊆items ⋄ files←(≢items←,items)⍴''
+         :For i :In ⍳≢items
+             nc←container U.NameClass name←(⍕container),'.',i⊃items
+             (parent name)←U.SplitNs name
+             :If ~nc∊0 ¯1
+             :AndIf ~0∊⍴link←U.LookupRef parent←⍎parent
+                 (file oldfile nc)←link(0 U.DetermineFileName)(⍕parent)name name ⍬  ⍝ U.NormNs parent
+                 (i⊃files)←(~nc∊0 ¯1)/(1+0<≢oldfile)⊃file oldfile
+             :Else
+                 (i⊃files)←''
+             :EndIf
+         :EndFor
+         files←⊃⍣scal⊢shape⍴files
+     :EndHold
  :Else
      U.Resignal 1
  :EndTrap

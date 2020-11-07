@@ -48,29 +48,27 @@
     ASSERT_TIME←1    ⍝ Seconds of wait time trying to verify assertions
 
 
-    ∇ {debug}Run test_filter;aplv;core;dnv;folder;opts;test;tests;time;udebug;warn;z
-    ⍝ Do (⎕SE.Link.Test.Run'') to run all the Link Tests.
-    ⍝ If no folder name provided,
-     
-      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ by default: run all tests
-      pause_tests←0                             ⍝ no manual testing
-     
-      :If 0≠⎕NC'test_filter'
-          pause_tests←(⊂'pause')∊test_filter
+    ∇ {ok}←{debug}Run test_filter;aplv;core;dnv;folder;ok;opts;slow;test;tests;time;udebug;warn;z
+    ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
+    ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
+      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
+      :If 0∊⍴test_filter   ⍝ basic tests
+          Log'Not running slow tests:',(⍕slow←⊂'test_threads'),' - use (',(⊃⎕XSI),' ''all'' to run all tests'  ⍝ remove slow tests
+          tests~←slow
+      :ElseIf 'all'≢0(819⌶)test_filter   ⍝ selected tests
           tests←(∨⌿1∊¨(,⊆test_filter)∘.⍷tests)/tests
       :EndIf
-     
       :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
       :If 0=⎕NC'debug' ⋄ debug←⎕SE.Link.DEBUG ⋄ :EndIf
       (⎕SE.Link.DEBUG debug)←(debug ⎕SE.Link.DEBUG)
       udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
       (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN)(0<⎕SE.Link.DEBUG)  ⍝ disable warnings if not debugging
      
-      :If 0≠≢folder←Setup FOLDER NAME
-          time←⎕AI[3]
+      :If ok←0≠≢folder←Setup FOLDER NAME
+          time←⎕AI[3] ⋄ ok←1
           :For test :In tests
-          ⍝Log'TESTING'test
-              z←(⍎test)folder NAME   ⍝ run test_*    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+              :If debug ⋄ Log⍕'Running'test ⋄ :EndIf
+              ok∧←(⍎test)folder NAME   ⍝ run test_*    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           :EndFor
           time←⎕AI[3]-time
           UnSetup
@@ -96,11 +94,8 @@
 
     :Section test_functions
 
-    ∇ r←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
+    ∇ ok←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
      ⍝ Test the flattened scenario
-     
-      r←0
-     
       FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
      
       {}3 ⎕MKDIR Retry⊢folder
@@ -142,9 +137,8 @@
       _←QNDELETE foofile
       assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
      
-      PauseTest folder
-     
       CleanUp folder name
+      ok←1
     ∇
 
     ∇ r←onFlatFilename args;event;ext;file;link;name;nc;oldname
@@ -173,9 +167,7 @@
 
 
 
-    ∇ r←test_failures(folder name);errf;erru;mod;names;opts;z
-      r←0
-     
+    ∇ ok←test_failures(folder name);errf;erru;mod;names;opts;z
       assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
       assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
      
@@ -256,6 +248,7 @@
       {}⎕SE.Link.Break name
      
       CleanUp folder name
+      ok←1
     ∇
 
 
@@ -266,8 +259,7 @@
 
 
 
-    ∇ r←test_import(folder name);foo;cm;cv;ns;z;opts;_;bc;ac
-      r←0
+    ∇ ok←test_import(folder name);foo;cm;cv;ns;z;opts;_;bc;ac
      
       3 ⎕MKDIR Retry⊢folder∘,¨'/sub/sub1' '/sub/sub2'
      
@@ -351,13 +343,12 @@
       assert'bc≡⎕SRC ns.bClass'
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
      
-      PauseTest folder
-     
       ⍝ Now tear it all down again:
       _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
      
       #.⎕EX name
+      ok←1
     ∇
 
 
@@ -366,8 +357,7 @@
 
 
 
-    ∇ r←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;fsw;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz
-      r←0
+    ∇ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;fsw;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz
      
       3 ⎕MKDIR Retry⊢folder
      
@@ -528,11 +518,8 @@
       assert'cm≡↑⊃#.SLAVE.⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃#.SLAVE.⎕NGET (folder,''/cv.charvec'') 1'
      
-      PauseTest folder
-     
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
-     
       Breathe
       _←2 QNDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
@@ -549,8 +536,8 @@
       _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
      
-     EXIT: ⍝ →EXIT to aborted test and clean up
       CleanUp folder name
+      ok←1
     ∇
 
    ⍝ Callback functions to implement .charmat & .charvec support
@@ -589,8 +576,7 @@
 
 
 
-    ∇ r←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;var;var2;varfile;winfolder;z
-      r←0
+    ∇ ok←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;var;var2;varfile;winfolder;z
      
       ⍝ Test creating a folder from a namespace with Case Conflicts
       winfolder←⎕SE.Link.U.WinSlash folder
@@ -833,6 +819,7 @@
      
       {}⎕SE.Link.Break name
       CleanUp folder name
+      ok←1
     ∇
 
 
@@ -845,9 +832,8 @@
 
 
 
-    ∇ r←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z;engine;server
+    ∇ ok←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z;engine;server
     ⍝ Github issues
-      r←0
       name ⎕NS''
       ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
      
@@ -1090,6 +1076,7 @@
       :EndIf
      
       CleanUp folder name
+      ok←1
     ∇
 
     ∇ r←beforeReadAdd args
@@ -1120,8 +1107,8 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ r←test_create(folder name);badsrc1;badsrc2;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
-      r←0 ⋄ opts←⎕NS ⍬
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
+      opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
       ⍝ test default UCMD to ⎕THIS
@@ -1417,16 +1404,16 @@
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
       CleanUp folder name
+      ok←1
     ∇
 
 
 
 
-    ∇ r←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
-      r←0
+    ∇ ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
       :If 82≠⎕DR''  ⍝ Classic interpreter required for classic QA !
           Log'Not a classic interpreter - not running ',⊃⎕SI
-          :Return
+          ok←1 ⋄ :Return
       :EndIf
       3 ⎕MKDIR folder
      
@@ -1444,18 +1431,18 @@
      
       {}⎕SE.Link.Break name
       CleanUp folder name
+      ok←1
     ∇
 
 
 
     Stringify←{'''',((1+⍵='''')/⍵),''''}
 
-    ∇ r←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
+    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
-      r←0
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
-          :Return
+          ok←1 ⋄ :Return
       :EndIf
      
       ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
@@ -1681,7 +1668,56 @@
       output←ride.APL'⎕SE.Link.Break ',(Stringify name)
       assert'(∨/''Unlinked''⍷output)'
       CleanUp folder name
+      ok←1
     ∇
+
+    ∇ loops RunTestThread(folder name);sub;z
+      ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+      (⊂⎕SE.Dyalog.Array.Serialise 2 3 4⍴0)⎕NPUT folder,'/var.apla'
+      (⊂'r←foo arg' 'r←''foo'' arg')⎕NPUT folder,'/foo.aplf'
+      (⊂'r←(foo op) arg' 'r←''op'' foo arg')⎕NPUT folder,'/op.aplo'
+      (⊂':Interface api' '∇ r←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/api.apli'
+      (⊂':Class base:,api' ':Field Public Shared base←1' '∇ r←foo arg' ':Access Public Shared' 'r←''foo'' arg' '∇' ':EndClass')⎕NPUT folder,'/base.aplc'
+      (⊂':Class main:base,api' ':Field Public Shared main←1' ':EndClass')⎕NPUT folder,'/main.aplc'
+      :While 0≤loops←loops-1
+          z←⎕SE.Link.Create name folder
+          assert'~∨/''failed''⍷z'
+          z←⎕SE.Link.Refresh name
+          assert'~∨/''failed''⍷z'
+          ⎕MKDIR folder,'/sub'
+          assert'9=⎕NC',Stringify sub←name,'.sub'
+          (⍎sub).newvar←⎕TS
+          (⍎sub).⎕FX'r←goo arg' 'r←''goo'' arg'
+          z←⎕SE.Link.Add sub∘,¨'.goo' '.newvar'
+          assert'~∨/''Not found''⍷z'
+          assert'∧/⎕NEXISTS',⍕Stringify¨(folder,'/sub/')∘,¨'goo.aplf' 'newvar.apla'
+          z←sub ⎕SE.Link.Fix':Namespace ns' 'ns←1' ':EndNamespace'
+          assert'z∧⎕NEXISTS',Stringify folder,'/sub/ns.apln'
+          z←⎕SE.Link.Refresh name
+          assert'~∨/''failed''⍷z'
+          z←⎕SE.Link.Expunge sub
+          assert'z'
+          assert'~⎕NEXISTS',Stringify folder,'/sub/'
+          {}⎕SE.Link.Break name
+          ⎕EX name
+      :EndWhile
+      3 ⎕NDELETE folder
+    ∇
+
+    ∇ ok←test_threads(folder name);dir1;dir2;folders;loops;names;threads;warn
+      loops←10 ⋄ threads←10
+      ⍝ disable warnings which happen because the Notify caused the Add or the Expunge may happen after the Break - which is ok because it would do nothing anyways
+      (⎕SE.Link.U.WARN warn)←(0 ⎕SE.Link.U.WARN)
+      ⍝ run once to avoid triggering lots of errors for failures not related to multithreading
+      1 RunTestThread folder name
+      ⍝ run many times
+      folders←(folder,'/link')∘,¨⍕¨⍳threads
+      names←(name,'.link')∘,¨⍕¨⍳threads
+      ⎕TSYNC loops∘RunTestThread&¨↓⍉↑folders names
+      ⎕SE.Link.U.WARN←warn
+      ok←1
+    ∇
+
 
     :EndSection  test_functions
 
@@ -1821,16 +1857,6 @@
       ⎕←1↓⍤1⊢⍕(title,':')msg ⍝ This might get more sophisticated someday
     ∇
 
-    ∇ PauseTest folder;z
-      :If 2=⎕NC'pause_tests'
-      :AndIf pause_tests=1
-          Log 4(↑⍤1)↑(((≢folder)↑¨4⊃¨z)∊⊂folder)/z←5177⌶⍬
-          ⎕←'*** ',(2⊃⎕SI),' paused. To continue,'
-          ⎕←'      →RESUME'
-          RESUME ⎕STOP'PauseTest'
-     RESUME:
-      :EndIf
-    ∇
 
     ∇ {r}←{x}(F Retry)y;c;n
       :If 900⌶⍬

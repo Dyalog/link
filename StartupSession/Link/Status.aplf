@@ -3,46 +3,45 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If ~U.HasLinks
-         status←'No active links'
-         :Return
-     :EndIf
-     ⎕IO←1
-     links←⎕SE.Link.Links
-     :If ×≢ns
-         there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
-         ref←9∊⎕NC'ns'
-     :AndIf ref∨×there.⎕NC⍕ns
-         ns←⍕there⍎⍣(~ref)⊢ns
-         nss←⍕¨links.ns
-         links/⍨←ns∘(⊃⍷)¨nss
-     :EndIf
-     :If 0=≢links
-         status←'No active links in ',⍕ns
-         :Return
-     :EndIf
-     ⍝ items←+/¨~3⊃¨U.GetFileTiesIn¨nss    ⍝ tied files (not script items, nor arrays)
-     ⍝ items+←¯1+≢¨dirs←U.ListNamespaces¨⍎¨nss  ⍝ directories (excluding self)
-     ⍝ status,←items
-     status←↑links.(ns dir)
-     status,←¯1++/¨≢¨¨links U.ListFiles¨status[;2]  ⍝ exclude root
-     status⍪⍨←'Namespace' 'Directory' 'Items'
-
-     (defopts←⎕NS ⍬).(extended)←0
-     opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
-     :If ~opts.extended∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.extended),' for modifier "extended" - must be one of: 0 1' ⋄ :EndIf
-
-     props←('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
-     :If (opts.extended)
-         :If ×≢links
-             L←819⌶
-             :For prop :In props
-                 status,←(⊂↑prop),links⍎¨⊂L@1∊prop
-             :EndFor
-         :Else
-             status,←,[0.5]↑¨props
+     :Hold '⎕SE.Link.Links'
+         :If ~U.HasLinks ⋄ status←'No active links' ⋄ :Return ⋄ :EndIf
+         ⎕IO←1
+         links←⎕SE.Link.Links
+         :If ×≢ns
+             there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
+             ref←9∊⎕NC'ns'
+         :AndIf ref∨×there.⎕NC⍕ns
+             ns←⍕there⍎⍣(~ref)⊢ns
+             nss←⍕¨links.ns
+             links/⍨←ns∘(⊃⍷)¨nss
          :EndIf
-     :EndIf
+         :If 0=≢links
+             status←'No active links in ',⍕ns
+             :Return
+         :EndIf
+         ⍝ items←+/¨~3⊃¨U.GetFileTiesIn¨nss    ⍝ tied files (not script items, nor arrays)
+         ⍝ items+←¯1+≢¨dirs←U.ListNamespaces¨⍎¨nss  ⍝ directories (excluding self)
+         ⍝ status,←items
+         status←↑links.(ns dir)
+         status,←¯1++/¨≢¨¨links U.ListFiles¨status[;2]  ⍝ exclude root
+         status⍪⍨←'Namespace' 'Directory' 'Items'
+
+         (defopts←⎕NS ⍬).(extended)←0
+         opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+         :If ~opts.extended∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.extended),' for modifier "extended" - must be one of: 0 1' ⋄ :EndIf
+
+         props←('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
+         :If (opts.extended)
+             :If ×≢links
+                 L←819⌶
+                 :For prop :In props
+                     status,←(⊂↑prop),links⍎¨⊂L@1∊prop
+                 :EndFor
+             :Else
+                 status,←,[0.5]↑¨props
+             :EndIf
+         :EndIf
+     :EndHold
  :Else
      U.Resignal 1
  :EndTrap

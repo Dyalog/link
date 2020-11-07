@@ -1,4 +1,4 @@
- msg←{opts}Break nss;defopts;link;linked;links;mask;missing;n;ns;refs;there;tobreak;unlinked;⎕IO
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;n;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
@@ -8,8 +8,9 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If U.HasLinks
-         ⎕IO←1
+     :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
+         :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         ⎕IO ⎕ML←1 1
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
@@ -51,6 +52,7 @@
              :EndHold
              ⎕SE.Link.Links/⍨←~linked∊tobreak
          :EndIf
+         :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table given by 5176⌶⍬
 
          msg←''
          :If ×≢tobreak
@@ -63,10 +65,7 @@
              msg,←⊂'Not linked:',U.List∪unlinked
          :EndIf
          :If ~0∊⍴msg ⋄ msg←'; 'U.JoinList msg ⋄ :EndIf
-     :Else
-         msg←'No active links'
-     :EndIf
-     :Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table given by 5176⌶⍬
+     :EndHold
  :Else
      U.Resignal 1
  :EndTrap

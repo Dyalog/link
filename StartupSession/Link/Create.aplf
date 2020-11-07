@@ -6,107 +6,109 @@
  :Trap DEBUG↓0
      ⎕IO←1
 
-     :If 0=⎕NC'⎕SE.Link.Links'    ⍝ Check existence of our data structure
-         ⎕SE.Link.Links←⍬         ⍝ Start with no links
-     ⍝ Link namespaces will record switch values
-     ⍝    and also contain fsw, the FileSystemWatcher object
-     :EndIf
+     :Hold '⎕SE.Link.Links'
+         :If 0=⎕NC'⎕SE.Link.Links'
+             ⎕SE.Link.Links←⍬         ⍝ Start with no links
+         ⍝ Link namespaces will record switch values
+         ⍝    and also contain fsw, the FileSystemWatcher object
+         :EndIf
 
-     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-     ns←⊃⌽(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
-     msg←⍕⍬⊤⍬
+         opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+         ns←⊃⌽(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
+         msg←⍕⍬⊤⍬
 
-     :If hasdir←⎕NEXISTS dir ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
-     :Else ⋄ emptydir←1
-     :EndIf
+         :If hasdir←⎕NEXISTS dir ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
+         :Else ⋄ emptydir←1
+         :EndIf
 
-     :If hasns←¯9.1=U.NameClass ns
-         :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
-         :AndIf ~emptydir                       ⍝ some dir/files defined
-         :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
+         :If hasns←¯9.1=U.NameClass ns
+             :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
+             :AndIf ~emptydir                       ⍝ some dir/files defined
+             :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
              ⍝ link issue #160: allow some APL names to be tied to source files when source is dir - typically happens when starting dyalog with load=boot.aplf - won't work with arrays
-             emptyns←emptyns U.EmptyNamespace nsref dir
+                 emptyns←emptyns U.EmptyNamespace nsref dir
+             :EndIf
+         :Else ⋄ emptyns←1
          :EndIf
-     :Else ⋄ emptyns←1
-     :EndIf
 
-     :If ~U.CANWATCH
-     :AndIf (⊂opts.watch)∊'both' 'dir'
-         U.Error'Watching directories is only supported if .NET is available'
-     :ElseIf opts.source≡'dir'
-     :AndIf ~hasdir
-         U.Error'Source directory not found: ',dir
-     :ElseIf opts.source≡'dir'
-     :AndIf ~emptyns
-         U.Error'Destination namespace not empty: ',ns
-     :ElseIf opts.source≡'ns'
-     :AndIf ~hasns
-         U.Error'Source namespace not found: ',ns
-     :ElseIf opts.source≡'ns'
-     :AndIf ~emptydir
-         U.Error'Destination directory not empty: ',dir
-     :ElseIf opts.source≡'auto'
-     :AndIf emptydir⍱emptyns
-         U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
-     :ElseIf opts.source≡'auto'
-     :AndIf hasdir⍱hasns  ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
-         U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
-     :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
-         U.Error'Not a namespace: ',ns
-     :ElseIf U.IsScripted nsref
-         U.Error'Cannot link to scripted namespaces: ',ns
-     :ElseIf ×≢⎕SE.Link.Links
-     :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
-         link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
-         U.Error'Already linked: ',U.Arrow link
-     :ElseIf ~hasdir
-     :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
-         U.Error'Directory not found: ',dir
-     :ElseIf U.Slash⊃⌽dir
-         U.Error'Trailing slash reserved for future extension'
-     :EndIf
-     :If opts.source≡'auto'  ⍝ detect actual source
-         :If hasns<hasdir
-         :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
-             opts.source←'dir'                    ⍝ will also happen if neither exist
-         :Else   ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
-             opts.source←'ns'
+         :If ~U.CANWATCH
+         :AndIf (⊂opts.watch)∊'both' 'dir'
+             U.Error'Watching directories is only supported if .NET is available'
+         :ElseIf opts.source≡'dir'
+         :AndIf ~hasdir
+             U.Error'Source directory not found: ',dir
+         :ElseIf opts.source≡'dir'
+         :AndIf ~emptyns
+             U.Error'Destination namespace not empty: ',ns
+         :ElseIf opts.source≡'ns'
+         :AndIf ~hasns
+             U.Error'Source namespace not found: ',ns
+         :ElseIf opts.source≡'ns'
+         :AndIf ~emptydir
+             U.Error'Destination directory not empty: ',dir
+         :ElseIf opts.source≡'auto'
+         :AndIf emptydir⍱emptyns
+             U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
+         :ElseIf opts.source≡'auto'
+         :AndIf hasdir⍱hasns  ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
+             U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
+         :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
+             U.Error'Not a namespace: ',ns
+         :ElseIf U.IsScripted nsref
+             U.Error'Cannot link to scripted namespaces: ',ns
+         :ElseIf ×≢⎕SE.Link.Links
+         :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
+             link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+             U.Error'Already linked: ',U.Arrow link
+         :ElseIf ~hasdir
+         :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
+             U.Error'Directory not found: ',dir
+         :ElseIf U.Slash⊃⌽dir
+             U.Error'Trailing slash reserved for future extension'
          :EndIf
-     :EndIf
-     :If opts.(flatten∧source≢'dir')
-         U.Error'flatten≡1 requires source≡''dir'''
-     :EndIf
+         :If opts.source≡'auto'  ⍝ detect actual source
+             :If hasns<hasdir
+             :OrIf (hasns=hasdir)∧(emptydir≤emptyns)  ⍝ if have both, see which is not empty, if both empty, dir wins
+                 opts.source←'dir'                    ⍝ will also happen if neither exist
+             :Else   ⍝ (hasns>hasdir)∨(hasns=hasdir)∧(emptydir>emptyns)
+                 opts.source←'ns'
+             :EndIf
+         :EndIf
+         :If opts.(flatten∧source≢'dir')
+             U.Error'flatten≡1 requires source≡''dir'''
+         :EndIf
 
          ⍝ We're all good; do it!
-     opts.ns←ns←U.NormNs ns
-     opts.dir←dir←0 U.NormDir dir
+         opts.ns←ns←U.NormNs ns
+         opts.dir←dir←0 U.NormDir dir
 
-     inFail←outFail←0⍴⊂'' ⋄ fsw←⍬
-     ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
-     msg←0⍴⊂''
-     :If 'ns'≡opts.source
-         outFail←opts U.WriteFiles ns dir
-     :AndIf 0≠≢outFail
-         msg,←(⊂(⍕≢outFail),' export(s) failed:'),outFail
-     :EndIf
+         inFail←outFail←0⍴⊂'' ⋄ fsw←⍬
+         ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
+         msg←0⍴⊂''
+         :If 'ns'≡opts.source
+             outFail←opts U.WriteFiles ns dir
+         :AndIf 0≠≢outFail
+             msg,←(⊂(⍕≢outFail),' export(s) failed:'),outFail
+         :EndIf
 
-     :If 'dir'≡opts.source
-         inFail←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
-     :AndIf 0≠≢inFail
-         msg,←(⊂(⍕≢inFail),' import(s) failed:'),inFail
-     :EndIf
+         :If 'dir'≡opts.source
+             inFail←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
+         :AndIf 0≠≢inFail
+             msg,←(⊂(⍕≢inFail),' import(s) failed:'),inFail
+         :EndIf
 
-     'opts'⎕NS''
-     :If 'dir' 'both'∊⍨⊂opts.watch
-         opts.fsw←Watcher.Watch dir(,'*')
-     :Else
-         opts.fsw←⍬
-     :EndIf
+         'opts'⎕NS''
+         :If 'dir' 'both'∊⍨⊂opts.watch
+             opts.fsw←Watcher.Watch dir(,'*')
+         :Else
+             opts.fsw←⍬
+         :EndIf
 
-     arrow←U.Arrow opts
-     opts.⎕DF 1⌽'][',arrow
-     ⎕SE.Link.Links,←opts
-     msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
+         arrow←U.Arrow opts
+         opts.⎕DF 1⌽'][',arrow
+         ⎕SE.Link.Links,←opts
+         msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
+     :EndHold
  :Else
      U.Resignal 1
  :EndTrap

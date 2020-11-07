@@ -1,4 +1,4 @@
- {linked}←where Fix src;RSI;XSI;added;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;update;watch;⎕IO
+ {linked}←where Fix src;RSI;XSI;added;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;update;watch;⎕IO;⎕ML
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -11,14 +11,14 @@
  :EndIf
 
  :Trap DEBUG↓0
-     ⎕IO←1 ⋄ XSI←⎕XSI ⋄ RSI←⎕RSI
+     ⎕IO ⎕ML←1 1 ⋄ XSI←⎕XSI ⋄ RSI←⎕RSI
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
      callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
-     →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback)
-     :Hold '⎕SE.Link.Notify'
+     →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback) - see mantis 18160: can't :Hold 0⍴⊂'' in a high-priority callback
+     :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'  ⍝ ok not to hold ⎕SE.Link.Links in high-priority callback because it only reads it and doesn't change it.
 NOHOLD:
          nosrc←0=≢src
-         (ns name oldname)←3↑where,'' ''
+         (ns name oldname)←3↑(⊆,where),'' ''
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
          this←⊃RSI XSI U.ContainerNs ns
@@ -97,8 +97,7 @@ NOHOLD:
                  U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
              :EndIf
          :EndIf
-
-     :EndHold ⍝ 'Notify'
+     :EndHold ⍝ Links
  :Else
      U.Resignal 1
  :EndTrap
