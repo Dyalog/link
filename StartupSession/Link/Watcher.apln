@@ -61,7 +61,7 @@
     ∇
 
     ∇ WatchError(obj args)
-      ##.U.Log'FileSystemWatcher Error: ',obj.Path
+      'FileSystemWatcher'##.U.Log'Error: 'obj.Path
     ∇
 
     ∇ WatcherThread args;q;watcher
@@ -154,7 +154,7 @@
               end←Timeout+3⊃⎕AI
               :While ∨/tids∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
                   ⍝:If end<3⊃⎕AI
-                  ⍝    ##.U.Warn'WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request'
+                  ⍝    ¯1 ##.U.Warn'WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request'
                   ⍝:EndIf
                   ⎕DL 0.1
               :EndWhile
@@ -196,14 +196,15 @@
     ∇ time←EncodeTS TS        ⍝ allows comparing ⎕TS between themselves, NOT to (Time ⍬)
       time←0 12 31 24 60 60 1000⊥⍉↑⊆TS
     ∇
+    LogCrawler←'⎕SE.Link.Crawler'∘##.U.Log
 
     ∇ AddCrawler link
       :Hold '⎕SE.Link.Crawler'
-          ##.U.Log'Crawler: Adding: ',⍕link
+          LogCrawler'Adding: '(⍕link)
           LINKS⍪←link 1 OLDTIME OLDTIME(F_EMPTY NewFiles link)
           :If ⎕NULL≡TIMER
               TIMER←⎕NEW⊂'Timer'(('Interval'(⌈1000×T_PERIOD))('Event'('onTimer' 'CrawlerEvent&'))('Active' 1))
-              ##.U.Log'Crawler: Started timer'
+              LogCrawler'Started timer'
           :EndIf
       :EndHold
     ∇
@@ -219,9 +220,9 @@
           LINKS⌿⍨←~LINKS[;L_OPTS]∊links
           :If (0∊⍴LINKS)∧(TIMER≢⎕NULL)
               TIMER.Active←0 ⋄ TIMER←⎕NULL
-              ##.U.Log'Crawler: No remaining links, disabling timer'
+              LogCrawler'No remaining links, disabling timer'
           :Else
-              ##.U.Log'Crawler: Remaining links:',⍕LINKS[;L_OPTS]
+              LogCrawler'Remaining links:'(⍕LINKS[;L_OPTS])
           :EndIf
       :EndHold
     ∇
@@ -230,7 +231,7 @@
       elapsed←T_PERIOD⌊(now-T_END)  ⍝ elapsed since last timer end
       worked←now-start              ⍝ elapsed since last timer start
       ok←T_WORKLOAD>worked÷elapsed  ⍝ still under maximum workload
-      :If ~ok ⋄ ##.U.Log'Crawler: Workload reached' ⋄ :EndIf
+      :If ~ok ⋄ LogCrawler'Workload reached' ⋄ :EndIf
     ∇
 
     ∇ files←oldfiles NewFiles link;check;done;hash;hash1;mask;mod;mod1;mod2;newdone;ok;todo
@@ -269,12 +270,12 @@
               ⍝ leave if all files checked in this event (or no file at all)
               :If start∧.≤L_CHECK⌷[2]LINKS  ⍝ all links checked (we need to check links that have no file)
               :AndIf start∧.≤∊F_CHECK⌷[2]¨L_FILES⌷[2]LINKS  ⍝ all files checked
-                  ##.U.Log'Crawler: All files checked'
+                  LogCrawler'All files checked'
                   :Leave
               :EndIf
               ⍝ pick link that was checked least recently
               :If ~1∊mask←LINKS[;L_ACTIVE]
-                  ##.U.Log'Crawler: No active link'
+                  LogCrawler'No active link'
                   :Leave
               :EndIf  ⍝ nothing to do
               linkinx←LINKS[;L_CHECK]{⍵⍳⌊/⍵}LINKS[;L_ACTIVE]/LINKS[;L_CHECK]
@@ -282,7 +283,7 @@
               ⍝ update list of files if needed
               :If (update<start)∧(update<⊃LINKS[linkinx;L_CHECK])   ⍝ file update predates this event, and at least one check was done since
                   :If 0∊⍴files ⋄ :OrIf update∨.<files[;F_CHECK]     ⍝ at least one check was made since the file list update - this is to avoid repeatedly updating the list without checking any file
-                      ##.U.Log'Crawler: Updating files: ',⍕link
+                      LogCrawler'Updating files: ',⍕link
                       newfiles←files NewFiles link ⋄ update←Time ⍬
                       :If 1∊mask←~files[;F_NAME]∊newfiles[;F_NAME]  ⍝ notify deletions first in case of rename/move
                           {##.Notify'deleted'⍵}¨mask/files[;F_NAME] ⍝ notify deletion
@@ -299,7 +300,7 @@
               :EndIf
               ⍝ check workload
               :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf
-              ##.U.Log'Crawler: Checking files: ',⍕link
+              LogCrawler'Checking files: '(⍕link)
               :If 0∊⍴files ⋄ LINKS[linkinx;L_CHECK]←Time ⍬ ⋄ :Continue ⋄ :EndIf  ⍝ no files to check
               ⍝ check least recently checked
               inx←{⍵⍳⌊/⍵}files[;F_CHECK]

@@ -28,11 +28,7 @@
         Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
     If←⍴⍨
     ERRNO←99              ⍝ official API error number
-    ∇ {errno}Error msg;caller
-      :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
-      caller←((≢⎕XSI)⌊1++/⎕SE.Link IsParent¨⎕RSI)⊃⎕XSI  ⍝ outer caller from ⎕SE.Link
-      (caller,': ',msg)⎕SIGNAL errno
-    ∇
+    LinkCall←{((≢⎕XSI)⌊1++/⎕SE.Link IsParent¨⎕RSI)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link
     :EndSection
 
 
@@ -471,7 +467,7 @@
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
           Error'Unknown modifiers: ',FmtEach mask/nl
       :EndIf
-          Default←opts.{(⊆⍺){0=⎕NC⊂⍺:⍎⍺,'←⍵'}¨⊆⍵}
+      Default←opts.{(⊆⍺){0=⎕NC⊂⍺:⍎⍺,'←⍵'}¨⊆⍵}
       :If ~900⌶⍬ ⋄ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2 ⍝ custom defaults go first
           nl Default¨defopts⍎¨nl
       :EndIf
@@ -643,7 +639,7 @@
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
       :If 0∊⍴src  ⍝ no information about item - item must exist
           nc←ref NameClass name  ⍝ no source : item must exist
-          ⍝:If 0=nc ⋄ Warn'Source of name ',where,'.',name,' doesn''t exist' ⋄ :EndIf
+          ⍝:If 0=nc ⋄ ¯1 Warn'Source of name 'where'.'name' doesn''t exist' ⋄ :EndIf
       :ElseIf 0=≡src ⋄ nc←src ⍝ name class is given
       ⍝:ElseIf opts.fastLoad ⋄ nc←0  ⍝ nope - fastLoad is used only by FixFiles which then shouldn't call DetermineFileName
       :Else ⋄ (name nc)←Sniff name src  ⍝ infer name class from (non-empty) source
@@ -1221,22 +1217,48 @@
 
 
     :Section UI
-
-    WARN←1 ⍝ flag to enable/disable display of warnings
+    ⍝ Settings
+    WARN←1     ⍝ flag to enable/disable warnings
+    SHOWMSG←0  ⍝ flag to enable/disable display of log/warning messages
+    ⍝ Globals
     WARNLOG←DEBUGLOG←0⍴⊂''  ⍝ actual logs
     LOGSIZE←1000
 
-    ∇ {msg}←Warn msg
-    ⍝ Warn user
-      WARNLOG,←⊂(⍕⎕TS),' ',msg
-      WARNLOG↑⍨←LOGSIZE⌊≢WARNLOG
-      :If WARN ⋄ ⎕←'Link Warning: ',msg ⋄ :EndIf
+    ∇ msg←{caller}(depth FormatMessage)msg
+      :If 900⌶⍬ ⋄ caller←0 ⋄ :EndIf
+      msg←⊆msg   ⍝ allow building a string as a list of strings to avoid catenating them if not actually using the message
+      :If ''≡0⍴caller ⋄ msg,⍨←caller': '  ⍝ caller provided as-is
+      :ElseIf ¯1≡caller ⋄ msg,⍨←(LinkCall ⍬)': '  ⍝ outer link call
+      :ElseIf 0≡caller  ⍝ no preprending of call
+      :Else ⋄ msg,⍨←((1+depth+caller)⊃⎕XSI)': '  ⍝ look up the stack : 1 is for self, 2 if for one' caller etc
+      :EndIf
+      msg←⊃,/msg
+      :If 0∊(1=≡msg)(1=≢⍴msg)(2 0∊⍨10|⎕DR msg)
+          ∘∘∘
+      :EndIf
     ∇
-    ∇ {msg}←Log msg
+    ∇ msg←TimeStamp msg
+      msg,⍨←,'ZI4,</>,ZI2,</>,ZI2,<->,ZI2,<:>,ZI2,<:>,ZI2,<.>,ZI3,< >'⎕FMT,[0.5]⎕TS
+    ∇
+    ∇ {errno}Error msg;caller
+      :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
+      ((LinkCall ⍬),': ',msg)⎕SIGNAL errno
+    ∇
+    ∇ {msg}←{caller}Warn msg
+    ⍝ Warn user
+      :If ~WARN ⋄ :Return ⋄ :EndIf
+      :If 900⌶⍬ ⋄ caller←⊢ ⋄ :EndIf
+      WARNLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
+      WARNLOG↑⍨←-LOGSIZE⌊≢WARNLOG
+      :If SHOWMSG ⋄ ⎕←'Link Warning: ',msg ⋄ :EndIf
+    ∇
+    ∇ {msg}←{caller}Log msg
     ⍝ Debug information
-      DEBUGLOG,←⊂(⍕⎕TS),' ',msg
-      DEBUGLOG↑⍨←LOGSIZE⌊≢DEBUGLOG
-      :If debug>0 ⋄ ⎕←'Link Debug: ',msg ⋄ :EndIf
+      :If debug≤0 ⋄ :Return ⋄ :EndIf
+      :If 900⌶⍬ ⋄ caller←⊢ ⋄ :EndIf
+      DEBUGLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
+      DEBUGLOG↑⍨←-LOGSIZE⌊≢DEBUGLOG
+      :If SHOWMSG ⋄ ⎕←'Link Debug: ',msg ⋄ :EndIf
     ∇
 
     :EndSection

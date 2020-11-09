@@ -17,14 +17,13 @@
          →END U.If 0∊⍴link←U.LookupFile path  ⍝ not linked => done
          link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time
 
-
          deleted←type≡'deleted'
-         msg←'⎕SE.Link.Notify: ',type,' ',path,': '
+         msg←type' 'path': '
          :If DEBUG>0 ⋄ :AndIf type≡'renamed'
-             msg←(¯2↓msg),'←',oldpath,': '
+             msg←(¯1↓msg),'←'oldpath,': '
          :EndIf
 
-         :If '.'∨.=⊃¨U.SplitDir path ⋄ →END⊣U.Log msg,'file/directory name has a leading dot' ⋄ :EndIf  ⍝ link issue #156 - due to unreliable 6∘⎕NINFO
+         :If '.'∨.=⊃¨U.SplitDir path ⋄ →END⊣1 U.Log msg,⊂'file/directory name has a leading dot' ⋄ :EndIf  ⍝ link issue #156 - due to unreliable 6∘⎕NINFO
 
          :If ~deleted
              parents←(¯1+≢U.Ancestry link.dir)↓U.Ancestry path
@@ -37,8 +36,8 @@
                  :Else ⋄ ⎕DL 0.000001
                  :EndTrap
              :EndWhile
-             :If retry<0 ⋄ →END⊣U.Log msg,'not accessible' ⋄ :EndIf
-             :If hidden ⋄ →END⊣U.Log msg,'hidden' ⋄ :EndIf
+             :If retry<0 ⋄ →END⊣1 U.Log msg,⊂'not accessible' ⋄ :EndIf
+             :If hidden ⋄ →END⊣1 U.Log msg,⊂'hidden' ⋄ :EndIf
          :EndIf  ⍝ dir cannot yet be tested for deleted files
 
          ⍝ determine expected apl name from file name, and actual apl name from source
@@ -56,7 +55,7 @@
          :EndIf
 
          :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
-             →END⊣U.Log msg,'file extension not managed by link'
+             →END⊣1 U.Log msg,⊂'file extension not managed by link'
          :EndIf
 
          oldname←actname
@@ -66,14 +65,14 @@
          :If ~deleted  ⍝ won't read a deleted file
          :AndIf 3=⎕NC link.beforeRead ⍝ user exit defined? - must run BEFORE we exit on invalid file contents
              :If ~(link⍎link.beforeRead)'beforeRead'link path affected(|nc)  ⍝ return 1 to continue else 0
-                 →END⊣U.Log msg,'handled by user'
+                 →END⊣1 U.Log msg,⊂'handled by user'
              :EndIf
          :EndIf
 
-         :If 0=≢nsref ⋄ →END⊣U.Warn msg,'file does not reflect in a valid namespace'
-         :ElseIf nc=¯1 ⋄ →END⊣U.Warn msg,'invalid name defined by file: ',path
+         :If 0=≢nsref ⋄ →END⊣1 U.Warn msg,⊂'file does not reflect in a valid namespace'
+         :ElseIf nc=¯1 ⋄ →END⊣1 U.Warn msg,'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
-             →END⊣U.Log msg,(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
+             →END⊣1 U.Log msg,⊂(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
          :EndIf
 
          ⍝ determine current file tied to name we plan to use
@@ -91,35 +90,35 @@
              :If 0≠⎕NC affected    ⍝ object already exists - avoid re-linking when file was copy/pasted
              :AndIf curfile≢path   ⍝ sometimes file writes produce a create event on the same file - let it run
              :AndIf 0<≢curfile     ⍝ otherwise it's a regular file creation
-                 →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
+                 →END⊣1 U.Warn msg,'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  (⍎curnsname)U.Untie curactname
-                 U.Log msg,'creating ',affected,' - unlinking previously linked ',curname
+                 1 U.Log msg,'creating 'affected' - unlinking previously linked 'curname
              :Else
-                 U.Log msg,'creating ',affected
+                 1 U.Log msg,'creating 'affected
              :EndIf
 
          :Case 'changed'               ⍝ Update to existing file?
-             :If dir ⋄ →END⊣U.Log msg,'ignoring change to directory' ⋄ :EndIf
+             :If dir ⋄ →END⊣1 U.Log msg,⊂'ignoring change to directory' ⋄ :EndIf
              :If path≡curfile      ⍝ name already tied to the same file
                  ⍝ checking if file is worth refix-ing (hash etc.) will be done in U.QFix
                  :If (0<≢curname)∧(curname≢affected) ⋄ ⎕EX curname ⋄ :EndIf   ⍝ name changed
-                 U.Log msg,'updating previously linked ',affected,((0<≢curname)∧(curname≢affected))/' deleting previously defined ',curname
+                 1 U.Log msg,'updating previously linked 'affected,((0<≢curname)∧(curname≢affected))/' deleting previously defined 'curname
              :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)      ⍝ name was tied to a different file
-                 →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,' which is linked to ',curfile
+                 →END⊣1 U.Warn msg,'ignoring attempt to redefine 'affected' which is linked to 'curfile
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name
                  ⎕EX curname  ⍝ delete name in case the name defined by source has changed
-                 U.Log msg,'updating un-linked ',affected,', expunging previously linked ',curname
+                 1 U.Log msg,'updating un-linked 'affected', expunging previously linked 'curname
              :Else
-                 U.Log msg,'updating un-linked ',affected
+                 1 U.Log msg,'updating un-linked 'affected
              :EndIf
 
          :Case 'renamed'
              :If path≡curfile       ⍝ name already tied to the same file - happens when forceFilenames/forceExtensions moves back a file to where it was
-                 U.Log msg,'updating previously linked ',affected
+                 1 U.Log msg,'updating previously linked 'affected
              :ElseIf 0≠⎕NC affected  ⍝ redefining existing name
              :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
-                 →END⊣U.Warn msg,'ignoring attempt to redefine ',affected,(0<≢curfile)/' which is linked to ',curfile
+                 →END⊣1 U.Warn msg,'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
              :EndIf
              (oldnsname oldexpname)←2↑link U.DetermineAplName oldpath  ⍝ cannot determine actual name and nameclass because file is gone
              oldname←oldnsname,'.',oldexpname
@@ -136,12 +135,12 @@
                      :Trap 0 ⋄ children←⊃⎕NINFO⍠1⊢path,'/*'
                      :Else ⋄ children←0⍴⊂''
                      :EndTrap
-                     U.Log msg,'namespace rename ',oldname,' → ',affected
+                     1 U.Log msg,'namespace rename 'oldname' → 'affected
                      Notify¨{'changed'⍵}¨children
                  :Else                                    ⍝ no old ns
-                     U.Warn msg,'not found namespace ',oldname,' - loading ',affected,' from ',path
+                     1 U.Warn msg,'not found namespace 'oldname' - loading 'affected' from 'path
                      :If 0<≢inFail←link U.FixFiles nsref path 1  ⍝ always overwrite
-                         U.Warn msg,'failed to load: ',⍕inFail
+                         1 U.Warn msg,'failed to load: '(U.FmtLines inFail)
                      :EndIf
                  :EndIf
                  →END
@@ -151,27 +150,27 @@
              :EndIf
              :If ~curnc∊0 ¯1     ⍝ new file already tied to a name
                  (⍎curnsname)U.Untie curactname
-                 U.Warn msg,'moving ',oldname,' to ',affected,' - unlinking previously linked ',curname
+                 1 U.Warn msg,'moving 'oldname' to 'affected' - unlinking previously linked 'curname
              :Else
-                 U.Log msg,'moving ',oldname,' to ',affected
+                 1 U.Log msg,'moving 'oldname' to 'affected
              :EndIf
 
          :Case 'deleted'
              :If 0=⎕NC affected  ⍝ object didn't exist
-                 U.Log msg,'not found: ',affected
+                 1 U.Log msg,'not found: 'affected
              :ElseIf (0<≢curfile)∧(path≢curfile)  ⍝ name tied to another file - don't expunge
-                 →END⊣U.Log msg,'not expunging ',affected,' linked to ',curfile
+                 →END⊣1 U.Log msg,'not expunging 'affected' linked to 'curfile
              :ElseIf (~curnc∊0 ¯1)∧(curname≢affected)     ⍝ a different file was tied to a name
                  (⍎curnsname)U.Untie curactname
-                 U.Warn msg,'expunging ',affected,' - unlinking previously linked ',curname
+                 1 U.Warn msg,'expunging 'affected' - unlinking previously linked 'curname
              :Else
-                 U.Log msg,'expunging ',affected
+                 1 U.Log msg,'expunging 'affected
              :EndIf
              ⎕EX affected
              →END
 
          :Else
-             U.Log msg,'Unhandled event type'
+             1 U.Log msg,⊂'Unhandled event type'
              →END ⍝ might as well give up now
 
          :EndSelect
@@ -181,9 +180,9 @@
          :If link.fastLoad<(link.forceFilenames∨link.forceExtensions) ⍝ fastLoad is disabled in Notify
          :AndIf path≢exppath←expfile(link.forceFilenames U.MergeFileName link.forceExtensions)path
              :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
-                 →END⊣U.Warn msg,'name clash - cannot move file to existing ',exppath,' - cannot fix ',affected
+                 →END⊣1 U.Warn msg,'name clash - cannot move file to existing 'exppath' - cannot fix 'affected
              :Else
-                 U.Log msg,'moving to ',exppath
+                 1 U.Log msg,'moving to 'exppath
                  exppath ⎕NMOVE path ⋄ path←exppath
                  ⍝ If we do the line below, then occasionally the watcher fails to callback on move, making the new file definition not fixed
                  ⍝→END U.If watch     ⍝ file watcher will take care of the rest
@@ -196,10 +195,10 @@
          :If dir  ⍝ create namespace - optimisation to avoid the call to ⎕NINFO that QFix would cause through GetFileSource
              actname nsref.⎕NS''
          :ElseIf ~nsref U.QFix path actname tie
-             U.Warn msg,'Unable to fix file'
+             1 U.Warn msg,⊂'Unable to fix file'
          :EndIf
 
-         END:
+END:
          ⍝:If U.debug≠0 ⋄ ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3] ⋄ :EndIf
      :EndHold ⍝ 'Notify'
  :Else

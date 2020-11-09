@@ -45,7 +45,7 @@
     STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
 
 
-    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;opts;slow;test;tests;time;udebug;warn;z
+    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;opts;showmsg;slow;test;tests;time;udebug;z
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
       all←0 ⋄ docrawler←⎕SE.Link.Watcher.CRAWLER
@@ -64,7 +64,7 @@
           :If 0=⎕NC'debug' ⋄ debug←⎕SE.Link.DEBUG ⋄ :EndIf
           (⎕SE.Link.DEBUG debug)←(debug ⎕SE.Link.DEBUG)
           udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
-          (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN)(0<⎕SE.Link.DEBUG)  ⍝ disable warnings if not debugging
+          (showmsg ⎕SE.Link.U.SHOWMSG)←(⎕SE.Link.U.SHOWMSG)(0<⎕SE.Link.DEBUG)  ⍝ do not show messages if not debugging
           (dotnet crawler)←⎕SE.Link.Watcher.(DOTNET CRAWLER)
      
           time←⎕AI[3] ⋄ ok←1
@@ -88,7 +88,7 @@
           ⍝ restore ⎕SE.Link settings
           {}⎕SE.UCMD']udebug ',udebug
           ⎕SE.Link.DEBUG←debug
-          ⎕SE.Link.U.WARN←warn
+          ⎕SE.Link.U.SHOWMSG←showmsg
           ⎕SE.Link.Watcher.(DOTNET CRAWLER)←(dotnet crawler)
           ⍝ display results
           dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
@@ -1773,7 +1773,7 @@
       instance←⎕NEW GhostRider env
       {}instance.APL'⎕SE.Link.Watcher.CRAWLER←',⍕⎕SE.Link.Watcher.CRAWLER  ⍝ because ⎕SE.Link.Test.Run sets it
       {}instance.APL'⎕SE.Link.Watcher.DOTNET←',⍕⎕SE.Link.Watcher.DOTNET  ⍝ because ⎕SE.Link.Test.Run sets it
-      {}instance.APL'⎕SE.Link.DEBUG←0 ⋄ ⎕SE.Link.U.WARN←0'  ⍝ keep quiet
+      {}instance.APL'⎕SE.Link.DEBUG←0 ⋄ ⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
     ∇
     :EndSection
 
@@ -1785,16 +1785,12 @@
 
     ∇ r←Setup(folder name);udebug
       r←'' ⍝ Run will abort if empty
-     
       :If ~⎕SE.Link.Watcher.DOTNET
           Log'.Net Framework or .NetCore required to run tests'
           :Return
       :ElseIf ~⎕SE.Link.U.IS190
           Log'Not running Dyalog v19.0 or later - some tests will be skipped'
       :EndIf
-     
-      ⍝ TODO : should turn ⎕SE.Link.U.Warn off if ⎕SE.Link.DEBUG≥0
-     
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
@@ -1802,7 +1798,6 @@
           ⎕←'      ]Link.Break -all    ⍝ to break all links'
           :Return
       :EndIf
-     
       :If 0≠⎕NC name
           ⍝⎕←name,' exists. Expunge? [Y|n]'
           ⍝:If 'yYjJ1 '∊⍨⊃⍞~' '
@@ -1826,7 +1821,6 @@
       :Else  ⍝ generate a new directory - avoids prompting for deletion
           folder←CreateTempDir 0
       :EndIf
-     
       :If USE_ISOLATES
           :If 9.1≠#.⎕NC⊂'isolate'
               'isolate'#.⎕CY'isolate.dws'
@@ -1845,13 +1839,12 @@
       ⍝QNCOPY←#.SLAVE.⎕NCOPY
       ⍝QNGET←#.SLAVE.⎕NGET
       ⍝QMKDIR←#.SLAVE.⎕MKDIR
-     
       r←folder
     ∇
 
     ∇ UnSetup
       :If USE_ISOLATES
-          z←4=#.SLAVE.(2+2) ⍝ Make sure it finished what it was doing
+          assert'4=#.SLAVE.(2+2)' ⍝ Make sure it finished what it was doing
           {}#.isolate.Reset 0
           #.SLAVE←⎕NULL
       :EndIf

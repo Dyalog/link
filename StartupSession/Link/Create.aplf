@@ -68,7 +68,7 @@
              :EndIf
          :EndIf
          :If opts.(flatten∧source≢'dir') ⋄ U.Error'flatten≡1 requires source≡''dir''' ⋄ :EndIf
-         :If warn ⋄ U.Warn'.NET or .NetCore not available - Link cannot watch directory' ⋄ :EndIf
+         :If warn ⋄ ¯1 U.Warn'.NET or .NetCore not available - Link cannot watch directory' ⋄ :EndIf
 
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
