@@ -1,9 +1,9 @@
  msg←{opts}Refresh nss;inFail;ko;link;links;ns;nsref;ok;outFail;rsi;source;stacks;xsi;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO ⎕ML←1 1
      :Hold '⎕SE.Link.Links'
          :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
          opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
@@ -19,7 +19,7 @@
                  :If opts.source≡'auto' ⋄ source←link.source   ⍝ use actual source used at Create time
                  :Else ⋄ source←opts.source  ⍝ use specified source
                  :EndIf
-                 :If ~0∊⍴link.fsw ⋄ link.fsw.EnableRaisingEvents←0 ⋄ :EndIf
+                 0 Watcher.Pause link
                  :If 'ns'≡source
                      ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
                      :If 0≠≢outFail←link U.WriteFiles(⍎link.ns)link.dir
@@ -31,7 +31,7 @@
                          ko,←(⊂(⍕≢inFail),' import(s) failed:'),inFail
                      :EndIf
                  :EndIf
-                 :If ~0∊⍴link.fsw ⋄ link.fsw.EnableRaisingEvents←1 ⋄ :EndIf
+                 1 Watcher.Pause link
              :Else
                  ko,←⊂'Not linked: ',ns
              :EndIf

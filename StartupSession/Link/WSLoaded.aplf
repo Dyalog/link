@@ -2,6 +2,9 @@
 ⍝ Action to be taken upon )LOAD or )CLEAR
  :If U.HasLinks
  :AndIf 0∊keep←⎕SE=U.RootOf⍎¨⎕SE.Link.Links.ns
+     U.Log'WSLoaded: Clearing ',⍕(~keep)/⎕SE.Link.Links
      Watcher.Break(~keep)/⎕SE.Link.Links
      ⎕SE.Link.Links/⍨←keep
+ :Else
+     U.Log'WSLoaded: Nothing to clear'
  :EndIf

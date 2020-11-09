@@ -1,23 +1,9 @@
 ﻿:Namespace U ⍝ Utilities
-    ⎕IO←⎕ML←1
+    ⎕IO ⎕ML←1 1
 
     :Section Constants
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
         IS190←{19≤⊃⊃(//)⎕VFI(¯1+⍵⍳'.')↑⍵}2⊃# ⎕WG'APLVersion'
-    ∇ (canwatch dotnetcore)←_CanWatch;⎕USING
-    ⍝ Assumptions :
-    ⍝ Dyalog only allows .Net Framework v4 (v1 v2 and v3.x are not supported anymore)
-    ⍝ Therefore v3 and v5 must mean .Net Core
-      :Trap 0 ⍝ ⎕USING← has been known to fail
-          ⎕USING←''        ⍝ Ensure that System is present if at all possible
-          dotnetcore←4≠System.Environment.Version.Major
-          ⎕USING←',System',(~dotnetcore)/'.dll'
-          canwatch←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
-      :Else
-          canwatch←dotnetcore←0
-      :EndTrap
-    ∇
-    (CANWATCH DOTNETCORE)←_CanWatch ⍝ cache result
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -141,7 +127,7 @@
       :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
       :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly (arrays only)
       :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
-      :ElseIf hash≢2 ⎕NQ'.' 'GetBuildID'file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
+      :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
       :EndIf
       :If compsrc ⋄ ⍝ need a closer look
           :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
@@ -475,7 +461,7 @@
           linkns←(nss⍳nsref)⊃links
       :EndIf
     ∇
-    ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;mask;modifiers;nl
+    ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;mask;modifiers;nl;watch
     ⍝ Get default modifiers for link options namespace
       :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
       :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
@@ -485,10 +471,13 @@
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
           Error'Unknown modifiers: ',FmtEach mask/nl
       :EndIf
-      Default←opts.{(⊆⍺){0=⎕NC ⍺:⍎⍺,'←⍵'}¨⊆⍵}
+          Default←opts.{(⊆⍺){0=⎕NC⊂⍺:⍎⍺,'←⍵'}¨⊆⍵}
+      :If ~900⌶⍬ ⋄ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2 ⍝ custom defaults go first
+          nl Default¨defopts⍎¨nl
+      :EndIf
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
-      'watch'Default(1+CANWATCH)⊃'ns' 'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
+      'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
       'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Default 0 ⋄ 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
@@ -502,9 +491,6 @@
       'typeExtensions'Default 0 2⍴0 ''
       opts.typeExtensions{_←⍺⍪⍵ ⋄ _[∪⍳⍨⊣/_;]}←↑(2 'apla')(3 'aplf')(4 'aplo')(9.1 'apln')(9.4 'aplc')(9.5 'apli')
       Check'typeExtensions'
-      :If ~900⌶⍬ ⋄ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2 ⍝ some more custom defaults
-          nl Default¨defopts⍎¨nl
-      :EndIf
     ∇
 
     :EndSection
@@ -1238,17 +1224,19 @@
 
     WARN←1 ⍝ flag to enable/disable display of warnings
     WARNLOG←DEBUGLOG←0⍴⊂''  ⍝ actual logs
+    LOGSIZE←1000
 
-    ∇ {msg}←{header}Warn msg
+    ∇ {msg}←Warn msg
     ⍝ Warn user
-      :If 900⌶⍬ ⋄ header←'Link Warning: ' ⋄ :EndIf
-      WARNLOG,←⊂msg←header,msg
-      :If WARN ⋄ ⎕←msg ⋄ :EndIf
+      WARNLOG,←⊂(⍕⎕TS),' ',msg
+      WARNLOG↑⍨←LOGSIZE⌊≢WARNLOG
+      :If WARN ⋄ ⎕←'Link Warning: ',msg ⋄ :EndIf
     ∇
     ∇ {msg}←Log msg
     ⍝ Debug information
-      DEBUGLOG,←⊂msg
-      :If debug>0 ⋄ ⎕←msg ⋄ :EndIf
+      DEBUGLOG,←⊂(⍕⎕TS),' ',msg
+      DEBUGLOG↑⍨←LOGSIZE⌊≢DEBUGLOG
+      :If debug>0 ⋄ ⎕←'Link Debug: ',msg ⋄ :EndIf
     ∇
 
     :EndSection

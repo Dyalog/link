@@ -4,13 +4,13 @@
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
  ⍝ opts.all=0 (default)   : break specified links
  ⍝ opts.all=1 (-all)      : break all links
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
          :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
-         ⎕IO ⎕ML←1 1
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
@@ -45,7 +45,7 @@
          unlinked,←refs~tobreak
 
          :If ~0∊⍴tobreak
-             ⍝ First stop the file watcher - :Hold-ing '⎕SE.Link.Notify' could prevent the Notify callbacks from completing
+             ⍝ stop the file watcher - :Hold-ing '⎕SE.Link.Notify' could prevent the Notify callbacks from completing
              Watcher.Break∪(linked∊tobreak)/links
              :Hold '⎕SE.Link.Notify'
                  n←+/U.RemoveFileTiesIn¨∪tobreak  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such

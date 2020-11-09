@@ -1,9 +1,9 @@
- msg←{opts}Export(ns dir);defopts;outFail
+ msg←{opts}Export(ns dir);defopts;outFail;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-
      (defopts←⎕NS ⍬).(overwrite)←0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf

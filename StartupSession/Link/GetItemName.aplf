@@ -1,11 +1,11 @@
- items←GetItemName files;actname;container;expname;file;i;link;names;nc;ns;scal;shape;where;⎕IO
+ items←GetItemName files;actname;container;expname;link;nc;scal;shape;where;⎕IO;⎕ML
  ⍝ Get APL names from file names
  ⍝ returns empty string for unlinked files
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←1
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
          :If ~U.HasLinks ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf

@@ -1,4 +1,5 @@
- names←{opts}StripCaseCode names;i;scal;shape
+ names←{opts}StripCaseCode names;i;scal;shape;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf

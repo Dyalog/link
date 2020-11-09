@@ -1,11 +1,11 @@
 ﻿ {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
-         ⎕IO ⎕ML←1 1
          container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
          :If ~U.HasLinks ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
          scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0

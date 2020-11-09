@@ -1,11 +1,11 @@
- status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;there;⎕IO
+ status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;there;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
          :If ~U.HasLinks ⋄ status←'No active links' ⋄ :Return ⋄ :EndIf
-         ⎕IO←1
          links←⎕SE.Link.Links
          :If ×≢ns
              there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container

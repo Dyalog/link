@@ -1,5 +1,6 @@
- names←{opts}CaseCode names;i;opts;scal;shape
+ names←{opts}CaseCode names;i;opts;scal;shape;⎕IO;⎕ML
  ⍝ Case-code a file name located
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf

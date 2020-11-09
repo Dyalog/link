@@ -1,19 +1,22 @@
- msg←{opts}Create(ns dir);emptydir;emptyns;files;hasdir;hasns;mask;names;parents;rsi;scriptitems;xsi
- ;links;fsw;ix;outFail;inFail;nsref;nsrefs;link;arrow;⎕IO
+ msg←{opts}Create(ns dir);arrow;emptydir;emptyns;fail;hasdir;hasns;nsref;nsrefs;rsi;warn;xsi;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←1
-
      :Hold '⎕SE.Link.Links'
-         :If 0=⎕NC'⎕SE.Link.Links'
-             ⎕SE.Link.Links←⍬         ⍝ Start with no links
-         ⍝ Link namespaces will record switch values
-         ⍝    and also contain fsw, the FileSystemWatcher object
-         :EndIf
+         :If 0=⎕NC'⎕SE.Link.Links' ⋄ ⎕SE.Link.Links←⍬ ⋄ :EndIf ⍝ Start with no links
 
-         opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+         opts←⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+         :If warn←~Watcher.CanWatch  ⍝ warn if not watching directory by default - will disappear when file crawler works
+             :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
+             :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
+             :EndIf
+             :If warn←0=opts.⎕NC⊂'watch' ⋄ :AndIf warn←~Watcher.CanWatch
+                 opts.watch←'ns' ⍝ default to watch='ns' and warn about it
+             :EndIf  ⍝ otherwise default to 'both'
+         :EndIf
+         opts←U.DefaultOpts opts
          ns←⊃⌽(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
          msg←⍕⍬⊤⍬
 
@@ -31,37 +34,27 @@
          :Else ⋄ emptyns←1
          :EndIf
 
-         :If ~U.CANWATCH
-         :AndIf (⊂opts.watch)∊'both' 'dir'
-             U.Error'Watching directories is only supported if .NET is available'
-         :ElseIf opts.source≡'dir'
-         :AndIf ~hasdir
+         :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir'
+             U.Error'Watching directories is only supported if .NET or .NetCore is available'
+         :ElseIf ~hasdir ⋄ :AndIf opts.source≡'dir'
              U.Error'Source directory not found: ',dir
-         :ElseIf opts.source≡'dir'
-         :AndIf ~emptyns
+         :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
              U.Error'Destination namespace not empty: ',ns
-         :ElseIf opts.source≡'ns'
-         :AndIf ~hasns
+         :ElseIf ~hasns ⋄ :AndIf opts.source≡'ns'
              U.Error'Source namespace not found: ',ns
-         :ElseIf opts.source≡'ns'
-         :AndIf ~emptydir
+         :ElseIf ~emptydir ⋄ :AndIf opts.source≡'ns'
              U.Error'Destination directory not empty: ',dir
-         :ElseIf opts.source≡'auto'
-         :AndIf emptydir⍱emptyns
+         :ElseIf emptydir⍱emptyns ⋄ :AndIf opts.source≡'auto'
              U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
-         :ElseIf opts.source≡'auto'
-         :AndIf hasdir⍱hasns  ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
+         :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
              U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
              U.Error'Not a namespace: ',ns
          :ElseIf U.IsScripted nsref
              U.Error'Cannot link to scripted namespaces: ',ns
-         :ElseIf ×≢⎕SE.Link.Links
-         :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
-             link←⎕SE.Link.Links⊃⍨nsrefs⍳nsref
-             U.Error'Already linked: ',U.Arrow link
-         :ElseIf ~hasdir
-         :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
+         :ElseIf ×≢⎕SE.Link.Links ⋄ :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
+             U.Error'Already linked: ',U.Arrow ⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+         :ElseIf ~hasdir ⋄ :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
              U.Error'Directory not found: ',dir
          :ElseIf U.Slash⊃⌽dir
              U.Error'Trailing slash reserved for future extension'
@@ -74,36 +67,26 @@
                  opts.source←'ns'
              :EndIf
          :EndIf
-         :If opts.(flatten∧source≢'dir')
-             U.Error'flatten≡1 requires source≡''dir'''
-         :EndIf
+         :If opts.(flatten∧source≢'dir') ⋄ U.Error'flatten≡1 requires source≡''dir''' ⋄ :EndIf
+         :If warn ⋄ U.Warn'.NET or .NetCore not available - Link cannot watch directory' ⋄ :EndIf
 
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
          opts.dir←dir←0 U.NormDir dir
-
-         inFail←outFail←0⍴⊂'' ⋄ fsw←⍬
-         ix←'[',(⍕((U.UcmdStacks xsi)(86⌶)'⎕IO')+≢⎕SE.Link.Links),']'     ⍝ fix ⎕IO!
          msg←0⍴⊂''
          :If 'ns'≡opts.source
-             outFail←opts U.WriteFiles ns dir
-         :AndIf 0≠≢outFail
-             msg,←(⊂(⍕≢outFail),' export(s) failed:'),outFail
+             fail←opts U.WriteFiles ns dir
+         :AndIf 0≠≢fail
+             msg,←(⊂(⍕≢fail),' export(s) failed:'),fail
          :EndIf
-
          :If 'dir'≡opts.source
-             inFail←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
-         :AndIf 0≠≢inFail
-             msg,←(⊂(⍕≢inFail),' import(s) failed:'),inFail
+             fail←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
+         :AndIf 0≠≢fail
+             msg,←(⊂(⍕≢fail),' import(s) failed:'),fail
          :EndIf
-
-         'opts'⎕NS''
          :If 'dir' 'both'∊⍨⊂opts.watch
-             opts.fsw←Watcher.Watch dir(,'*')
-         :Else
-             opts.fsw←⍬
+             Watcher.Watch opts
          :EndIf
-
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
          ⎕SE.Link.Links,←opts

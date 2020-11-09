@@ -1,18 +1,35 @@
 ﻿:Namespace Watcher
-
-    (⎕IO ⎕ML)←1 1
-
+    ⎕IO ⎕ML←1 1
 
     ⍝⍝⍝⍝⍝ .Net System.IO.FileSystemWatcher ⍝⍝⍝⍝⍝
 
     USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.Watcher.QUEUE'           ⍝ FSW Queue Object name prefix
-    DEBUG←1                                 ⍝ Log events
+    CRAWLER←0                               ⍝ allow using crawler
 
     TimerEvent←140
     NotifyEvent←7777
     CloseEvent←7778
     Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
+
+    ∇ (dotnet dotnetcore)←HasDotNet;⎕USING
+    ⍝ Assumptions :
+    ⍝ Dyalog only allows .Net Framework v4 (v1 v2 and v3.x are not supported anymore)
+    ⍝ Therefore v3 and v5 must mean .Net Core
+      :Trap 0 ⍝ ⎕USING← has been known to fail
+          ⎕USING←''        ⍝ Ensure that System is present if at all possible
+          dotnetcore←4≠System.Environment.Version.Major
+          ⎕USING←',System',(~dotnetcore)/'.dll'
+          dotnet←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
+      :Else
+          dotnet←dotnetcore←0
+      :EndTrap
+    ∇
+    (DOTNET DOTNETCORE)←HasDotNet ⍝ cache result
+    ∇ canwatch←CanWatch         ⍝ FileSystemWatcher or Crawler
+      canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
+    ∇
+
 
     ∇ RequeuedEvent args
      ⍝ Process events redirected via the timer
@@ -47,26 +64,6 @@
       ##.U.Log'FileSystemWatcher Error: ',obj.Path
     ∇
 
-    ∇ r←Watch args;tid;q;z;end
-    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
-      :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
-          z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
-          q←FSWQ,⍕tid←WatcherThread&args
-          z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting
-          end←Timeout+3⊃⎕AI
-          :While 0=⎕NC q     ⍝ Wait for thread to create the Timer object
-              ⍝:If end<3⊃⎕AI
-              ⍝    ##.U.Warn'WatcherThread did not create Timer object'
-              ⍝:EndIf
-              ⎕DL 0.05
-          :EndWhile
-          (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
-      :Else ⍝ Make direct calls to Notify: return the FSW object
-          r←MakeWatcher args
-          r.EnableRaisingEvents←1
-      :EndIf
-    ∇
-
     ∇ WatcherThread args;q;watcher
      ⍝ Run a thread which creates a FileSystemWatcher object
      ⍝ ... makes sure there is a ⎕DQ to allow processing of events
@@ -84,7 +81,7 @@
     ∇ watcher←MakeWatcher args;⎕USING
      ⍝ Return a FileSystemWatcher object
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
-      ⎕USING←',System',(~##.U.DOTNETCORE)/'.dll'
+      ⎕USING←',System',(~DOTNETCORE)/'.dll'
       watcher←⎕NEW System.IO.FileSystemWatcher
       watcher.(Path Filter)←args
       :If 1
@@ -101,11 +98,54 @@
       watcher.IncludeSubdirectories←1
     ∇
 
+
+
+
+
+
+    ∇ Watch link;args;end;q;tid;z
+    ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
+      :If DOTNET
+          args←link.dir(,'*')
+          :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
+              z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
+              q←FSWQ,⍕tid←WatcherThread&args
+              z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting
+              end←Timeout+3⊃⎕AI
+              :While 0=⎕NC q ⋄ ⎕DL 0.05 ⋄ :EndWhile    ⍝ Wait for thread to create the Timer object
+              (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
+          :Else ⍝ Make direct calls to Notify: return the FSW object
+              r←MakeWatcher args
+              r.EnableRaisingEvents←1
+          :EndIf
+          link.fsw←r
+      :ElseIf CRAWLER
+          AddCrawler link
+      :Else
+          ##.U.Error'Cannot watch files'
+      :EndIf
+    ∇
+
+    ∇ watch Pause link;fsw;link
+    ⍝ pause/resume file watching
+      :If 9=⎕NC'link.fsw.QUEUE'
+          fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
+      :ElseIf 9=⎕NC'link.fsw'
+          fsw←link.fsw
+      :EndIf
+      :If 0≠⎕NC'fsw'
+          fsw.EnableRaisingEvents←watch
+      :Else
+          watch PauseCrawler link
+      :EndIf
+    ∇
+
     ∇ Break links;end;tids;timer;timers
     ⍝ Cleanly shut down a file system watcher
     ⍝ Called by ⎕SE.Link.Break
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(9=⌊links.⎕NC⊂⊂'fsw')/links  ⍝ fsw is ⍬ when there is not filewatcher
+          RemoveCrawler links  ⍝ can't hurt if it wasn't crawling
+      :AndIf ~0∊⍴links←(9=⌊links.⎕NC⊂⊂'fsw')/links  ⍝ links that have a FSW
           :If USE_NQ ⍝ Did we using indirection via a queue?
               (timers tids)←↓⍉↑links.fsw.(QUEUE TID)
               :If ~0∊⍴timers←(9=⌊⎕NC timers)/timers
@@ -134,16 +174,156 @@
 
     ⍝⍝⍝⍝⍝ File Crawler ⍝⍝⍝⍝⍝
 
-    PERIOD←0.1   ⍝ timer period in seconds
-    GRANULARITY←0.02  ⍝ timer granularity in seconds (20ms on Windows, 1ms on Linux)
-    WORKLOAD←0.1   ⍝ workload ratio (in [0;1])
+    ⍝ Settings
+    T_PERIOD←.1   ⍝ timer period in seconds
+    T_GRANULARITY←0.02  ⍝ timer granularity in seconds (20ms on Windows, 1ms on Linux)
+    T_WORKLOAD←0.1   ⍝ workload ratio (in [0;1])
+
+    ⍝ Timer globals
+    OLDTIME←¯1  ⍝ (Time ⍬) can never return a time before that
+    T_START←T_END←OLDTIME  ⍝ last timer event start/end
+    TIMER←⎕NULL  ⍝ Timer object
+
+    ⍝ Crawler globals
+    ⍝ LINKS[link;link_opts last_file_update last_check FILES]
+    L_OPTS L_ACTIVE L_UPDATE L_CHECK L_FILES←⍳L_COLS←5
+    LINKS←0 L_COLS⍴⍬
+    ⍝ FILES[file;file_name modification_date hash last_check_date]
+    F_NAME F_MOD F_HASH F_CHECK←⍳F_COLS←4
+    F_EMPTY←0 F_COLS⍴⍬
 
     Time←(211⌶⍬)∘{(210⌶⍬)÷⍺}  ⍝ time in seconds
-
-    ∇ FileCrawl
-     
+    ∇ time←EncodeTS TS        ⍝ allows comparing ⎕TS between themselves, NOT to (Time ⍬)
+      time←0 12 31 24 60 60 1000⊥⍉↑⊆TS
     ∇
 
+    ∇ AddCrawler link
+      :Hold '⎕SE.Link.Crawler'
+          ##.U.Log'Crawler: Adding: ',⍕link
+          LINKS⍪←link 1 OLDTIME OLDTIME(F_EMPTY NewFiles link)
+          :If ⎕NULL≡TIMER
+              TIMER←⎕NEW⊂'Timer'(('Interval'(⌈1000×T_PERIOD))('Event'('onTimer' 'CrawlerEvent&'))('Active' 1))
+              ##.U.Log'Crawler: Started timer'
+          :EndIf
+      :EndHold
+    ∇
+    ∇ active PauseCrawler links;inx;mask
+      :Hold '⎕SE.Link.Crawler'
+          :If 1∊mask←LINKS[;L_OPTS]∊links
+              LINKS[⍸mask;L_ACTIVE]←active
+          :EndIf
+      :EndHold
+    ∇
+    ∇ RemoveCrawler links
+      :Hold '⎕SE.Link.Crawler'
+          LINKS⌿⍨←~LINKS[;L_OPTS]∊links
+          :If (0∊⍴LINKS)∧(TIMER≢⎕NULL)
+              TIMER.Active←0 ⋄ TIMER←⎕NULL
+              ##.U.Log'Crawler: No remaining links, disabling timer'
+          :Else
+              ##.U.Log'Crawler: Remaining links:',⍕LINKS[;L_OPTS]
+          :EndIf
+      :EndHold
+    ∇
+
+    ∇ ok←start CheckWorkload now;elapsed;worked
+      elapsed←T_PERIOD⌊(now-T_END)  ⍝ elapsed since last timer end
+      worked←now-start              ⍝ elapsed since last timer start
+      ok←T_WORKLOAD>worked÷elapsed  ⍝ still under maximum workload
+      :If ~ok ⋄ ##.U.Log'Crawler: Workload reached' ⋄ :EndIf
+    ∇
+
+    ∇ files←oldfiles NewFiles link;check;done;hash;hash1;mask;mod;mod1;mod2;newdone;ok;todo
+      files←(⊃,/link ##.U.ListFiles link.dir)~⊂link.dir,'/'
+      :If 0∊⍴files ⋄ files←F_EMPTY ⋄ :Return ⋄ :EndIf  ⍝ no files to check
+      ⍝mod←hash←done←(≢files)⍴0
+      ⍝:While 0∊done
+      ⍝    todo←(~done)/files
+      ⍝    mod1←EncodeTS↑3 ⎕NINFO todo
+      ⍝    hash1←##.U.FileHash¨todo  ⍝ hash is more expensive than time stamp
+      ⍝    mod2←EncodeTS↑3 ⎕NINFO todo
+      ⍝    done∨←newdone←(~done)\ok←mod1=mod2   ⍝ ensure the modification date matches the hash (most of the time it will)
+      ⍝    (newdone/mod)←ok/mod1 ⋄ (newdone/hash)←ok/hash1
+      ⍝:EndWhile
+      mod←EncodeTS↑3 ⎕NINFO files    ⍝ always update modification dates
+      :If 1∊mask←~files∊oldfiles[;F_NAME]  ⍝ fetch hash only for unknown files
+          hash←mask\##.U.FileHash¨mask/files
+      :Else ⋄ hash←(⍴files)⍴⊂''
+      :EndIf
+      check←((⍴files)⍴OLDTIME)  ⍝ worst possible check date
+      files←↑[0.5]files mod hash check
+    ∇
+
+    ∇ {msg}←CrawlerEvent msg;active;check;file;files;hash;inx;link;linkinx;mask;newfiles;start;update
+    ⍝ TODO: optimisation: ##.Notify → ##.U.QFix → ##.U.FileHasChanged will re-hash the file
+      start←Time ⍬
+      :Hold '⎕SE.Link.Crawler'
+          :If (T_PERIOD-T_GRANULARITY)>(start-T_START)
+              ⍝##.U.Log'Timer overloaded'
+              (T_START T_END)←start(Time ⍬)
+              :Return
+          :EndIf
+      :EndHold
+      :Repeat
+          :Hold '⎕SE.Link.Crawler'
+              ⍝ leave if all files checked in this event (or no file at all)
+              :If start∧.≤L_CHECK⌷[2]LINKS  ⍝ all links checked (we need to check links that have no file)
+              :AndIf start∧.≤∊F_CHECK⌷[2]¨L_FILES⌷[2]LINKS  ⍝ all files checked
+                  ##.U.Log'Crawler: All files checked'
+                  :Leave
+              :EndIf
+              ⍝ pick link that was checked least recently
+              :If ~1∊mask←LINKS[;L_ACTIVE]
+                  ##.U.Log'Crawler: No active link'
+                  :Leave
+              :EndIf  ⍝ nothing to do
+              linkinx←LINKS[;L_CHECK]{⍵⍳⌊/⍵}LINKS[;L_ACTIVE]/LINKS[;L_CHECK]
+              (link active update check files)←LINKS[linkinx;]
+              ⍝ update list of files if needed
+              :If (update<start)∧(update<⊃LINKS[linkinx;L_CHECK])   ⍝ file update predates this event, and at least one check was done since
+                  :If 0∊⍴files ⋄ :OrIf update∨.<files[;F_CHECK]     ⍝ at least one check was made since the file list update - this is to avoid repeatedly updating the list without checking any file
+                      ##.U.Log'Crawler: Updating files: ',⍕link
+                      newfiles←files NewFiles link ⋄ update←Time ⍬
+                      :If 1∊mask←~files[;F_NAME]∊newfiles[;F_NAME]  ⍝ notify deletions first in case of rename/move
+                          {##.Notify'deleted'⍵}¨mask/files[;F_NAME] ⍝ notify deletion
+                          files←(~mask)⌿files                       ⍝ remove from data structure
+                      :EndIf
+                      :If 1∊mask←(≢files)<inx←files[;F_NAME]⍳newfiles[;F_NAME]
+                          {##.Notify'created'⍵}¨mask/newfiles[;F_NAME]          ⍝ notify creation
+                          inx←(~mask)/inx                                       ⍝ don't need to update those
+                          files⍪←mask⌿newfiles                                  ⍝ add to data structure
+                      :EndIf
+                      files[inx;F_MOD]←newfiles[⍸~mask;F_MOD]       ⍝ update modification date but not hash for existing files
+                      LINKS[linkinx;L_UPDATE L_FILES]←(Time ⍬)files
+                  :EndIf
+              :EndIf
+              ⍝ check workload
+              :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf
+              ##.U.Log'Crawler: Checking files: ',⍕link
+              :If 0∊⍴files ⋄ LINKS[linkinx;L_CHECK]←Time ⍬ ⋄ :Continue ⋄ :EndIf  ⍝ no files to check
+              ⍝ check least recently checked
+              inx←{⍵⍳⌊/⍵}files[;F_CHECK]
+              :If (⊃files[inx;F_HASH])≢(hash←##.U.FileHash file←⊃files[inx;F_NAME])  ⍝ hash has changed
+                  ##.Notify'changed'file            ⍝ notify change
+                  files[inx;F_HASH]←⊂hash           ⍝ update hash
+              :EndIf
+              files[inx;F_CHECK]←Time ⍬             ⍝ update check time
+              ⍝ check most recently modified - but not checked during this timer event
+              :If 1∊mask←files[;F_CHECK]<start      ⍝ not checked during this timer event
+                  inx←mask{⍵⍳⌈/⍺/⍵}files[;F_MOD]    ⍝ most recently modified
+                  :If (⊃files[inx;F_HASH])≢(hash←##.U.FileHash file←⊃files[inx;F_NAME])  ⍝ hash has changed
+                      ##.Notify'changed'file        ⍝ notify change
+                      files[inx;F_HASH]←⊂hash       ⍝ update hash
+                  :EndIf
+                  files[inx;F_CHECK]←Time ⍬         ⍝ update check time
+              :EndIf
+              LINKS[linkinx;L_CHECK L_FILES]←(Time ⍬)files  ⍝ update link check time and files data structure
+              ⍝ check workload
+              :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf  ⍝ worked too much
+          :EndHold
+      :EndRepeat
+      (T_START T_END)←start(Time ⍬)
+    ∇
 
 
 :EndNamespace

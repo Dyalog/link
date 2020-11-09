@@ -1,9 +1,9 @@
- msg←Add items;item;ns;name;this;added;unfound;⎕IO
+ msg←Add items;added;item;name;ns;this;unfound;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     ⎕IO←1
      items←(⊆,items)~¨' '
      this←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
      items←(this,'.')∘,¨items         ⍝ fully qualified name

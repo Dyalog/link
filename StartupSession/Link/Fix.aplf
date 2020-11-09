@@ -5,13 +5,12 @@
 ⍝   One day, the left argument of (ns name) may be inferred, for now it must be provided
 ⍝ Returns 1 if a link was found for the name, else 0
 ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
-
+ ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
-
  :Trap DEBUG↓0
-     ⎕IO ⎕ML←1 1 ⋄ XSI←⎕XSI ⋄ RSI←⎕RSI
+     XSI←⎕XSI ⋄ RSI←⎕RSI
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
      callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
      →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback) - see mantis 18160: can't :Hold 0⍴⊂'' in a high-priority callback

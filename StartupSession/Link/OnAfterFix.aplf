@@ -1,3 +1,3 @@
  {res}←OnAfterFix(obj evt src ns oldname name file)
-  ⍝ Thin cover for editor onAfterFix event
+ ⍝ Thin cover for editor onAfterFix event
  res←ns name oldname ⎕SE.Link.Fix ⍬

@@ -1,15 +1,13 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO;⎕ML
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
-
+ ⎕IO ⎕ML←1 1
  startai←⎕AI
  :Select U.debug
  :Case 1 ⋄ ⍝⎕←'Notify'args  ⍝ no need for this - Notify calls U.Log a lot
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
-
  :Trap DEBUG↓0
-     ⎕IO←1
      recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
      :Hold (recur=1)/⊂'⎕SE.Link.Notify' ⍝ Avoid deadlock due to recursion - NB Notify doesn't need to :Hold ⎕SE.Link.Links because it only affect files and APL objects
          r←⍬⊤⍬
@@ -104,9 +102,7 @@
          :Case 'changed'               ⍝ Update to existing file?
              :If dir ⋄ →END⊣U.Log msg,'ignoring change to directory' ⋄ :EndIf
              :If path≡curfile      ⍝ name already tied to the same file
-                 ⍝ Checking hash is not worth, compared to fixing file.... also it might have false positive on character inversion (multiple of 4-bytes apart)
-                 ⍝ also, forcefilename might still want to rename the file
-                 ⍝:If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected ⋄ :EndIf
+                 ⍝ checking if file is worth refix-ing (hash etc.) will be done in U.QFix
                  :If (0<≢curname)∧(curname≢affected) ⋄ ⎕EX curname ⋄ :EndIf   ⍝ name changed
                  U.Log msg,'updating previously linked ',affected,((0<≢curname)∧(curname≢affected))/' deleting previously defined ',curname
              :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)      ⍝ name was tied to a different file
@@ -120,7 +116,6 @@
 
          :Case 'renamed'
              :If path≡curfile       ⍝ name already tied to the same file - happens when forceFilenames/forceExtensions moves back a file to where it was
-                 ⍝:If (nsref U.CurrentHash actname)≡(U.FileHash path) ⋄ →END⊣U.Log msg,'checksum unchanged - not updating ',affected ⋄ :EndIf
                  U.Log msg,'updating previously linked ',affected
              :ElseIf 0≠⎕NC affected  ⍝ redefining existing name
              :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
@@ -204,7 +199,7 @@
              U.Warn msg,'Unable to fix file'
          :EndIf
 
-END:
+         END:
          ⍝:If U.debug≠0 ⋄ ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3] ⋄ :EndIf
      :EndHold ⍝ 'Notify'
  :Else
