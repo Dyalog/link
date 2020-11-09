@@ -212,7 +212,7 @@
           'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(819⌶mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
           'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
       :EndFor
-
+     
       {}opts ⎕SE.Link.Create name folder
       assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
       assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
@@ -229,9 +229,9 @@
       z←'#' 'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'
       assert'z≡0'
       Breathe ⍝ windows needs some time to clean up the file ties
-
+     
       {}⎕SE.Link.Break name ⋄ ⎕EX name
-
+     
       3 ⎕MKDIR folder,'/sub/.git/info'
       {}(⊂,⊂'goo←{''goo'' arg}')QNPUT(folder,'/sub/goo.aplf')1
       {}(⊂'hoo arg' '⎕←''hoo'' arg')QNPUT(folder,'/sub/.git/info/hoo.aplf')1
@@ -310,7 +310,7 @@
       'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''failed''⍷z)'
       'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
       ⎕EX name
-
+     
       z←opts ⎕SE.Link.Import name folder
       assert'0=≢⎕SE.Link.Links'
      
@@ -328,7 +328,7 @@
       assert'ac≡⎕SRC ns.sub.sub2.aClass'
       assert'bc≡⎕SRC ns.sub.sub2.bClass'
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.sub.sub2.aClass'
-
+     
       ⍝ make sure there is no link
       ns'foo'⎕SE.Link.Fix' r←foo x' ' r←x x x'
       assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
@@ -350,14 +350,14 @@
 ⍝ Import does not support custom types at this time
 ⍝      assert'cm≡ns.cm'
 ⍝      assert'cv≡ns.cv'
-
+     
       assert'ns.one2≡2 2⍴''one'' 1 ''two'' 2'
-
+     
       assert'9.4=ns.⎕NC''aClass'' ''bClass'''
       assert'ac≡⎕SRC ns.aClass'
       assert'bc≡⎕SRC ns.bClass'
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
-
+     
       ⍝ Now tear it all down again:
       _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
@@ -387,7 +387,7 @@
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
       ns←#⍎name
-
+     
       ⍝ Create a monadic function
       _←(⊂foo←' r←foo x' ' x x')QNPUT folder,'/foo.dyalog'
       assert'foo≡ns.⎕NR ''foo''' 'ns.⎕FX ↑foo'
@@ -403,7 +403,7 @@
       _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT o2file 1
       value←(3 2⍴'one' 1 'two' 2 'three' 3)
       assert'value≡ns.one2' 'ns.one2←value'
-
+     
       ⍝ Update array using Link.Fix
       ns.one2←⌽ns.one2
       ns'one2'⎕SE.Link.Fix''
@@ -432,7 +432,7 @@
       ⍝ Duplicate array (effect will be checked by looking at ⎕NL after renaming directory)
       ns.sub.onetwo←ns.sub.one2
       assert'~⎕NEXISTS folder,''/sub/onetwo.apla'''
-      {}⎕SE.Link.Add'ns.sub.onetwo'  ⍝ BUG : watcher create event produces a warning that file attempts to redefine existing variable
+      {}⎕SE.Link.Add'ns.sub.onetwo'
       Breathe
       assert'⎕NEXISTS folder,''/sub/onetwo.apla'''
       assert'2=⎕NC''ns.sub.onetwo'''
@@ -441,7 +441,7 @@
       Breathe
       _←QNDELETE new
       assert'0=⎕NC ''ns.sub.one2''' '⎕EX ''ns.sub.one2'''
-
+     
       ⍝ Put a copy of foo in the folder
       _←(⊂foo)QNPUT folder,'/sub/foo.dyalog'
       assert'foo≡ns.sub.⎕NR ''foo'''
@@ -519,7 +519,7 @@
      
       ⍝ Now test whether exits implement ".charmat" support
       ⍝ First, write vars in the workspace to file'
-
+     
       ns.cm←↑ns.cv←'Line 1' 'Line two'
       ns'cm'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
       ns'cv'⎕SE.Link.Fix ⍬ ⍝ Ditto for charvec
@@ -532,7 +532,7 @@
      
       assert'cm≡↑⊃#.SLAVE.⎕NGET (folder,''/cm.charmat'') 1'
       assert'cv≡⊃#.SLAVE.⎕NGET (folder,''/cv.charvec'') 1'
-
+     
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
       Breathe
@@ -544,7 +544,7 @@
       assert'0=ns.⎕NC ''cv''' 'ns.⎕EX ''cv'''
       _←QNDELETE folder,'/cm.charmat'
       assert'0=ns.⎕NC ''cm''' 'ns.⎕EX ''cm'''
-
+     
       ⍝ The the functions, one by one
       _←QNDELETE folder,'/nil.dyalog'
       assert'0=ns.⎕NC ''nil'''
@@ -646,11 +646,11 @@
       assert'z≡''Linked: ',name,' ←→ ',winfolder,''''
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
       'link issue #43'assert'actfiles≡expfiles'
-      {}⎕SE.Link.Add name,'.var'  ⍝ BUG : ⍝ BUG : watcher create event produces a warning that file attempts to redefine existing variable
+      {}⎕SE.Link.Add name,'.var'
       actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
       expfiles←{⍵[⍋⍵]}expfiles,⊂'var-0.apla'
       assert'actfiles≡expfiles'
-
+     
       {}⎕SE.Link.Break name ⋄ ⎕EX name
      
       ⍝ now open it back without case coding
@@ -680,18 +680,18 @@
       assert'1 0≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
       {}opts ⎕SE.Link.Create name folder
       assert'0 1≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
-
+     
       ⍝ check forcefilename on-the-fly
       fn←' r←Dup x' ' r←x x'  ⍝ whitespace not preserved because of ⎕NR
       {}(⊂fn)QNPUT folder,'/NotDup.aplf'
       assert'fn≡⎕NR name,''.Dup'''
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
-
+     
       ⍝ check file rename on-the-fly
       Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
       {}(folder,'/NotDup.aplf')#.SLAVE.⎕NMOVE(folder,'/Dup-1.aplf')
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
-
+     
       ⍝ check apl rename on-the-fly
       Breathe
       fn←' r←DupduP x' ' r←x x x'
@@ -714,7 +714,7 @@
       {}QNDELETE folder,'/NotDupduP.aplf'  ⍝ delete
       assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
       assert'fn≡⎕NR name,''.DupduP'''
-
+     
       {}⎕SE.Link.Break name ⋄ ⎕EX name
      
       opts.forceFilenames←0
@@ -732,7 +732,7 @@
       {}opts ⎕SE.Link.Create name folder
       assert'0 1 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
       assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
-
+     
       ⍝ check forceextensions on-the-fly
       ⍝fn←'  ∇  r  ←  Dup  x' 'r  ←  x  x  ' '  ∇  '  ⍝ whitespace preserved (TODO : not for now)
       fn←' r←DupDup1 x' ' r←x x 1'  ⍝ whitespace not preserved because of ⎕NR
@@ -740,14 +740,14 @@
       assert'fn≡⎕NR name,''.DupDup1'''
       assert'0=⎕NC name,''.NotDupDup1'''
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
-
+     
       ⍝ check file rename on-the-fly
       Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
       {}(folder,'/NotDupDup1.apla')#.SLAVE.⎕NMOVE(folder,'/NotDupDup1.aplf')
       assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
       assert'fn≡⎕NR name,''.DupDup1'''
       assert'0=⎕NC name,''.NotDupDup1'''
-
+     
       ⍝ check apl rename on-the-fly
       Breathe
       var←⎕SE.Dyalog.Array.Serialise⍳2 3
@@ -785,15 +785,13 @@
       assert'fn≡⎕NR name,''.YetAnother'''
      
       ⍝ Test that CaseCode and StripCaseCode functions work correctly
-⍝ BUG Serialise/Deserialise doesn't work with rank 3
-⍝      var←⍳2 3 4
-      var←⍳5 6
+      var←⍳4 5 7
       varfile←⎕SE.Link.CaseCode folder,'/HeLLo.apla'
       assert'varfile≡folder,''/HeLLo-15.apla'''
       assert'(folder,''/HeLLo.apla'')≡⎕SE.Link.StripCaseCode varfile'
-⍝ BUG whitespace-sensitive code not possible
-⍝      fn←'   r   ← OhMyOhMy  ( oh   my  )'   'r←  oh my   oh my'
-      fn←' r←OhMyOhMy(oh my)' ' r←oh my oh my'
+      :If ⎕SE.Link.U.IS190 ⋄ fn←'   r   ← OhMyOhMy  ( oh   my  )' 'r←  oh my   oh my'
+      :Else ⋄ fn←' r←OhMyOhMy(oh my)' ' r←oh my oh my'
+      :EndIf
       fnfile←⎕SE.Link.CaseCode folder,'/OhMyOhMy.aplf'
       assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
       assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
@@ -803,7 +801,7 @@
       name'HeLLo'⎕SE.Link.Fix ⎕SE.Dyalog.Array.Serialise var
       name'OhMyOhMy'⎕SE.Link.Fix fn
       assert'var≡',name,'.HeLLo'
-      assert'fn≡⎕NR''',name,'.OhMyOhMy'''
+      assert'fn≡NR''',name,'.OhMyOhMy'''
       assert'1 1≡⎕NEXISTS varfile fnfile'
      
       ⍝ Test that explicit Notify update the right name
@@ -819,9 +817,8 @@
       ⍝ Ditto for GetFileName and GetItemname
       assert'fnfile≡⎕SE.Link.GetFileName name,''.OhMyOhMy'''
       assert'(name,''.OhMyOhMy'')≡⎕SE.Link.GetItemName fnfile'
-⍝ BUG doens't work for arrays and trad namespaces
-⍝      assert'varfile≡⎕SE.Link.GetFileName name,''.HeLLo'''
-⍝      assert'(name,''.HeLLo'')≡⎕SE.Link.GetItemName varfile'
+      assert'varfile≡⎕SE.Link.GetFileName name,''.HeLLo'''
+      assert'(name,''.HeLLo'')≡⎕SE.Link.GetItemName varfile'
      
       ⍝ Test that Expunge deletes the right file
       assert'1 1≡⎕NEXISTS varfile fnfile'
@@ -874,7 +871,7 @@
       assert'0=≢⎕SE.Link.Links'
       ⎕EX'#.unlikelyname'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
-
+     
       z←⎕SE.Link.Create(name,'.⎕THIS')folder
       'link issue #145'assert'~∨/''failed''⍷z'
       'link issue #145'assert'1=≢⎕SE.Link.Links'
@@ -957,7 +954,7 @@
       assert'(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
       'link issue #89 and #104'assert'~⎕NEXISTS folder,''/var.myapla'''
       {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
-
+     
       ⍝ rebuild a namespace from scratch
       (name,'.sub')⎕NS ⍬
       :For sub :In name∘,¨'' '.sub'
@@ -965,12 +962,12 @@
           (⍎sub).⎕FX nr←' r←foo r' ' r←r'
           (⍎sub).⎕FIX src←,¨':Namespace script' '∇ res←function arg' 'res←arg' '∇' '∇ goo' '∇' 'var←123' ':EndNamespace'
       :EndFor
-
+     
       RDFILES←RDNAMES←WRFILES←WRNAMES←⍬
       opts←⎕NS ⍬
       opts.beforeRead←'⎕SE.Link.Test.beforeReadAdd'
       opts.beforeWrite←'⎕SE.Link.Test.beforeWriteAdd'
-
+     
       ⍝ TODO allow exporting variables ?
       {}opts ⎕SE.Link.Export name folder
       'link issue #21'assert'WRFILES ≡ folder∘,¨''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' '
@@ -1004,7 +1001,7 @@
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
       'link issue #142'assert'(props,[.5]name folder 7)≡⎕SE.Link.Status name'
-
+     
       ⍝ attempt to rename a script
       src2←,¨':Namespace script2' '∇ res←function2 arg' 'res←arg' '∇' ':EndNamespace'
       {}(⊂src2)QNPUT(folder,'/script.apln')1
@@ -1013,7 +1010,7 @@
       {}(⊂src)QNPUT(folder,'/script.apln')1
       'link issue #36'assert'0=⎕NC ''',name,'.script2'''
       'link issue #36'assert'src≡⎕SRC ',name,'.script'
-
+     
       z←⎕SE.Link.GetFileName 1 NSTREE name
       'link issue #128'assert'({⍵[⍋⍵]}z)≡({⍵[⍋⍵]} 1 NTREE folder)'
       z←⎕SE.Link.GetItemName 1 NTREE folder
@@ -1125,7 +1122,7 @@
     ∇ ok←test_create(folder name);badsrc1;badsrc2;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z;nstree
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
-
+     
       ⍝ test default UCMD to ⎕THIS
       2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith  ⍝ not goot - :With brings in locals into the target namespace
@@ -1227,7 +1224,7 @@
       ⍝ expected results
       (foonr newfoonr)←(1+⎕SE.Link.U.IS190)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
       (foonget newfoonget)←(foosrc newfoosrc)
-
+     
       :If ⎕SE.Link.U.IS190 ⍝ link issue #144
           opts.source←'dir' ⋄ opts.watch←'dir'
           z←opts ⎕SE.Link.Create name folder
@@ -1244,14 +1241,14 @@
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
       nstree←'#.linktest.foo' '#.linktest.ns' '#.linktest.required' '#.linktest.sub' '#.linktest.var' '#.linktest.sub.foo' '#.linktest.sub.ns' '#.linktest.sub.require' '#.linktest.sub.required' '#.linktest.sub.var'
       ⍝ only v19.0 has ⎕FIX'FixWithErrors'1
-      :If ⎕SE.Link.U.IS190 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf  
+      :If ⎕SE.Link.U.IS190 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
 ⍝ BUG Mantis 18628 !!!
-      :if 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require'  '#.linktest.sub.required' ⋄ :EndIf  
+      :If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
       ⍝ in the following line, ⎕SE.Link.U.IS190 is due to Mantis 18626
       'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
       {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ ⎕NDELETE reqfile
-
+     
       ⍝ test source=dir watch=dir
       opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
@@ -1274,7 +1271,7 @@
       Breathe ⋄ 0 assert_create 1   ⍝ breathe to ensure it's not reflected
       z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
       assert'(0=≢⎕SE.Link.Links)∧(z≡1)'
-
+     
       ⍝ now try source=dir watch=ns
       opts.source←'dir' ⋄ opts.watch←'ns' ⋄ {}opts ⎕SE.Link.Create name folder
       1 assert_create 1
@@ -1291,7 +1288,7 @@
       Breathe ⍝ breathe to ensure it's not reflected
       0 assert_create 1
       {}⎕SE.Link.Expunge name
-
+     
       ⍝ now try source=dir watch=none
       opts.source←'dir' ⋄ opts.watch←'none' ⋄ {}opts ⎕SE.Link.Create name folder
       1 assert_create 1
@@ -1311,7 +1308,7 @@
       {}⎕SE.Link.Break name
       3 ⎕NDELETE folder
      
-
+     
       ⍝ now try source=ns watch=dir
       :If ~⎕SE.Link.U.IS190 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ source=ns means 18.0 can't export whitespace-preserved
       opts.source←'ns' ⋄ opts.watch←'dir'
@@ -1329,7 +1326,7 @@
       Breathe
       0 assert_create 1
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
-
+     
       ⍝ now try source=ns watch=ns
       opts.source←'ns' ⋄ opts.watch←'ns'
       {}opts ⎕SE.Link.Create name folder
@@ -1347,7 +1344,7 @@
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
-
+     
       ⍝ now try source=ns watch=none
       :If ~⎕SE.Link.U.IS190 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
       opts.source←'ns' ⋄ opts.watch←'none'
@@ -1477,7 +1474,7 @@
       classbad←(¯1↓class),⊂':EndNamespace'
       class2←(1↑class),(⊂':Field Public Shared class2←1'),(1↓class)
       ns←':Namespace ns' '    var← 4 5 6' '    ∇ res←dup arg' '      res←arg arg' '    ∇' ':EndNamespace'
-
+     
       ⍝ start with flattened repository
       ⎕MKDIR folder,'/sub'
       {}(⊂varsrc)QNPUT(folder,'/sub/var.apla')1
@@ -1930,7 +1927,7 @@
           Log'STOP_TESTS detected...'
           (1+⊃⎕LC)⎕STOP'assert'
       :EndIf
-
+     
       (expr clean)←2↑(⊆args),⊂''
       end←3000+3⊃⎕AI ⍝ allow three seconds of wait time
       timeout←0
@@ -1951,7 +1948,7 @@
           Log'Warning: ',txt,(~0∊⍴clean)/'- Recovered via ',clean
           :Return
       :EndIf
-
+     
       ⍝ No recovery, or recovery failed
       :If ASSERT_ERROR
           txt ⎕SIGNAL 11
@@ -1991,7 +1988,7 @@
      ⍝ Cover for ⎕NPUT -
      ⍝ Superseeded by #.SLAVE.⎕NPUT when USE_ISOLATES←1
      ⍝ re-superseeded by QNPUT
-
+     
       (file overwrite)←2↑(⊆args),1
       r←≢bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
       :If (⎕NEXISTS file)∧overwrite

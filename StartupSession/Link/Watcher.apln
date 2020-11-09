@@ -101,7 +101,7 @@
 
 
 
-
+   ⍝⍝⍝⍝⍝ MAIN API ⍝⍝⍝⍝⍝⍝⍝⍝
 
     ∇ Watch link;args;end;q;tid;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
@@ -135,16 +135,16 @@
       :EndIf
       :If 0≠⎕NC'fsw'
           fsw.EnableRaisingEvents←watch
-      :Else
-          watch PauseCrawler link
+      :ElseIf CRAWLER
+          watch PauseCrawler link  ⍝ can't hurt if non-crawled link
       :EndIf
     ∇
 
     ∇ Break links;end;tids;timer;timers
     ⍝ Cleanly shut down a file system watcher
     ⍝ Called by ⎕SE.Link.Break
+      :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt of empty links or non-crawled links
       :If ~0∊⍴links
-          RemoveCrawler links  ⍝ can't hurt if it wasn't crawling
       :AndIf ~0∊⍴links←(9=⌊links.⎕NC⊂⊂'fsw')/links  ⍝ links that have a FSW
           :If USE_NQ ⍝ Did we using indirection via a queue?
               (timers tids)←↓⍉↑links.fsw.(QUEUE TID)
