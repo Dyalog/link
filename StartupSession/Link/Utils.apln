@@ -659,7 +659,7 @@
                   file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile  ⍝ if 0∊⍴oldfile, then file remains empty
               :EndIf
               file←dir,file               ⍝ Add link directory
-              file,←'/',name                  ⍝ Add object name
+              file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name
           :EndIf
           file,←typeExtensions Tail nc               ⍝ Add extension
       :EndIf
@@ -728,23 +728,41 @@
       :EndIf
     ∇
 
+    ∇ names←trad ListNs ns;mask;pre;ref;refs;subns;tradns
+      ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
+      names←pre∘,¨ListNames ref    ⍝ all names
+      :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
+          refs←ref⍎¨subns
+      :AndIf ∨/mask←~IsScripted¨refs  ⍝ trad ns
+          tradns←pre∘,¨mask/subns
+          :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
+          names,←⊃,/trad ListNs¨tradns  ⍝ list trad namespaces before their children names
+      :EndIf
+    ∇
 
 
-    ∇ outFail←opts WriteFiles(ns dir);count;dir;files;i;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
+    ∇ outFail←opts WriteFiles(ns dir arrays overwrite);count;dir;files;i;inx;mask;names;nsref;ok;oldfiles;src;tradfiles;tradnames
     ⍝ Write items to file in folders
     ⍝ ns must be a fully specified unscripted namespace
-    ⍝ arrays not supported
+    ⍝ arrays: boolean to include/exclude arrays
+    ⍝ overwrite=¯1 : empty target - no overwrite
+    ⍝ overwrite=0 : non-empty target - no overwrite
+    ⍝ overwrite=1 : non-empty target - overwrite
       outFail←0⍴⊂'' ⋄ nsref←⍎ns
       ⍝ Create directory for namesapce
-      3 ⎕MKDIR dir ⋄ outFail,←(~⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+      3 ⎕MKDIR dir ⋄ outFail,←(~ok←⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃,/opts ListFiles dir
+          Error'Destination not empty: "',(⍕dir),'"'
+      :EndIf
       ⍝ Write children to files (except trad namespaces)
-      :If 0≠≢names←nsref.⎕NL-NameClasses 0
-          src←nsref GetAplSource¨names
+      :If 0≠≢names←1 ListNs ns ⍝ list trad namespaces (excepted ns itself
+          names/⍨←(⎕NC names)∊(NameClasses arrays)
+          src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
           mask←0=≢¨src     ⍝ can't get source
           outFail,←(ns,'.')∘,¨mask/names
           (names src)←(~mask)∘/¨(names src) ⋄ count←≢names
           (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
-          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files) ⍝ TODO should really test the whole list of files after recursion, in case beforeWrite messed up the names
+          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
               names←names[,(mask/inx),[1.5]⍸mask]
               Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names
@@ -752,6 +770,13 @@
           mask←src∊⎕NULL  ⍝ unscripted namespaces
           (tradnames tradfiles)←mask∘/¨(names files)
           (files oldfiles names src)/⍨←⊂(~mask)
+          :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS tradnames,files
+              Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines mask/(tradfiles,¨WinSlash'/'),files
+          :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE tradnames,files
+          :EndIf
+          :If 0≠≢tradfiles
+              3 ⎕MKDIR¨tradfiles ⋄ outFail,←(~⎕NEXISTS tradfiles)/tradfiles
+          :EndIf
           :If 0≠≢files
               :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write - not on directories
                   mask←(≢files)⍴1
@@ -769,10 +794,6 @@
               :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                   ⎕NDELETE¨mask/oldfiles
               :EndIf
-          :EndIf
-          :If 0≠≢tradfiles ⍝ recurse on unscripted namespaces
-              tradnames←(ns,'.')∘,¨tradnames
-              outFail,←⊃,/opts∘WriteFiles¨↓tradnames,[1.5]tradfiles
           :EndIf
       :EndIf
     ∇
@@ -846,7 +867,7 @@
       :Case ¯1 ⋄ :If ~EmptyNamespace target source   ⍝ target must be empty (or already linked to the matching file)
               Error'Destination namespace not empty: ',(⍕target) ⋄ :EndIf
       :Case 0 ⋄ :If ∨/mask←0<⎕NC allnames~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
-              Error'Files produce clashing APL names : use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
+              Error'Names already exist: use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
       :Else ⋄ ⍝ otherwise silently overwrite - excepted root namespace
           ⎕EX(⊂⍕target)~⍨(⌊|actnc){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
       :EndSelect
@@ -1247,7 +1268,7 @@
     ∇
     ∇ {errno}Error msg;caller
       :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
-      ((LinkCall ⍬),': ',msg)⎕SIGNAL errno
+      (⊃,/(LinkCall ⍬)': ',⊆msg)⎕SIGNAL errno
     ∇
     ∇ {msg}←{caller}Warn msg
     ⍝ Warn user

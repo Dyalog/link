@@ -22,7 +22,8 @@
                  0 Watcher.Pause link
                  :If 'ns'≡source
                      ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
-                     :If 0≠≢outFail←link U.WriteFiles(⍎link.ns)link.dir
+                     ⍝ TODO : should test for existing arrays in destination to update from workspace - here arrays are not updated
+                     :If 0≠≢outFail←link U.WriteFiles(⍎link.ns)link.dir 0 1 ⍝ always overwrite
                          ko,←(⊂(⍕≢outFail),' export(s) failed:',),outFail
                      :EndIf
                  :ElseIf 'dir'≡source

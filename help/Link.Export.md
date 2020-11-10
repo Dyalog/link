@@ -10,6 +10,6 @@ creating a Link.
 
 #### Options
 
-- `overwrite`: Allow exporting into a non-empty directory, possibly overwriting files
+- `overwrite`: Allow overwriting files in the destination directory
 
 #### Result

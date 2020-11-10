@@ -75,7 +75,7 @@
          opts.dir←dir←0 U.NormDir dir
          msg←0⍴⊂''
          :If 'ns'≡opts.source
-             fail←opts U.WriteFiles ns dir
+             fail←opts U.WriteFiles ns dir 0 1 ⍝ we already checked the overwrite condition
          :AndIf 0≠≢fail
              msg,←(⊂(⍕≢fail),' export(s) failed:'),fail
          :EndIf

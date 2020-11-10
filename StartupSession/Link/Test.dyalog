@@ -272,6 +272,40 @@
 
 
 
+    ∇ ok←test_export(folder name);foosrc;foosrc2;nssrc;nssrc2;opts;ref;varsrc;z
+      ref←⍎name ⎕NS''
+      varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
+      2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
+      2 ref.⎕FIX nssrc←,¨'  :Namespace ns' 'where←''ns'' ' ':EndNamespace'
+      (name,'.sub')⎕NS''
+     
+      z←⎕SE.Link.Export name folder
+      assert'~∨/''failed''⍷z'
+      assert'⎕NEXISTS ''',folder,''''
+      3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+      (⊂'This is total garbage !!!!!;;;;')⎕NPUT folder,'/garbage.ini'
+      z←⎕SE.Link.Export name folder
+      'link issue #175'assert'~∨/''failed''⍷z'
+      :If ⎕SE.Link.U.IS190 ⋄ assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'  ⍝ Dyalog v19.0 can preserve source !
+      :Else ⋄ assert name,'.(⎕NR ''foo'')≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
+      :EndIf
+      assert'nssrc≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
+      assert'1=1⎕NINFO ''',folder,'/sub'''
+      assert'~⎕NEXISTS ''',folder,'/var.apla'''
+      2 ref.⎕FIX foosrc2←,¨'     ∇ res  ←foo arg ; local' 'res←''foo2''   arg' '∇'
+      2 ref.⎕FIX nssrc2←,¨'  :Namespace ns' 'where←''ns2'' ' ':EndNamespace'
+      'link issue #175'assertError'z←⎕SE.Link.Export name folder' 'Files already exist'
+      opts←⎕NS ⍬ ⋄ opts.overwrite←1
+      z←opts ⎕SE.Link.Export name folder
+      'link issue #175'assert'~∨/''failed''⍷z'
+      :If ⎕SE.Link.U.IS190 ⋄ assert'foosrc2≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'  ⍝ Dyalog v19.0 can preserve source !
+      :Else ⋄ assert name,'.(⎕NR ''foo'')≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
+      :EndIf
+      assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'     
+          assert'~⎕NEXISTS ''',folder,'/var.apla'''
+      3 ⎕NDELETE folder ⋄ ⎕EX name
+      ok←1
+    ∇
 
 
     ∇ ok←test_import(folder name);foo;cm;cv;ns;z;opts;_;bc;ac
@@ -295,7 +329,7 @@
       ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
       opts.overwrite←0
       name⍎'foo←''this seat is taken'' ⋄ sub←{''this one is too''}'
-      'link issue #174'assertError'opts ⎕SE.Link.Import name folder' 'clashing APL names'
+      'link issue #174'assertError'opts ⎕SE.Link.Import name folder' 'Names already exist'
       'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.foo')
       'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.sub')
       opts.overwrite←1
@@ -2029,15 +2063,7 @@
     ∇
 
     ∇ names←trad NSTREE ns;mask;pre;ref;refs;subns;tradns
-      ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
-      names←pre∘,¨⎕SE.Link.U.ListNames ref    ⍝ all names
-      :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
-          refs←ref⍎¨subns
-      :AndIf ∨/mask←{0::1 ⋄ 0⊣⎕SRC ⍵}¨refs  ⍝ trad ns
-          tradns←pre∘,¨mask/subns
-          :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
-          names,←⊃,/trad NSTREE¨tradns
-      :EndIf
+      names←trad ⎕SE.Link.U.ListNs ns
     ∇
 
     ∇ to NSMOVE from;name;nl

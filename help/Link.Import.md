@@ -9,6 +9,6 @@ This function takes the same arguments as [Create](Link.Create.md), but loads a 
 
 #### Options
 
-- `overwrite`: Allow overwriting APL names
+- `overwrite`: Allow overwriting APL names in the destination namespace
 
 #### Result
