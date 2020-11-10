@@ -599,7 +599,7 @@
     ∇ ok←target QFix(file name tie);changed;nc;src
       :If tie ⋄ src←file ⍝ tie to file
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
-          :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both or watch=dir' ⋄ :EndIf
+          :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both' ⋄ :EndIf
       :EndIf
       :If src≡⍬ ⋄ ok←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
@@ -795,7 +795,7 @@
       files←files[GradeFiles files]                 ⍝ dirs then quads then files
     ∇
 
-    ∇ {inFail}←opts FixFiles(target source overwrite);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;list;mask;names;ndirs;nss;parents;quadfiles;source;tie
+    ∇ {inFail}←opts FixFiles(target source overwrite);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;lastn;list;mask;n;names;nc;ndirs;nss;ord;parents;quadfiles;source;tie
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
@@ -873,16 +873,21 @@
       :EndIf
      
       ⍝ fix individual files
-      (files names)←ndirs∘↓¨(allfiles allnames)
-      (files names)/⍨←⊂~files∊quadfiles
+      (files names nc)←ndirs∘↓¨(allfiles allnames actnc)
+      (files names nc)/⍨←⊂~files∊quadfiles
       :If ~0∊⍴files
           :If ~opts.flatten                               ⍝ If we are not flattening, create nss
               nss←⍎∘Parent¨names
           :Else
               nss←target   ⍝ all files fixed in target namespace
           :EndIf
-          mask←~FixFile¨↓nss,files,[1.5]names ⍝ try it and return only failures
-          inFail,←mask/files
+          ord←⍒9.4 9.5⍳nc  ⍝ classes last and interfaces just before them
+          n←≢list←(⊂ord)⌷↓nss,files,[1.5]names
+          :Repeat ⋄ lastn←n       ⍝ keep fixing as long as at least one succeeds - we might have :Class inheristance/interfaces, :Includes, etc.
+              mask←~FixFile¨list  ⍝ fixes that failed
+              n←≢list←mask/list   ⍝ remove fixes that succeeded
+          :Until n∊0 lastn        ⍝ all fixed or number of failures hasn't changed
+          inFail,←2⊃¨list         ⍝ file names of failures
       :EndIf
     ∇
 
