@@ -559,7 +559,7 @@
       :Else ⋄ stops←trace←monitor←⍬
       :EndIf
       ⍝ attempt to fix as named script because this is the most commly expected format
-      :Trap 0 ⋄ names←2 FIX src  ⍝ fn/op/script - can work from file
+      :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
       :Else ⋄ names←0⍴⊂''
       :EndTrap
       :If ~0∊⍴names  ⍝ fix succeeded - this is the only case where actual apl name may be different from what was expected
@@ -799,6 +799,8 @@
     ∇
 
     ∇ (files dirs)←opts ListFiles dir;hidden;list;mask
+      :If 1≠1 ⎕NINFO dir ⋄ files←,⊂,dir ⋄ dirs←0⍴⊂'' ⋄ :Return ⋄ :EndIf  ⍝ single filename
+     
       list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
      
       mask←1=list[3;] ⋄ list←¯1↓list                ⍝ mask for hidden items
@@ -1029,23 +1031,23 @@
               :EndIf
               src Repl←(req,'.*',e)''               ⍝ remove :Require lines
           :EndIf
-          ⍝      1   2   3  4    5     6       7     8     9    10  11  12/13/14 15/16/17  ⍝ changing these require carefully looking for these constants in the code below
-          patt←dfno dfnc lb rb deldfn delfn1 delfn2 delop delo delc'∇',,,,so,,,,,,,sc     ⍝ dfn must win over braces - delfn/delop must win over delo - delo and delc must win over '∇'
+          ⍝      1      2       3     4     5    6  7  8     9  10 11 12/13/14 15/16/17  ⍝ changing these require carefully looking for these constants in the code below
+          patt←delfn1 delfn2 delop deldfn delo delc'∇'dfno dfnc lb rb,,,,so,,,,,,,sc     ⍝ tradfn (r←{a}f b) must win over dfn - dfn must win over braces - delfn/delop must win over delo - delo and delc must win over '∇'
           src←(0<≢¨src)/src                                             ⍝ remove empty lines otherwise ⍺⊂⍵ cannot reconstruct it
           openclose←(∊(≢¨src)↑¨1)⊂{+\+⌿1 ¯1×[1]'{}'∘.=⍵}∊src            ⍝ raw open/close brace state
           :If 0∊⍴where←patt Where oldsrc←src ⋄ ⋄ :Return ⋄ :EndIf       ⍝ nothing found
           (pos line patti)←↓⍉↑where ⋄ open←close←(4,≢src)⍴0             ⍝ (open close):[brace dfn del script;line]
-          mask←1≤openclose[↓⍉↑(patti∊pattd←5 6 7 8 9 10 11)∘/¨line pos] ⍝ for each del : is it within them
+          mask←1≤openclose[↓⍉↑(patti∊pattd←1 2 3 4 5 6 7)∘/¨line pos]   ⍝ for each del : is it within braces
           (pos line patti)/⍨←⊂(patti∊pattd){(~⍺)∨(⍺\⍵)}~mask            ⍝ if so ignore them
-          :If 11∊patti ⋄ :Return ⋄ :EndIf  ⍝ meaningless ∇ outside a dfn
-          open[1;(patti∊3)/line]+←1 ⋄ close[1;(patti∊4)/line]+←1        ⍝ non-dfn braces - may have several open/close in a single line - others can't - also note that {res} and {larg} are taken as non-proper dfns !
-          open[2;(patti∊1)/line]+←1 ⋄ close[2;(patti∊2)/line]+←1        ⍝ dfns
-          open[3;(patti∊5 6 7 8)/line]+←1 ⋄ close[3;(patti∊10)/line]+←1 ⍝ dels
+          :If (~errors)∧(7∊patti) ⋄ :Return ⋄ :EndIf  ⍝ meaningless ∇ outside a dfn
+          open[1;(patti∊10)/line]+←1 ⋄ close[1;(patti∊11)/line]+←1      ⍝ non-dfn braces - may have several open/close in a single line - others can't - also note that {res} and {larg} are taken as non-proper dfns !
+          open[2;(patti∊8)/line]+←1 ⋄ close[2;(patti∊9)/line]+←1        ⍝ dfns
+          open[3;(patti∊1 2 3 4)/line]+←1 ⋄ close[3;(patti∊6)/line]+←1  ⍝ dels
           open[4;(patti∊pattso←12 13 14)/line]+←1 ⋄ close[4;(patti∊pattsc←15 16 17)/line]+←1  ⍝ scripts
           before←0,¯1↓[2]after←+\open-close
-          :If errors    ⍝ any del opener is valid
-              openclose←open[3;]-close[3;] ⋄ openclose[(patti∊9)/line]+←1  ⍝ allow del opener
-              :If 0≠+/openclose ⋄ :Return ⋄ :EndIf          ⍝ mismatched dels are unacceptable
+          :If errors    ⍝ most dels are valid
+              ⍝ TODO this is almost impossible to reverse-engineer. ⎕FIX⍠'FixWithErrors' 1⊢ works on ('a∇b' 'a∇') but not on ('a∇b' 'a∇b'), works on ('∇∇') but not on ('∇∇∇∇')
+              ⍝ we'd rather create false positives here
           :Else         ⍝ only delfn and delop are valid del openers
               :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
           :EndIf
@@ -1076,13 +1078,13 @@
                   openclose[1;(patti∊1⊃pattso)/line]+←1 ⋄ openclose[1;(patti∊1⊃pattsc)/line]-←1 ⍝ namespaces
                   openclose[2;(patti∊2⊃pattso)/line]+←1 ⋄ openclose[2;(patti∊2⊃pattsc)/line]-←1 ⍝ classes
                   openclose[3;(patti∊3⊃pattso)/line]+←1 ⋄ openclose[3;(patti∊3⊃pattsc)/line]-←1 ⍝ interfaces
-                  :If 0∨.>∊+\openclose                                              ⍝ un-matched close - todo: doesn't detect :Namespace ⋄ :Class ⋄ :EndNamespace
+                  :If 0∨.>∊+\openclose                                            ⍝ un-matched close - todo: doesn't detect :Namespace ⋄ :Class ⋄ :EndNamespace
                   :OrIf ~0∊⍴NS Find((0∧.=before)∧(0∧.=after))/oldsrc              ⍝ do not allow garbage outside script
+                  :OrIf 0≠+/after[1 2;⊃⌽⍴after]                                   ⍝ braces must close nicely
                       :Return
                   :EndIf
               :EndIf
               patti←⊃patti∩pattso                           ⍝ type of script found
-              :If 0≠after[2;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ any included dfn must end
               hd Repl←(so,¨⊂s)''                            ⍝ remove keyword and trailing space
               :If errors ⋄ patt←b,name ⋄ :Else              ⍝ FixWithErrors allows garbage after name
                   base←s,'(:',s,name,'|:',s,'(',name,')?(',s,',',s,name,')*)?'  ⍝ :Class (pattern 11) may have name:base
@@ -1206,6 +1208,7 @@
       f,←':Class class' ':Namespace ns'
       f,←':Class class % goo←{' ':Namespace ns % goo←{'
       f,←':Class class % :Namespace ns' ':Namespace ns % :Class class'
+      f,←':Class class % goo←{ % :EndClass' ':Namespace ns % goo←{ % :EndNamespace'
       f,←⊂':Class class % ∇ foo arg ' ⍝ unmatched ∇ are prohibitive
       f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺'  ⍝ unmatched ∇ are prohibitive
       f,←⊂':Class class % ∇ foo arg % ∇ % goo ← { '  ⍝ neither can dfns
@@ -1221,6 +1224,9 @@
       f,←':Namespace badns%test∇test%:EndNamespace' ':Namespace badns%test∇test%test∇test%:EndNamespace'
       f,←⊂':Namespace ns%test←{⍺∇⍵}%∇foo%dfn←{⍺∇⍵}%∇%:EndNamespace'  ⍝ ∇ within dfns must be ignored
       f,←':Namespace ns%dfn←{%∇%}%:EndNamespace' ':Namespace ns%dfn←{%∇res←{larg}foo arg%}%:EndNamespace'  ⍝ even when on single line
+      f,←⊂':Namespace ns%∇r←{larg}fn rarg%r←{1:⍵⋄⍵}rarg∇%dfn←{a←⍵%z←{1:0⋄1}⍬%z←{1:0%1}⍬%0}%:EndNamespace'
+      f,←⊂':Namespace ns%∇res←{larg}fn rarg%sub←{1:∇⍵⋄⍵}%sub←{1:∇⍵%⍵}%sub←{%1:∇⍵⋄⍵%}%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵%⍵}rarg%res←{%1:∇⍵⋄⍵%}rarg%∇%:EndNamespace'
+      f,←⊂':Namespace ns%dfn←{%sub←{1:∇⍵⋄⍵}%sub←{1:∇⍵%⍵}%sub←{%1:∇⍵⋄⍵%}%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵%⍵}rarg%res←{1:∇⍵⋄⍵}rarg%res←{%1:⍵⋄⍵%}rarg%}%:EndNamespace'
       f,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢f   ⍝ randomise code
       ⍝ actually run the tests
       Test←{
@@ -1245,7 +1251,7 @@
     :Section UI
     ⍝ Settings
     WARN←1     ⍝ flag to enable/disable warnings
-    SHOWMSG←0  ⍝ flag to enable/disable display of log/warning messages
+    SHOWMSG←1  ⍝ flag to enable/disable display of log/warning messages
     ⍝ Globals
     WARNLOG←DEBUGLOG←0⍴⊂''  ⍝ actual logs
     LOGSIZE←1000

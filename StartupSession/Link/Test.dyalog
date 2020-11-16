@@ -301,8 +301,8 @@
       :If ⎕SE.Link.U.IS190 ⋄ assert'foosrc2≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'  ⍝ Dyalog v19.0 can preserve source !
       :Else ⋄ assert name,'.(⎕NR ''foo'')≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
       :EndIf
-      assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'     
-          assert'~⎕NEXISTS ''',folder,'/var.apla'''
+      assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
+      assert'~⎕NEXISTS ''',folder,'/var.apla'''
       3 ⎕NDELETE folder ⋄ ⎕EX name
       ok←1
     ∇
@@ -1153,7 +1153,7 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;failed;foonget;foonr;foosrc;footok;moretests;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;nssrc;nstree;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;failed;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1255,24 +1255,22 @@
       ⍝ expected results
       (foonr newfoonr)←(1+⎕SE.Link.U.IS190)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
       (foonget newfoonget)←(foosrc newfoosrc)
-      :If moretests←1 ⍝ some more tests with :Require and Class/Interface inheritance - in particular that it survives all possible grading orders byt name and by timestamp
-          ⎕DL 1 ⋄ (⊂':Namespace REQ1A' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/AREQ1A.apln'
-          ⎕DL 1 ⋄ (⊂(':Require file://',folder,'/AREQ1A.apln')':Namespace REQ1B' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')⎕NPUT folder,'/AREQ1B.apln'
-     
-          ⎕DL 1 ⋄ (⊂':Interface CLASS1A' '∇ res←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS1A.aplc'
-          ⎕DL 1 ⋄ (⊂':Class CLASS1B:,CLASS1A' ':Include REQ1B' '∇ res←foo arg' ':Implements Method CLASS1A.foo' 'res←''foo''arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS1B.aplc'
-          ⎕DL 1 ⋄ (⊂':Interface CLASS1C' '∇ res←goo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS1C.aplc'
-          ⎕DL 1 ⋄ (⊂':Class CLASS1D:CLASS1B,CLASS1C' ':Include REQ1B' '∇ res←goo arg' ':Implements Method CLASS1C.goo' 'res←''goo'' arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS1D.aplc'
-     
-          ⎕DL 1 ⋄ (⊂':Class CLASS2A:CLASS2C,CLASS2B' ':Include REQ2A' '∇ res←goo arg' ':Implements Method CLASS2B.goo' 'res←''goo'' arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS2A.aplc'
-          ⎕DL 1 ⋄ (⊂':Interface CLASS2B' '∇ res←goo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS2B.aplc'
-          ⎕DL 1 ⋄ (⊂':Class CLASS2C:,CLASS2D' ':Include REQ2A' '∇ res←foo arg' ':Implements Method CLASS2D.foo' 'res←''foo''arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS2C.aplc'
-          ⎕DL 1 ⋄ (⊂':Interface CLASS2D' '∇ res←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS2D.aplc'
-     
-          ⎕DL 1 ⋄ (⊂(':Require file://',folder,'/ZREQ2B.apln')':Namespace REQ2A' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')⎕NPUT folder,'/ZREQ2A.apln'
-          ⎕DL 1 ⋄ (⊂':Namespace REQ2B' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/ZREQ2B.apln'
-      :EndIf
-     
+      ⍝ bug from Morten
+      ns2←,¨':Namespace ns2' '∇res←{larg}fn rarg' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{' '1:∇⍵⋄⍵' '}rarg' '∇' 'dfn←{' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{' '1:⍵⋄⍵' '}rarg' '}' ':EndNamespace'
+      (⊂ns2)⎕NPUT folder,'/ns2.apln'
+      ⍝ some more tests with :Require and Class/Interface inheritance - in particular that it survives all possible grading orders byt name and by timestamp
+      ⎕DL 1 ⋄ (⊂':Namespace REQ1A' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/AREQ1A.apln'
+      ⎕DL 1 ⋄ (⊂(':Require file://',folder,'/AREQ1A.apln')':Namespace REQ1B' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')⎕NPUT folder,'/AREQ1B.apln'
+      ⎕DL 1 ⋄ (⊂':Interface CLASS1A' '∇ res←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS1A.aplc'
+      ⎕DL 1 ⋄ (⊂':Class CLASS1B:,CLASS1A' ':Include REQ1B' '∇ res←foo arg' ':Implements Method CLASS1A.foo' 'res←''foo''arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS1B.aplc'
+      ⎕DL 1 ⋄ (⊂':Interface CLASS1C' '∇ res←goo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS1C.aplc'
+      ⎕DL 1 ⋄ (⊂':Class CLASS1D:CLASS1B,CLASS1C' ':Include REQ1B' '∇ res←goo arg' ':Implements Method CLASS1C.goo' 'res←''goo'' arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS1D.aplc'
+      ⎕DL 1 ⋄ (⊂':Class CLASS2A:CLASS2C,CLASS2B' ':Include REQ2A' '∇ res←goo arg' ':Implements Method CLASS2B.goo' 'res←''goo'' arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS2A.aplc'
+      ⎕DL 1 ⋄ (⊂':Interface CLASS2B' '∇ res←goo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS2B.aplc'
+      ⎕DL 1 ⋄ (⊂':Class CLASS2C:,CLASS2D' ':Include REQ2A' '∇ res←foo arg' ':Implements Method CLASS2D.foo' 'res←''foo''arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS2C.aplc'
+      ⎕DL 1 ⋄ (⊂':Interface CLASS2D' '∇ res←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS2D.aplc'
+      ⎕DL 1 ⋄ (⊂(':Require file://',folder,'/ZREQ2B.apln')':Namespace REQ2A' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')⎕NPUT folder,'/ZREQ2A.apln'
+      ⎕DL 1 ⋄ (⊂':Namespace REQ2B' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/ZREQ2B.apln'
       (⊂':Namespace required' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/required.apln'
       reqfile←subfolder,'/require.apln'
       reqsrc←(':Require "file://',folder,'/required.apln"')':Namespace require' 'testvar←##.required.testvar' ':EndNamespace'
@@ -1294,8 +1292,8 @@
       :If ⎕SE.Link.U.IS190 ⋄ assert'~∨/''failed''⍷z'
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
-      nstree←(name,'.')∘,¨'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
-      :If moretests ⋄ nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D' ⋄ :EndIf
+      nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
+      nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D'
       ⍝ only v19.0 has ⎕FIX⍠'FixWithErrors'1
       :If ⎕SE.Link.U.IS190 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
 ⍝ BUG the following line is due to Mantis 18628
@@ -1303,13 +1301,11 @@
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
 ⍝ BUG in the following line, ⎕SE.Link.U.IS190 is due to Mantis 18626
       'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
-      :If moretests
 ⍝ BUG the following line is due to Manti 18635 - failed should be 0⍴⊂''
-          failed←⊂'CLASS2A'
-          assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
-          assert'∧/',⍕name∘{'(''foo''1234≡(⎕NEW ',⍺,'.',⍵,').foo 1234)'}¨failed~⍨'CLASS'∘,¨'1B' '1D' '2A' '2C'
-          assert'∧/',⍕name∘{'(''goo''1234≡(⎕NEW ',⍺,'.',⍵,').goo 1234)'}¨failed~⍨'CLASS'∘,¨'1D' '2A'
-      :EndIf
+      failed←⊂'CLASS2A'
+      assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
+      assert'∧/',⍕name∘{'(''foo''1234≡(⎕NEW ',⍺,'.',⍵,').foo 1234)'}¨failed~⍨'CLASS'∘,¨'1B' '1D' '2A' '2C'
+      assert'∧/',⍕name∘{'(''goo''1234≡(⎕NEW ',⍺,'.',⍵,').goo 1234)'}¨failed~⍨'CLASS'∘,¨'1D' '2A'
       {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ ⎕NDELETE reqfile
       ⎕NDELETE⍠1⊢(folder,'/')∘,¨'AREQ*.apln' 'ZREQ*.apln'  ⍝ link issue #173
      
