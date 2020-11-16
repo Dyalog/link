@@ -1068,6 +1068,7 @@
               src←(openclose=1)/src                         ⍝ keep only main dfn body
               :If ~0∊⍴'⍺⍺|⍵⍵'Where src ⋄ nameclass←4.2 ⋄ :Else ⋄ nameclass←3.2 ⋄ :EndIf
           :CaseList (0 1 0)(1 1 0)  ⍝ del : parse tradfn/dfn
+              :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
               (⊃src)Repl←(b,s,'∇')''                        ⍝ remove leading del
               (⊃⌽src)Repl←(b,s,'∇')''                       ⍝ remove closing del
               (actname nameclass)←Sniff(expname src)        ⍝ recur on tradfn within dels
@@ -1100,8 +1101,9 @@
       :EndIf
     ∇
 
-    ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;Space;Test;c;f;file;filebad;h;h1;h2;o;objs;t;tn;valid;valid1;valid2;w;where
+    ∇ {ok}←Sniff_QA stop;Case;Comment;Fluff;Name;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
       ⍝ All possible traditional function/operator headers
+      complex_names←1
       h←'f1' 'f1 a1' 'f1(a d)' 'la f1 a1' 'la f1(a d)'
       h,←'{la2}f1 a1' '{la2}f1(a d)' 'R←f1' 'R←f1 a1' 'R←f1(a d)'
       h,←'R←la f1 a1' 'R←la f1(a d)' 'R←{la2}f1 a1' 'R←{la2}f1(a d)' '{R}←f1'
@@ -1129,25 +1131,27 @@
       h,←'{(res)}←{larg1 larg2}foo(rarg)' '{(res1 res2)} ←{(larg1 larg2)}foo(rarg1 rarg2)'  ⍝ multiple larg
       ⍝ add locals
       h,←{⍵,∊';a'∘,¨⍕¨⍳?5}¨h
-      h,←'res←larg foo rarg;local;;bad' '{(res1 res2)}←{larg}foo(rarg1 rarg2);local;bad;'  ⍝ faililng cases
+      h,←'res←larg foo rarg;local;;bad' '{(res1 res2)}←{larg}foo(rarg1 rarg2);local;bad;'  ⍝ failing cases
       ⍝ Dfns and dfn look-alikes
       h,←'f1←{}' 'f1←{⍺⍺}' 'f1←{⍵⍵}' 'f1←{%⍺⍺}' 'f1←{%⍵⍵}' 'f1←{''⍺⍺''}' 'f1←{''⍵⍵''}' 'f1←{⍝ ⍺⍺%}' 'f1←{⍝ ⍵⍵%}'
       h,←'f1←{+{⍺⍺ ⍵}⍵}' 'a←{b{}c d%}' 'a←{b}c d%}' 'a←{b⍝}c d%}' 'a←{b''}c{''d}' 'a←{b}⍝c d'
       h,←'f1←{a}{⍺ ⍺⍺ ⍵⍵ ⍵}{b}' 'f1←{%a%}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{%b%}'
       h,←'f1←+{⍺ ⍺⍺ ⍵⍵ ⍵}÷' 'f1←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}÷'
       ⍝ wrap them all in dels
-      h,←{'∇',⍵,'%∇'}¨h
+      h,←del←{'∇',⍵,'%∇'}¨h
       ⍝ add failing cases
       h,←⊂'∇foo arg;local%arg'  ⍝ no closing del
       h,←⊂'∇foo;local%arg%∇bad'
+      h,←'foo←{⎕IO←1%⍵' 'foo←{⎕IO←1%∇⍵'  ⍝ unclosed dfn
       ⍝ add random names
       valid2←⎕D,valid1←⎕UCS ¯1+⍸¯1≠⎕NC⍪⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢0,⍳10000 ⍝ valid chars - first char can't be digit
       Name←{valid1[?≢valid1],valid2[?(¯1+?10)⍴(≢valid2)]} ⍝ random valid name
-      h,←'\w+'⎕R Name h
+      :If complex_names ⋄ h,←'\w+'⎕R Name h ⋄ :EndIf
       ⍝ add random space and comments
       Space←{⎕UCS 9 32[?(¯1+???5)⍴2]} ⍝ random whitespace
-      c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' ⍝ evil comments
+      c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' '⍝∇' ⍝ evil comments
       Comment←{⍵.Match,⍨c⊃⍨?3}
+      Case←{(⎕IO=?2⍴⍨≢⍵)(819⌶)¨⍵}  ⍝ random case
       w←'[^:/⍺⍵',valid2,']'  ⍝ for :Namespace, file:///tmp/file {⍺⍺}{⍵⍵}
       h,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢h   ⍝ randomise code
       ⍝ create some namespace scripts - empty for now
@@ -1155,16 +1159,16 @@
       filebad←'/sniff_qa_bad.dyalog',⍨739⌶0 ⋄ 'this is total garbage !!!;;;'⎕NPUT filebad 1
       Fluff←{
           file←{'"',⍵,'"'}⍣(1=?2)⊢file
-          l←':',¨'rR',¨⊂'equire file://',file
-          l,←c,'' 'this is total garbage !!!;;;'
+          l←c,'' 'this is total garbage !!!;;;'(':Require file://',file)
           ∊l[?(1+?10)⍴≢l],¨'%'
       }
-      o←'.+'⎕R':& ∆\%:End&'⊢'Namespace' 'Class' 'Interface'
-      o,←'.+'⎕R':&.∆\%:End&'⊢'Namespace' 'Class' 'Interface'
-      o,←('∆'⎕R{'∆ ',Name ⍬}o),('∆'⎕R{'∆.',Name ⍬}o)
-      o,←'.+'⎕R'\l&'⊢o
+      body←'%'⎕R'\\\%'⊢∊del,[1.5]'%'
+      ot←'.+'⎕R':& ∆\%∇\%:End&'⊢'Namespace' 'Class' 'Interface'
+      o←'∇'⎕R''⊢'∆'⎕R Name⊢ot    ⍝ empty definitions
+      o,←'∇'⎕R body⊢'∆'⎕R'a'⊢ot     ⍝ simple names
+      :If complex_names ⋄ o,←'∇'⎕R('\w+'⎕R Name⊢body)⊢'∆'⎕R Name⊢ot ⋄ :EndIf ⍝ complex names
       o,←'^'⎕R Fluff o
-      o,←'∆'⎕R Name⊢o
+      o,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢o   ⍝ randomise code
       ⍝ failing cases
       where←⎕NS ⍬
       where.⎕FIX':Interface Interface1' ':EndInterface'
@@ -1180,6 +1184,7 @@
       f,←'dfn←+{⍺ ⍺⍺ ⍵⍵ ⍵}+' 'dfn←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}+' 'dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}' 'dfn←{⍺}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{⍵}' ⍝ Mantis 18619
       f,←'dfn←{' 'dop←{%⍺⍺' 'dfn←{%{⍺⍺}' 'dfn←{%}{%}' 'dop←{%}{%⍺⍺%}'
       f,←':Namespace' 'Namespace +' ':Namespace % :EndNamespace' ':Namespace + % :EndNamespace'  ⍝ unnamed namespace must fail
+      f,←'∆'⎕R Name⊢':Namespace ∆%:EndNamespace' ':Namespace.∆%:EndNamespace' ':Namespace.∆.∆%:EndNamespace'
       f,←⊂':Namespace ns % :EndNamespace % :Class class % :EndClass'   ⍝ two definitions - must fail
       f,←⊂':Namespace ns2 % :EndClass % :Class class2 % :EndNamespace' ⍝ two definitions (arguable) - must fail
       f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % '
@@ -1237,8 +1242,10 @@
           ⎕←msg ⋄ 0
       }
       ok←⍬
-      :For t :In h,o,f
-          ok,←Test t
+      ⍝⎕←logfile←(739⌶0),'/sniff_qa_',(⊃'YYYY-MM-DD"_"hh"h"mm"m"ss"s"fff'(1200⌶)1 ⎕DT⊂⎕TS),'.txt'
+      :For i :In ⍳≢t←⊃,/1 1 1/h o f
+          ⍝(⊂(⍕i),' ',(i⊃t))⎕NPUT logfile 2
+          ok,←Test i⊃t
           where.⎕EX(where.⎕NL-⍳10)~'BaseClass' 'Interface1' 'Interface2'  ⍝ other dyalog crashes after fixing too many wild names
       :EndFor
       ok←∧/ok
