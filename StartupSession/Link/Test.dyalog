@@ -183,8 +183,8 @@
 
 
     ∇ ok←test_failures(folder name);debug;errf;erru;mod;names;opts;z
-      assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
-      assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
+      assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source not found'
+      assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
      
       z←⎕SE.Link.Break'#'
       assert'∨/''No active links''⍷z'
@@ -277,6 +277,7 @@
       varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
       2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
       2 ref.⎕FIX nssrc←,¨'  :Namespace ns' 'where←''ns'' ' ':EndNamespace'
+      :If ~⎕SE.Link.U.IS190 ⋄ foosrc←ref.⎕NR'foo' ⋄ :EndIf  ⍝ Dyalog v19.0 can preserve source !
       (name,'.sub')⎕NS''
      
       z←⎕SE.Link.Export name folder
@@ -286,24 +287,38 @@
       (⊂'This is total garbage !!!!!;;;;')⎕NPUT folder,'/garbage.ini'
       z←⎕SE.Link.Export name folder
       'link issue #175'assert'~∨/''failed''⍷z'
-      :If ⎕SE.Link.U.IS190 ⋄ assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'  ⍝ Dyalog v19.0 can preserve source !
-      :Else ⋄ assert name,'.(⎕NR ''foo'')≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
-      :EndIf
+      assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
       assert'nssrc≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
       assert'1=1⎕NINFO ''',folder,'/sub'''
       assert'~⎕NEXISTS ''',folder,'/var.apla'''
       2 ref.⎕FIX foosrc2←,¨'     ∇ res  ←foo arg ; local' 'res←''foo2''   arg' '∇'
       2 ref.⎕FIX nssrc2←,¨'  :Namespace ns' 'where←''ns2'' ' ':EndNamespace'
+      :If ~⎕SE.Link.U.IS190 ⋄ foosrc2←ref.⎕NR'foo' ⋄ :EndIf
       'link issue #175'assertError'z←⎕SE.Link.Export name folder' 'Files already exist'
       opts←⎕NS ⍬ ⋄ opts.overwrite←1
       z←opts ⎕SE.Link.Export name folder
       'link issue #175'assert'~∨/''failed''⍷z'
-      :If ⎕SE.Link.U.IS190 ⋄ assert'foosrc2≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'  ⍝ Dyalog v19.0 can preserve source !
-      :Else ⋄ assert name,'.(⎕NR ''foo'')≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
-      :EndIf
+      assert'foosrc2≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
       assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
       assert'~⎕NEXISTS ''',folder,'/var.apla'''
-      3 ⎕NDELETE folder ⋄ ⎕EX name
+     
+      3 ⎕NDELETE folder
+      2 ref.⎕FIX foosrc
+      z←⎕SE.Link.Export(name,'.foo')folder
+      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
+      z←⎕SE.Link.Export(name,'.foo')(folder,'/foo2.aplf')
+      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
+      2 ref.⎕FIX foosrc2
+      assertError'⎕SE.Link.Export(name,''.foo'')(folder,''/foo2.aplf'')'(⎕SE.Link.U.WinSlash folder,'/foo2.aplf')
+      opts.overwrite←1
+      z←opts ⎕SE.Link.Export(name,'.foo')(folder,'/foo2.aplf')
+      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'foosrc2≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
+     
+      3 ⎕NDELETE folder
+      ⎕EX name
       ok←1
     ∇
 
@@ -392,10 +407,20 @@
       assert'bc≡⎕SRC ns.bClass'
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
      
+      ⎕EX name ⋄ name ⎕NS''
+      z←⎕SE.Link.Import name(folder,'/foo.dyalog')
+      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'3.1=⎕NC⊂''',name,'.foo'''
+      name⍎'one2←1 2'
+      assertError'⎕SE.Link.Import name(folder,''/sub/sub2/one2.apla'')'(name,'.one2')
+      opts.overwrite←1
+      z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2.apla')
+      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
+     
       ⍝ Now tear it all down again:
       _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
-     
       #.⎕EX name
       ok←1
     ∇
@@ -980,7 +1005,7 @@
       opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
       (⊂newbody)⎕NPUT unlikelyfile 1  ⍝ make it invalid source
       z←opts ⎕SE.Link.Create name folder
-      assert'∧/∨/¨''failed'' unlikelyfile⍷¨⊂z'
+      assert'∧/∨/¨''failed'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
       name⍎'var←1 2 3'
       {}⎕SE.Link.Add name,'.var'
       'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'

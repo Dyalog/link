@@ -1,4 +1,4 @@
- msg←{opts}Export(ns dir);defopts;nc;outFail;⎕IO;⎕ML
+ msg←{opts}Export(src dest);defopts;dir;failed;fixed;name;nc;ns;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -8,23 +8,31 @@
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
 
-     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+     src←⊃⌽⎕RSI ⎕XSI U.ContainerNs src
 
-     :If 9=⌊nc←U.NameClass ns
-         U.Error'Scripted namespaces not supported: ',ns
-     :ElseIf ¯9.1≠nc←U.NameClass ns
-         U.Error'Source namespace not found: ',ns,' has name class ',(⍕nc)
+     :If 0 ¯1∊⍨⌊nc←U.NameClass src
+         U.Error'Source not found: ',src
      :Else
+         :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dest  ⍝ dest is a file
+             dir←⊃⎕NPARTS dest←0 U.NormFile dest
+         :Else                                            ⍝ dest is a directory
+             dir←dest←0 U.NormDir dest
+         :EndIf
+         :If single ⋄ (ns name)←U.SplitNs src ⋄ ns←U.NormNs ns ⋄ src←ns,'.',name   ⍝ src is any APL name
+         :Else ⋄ ns←src←U.NormNs src                      ⍝ src is an unscripted namespace
+         :EndIf
          opts.watch←'none'   ⍝ prevent tying to the files
          opts.source←'ns'
-         opts.ns←ns←U.NormNs ns
-         opts.dir←dir←0 U.NormDir dir
+         opts.ns←ns
+         opts.dir←dir
 
-         outFail←opts U.WriteFiles ns dir 0 opts.overwrite
+         (fixed failed)←opts U.WriteFiles src dest single opts.overwrite  ⍝ allow exporting array only if single name
 
-         msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
-         :If ×≢outFail
-             msg,←(⊂(⍕≢outFail),' failed:'),outFail
+         :If ~single
+             msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
+             :If ×≢failed ⋄ msg,←(⊂(⍕≢failed),' failed:'),failed ⋄ :EndIf
+         :ElseIf ×≢failed ⋄ msg←⊂'Export failed: ',⊃failed
+         :Else ⋄ msg←⊂'Exported: ',src,' → ',U.WinSlash fixed
          :EndIf
          msg←1↓U.FmtLines msg
      :EndIf

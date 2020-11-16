@@ -1,4 +1,4 @@
- msg←{opts}Import(ns dir);defopts;inFail;nsref;⎕IO;⎕ML
+ msg←{opts}Import(ns src);defopts;dir;failed;fixed;nsref;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -10,19 +10,24 @@
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     :If ~⎕NEXISTS dir
-         U.Error'Source directory not found: ',dir
-     :ElseIf 1≠1 ⎕NINFO dir
-         U.Error'Not a directory: ',dir
+     :If ~⎕NEXISTS src
+         U.Error'Source not found: ',src
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
-         U.Error'Unable to import to namespace: ',ns
+         U.Error'Not a namespace: ',ns
      :Else
          opts.ns←ns←U.NormNs ns
-         opts.dir←dir←0 U.NormDir dir
-         inFail←opts U.FixFiles nsref dir opts.overwrite
-         msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
-         :If ×≢inFail
-             msg,←⊂(⊂(⍕≢inFail),' failed:'),inFail
+         :If single←1≠1 ⎕NINFO src ⋄ dir←¯1↓⊃⎕NPARTS src←0 U.NormFile src  ⍝ single file
+         :Else ⋄ dir←src←0 U.NormDir src   ⍝ directory
+         :EndIf
+         opts.dir←dir
+
+         (fixed failed)←opts U.FixFiles nsref src opts.overwrite
+
+         :If ~single
+             msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
+             :If ×≢failed ⋄ msg,←⊂(⊂(⍕≢failed),' failed:'),U.WinSlash¨failed ⋄ :EndIf
+         :ElseIf ×≢failed ⋄ msg←⊂'Import failed: ',⊃U.WinSlash failed
+         :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.WinSlash src
          :EndIf
          msg←1↓U.FmtLines msg
      :EndIf

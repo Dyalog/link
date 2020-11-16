@@ -7,7 +7,7 @@
 
 #### Result
 
-- If linking was successful, a matrix of messages, else a vector containing an error message.
+- String describing the established link, along with possible failures
 
 #### Common Options
 

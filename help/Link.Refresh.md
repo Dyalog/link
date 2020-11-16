@@ -28,3 +28,4 @@ In the latter case, it is preferable to modify workspace items with [Fix](Link.F
 
 #### Result
 
+- String describing the established link, along with possible failures
