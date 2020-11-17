@@ -1,0 +1,27 @@
+ msg←Pause nss;inFail;ko;link;links;ns;nsref;ok;outFail;rsi;xsi;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     :Hold '⎕SE.Link.Links'
+         :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
+         :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         links←⎕SE.Link.Links
+         (rsi xsi)←(⎕RSI ⎕XSI)
+         ok←ko←⍬
+         :For ns :In nss
+             ns←⊃⌽rsi xsi U.ContainerNs ns
+             :If ~0∊⍴nsref←(0 U.GetRefTo)ns
+             :AndIf ~0∊⍴link←links U.LookupRef nsref
+                 0 Watcher.Pause link
+                 ok,←⊂'Paused: ',ns
+             :Else
+                 ko,←⊂'Not linked: ',ns
+             :EndIf
+         :EndFor
+     :EndHold
+     msg←1↓U.FmtLines ok,ko
+ :Else
+     U.Resignal 1
+ :EndTrap

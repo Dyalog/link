@@ -1399,6 +1399,19 @@
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
       Breathe ⋄ 0 assert_create 1   ⍝ breathe to ensure it's not reflected
+      {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
+      {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
+      0 assert_create 0
+      ⍝ link issue #176 - test Pause - can't test Pause on watch='both' because the file would be tied with 2 ⎕FIX 'file://'
+      {}⎕SE.Link.Pause name
+      {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
+      {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
+      {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
+      Breathe ⋄ Breathe ⋄ Breathe   ⍝ ensure changes are not reflected
+      0 assert_create 1
+      z←'{source:''dir''}'⎕SE.Link.Refresh name
+      1 assert_create 1
       z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
       assert'(0=≢⎕SE.Link.Links)∧(z≡1)'
      

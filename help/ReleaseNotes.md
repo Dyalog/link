@@ -1,6 +1,7 @@
 # Link Release Notes
 
  ## Version 2.1.0
+  - [Link.Pause](Link.Pause.md) has been added
   - [Link.Create](Link.Create.md): `source`=`both` has been removed. It used to copy from namespace to directory, then the other way.
   - [Link.Create](Link.Create.md): `source`=`auto` has been added. It uses the non-empty side of the link as the source.
   - Link.List has been renamed to [Link.Status](Link.Status.md)
@@ -11,7 +12,7 @@
   - `beforeWrite` had been split into two callbacks : `beforeWrite` when actually about to write to file, and `getFilename` when querying the file name to use (see the [Link.Create documentation](Link.Create.md) for more details).
   - `beforeWrite` and `beforeRead` arguments have been refactored into a more consistent set.
   - Public functions now throw errors rather than return an error message when they fail.
-  - Dyalog v19.0 or newer is required for the fix to the following issues :\
+  - Dyalog v19.0 or newer is required for the fixes to the following issues :\
   -- [#155: :Require keyword does not work](https://github.com/Dyalog/link/issues/155)\
   -- [#149: Link induce status messages](https://github.com/Dyalog/link/issues/149)\
   -- [#148: Fixing linked function removes all monitor/trace points in it](https://github.com/Dyalog/link/issues/148)\

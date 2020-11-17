@@ -24,4 +24,5 @@ This function provides details of texisting links.
    - force extensions
    - force filenames
    - watch
+   - pause
    
