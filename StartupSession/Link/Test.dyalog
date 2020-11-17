@@ -1139,6 +1139,9 @@
       Breathe ⋄ Breathe
       'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete' ⍝ source still available
       ⎕SE.Link.Expunge name,'.todelete'
+      (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'{var:42 ⋄ list:1 2 3}'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
+      'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←Link.Add jsondict.list''}⍬'('Not a properly named namespace')0  ⍝ UCMD may trigger any error number
+      ⎕EX name,'.jsondict'
       {}⎕SE.Link.Break name
       assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
      
@@ -1157,9 +1160,16 @@
       'link issue #159'assert'1=≢⎕SE.Link.Links'
       'link issue #159'assert'~∨/''failed''⍷z'
       'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
+      'link issue #177'assert'~⎕NEXISTS ''',folder,'/jsondict/list.apla'''
+      #.jsondict←#.⎕JSON'{"var":42,"list":[1,2,3]}'
+      'link issue #177'assertError'#.{⎕SE.UCMD''z←Link.Add jsondict.list''}⍬' 'Not a properly named namespace' 0
+      ⎕EX'#.jsondict' ⋄ '#.jsondict'⎕NS'' ⋄ #.jsondict.(var list)←42(1 2 3)
+      z←#.{⎕SE.UCMD'Link.Add jsondict.list'}⍬
+      'link issue #177'assert'⎕NEXISTS ''',folder,'/jsondict-0/list-0.apla'''
       z←⎕SE.Link.Break #
       assert'0=≢⎕SE.Link.Links'
-      ⎕EX'#.UnlikelyName'
+      ⎕EX'#.UnlikelyName' '#.jsondict'
+      3 ⎕NDELETE folder,'/jsondict-0'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
       :If ⎕SE.Link.U.IS190 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
@@ -1178,6 +1188,8 @@
           'link issue #155'assert'(slave)≡⎕SRC ',name,'.Slave'
           {}⎕SE.Link.Break name
       :EndIf
+     
+     
      
       CleanUp folder name
       ok←1

@@ -33,6 +33,7 @@
          :Else
              ns←src←U.NormNs src                      ⍝ src is an unscripted namespace
          :EndIf
+
          opts.watch←'none'   ⍝ prevent tying to the files
          opts.source←'ns'
          opts.ns←ns

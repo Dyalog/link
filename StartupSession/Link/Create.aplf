@@ -50,6 +50,8 @@
              U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
              U.Error'Not a namespace: ',ns
+         :ElseIf ~U.IsNamedRef nsref
+             U.Error'Not a perperly named namespace: ',ns
          :ElseIf U.IsScripted nsref
              U.Error'Cannot link to scripted namespaces: ',ns
          :ElseIf ×≢⎕SE.Link.Links ⋄ :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns

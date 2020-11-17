@@ -394,6 +394,8 @@
           0∊⍴ns←⍺ NormNs ns:''
           ns,'.',name
       }
+    IsNamedNs←{⍵≡NormNs⍵}     ⍝ requirement to be linkable
+    IsNamedRef←{0::0 ⋄ ⍵≡Execute⍕⍵}  ⍝ requirement to be linkable
 
     ∇ refs←ListNamespaces ref;newrefs;next;prev
     ⍝ List unscripted namespaces under ref
@@ -649,7 +651,7 @@
     ⍝ where must have been through NormNs
       ⍝ values cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⎕NULL   ⍝ namespace doesn't exist - src or nc ought to be provided
+      :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
       :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more

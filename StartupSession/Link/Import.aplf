@@ -18,6 +18,8 @@
          U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          U.Error'Not a namespace: ',ns
+     :ElseIf ~U.IsNamedRef nsref
+         U.Error'Not a properly named namespace: '
      :Else
          src←⊃files
          opts.ns←ns←U.NormNs ns
