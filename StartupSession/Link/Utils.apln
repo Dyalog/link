@@ -319,7 +319,7 @@
       }
         RootOf←{⍵.##}⍣≡
     IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
-    SplitNs←{t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots
+    SplitNs←{0≠⎕NC'⍺':∇(⍕⍺),'.',⍵ ⋄ t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots - ⍺ may be a namespace where ⍵ should be taken
     IsParent←{p←⍵.## ⋄ ⍺∊p ⍵:1 ⋄ ⍵=p:0 ⋄ ⍺∇p }  ⍝ is ⍺ parent of ⍵
 
     Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}             ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
@@ -389,6 +389,11 @@
     ∇
 
     NormNs←{⍺←⊢ ⋄ ⍕⍺(0 GetRefTo)⍵}    ⍝ normalise a namespace name - can swallow a ref too
+      NormName←{⍺←⊢
+          (ns name)←⍺ SplitNs ⍵
+          0∊⍴ns←⍺ NormNs ns:''
+          ns,'.',name
+      }
 
     ∇ refs←ListNamespaces ref;newrefs;next;prev
     ⍝ List unscripted namespaces under ref
@@ -755,7 +760,7 @@
     ∇ (written failed)←opts WriteFiles(src dest arrays overwrite);count;file;files;i;inx;mask;names;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
     ⍝ Write items to file in folders
     ⍝ ns must be a fully specified unscripted namespace
-    ⍝ arrays: boolean to include/exclude arrays
+    ⍝ arrays: boolean to include/exclude arrays, or list of normalised APL names to include
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
@@ -771,8 +776,7 @@
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
       ⍝ Write children to files (except trad namespaces)
-      :If 0≠≢names
-          names/⍨←(⎕NC names)∊(NameClasses arrays)
+      :If 0≠≢names←names/⍨((⎕NC names)∊(NameClasses arrays≡1))∨(names∊arrays)  ⍝ keep only names of the right name classes, and names explicitly preserved
           src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
           mask←0=≢¨src     ⍝ can't get source
           failed,←(ns,'.')∘,¨mask/names
@@ -1340,11 +1344,11 @@
       r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"1S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
       r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"1-2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames  -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one or both if absent)"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -array[=]", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
-      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Synchronise namespace-directory content"},'
       r←⎕JSON']',⍨¯1↓r
@@ -1357,6 +1361,7 @@
      
       m←⍉⍪'' '' ''
       m⍪←'-all' '' 'break all links (in all children of # and ⎕SE)'
+      m⍪←'-array' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
       m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
       m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
       m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
@@ -1368,6 +1373,7 @@
       m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
+      m⍪←'-overwrite' '' 'overwrite destination if needed'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
       m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
       m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
@@ -1409,7 +1415,7 @@
       r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
     ∇
 
-    ∇ r←UCMD_Run(cmd args);opts;name;lc;names;isvar;spice;this
+    ∇ r←UCMD_Run(cmd args);lc;name;names;opts;spice;this;val
       spice←⊃⎕RSI ⋄ this←spice.##.THIS   ⍝ spice namespace (should be ⎕SE.SALTUtils.c.Link) ⋄ UCMD caller's namespace
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
       :If (cmd≡'Create')∧(1=≢args.Arguments)
@@ -1422,13 +1428,15 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'recursive' 'source' 'typeExtensions' 'watch'
+          names←'all' 'array' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'recursive' 'source' 'typeExtensions' 'watch'
           :For name :In names
               lc←819⌶name
               :If ×args.⎕NC lc
-              :AndIf 0≢args⍎lc
-                  isvar←(⊂name)∊'codeExtensions' 'customExtensions' 'typeExtensions'
-                  name opts.{⍎⍺,'←⍵'}this⍎⍣isvar⍎'args.',lc
+              :AndIf 0≢val←args⍎lc
+                  :Select name
+                  :CaseList 'codeExtensions' 'customExtensions' 'typeExtensions' ⋄ val←this⍎val
+                  :EndSelect
+                  name opts.{⍎⍺,'←⍵'}val
               :EndIf
           :EndFor
       :EndSelect

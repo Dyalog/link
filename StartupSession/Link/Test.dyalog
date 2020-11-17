@@ -272,13 +272,14 @@
 
 
 
-    ∇ ok←test_export(folder name);foosrc;foosrc2;nssrc;nssrc2;opts;ref;varsrc;z
+    ∇ ok←test_export(folder name);ExportCmd;arrays;cmd;foosrc;foosrc2;nssrc;nssrc2;opts;ref;subref;varsrc;z
       ref←⍎name ⎕NS''
       varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
       2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
       2 ref.⎕FIX nssrc←,¨'  :Namespace ns' 'where←''ns'' ' ':EndNamespace'
       :If ~⎕SE.Link.U.IS190 ⋄ foosrc←ref.⎕NR'foo' ⋄ :EndIf  ⍝ Dyalog v19.0 can preserve source !
-      (name,'.sub')⎕NS''
+      subref←⍎(name,'.sub')⎕NS''
+      subref.(var1 var2 var3 var4)←'VAR1' 'VAR2' 'VAR3' 'VAR4'
      
       z←⎕SE.Link.Export name folder
       assert'~∨/''failed''⍷z'
@@ -302,8 +303,7 @@
       assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
       assert'~⎕NEXISTS ''',folder,'/var.apla'''
      
-      3 ⎕NDELETE folder
-      2 ref.⎕FIX foosrc
+      3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
       z←⎕SE.Link.Export(name,'.foo')folder
       'link issue #79'assert'~∨/''failed''⍷z'
       'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
@@ -320,6 +320,19 @@
       'link issue #79'assert'~∨/''failed''⍷z'
       'link issue #79'assert'foosrc2≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
      
+      3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
+      ExportCmd←{'z←Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-array' ⋄ '-array=',∊⍵,[1.5]','}
+      z←ref.{⎕SE.UCMD ⍵}0 ExportCmd 0
+      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'0 0 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
+      cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')
+      assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
+      z←ref.{⎕SE.UCMD ⍵}1 ExportCmd arrays
+      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'1 1 1 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
+      z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
+      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'1 1 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
       3 ⎕NDELETE folder
       ⎕EX name
       ok←1
@@ -435,7 +448,7 @@
       'link issue #81'assert'~∨/''failed''⍷z'
       'link issue #81'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
       (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.dyalog')1  ⍝ will clash
-      'link issue #81'assertError 'z←opts ⎕SE.Link.Import name(folder,''/sub/sub2/one2'')'  'More than one source'
+      'link issue #81'assertError'z←opts ⎕SE.Link.Import name(folder,''/sub/sub2/one2'')' 'More than one source'
      
      
       ⍝ Now tear it all down again:

@@ -1,16 +1,25 @@
- msg←{opts}Export(src dest);defopts;dir;failed;fixed;name;nc;ns;single;⎕IO;⎕ML
+ msg←{opts}Export(src dest);array;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     (defopts←⎕NS ⍬).(overwrite)←0
+     (container src)←⎕RSI ⎕XSI U.ContainerNs src
+
+     (defopts←⎕NS ⍬).(overwrite array)←0 0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
+     :If ~(⊂array←opts.array)∊0 1
+         array←,⊆,array
+         :If ok←(1=≢⍴array)∧(2=|≡array)∧(0=2|⎕DR∊array)∧(1∧.=≢¨⍴¨array)
+             array←','(≠⊆⊢)∊array,[1.5]','  ⍝ allow list of comma-separated names
+             ok←0∊''∘≢¨0⍴¨array
+         :EndIf
+         :If ~ok ⋄ U.Error'Invalid value ',(⍕opts.array),' for modifier "array" - must be 0, 1 or a list of comma-separated names' ⋄ :EndIf
+         array←container U.NormName¨array
+     :EndIf
 
-     src←⊃⌽⎕RSI ⎕XSI U.ContainerNs src
-
-     :If 0 ¯1∊⍨⌊nc←U.NameClass src
+     :If 0 ¯1∊⍨⌊nc←container U.NameClass src
          U.Error'Source not found: ',src
      :Else
          :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dest  ⍝ dest is a file
@@ -18,15 +27,18 @@
          :Else                                            ⍝ dest is a directory
              dir←dest←0 U.NormDir dest
          :EndIf
-         :If single ⋄ (ns name)←U.SplitNs src ⋄ ns←U.NormNs ns ⋄ src←ns,'.',name   ⍝ src is any APL name
-         :Else ⋄ ns←src←U.NormNs src                      ⍝ src is an unscripted namespace
+         :If single
+             ns←⊃U.SplitNs src←container U.NormName src
+             array←1   ⍝ always export single array
+         :Else
+             ns←src←U.NormNs src                      ⍝ src is an unscripted namespace
          :EndIf
          opts.watch←'none'   ⍝ prevent tying to the files
          opts.source←'ns'
          opts.ns←ns
          opts.dir←dir
 
-         (fixed failed)←opts U.WriteFiles src dest single opts.overwrite  ⍝ allow exporting array only if single name
+         (fixed failed)←opts U.WriteFiles src dest array opts.overwrite
 
          :If ~single
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
