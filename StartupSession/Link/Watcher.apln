@@ -60,8 +60,17 @@
       :EndIf
     ∇
 
-    ∇ WatchError(obj args)
-      'FileSystemWatcher'##.U.Log'Error: 'obj.Path
+    ∇ WatchError(obj args);link;msg
+      :Hold '⎕SE.Link.Links'
+          :If 0∊⍴link←##.U.LookupFile obj.Path
+              U.Warn'FileSystemWatcher error on non-linked directory: ',obj.Path
+          :Else
+              0 Pause link
+              msg←⊂'FileSystemWatcher error on linked directory: ',link.dir,' - Link has been paused. To recover, do:'
+              msg,←⊂'      ]Link.Refresh ',link.ns,' -source=dir'
+              ##.U.Warn 1↓##.U.FmtLines msg
+          :EndIf
+      :EndHold
     ∇
 
     ∇ WatcherThread args;q;watcher
@@ -103,7 +112,7 @@
 
    ⍝⍝⍝⍝⍝ MAIN API ⍝⍝⍝⍝⍝⍝⍝⍝
 
-    ∇ Watch link;args;end;q;tid;z
+    ∇ Watch link;args;end;q;r;tid;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       :If DOTNET
           args←link.dir(,'*')

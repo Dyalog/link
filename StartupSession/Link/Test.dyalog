@@ -51,7 +51,7 @@
       all←0 ⋄ docrawler←⎕SE.Link.Watcher.CRAWLER
       tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
       :If 0∊⍴test_filter   ⍝ basic tests
-          Log'Not running slow tests:',(⍕slow←⊂'test_threads'),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests
+          Log'Not running slow tests:',(⍕slow←'test_threads' 'test_watcherror'),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests
           tests~←slow
       :ElseIf all←'all'≡0(819⌶)test_filter  ⍝ all tests - nothing to do
       :Else ⍝ selected tests
@@ -1369,8 +1369,7 @@
 ⍝ BUG the following line is due to Mantis 18628
       :If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
-⍝ BUG in the following line, ⎕SE.Link.U.IS190 is due to Mantis 18626
-      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  ⍝ Mantis 18626 required ⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn
 ⍝ BUG the following line is due to Manti 18635 - failed should be 0⍴⊂''
       failed←⊂'CLASS2A'
       assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
@@ -1627,6 +1626,7 @@
       assert'(∨/''Linked:''⍷output)'
      
       ⍝ https://github.com/Dyalog/link/issues/48
+      ∘∘∘
       ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
       'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
       output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
@@ -1874,6 +1874,30 @@
       names←(name,'.link')∘,¨⍕¨⍳threads
       ⎕TSYNC loops∘RunTestThread&¨↓⍉↑folders names
       ⎕SE.Link.U.WARN←warn
+      ok←1
+    ∇
+
+
+    ∇ ok←test_watcherror(folder name);i;link;n;src
+      :If ~⎕SE.Link.Watcher.CanWatch
+          Log'FileSystemWatcher not available - not running ',⊃⎕SI
+          ok←1
+          :Return
+      :EndIf     
+      3 ⎕MKDIR src←folder,'/src'
+      {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf') 1}¨⍕¨⍳n←10000
+      3 ⎕MKDIR link←folder,'/link'
+      ⎕SE.Link.U.WARNLOG/⍨←0
+      {}⎕SE.Link.Create name link
+      link ⎕NMOVE⍠1⊢src,'/foo*.aplf'
+      :If ⎕SE.Link.Watcher.DOTNET  ⍝ DOTNETCORE does not support FileSystemWatcher errors yet ?
+          'link issue #120'assert'~0∊⍴''FileSystemWatcher error on linked directory''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
+      :EndIf
+      'link issue #120'assert'n≠≢',name,'.⎕NL ¯3.1'
+      {}⎕SE.Link.Refresh name
+      'link issue #120'assert'n=≢',name,'.⎕NL ¯3.1'
+      ⎕SE.Link.Break name
+      CleanUp folder name
       ok←1
     ∇
 
