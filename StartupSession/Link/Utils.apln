@@ -181,6 +181,17 @@
       :If (1=≡,files)∨(0=⍴⍴files) ⋄ mask←⊃mask ⋄ :EndIf
     ∇
 
+    ∇ files←opts FindFile file;files
+    ⍝ find a single file, allowing dotted extensions
+      :If ⎕NEXISTS file ⋄ files←,⊂,file ⋄ :Return ⋄ :EndIf  ⍝ file exists : fine
+      :Trap 0   ⍝ directory where file is may not exist at all
+          files←⊃0 ⎕NINFO⍠1⊢file,'.*'    ⍝ files with this name and an extension
+          files/⍨←opts HasExtn files     ⍝ files with valid extensions
+      :Else
+          files←0⍴⊂''
+      :EndTrap
+    ∇
+
       Tail←{ ⍝ ⍺:typeExtensions; ⍵:nc
           ¯9.1=⍵:'/'    ⍝ unscripted namespace are given name class ¯9.1
           (types exts)←↓⍉⍺

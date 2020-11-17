@@ -307,6 +307,9 @@
       z←⎕SE.Link.Export(name,'.foo')folder
       'link issue #79'assert'~∨/''failed''⍷z'
       'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
+      z←⎕SE.Link.Export(name,'.foo')(folder,'/foo')  ⍝ check that destination is always interpreted as directory
+      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo/foo.aplf'' 1'
       z←⎕SE.Link.Export(name,'.foo')(folder,'/foo2.aplf')
       'link issue #79'assert'~∨/''failed''⍷z'
       'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
@@ -408,15 +411,32 @@
       ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
      
       ⎕EX name ⋄ name ⎕NS''
+      assertError'z←⎕SE.Link.Import name(folder,''/not_there.dyalog'')' 'Source not found'
+     
       z←⎕SE.Link.Import name(folder,'/foo.dyalog')
       'link issue #79'assert'~∨/''failed''⍷z'
       'link issue #79'assert'3.1=⎕NC⊂''',name,'.foo'''
+      ⎕EX name,'.foo'
+      z←⎕SE.Link.Import name(folder,'/foo')  ⍝ automatic file extension
+      'link issue #81'assert'~∨/''failed''⍷z'
+      'link issue #81'assert'3.1=⎕NC⊂''',name,'.foo'''
+      (⊂'foo')⎕NPUT(folder,'/foo.aplf')1  ⍝ two files with extensions
+      'link issue #81'assertError'z←⎕SE.Link.Import name(folder,''/foo'')' 'More than one source'
+     
       name⍎'one2←1 2'
       assertError'⎕SE.Link.Import name(folder,''/sub/sub2/one2.apla'')'(name,'.one2')
       opts.overwrite←1
       z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2.apla')
       'link issue #79'assert'~∨/''failed''⍷z'
       'link issue #79'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
+      name⍎'one2←1 2'
+      (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.ini')1  ⍝ must be ignored, leaving one2.apla as sole candidate for one2.*
+      z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2')
+      'link issue #81'assert'~∨/''failed''⍷z'
+      'link issue #81'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
+      (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.dyalog')1  ⍝ will clash
+      'link issue #81'assertError 'z←opts ⎕SE.Link.Import name(folder,''/sub/sub2/one2'')'  'More than one source'
+     
      
       ⍝ Now tear it all down again:
       _←2 QNDELETE folder

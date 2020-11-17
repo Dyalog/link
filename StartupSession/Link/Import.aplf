@@ -1,4 +1,4 @@
- msg←{opts}Import(ns src);defopts;dir;failed;fixed;nsref;single;⎕IO;⎕ML
+ msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -10,11 +10,16 @@
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-     :If ~⎕NEXISTS src
+
+     files←opts U.FindFile src  ⍝ candidates for source file
+     :If 0=≢files
          U.Error'Source not found: ',src
+     :ElseIf 1<≢files
+         U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          U.Error'Not a namespace: ',ns
      :Else
+         src←⊃files
          opts.ns←ns←U.NormNs ns
          :If single←1≠1 ⎕NINFO src ⋄ dir←¯1↓⊃⎕NPARTS src←0 U.NormFile src  ⍝ single file
          :Else ⋄ dir←src←0 U.NormDir src   ⍝ directory

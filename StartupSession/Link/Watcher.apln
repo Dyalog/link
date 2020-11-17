@@ -259,8 +259,9 @@
     ⍝ TODO: optimisation: ##.Notify → ##.U.QFix → ##.U.FileHasChanged will re-hash the file
       start←Time ⍬
       :Hold '⎕SE.Link.Crawler'
-          :If (T_PERIOD-T_GRANULARITY)>(start-T_START)
-              ⍝##.U.Log'Timer overloaded'
+          :If (2×T_PERIOD+T_GRANULARITY)<(start-T_START)  ⍝ last start was too long ago - do not dare work yet
+          :OrIf (T_PERIOD-T_GRANULARITY)>(start-T_START)  ⍝ last start was too recent - timer probably overloaded
+              LogCrawler'Timer overloaded'
               (T_START T_END)←start(Time ⍬)
               :Return
           :EndIf
