@@ -17,7 +17,10 @@
      }
      SaveNs←{ ⍝ Save namespace whether scripted or not
          0=≡⍵:0                ⍝ prototype means
-         16::0 ⍵               ⍝ problem: no script
+         16::{                 ⍝ NONCE ERROR
+             0∊⍴source U.CurrentFileName ⍵:0 ⍵  ⍝ unscripted namespace
+             ⍵ 0               ⍝ problem: script lost
+         }⍵
          src←⎕SRC source.⍎⍵    ⍝ get source from its location
          22::⍵ 0               ⍝ failed: no file access
          0 0⊣src U.Into src FileName ⍵ ⍝ save as namespace and report OK
@@ -43,7 +46,7 @@
          :Else
              (failed unscripted)←0~¨⍨↓⍉↑SaveNs U.OnEach nss ⍝ go through them
              paths←''∘FileName U.OnEach unscripted          ⍝ needed dirs
-             paths←{∊2↑⎕NPARTS ⍵} U.OnEach paths            ⍝ Remove .apln extensions from folder names
+             paths←{∊2↑⎕NPARTS ⍵}U.OnEach paths            ⍝ Remove .apln extensions from folder names
              ok←{⎕NEXISTS ⍵⊣3 ⎕MKDIR ⍵}U.OnEach paths       ⍝ Try and make sure dir exists
              failed,←paths/⍨~ok                             ⍝ also remember failed paths for nss
              paths/⍨←ok                                     ⍝ the good paths
