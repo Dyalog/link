@@ -30,7 +30,7 @@ NOHOLD:
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src    ⍝ must fix in dummy namespace to determine nameclass
 
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
-         :ElseIf (0=nc)∧(~0∊⍴src) ⋄ U.Error'Invalid source for ',nsname,'.',name,': ',⍕src
+         :ElseIf (0=nc)∧(~nosrc) ⋄ U.Error'Invalid source for ',nsname,'.',name,': ',⍕src
          :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
          :EndIf
 
@@ -59,7 +59,8 @@ NOHOLD:
          :EndIf
 
          :If nosrc    ⍝ Source not provided - find it
-             src←ns U.GetAplSource name
+         :AndIf 1=≡src←ns U.GetAplSource name
+             U.Error src  ⍝ failed to get source
          :EndIf
 
          :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
@@ -83,7 +84,7 @@ NOHOLD:
                      src U.Into file
                  :EndIf
              :Else
-                 U.Error'Unable to write "',nsname,'.',name,'" to file: "',file,'"'
+                 U.Error'Unable to write ',nsname,'.',name,' to file: ',file
              :EndTrap
              fix∧←~watch  ⍝ filewatcher will tie the file for us
              :If delete  ⍝ old file must be removed
@@ -94,7 +95,7 @@ NOHOLD:
          :If fix
              :If 'both'≡link.watch ⋄ src←file ⋄ :EndIf   ⍝ tie if watching both ways
              :If ¯1 0∊⍨2⊃ns U.Fix name src
-                 U.Error'Unable to fix "',nsname,'.',name,'" from source: ',⍕src
+                 U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
              :EndIf
          :EndIf
      :EndHold ⍝ Links

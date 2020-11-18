@@ -73,7 +73,9 @@
           ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
       }
     ∇ {ok}←ns Untie name;nc;src
-      src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
+      :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
+          U.Error src
+      :EndIf
       {}ns.(5178⌶)name   ⍝ mants 18606 : ⎕FIX∘⎕SRC may leave ghost ties
       nc←2⊃ns Fix name src
       ok←~nc∊0 ¯1
@@ -514,13 +516,19 @@
 
     :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
 
-    ∇ src←GetRefSource ns
-      :Trap 16 ⋄ src←⎕SRC ns  ⍝ scripted namespace
-      :Else ⋄ src←⎕NULL  ⍝ unscripted namespace
+    ∇ src←GetRefSource ns;file
+      :Trap 16 22 ⋄ src←⎕SRC ns   ⍝ scripted namespace
+      :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v19.0 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
+      :Else
+          :If ~0∊⍴file←# CurrentFileName ns ⍝ source not available anymore - cannot be an unscripted namespace (⎕SRC should really set ⎕DMX.ENX)
+              src←'Cannot get source of ',(⍕ns),': File not found: ',file
+          :Else ⋄ src←⎕NULL                 ⍝ unscripted namespace
+          :EndIf
       :EndTrap
     ∇
     ∇ src←{ns}GetAplSource name;nc
-    ⍝ src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
+    ⍝ if OK src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
+    ⍝ if failed, src is a text vector holding the error message
     ⍝ name may be empty to get the source of ns
       :If 0∊⍴name
           src←GetRefSource ns
@@ -530,17 +538,18 @@
           :Select nc
           :Case 2.1 ⍝ variable
               :Trap 11 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
-              :Else ⋄ Error'Array cannot be serialised: ',(⍕ns),'.',name
+              :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
               :EndTrap
-          :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
+          :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
+              src←⎕NULL
               ⍝ ⎕INFO left arguments:  ⍝ SRC_AS_TYPED    =0,     // aka ⎕SRC        ⍝ SRC_CANONICAL   =1,     // aka ⎕NR        ⍝ SRC_FILEINFO    =2,     // aka 517n ⌶        ⍝ SRC_LOCATION    =3,     // aka 517n ⌶        ⍝ VALUE_NC        =4,     // aka ⎕NC        ⍝ VALUE_NCX       =5,     // aka ⎕Nc,⊂        ⍝ VALUE_QAT_SYNTAX=6,     // aka 1⊃⎕AT        ⍝ VALUE_QAT_TIMESTAMP=7,  // aka 2⊃⎕AT        ⍝ VALUE_QAT_LOCK  =8,     // aka 3⊃⎕AT        ⍝ VALUE_USERSTAMP =9,     // aka 4⊃⎕AT        ⍝ VALUE_QAT_SIZE  =10,    // aka ⎕SIZE
-              :If IS190 ⋄ src←0 ns.⎕INFO name ⍝ Mantis 18610: ⎕INFO encloses one too many depth
-              :Else ⋄ src←⎕NULL ⋄ :EndIf  ⍝ v18.0 cannot get source of functions "as typed"
-              :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed"
+              :If IS190 ⋄ :Trap 11 ⋄ src←0 ns.⎕INFO name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕INFO returns ⎕NULL if source not available - ⎕INFO errors if name doesn't exist - Mantis 18610: ⎕INFO encloses one too many depth
+              :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
           :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
-          :Else ⋄ Error('Cannot get source of ',(⍕ns),'.',name,': invalid name class (',(⍕nc),')')
+          :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
           :EndSelect
       :EndIf
+      :If 0∊⍴src ⋄ src←'Cannot get source of ',(⍕ns),'.',name ⋄ :EndIf
     ∇
     ∇ src←GetFileSource file;type
       src←⍬  ⍝ ⍬ means failure to read file - empty file produces 0⍴⊂''
@@ -780,9 +789,12 @@
       ⍝ Write children to files (except trad namespaces)
       :If 0≠≢names←names/⍨((⎕NC names)∊(NameClasses arrays≡1))∨(names∊arrays)  ⍝ keep only names of the right name classes, and names explicitly preserved
           src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
-          mask←0=≢¨src     ⍝ can't get source
-          failed,←(ns,'.')∘,¨mask/names
-          (names src)←(~mask)∘/¨(names src) ⋄ count←≢names
+          :If 1∊mask←{1=≡⍵}¨src     ⍝ can't get source
+              Warn¨mask/src
+              failed,←(ns,'.')∘,¨mask/names
+              (names src)←(~mask)∘/¨(names src)
+          :EndIf
+      :AndIf 0<count←≢names
           :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
           :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
           :EndIf

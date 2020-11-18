@@ -212,7 +212,7 @@
           LogCrawler'Adding: '(⍕link)
           LINKS⍪←link 1 OLDTIME OLDTIME(F_EMPTY NewFiles link)
           :If ⎕NULL≡TIMER
-              TIMER←⎕NEW⊂'Timer'(('Interval'(⌈1000×T_PERIOD))('Event'('onTimer' 'CrawlerEvent&'))('Active' 1))
+              TIMER←⎕NEW'Timer'(('Interval'(⌈1000×T_PERIOD))('Event'('onTimer' 'CrawlerEvent&'))('Active' 1))
               LogCrawler'Started timer'
           :EndIf
       :EndHold

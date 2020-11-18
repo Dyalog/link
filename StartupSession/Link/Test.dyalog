@@ -212,8 +212,16 @@
           'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(819⌶mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
           'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
       :EndFor
-     
-      {}opts ⎕SE.Link.Create name folder
+      ⍝ Mantis 18638 - handle lost source
+      3 ⎕MKDIR folder
+      (⊂':Class lostclass' ':EndClass')⎕NPUT(folder,'/lostclass.aplc')1
+      2(⍎name).⎕FIX'file://',folder,'/lostclass.aplc'
+      ⎕NDELETE folder,'/lostclass.aplc'
+      ⎕SE.Link.U.WARNLOG/⍨←0
+      z←opts ⎕SE.Link.Create name folder
+      'Mantis 18638'assert'(∨/''failed''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
+      (⍎name).⎕EX'lostclass'
+      'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
       assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
       assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
       assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
@@ -1626,11 +1634,12 @@
       assert'(∨/''Linked:''⍷output)'
      
       ⍝ https://github.com/Dyalog/link/issues/48
-      ∘∘∘
-      ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
-      'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
-      output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
-      'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
+      :If ⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
+          ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
+          'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
+          output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
+          'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
+      :EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/49
       ride.Edit(name,'.foo')(goo)  ⍝ edit foo and type goo in it
@@ -1883,9 +1892,9 @@
           Log'FileSystemWatcher not available - not running ',⊃⎕SI
           ok←1
           :Return
-      :EndIf     
+      :EndIf
       3 ⎕MKDIR src←folder,'/src'
-      {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf') 1}¨⍕¨⍳n←10000
+      {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf')1}¨⍕¨⍳n←10000
       3 ⎕MKDIR link←folder,'/link'
       ⎕SE.Link.U.WARNLOG/⍨←0
       {}⎕SE.Link.Create name link
@@ -2289,15 +2298,21 @@
 
 
 
-    ∇ try_crawler(name folder);foofile;foofile2
+    ∇ {step}try_crawler(name folder);foofile;foofile2
     ⍝ manual testing of crawler
+      :If 900⌶⍬ ⋄ step←0 ⋄ :EndIf   ⍝ step-by-step crawling
       :If (0≠⎕NC name)∨(⎕NEXISTS folder) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
       ⎕EX name ⋄ 3 ⎕MKDIR folder
-      ⎕SE.Link.Create name folder
-      0 ⎕SE.Link.Watcher.Pause¨⎕SE.Link.Links
-      ⎕SE.Link.Watcher.AddCrawler⊃⎕SE.Link.Links
-      ⎕SE.Link.Watcher.TIMER←⎕NULL
-      ⎕SE.Link.Watcher.T_WORKLOAD←9999999  ⍝ never time out until job finished
+      ⎕SE.Link.Watcher.T_PERIOD←1
+      ⎕SE.Link.Watcher.CRAWLER←1
+      ⎕SE.Link.Watcher.DOTNET←0
+      {}⎕SE.Link.Create name folder
+      ⍝{}⎕SE.Link.Pause ⎕SE.Link.Links
+      :If step
+          ⎕SE.Link.Watcher.TIMER←⎕NULL
+          ⎕SE.Link.Watcher.T_WORKLOAD←9999999  ⍝ never time out until job finished
+          ⎕SE.Link.Watcher.T_GRANULARITY←9999999  ⍝ never overload the timer
+      :EndIf
       ⎕SE.Link.DEBUG←1
       ⎕SE.Link.Watcher.CrawlerEvent 0
       (⊂'this is total garbage !!!!;;;;')⎕NPUT folder,'/garbage.ini'
