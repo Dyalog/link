@@ -789,7 +789,7 @@
       :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃,/opts ListFiles opts.dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
-      ⍝ Write children to files (except trad namespaces)
+      ⍝ Write files
       :If 0≠≢names←names/⍨((⎕NC names)∊(NameClasses arrays≡1))∨(names∊arrays)  ⍝ keep only names of the right name classes, and names explicitly preserved
           src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
           :If 1∊mask←{1=≡⍵}¨src     ⍝ can't get source
@@ -798,33 +798,35 @@
               (names src)←(~mask)∘/¨(names src)
           :EndIf
       :AndIf 0<count←≢names
+          ⍝ determine file names and check for clashes
           :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
           :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
           :EndIf
           :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
-              names←names[,(mask/inx),[1.5]⍸mask]
-              Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names
+              Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names[,(mask/inx),[1.5]⍸mask]
           :EndIf
+          :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS files
+              Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/files
+          :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE files
+          :EndIf
+
+          :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write
+              mask←(≢files)⍴1
+              :For i :In ⍳⍴files
+                 mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)(i⊃src)
+              :EndFor
+              (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
+          :EndIf
+
           mask←src∊⎕NULL  ⍝ unscripted namespaces
           (tradnames tradfiles)←mask∘/¨(names files)
-          (files oldfiles names src)/⍨←⊂(~mask)
-          :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS tradfiles,files
-              Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/tradfiles,files
-          :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE tradnames,files
-          :EndIf
+          (files oldfiles names src)/⍨←⊂(~mask)          
           :If 0≠≢tradfiles
               3 ⎕MKDIR¨tradfiles ⋄ mask←⎕NEXISTS tradfiles
               written,←mask/tradfiles ⋄ failed,←(ns,'.')∘,¨(~mask)/tradnames
           :EndIf
           :If 0≠≢files
-              :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write - not on directories
-                  mask←(≢files)⍴1
-                  :For i :In ⍳⍴files
-                      mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)src
-                  :EndFor
-                  (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
-              :EndIf
               :If 0∊mask←~HasNewlines¨∊¨src  ⍝ cannot write newlines
                   failed,←(ns,'.')∘,¨(~mask)/names
                   (files oldfiles names src)/⍨←⊂mask

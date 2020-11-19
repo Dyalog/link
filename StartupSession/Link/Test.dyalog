@@ -1070,8 +1070,8 @@
      
       ⍝ TODO allow exporting variables ?
       {}opts ⎕SE.Link.Export name folder
-      'link issue #21'assert'WRFILES ≡ folder∘,¨''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' '
-      'link issue #21'assert'WRNAMES ≡ name∘,¨''.foo''  ''.script''  ''.sub.foo''  ''.sub.script''  '
+      'link issue #21'assert'WRFILES ≡ folder∘,¨''/foo.aplf''  ''/script.apln'' ''/sub/'' ''/sub/foo.aplf''  ''/sub/script.apln'' '
+      'link issue #21'assert'WRNAMES ≡ name∘,¨''.foo''  ''.script'' ''.sub'' ''.sub.foo''  ''.sub.script''  '
       'link issue #21'assert'0∊⍴RDFILES,RDNAMES'
       WRFILES←WRNAMES←⍬
       ⎕EX name
