@@ -1,8 +1,8 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;recur;regex;retry;startai;tie;type;warn;watch;z;⎕IO;⎕ML
+ {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;recur;regex;retry;type;warn;z;⎕IO;⎕ML
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
  ⎕IO ⎕ML←1 1
- startai←⎕AI
+ r←⍬⊤⍬  ⍝ no result
  :Select U.debug
  :Case 1 ⋄ ⍝⎕←'Notify'args  ⍝ no need for this - Notify calls U.Log a lot
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
@@ -10,7 +10,6 @@
  :Trap DEBUG↓0
      recur←{+/∧\⍵∊1↑⍵}⎕XSI ⍝ Number of times Notify called self
      :Hold (recur=1)/⊂'⎕SE.Link.Notify' ⍝ Avoid deadlock due to recursion - NB Notify doesn't need to :Hold ⎕SE.Link.Links because it only affect files and APL objects
-         r←⍬⊤⍬
          (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
          (path oldpath)←0 U.NormFile¨path oldpath
 
@@ -176,7 +175,6 @@
          :EndSelect
 
          ⍝ rename files if incorrectly named
-         watch←'dir' 'both'∊⍨⊂link.watch  ⍝ watching files
          :If link.fastLoad<(link.forceFilenames∨link.forceExtensions) ⍝ fastLoad is disabled in Notify
          :AndIf path≢exppath←expfile(link.forceFilenames U.MergeFileName link.forceExtensions)path
              :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
@@ -185,21 +183,19 @@
                  1 U.Log msg,'moving to 'exppath
                  exppath ⎕NMOVE path ⋄ path←exppath
                  ⍝ If we do the line below, then occasionally the watcher fails to callback on move, making the new file definition not fixed
-                 ⍝→END U.If watch     ⍝ file watcher will take care of the rest
+                 ⍝→END U.If 'dir' 'both'∊⍨⊂link.watch      ⍝ file watcher will take care of the rest
                  :While ~⎕NEXISTS exppath ⋄ ⎕DL 0.000001 ⋄ :EndWhile    ⍝ ensure file effectively moved before fixing
              :EndIf
          :EndIf
 
          ⍝ fix file
-         tie←'both'≡link.watch ⍝ tie to file if watching both ways
          :If dir  ⍝ create namespace - optimisation to avoid the call to ⎕NINFO that QFix would cause through GetFileSource
              actname nsref.⎕NS''
-         :ElseIf ~nsref U.QFix path actname tie
+         :ElseIf ~nsref U.QFix path actname(U.FixTie link)
              1 U.Warn msg,⊂'Unable to fix file'
          :EndIf
 
 END:
-         ⍝:If U.debug≠0 ⋄ ⎕←'Notify time spent: ',⍕⎕AI[3]-startai[3] ⋄ :EndIf
      :EndHold ⍝ 'Notify'
  :Else
      U.Resignal 1

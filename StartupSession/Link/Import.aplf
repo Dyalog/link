@@ -10,7 +10,7 @@
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
-
+ 
      files←opts U.FindFile src  ⍝ candidates for source file
      :If 0=≢files
          U.Error'Source not found: ',src
@@ -20,6 +20,8 @@
          U.Error'Not a namespace: ',ns
      :ElseIf ~U.IsNamedRef nsref
          U.Error'Not a properly named namespace: '
+     :ElseIf U.Slash⊃⌽src
+         U.Error'Trailing slash reserved for future extension'
      :Else
          src←⊃files
          opts.ns←ns←U.NormNs ns
@@ -32,7 +34,7 @@
 
          :If ~single
              msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
-             :If ×≢failed ⋄ msg,←⊂(⊂(⍕≢failed),' failed:'),U.WinSlash¨failed ⋄ :EndIf
+             :If ×≢failed ⋄ msg,←(⊂(⍕≢failed),' failed:'),U.WinSlash¨failed ⋄ :EndIf
          :ElseIf ×≢failed ⋄ msg←⊂'Import failed: ',⊃U.WinSlash failed
          :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.WinSlash src
          :EndIf

@@ -54,11 +54,16 @@ In the first three cases (where no more than one side has content), `Link` will 
 ## Current Limitations
 
 * The root namespace of a link must be an unscripted namespace (created with ⎕NS)
-* Link does not support name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). Link does not support namespace-tagged functions and operators (e.g. foo←namespace.{function}).
-* Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` or the APL line `∇` editor are not currently detected. For link to be aware of the change, they must be replaced by a call to [Link.Fix](Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](Link.Expunge.md).
+
+* Link does not support name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).
+
 * Link only handles correctly named namespaces - that is, observing `{⍵≡(⎕NS⍬)⍎⍕⍵}`. Scripted namespaces must simply be named. When creating an unscripted namespace, we recommend using `⎕NS` dyadically to name the created namespace (for example `'myproject'⎕NS⍬` rather than `myproject←⎕NS⍬`). This allows retrieving namespace reference from its display from (for example `#.myproject` rather than `#.[namespace]`).
+
+* Link does not support namespace-tagged functions and operators (e.g. foo←namespace.{function}).
+
+* Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` or the APL line `∇` editor are not currently detected. For link to be aware of the change, they must be replaced by a call to [Link.Fix](Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](Link.Expunge.md).
+
 * The detection of external changes to files and directories is currently only supported under .Net and .NetCore. However, changes to a file will be reflected in the namespace if the file's item is opened in APL's editor, on all platforms.
-* The detection of external changes to files and directories is currently only supported if `source` was not set to `ns`
 
 
 

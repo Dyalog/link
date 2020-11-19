@@ -21,6 +21,8 @@
 
      :If 0 ¯1∊⍨⌊nc←container U.NameClass src
          U.Error'Source not found: ',src
+     :ElseIf U.Slash⊃⌽src
+         U.Error'Trailing slash reserved for future extension'
      :Else
          :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dest  ⍝ dest is a file
              dir←⊃⎕NPARTS dest←0 U.NormFile dest

@@ -1,4 +1,4 @@
- {linked}←where Fix src;RSI;XSI;added;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;update;watch;⎕IO;⎕ML
+ {linked}←where Fix src;RSI;XSI;added;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -38,14 +38,13 @@ NOHOLD:
          update∨←('both'≡link.watch)∧(2=⌊nc)∨(~⎕NEXISTS file)  ⍝ watching both ways : new file need to be created - file needs to be updated if editing a linked array
          update>←(2=⌊nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
          update∨←added  ⍝ explicit add must update file
-         watch←'both' 'dir'∊⍨⊂link.watch  ⍝ watching files
+         tie←U.FixTie link  ⍝ should we tie files when fixing
 
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
              (⊃U.LASTFIX)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
-             :If ~watch  ⍝ FileSystemWatcher should fix the change for us
-             :AndIf 0 ¯1∊⍨ns U.Fix oldname oldfile  ⍝ fix must succeed !
+             :If ~ns U.QFix oldfile oldname tie ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
              U.LASTFIX←⍬  ⍝ last fix event consumed
@@ -72,7 +71,7 @@ NOHOLD:
          update∨←fix∧('both' 'ns'∊⍨⊂link.watch)  ⍝ update file if watching namespace
          1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
 
-         :If update  ⍝ file system must reflect changes
+         :If update  ⍝ file system must reflect changes - FileWatcher may pick it up after this high-priority callback, and should notice no change in source, therefore not fix it  - TODO it means it will re-hash the file
              :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src
                  U.Error'Source code cannot have newlines'
              :EndIf
@@ -86,15 +85,14 @@ NOHOLD:
              :Else
                  U.Error'Unable to write ',nsname,'.',name,' to file: ',file
              :EndTrap
-             fix∧←~watch  ⍝ filewatcher will tie the file for us
              :If delete  ⍝ old file must be removed
                  ⎕NDELETE oldfile
              :EndIf
          :EndIf
 
          :If fix
-             :If 'both'≡link.watch ⋄ src←file ⋄ :EndIf   ⍝ tie if watching both ways
-             :If ¯1 0∊⍨2⊃ns U.Fix name src
+             :If update∧tie ⋄ src←file ⋄ :EndIf
+             :If ¯1 0∊⍨2⊃ns U.Fix name src   ⍝ do not call QFix because file may be out-of-sync
                  U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
              :EndIf
          :EndIf

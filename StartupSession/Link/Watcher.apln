@@ -240,7 +240,7 @@
       elapsed←T_PERIOD⌊(now-T_END)  ⍝ elapsed since last timer end
       worked←now-start              ⍝ elapsed since last timer start
       ok←T_WORKLOAD>worked÷elapsed  ⍝ still under maximum workload
-      :If ~ok ⋄ LogCrawler'Workload reached' ⋄ :EndIf
+      :If ~ok ⋄ LogCrawler'Workload reached' ⋄ :EndIf  ⍝ worked too much
     ∇
 
     ∇ files←oldfiles NewFiles link;check;done;hash;hash1;mask;mod;mod1;mod2;newdone;ok;todo
@@ -330,7 +330,7 @@
               :EndIf
               LINKS[linkinx;L_CHECK L_FILES]←(Time ⍬)files  ⍝ update link check time and files data structure
               ⍝ check workload
-              :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf  ⍝ worked too much
+              :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf  
           :EndHold
       :EndRepeat
       (T_START T_END)←start(Time ⍬)

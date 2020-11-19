@@ -1351,7 +1351,7 @@
       ⎕DL 1 ⋄ (⊂':Namespace REQ2B' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/ZREQ2B.apln'
       (⊂':Namespace required' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/required.apln'
       reqfile←subfolder,'/require.apln'
-      reqsrc←(':Require "file://',folder,'/required.apln"')':Namespace require' 'testvar←##.required.testvar' ':EndNamespace'
+      reqsrc←'' '   ⍝ :Namespace notyet '(':Require "file://',folder,'/required.apln"')':Namespace require' 'testvar←##.required.testvar' ':EndNamespace'
      
       :If ⎕SE.Link.U.IS190 ⍝ link issue #144
           opts.source←'dir' ⋄ opts.watch←'both'
@@ -1632,9 +1632,9 @@
       {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
       output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(∨/''Linked:''⍷output)'
-     
+    
       ⍝ https://github.com/Dyalog/link/issues/48
-      :If ⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
+      :If ⎕SE.Link.U.IS190≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
           ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
           'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
           output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
