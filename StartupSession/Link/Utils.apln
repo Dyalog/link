@@ -213,7 +213,7 @@
     SplitDir←{(~Slash ⍵)⊆⍵}
     Ancestry←{,\(1@1⊢Slash ⍵)⊂⍵}    ⍝ {((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}   ⍝ ⍪⎕SE.Link.U.Ancestry¨ 'C:' '.' '',¨⊂'/a/bb/ccc'
 
-    FileHash←{2 ⎕NQ #'GetBuildID' ⍵}
+    FileHash←{2 ⎕NQ #'GetBuildID' ⍵}  ⍝ returns '00000000' if file doesn't exist
 
     IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
 
@@ -626,18 +626,21 @@
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
     ∇
-    ∇ ok←target QFix(file name tie);changed;nc;src;tie
+    ∇ fixed←target QFix(file name tie);changed;nc;src;tie
+    ⍝ fixed=1: fixed source
+    ⍝ fixed=0: source already up to date - not fixed
+    ⍝ fixed=¯1: failed to fix source
       :If tie ⋄ src←file   ⍝ tie to file - see FixTie
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
           :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both' ⋄ :EndIf
       :EndIf
-      :If src≡⍬ ⋄ ok←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+      :If src≡⍬ ⋄ fixed←¯1 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
       :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
       :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
           (name nc)←target Fix(name src)
-          ok←~nc∊0 ¯1
-      :Else ⋄ ok←1 ⋄ :EndIf
+          fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
+      :Else ⋄ fixed←0 ⋄ :EndIf
     ∇
     ∇ (actname nameclass)←{errors}Sniff(expname src);array
       :If 900⌶⍬ ⋄ errors←⊢ ⋄ :EndIf
@@ -810,18 +813,18 @@
               Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/files
           :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE files
           :EndIf
-
+     
           :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write
               mask←(≢files)⍴1
               :For i :In ⍳⍴files
-                 mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)(i⊃src)
+                  mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)(i⊃src)
               :EndFor
               (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
           :EndIf
-
+     
           mask←src∊⎕NULL  ⍝ unscripted namespaces
           (tradnames tradfiles)←mask∘/¨(names files)
-          (files oldfiles names src)/⍨←⊂(~mask)          
+          (files oldfiles names src)/⍨←⊂(~mask)
           :If 0≠≢tradfiles
               3 ⎕MKDIR¨tradfiles ⋄ mask←⎕NEXISTS tradfiles
               written,←mask/tradfiles ⋄ failed,←(ns,'.')∘,¨(~mask)/tradnames
@@ -916,7 +919,7 @@
           ⎕EX(⊂⍕target)~⍨(⌊|actnc){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
       :EndSelect
      
-      FixFile←(FixTie opts)∘{(target file name)←⍵ ⋄ target QFix file name ⍺}
+      FixFile←(FixTie opts)∘{(target file name)←⍵ ⋄ 0≤target QFix file name ⍺}
       ⍝ create namespaces for directories and load quadVars.apln
       (dirs names)←ndirs↑¨(allfiles allnames)
       :If ~0∊⍴dirs
@@ -1437,7 +1440,7 @@
       r/⍨←~'' ''⍷r
       r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
     ∇
- 
+
     ∇ r←UCMD_Run(cmd args);lc;name;names;opts;spice;this;val
       spice←⊃⎕RSI ⋄ this←spice.##.THIS   ⍝ spice namespace (should be ⎕SE.SALTUtils.c.Link) ⋄ UCMD caller's namespace
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members

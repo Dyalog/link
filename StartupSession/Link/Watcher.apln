@@ -36,7 +36,7 @@
       :Select 2⊃args
       :Case TimerEvent  ⍝ Timer; do nothing for now
       :Case NotifyEvent ⍝ Re-queued Notify event
-          ⎕SE.Link.Notify 3⊃args
+          ##.Notify& 3⊃args
       :Case CloseEvent  ⍝ We have been asked to go away
           ⎕EX 1⊃args    ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
       :EndSelect
@@ -56,14 +56,14 @@
          ⍝ Do not split the following line into several lines: thread switch must NOT happen
           :If 0≠≢timers←'Timer'⎕WN ⎕SE.Link.Watcher ⋄ ⎕NQ(⊃timers)NotifyEvent nargs ⋄ :EndIf
       :Else      ⍝ Make direct calls to Notify
-          ⎕SE.Link.Notify nargs
+          ##.Notify& nargs
       :EndIf
     ∇
 
     ∇ WatchError(obj args);link;msg
       :Hold '⎕SE.Link.Links'
           :If 0∊⍴link←##.U.LookupFile obj.Path
-              U.Warn'FileSystemWatcher error on non-linked directory: ',obj.Path
+              ##.U.Warn'FileSystemWatcher error on non-linked directory: ',obj.Path
           :Else
               0 Pause link
               msg←⊂'FileSystemWatcher error on linked directory: ',link.dir,' - Link has been paused. To recover, do:'
@@ -196,7 +196,7 @@
     ⍝ Crawler globals
     ⍝ LINKS[link;link_opts last_file_update last_check FILES]
     L_OPTS L_ACTIVE L_UPDATE L_CHECK L_FILES←⍳L_COLS←5
-    LINKS←0 L_COLS⍴⍬
+    LINKS←0 L_COLS⍴⍬   ⍝ LINKS must be protected by :Hold '⎕SE.Link.Crawler'
     ⍝ FILES[file;file_name modification_date hash last_check_date]
     F_NAME F_MOD F_HASH F_CHECK←⍳F_COLS←4
     F_EMPTY←0 F_COLS⍴⍬
@@ -246,15 +246,6 @@
     ∇ files←oldfiles NewFiles link;check;done;hash;hash1;mask;mod;mod1;mod2;newdone;ok;todo
       files←(⊃,/link ##.U.ListFiles link.dir)~⊂link.dir,'/'
       :If 0∊⍴files ⋄ files←F_EMPTY ⋄ :Return ⋄ :EndIf  ⍝ no files to check
-      ⍝mod←hash←done←(≢files)⍴0
-      ⍝:While 0∊done
-      ⍝    todo←(~done)/files
-      ⍝    mod1←EncodeTS↑3 ⎕NINFO todo
-      ⍝    hash1←##.U.FileHash¨todo  ⍝ hash is more expensive than time stamp
-      ⍝    mod2←EncodeTS↑3 ⎕NINFO todo
-      ⍝    done∨←newdone←(~done)\ok←mod1=mod2   ⍝ ensure the modification date matches the hash (most of the time it will)
-      ⍝    (newdone/mod)←ok/mod1 ⋄ (newdone/hash)←ok/hash1
-      ⍝:EndWhile
       mod←EncodeTS↑3 ⎕NINFO files    ⍝ always update modification dates
       :If 1∊mask←~files∊oldfiles[;F_NAME]  ⍝ fetch hash only for unknown files
           hash←mask\##.U.FileHash¨mask/files
@@ -267,28 +258,24 @@
     ∇ {msg}←CrawlerEvent msg;active;check;file;files;hash;inx;link;linkinx;mask;newfiles;start;update
     ⍝ TODO: optimisation: ##.Notify → ##.U.QFix → ##.U.FileHasChanged will re-hash the file
       start←Time ⍬
-      :Hold '⎕SE.Link.Crawler'
-          :If (2×T_PERIOD+T_GRANULARITY)<(start-T_START)  ⍝ last start was too long ago - do not dare work yet
-          :OrIf (T_PERIOD-T_GRANULARITY)>(start-T_START)  ⍝ last start was too recent - timer probably overloaded
-              LogCrawler'Timer overloaded'
-              (T_START T_END)←start(Time ⍬)
-              :Return
-          :EndIf
-      :EndHold
+      :If (2×T_PERIOD+T_GRANULARITY)<(start-T_START)  ⍝ last start was too long ago - do not dare work yet
+      :OrIf (T_PERIOD-T_GRANULARITY)>(start-T_START)  ⍝ last start was too recent - timer probably overloaded
+          LogCrawler'Timer overloaded'
+          (T_START T_END)←start(Time ⍬)
+          :Return
+      :EndIf
       :Repeat
-          :Hold '⎕SE.Link.Crawler'
-              ⍝ leave if all files checked in this event (or no file at all)
+          :Hold '⎕SE.Link.Crawler' '⎕SE.Link.Notify'
               :If start∧.≤L_CHECK⌷[2]LINKS  ⍝ all links checked (we need to check links that have no file)
               :AndIf start∧.≤∊F_CHECK⌷[2]¨L_FILES⌷[2]LINKS  ⍝ all files checked
                   LogCrawler'All files checked'
                   :Leave
-              :EndIf
-              ⍝ pick link that was checked least recently
-              :If ~1∊mask←LINKS[;L_ACTIVE]
+              :ElseIf ~1∊mask←LINKS[;L_ACTIVE] ⍝ no active link - nothing to do
                   LogCrawler'No active link'
                   :Leave
-              :EndIf  ⍝ nothing to do
-              linkinx←LINKS[;L_CHECK]{⍵⍳⌊/⍵}LINKS[;L_ACTIVE]/LINKS[;L_CHECK]
+              :EndIf
+              ⍝ pick link that was checked least recently
+              linkinx←mask{⍵⍳⌊/⍺/⍵}LINKS[;L_CHECK]
               (link active update check files)←LINKS[linkinx;]
               ⍝ update list of files if needed
               :If (update<start)∧(update<⊃LINKS[linkinx;L_CHECK])   ⍝ file update predates this event, and at least one check was done since
@@ -330,7 +317,7 @@
               :EndIf
               LINKS[linkinx;L_CHECK L_FILES]←(Time ⍬)files  ⍝ update link check time and files data structure
               ⍝ check workload
-              :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf  
+              :If ~start CheckWorkload Time ⍬ ⋄ :Leave ⋄ :EndIf
           :EndHold
       :EndRepeat
       (T_START T_END)←start(Time ⍬)

@@ -1632,7 +1632,7 @@
       {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
       output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(∨/''Linked:''⍷output)'
-    
+     
       ⍝ https://github.com/Dyalog/link/issues/48
       :If ⎕SE.Link.U.IS190≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
           ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
@@ -1899,7 +1899,7 @@
       ⎕SE.Link.U.WARNLOG/⍨←0
       {}⎕SE.Link.Create name link
       link ⎕NMOVE⍠1⊢src,'/foo*.aplf'
-      :If ⎕SE.Link.Watcher.DOTNET  ⍝ DOTNETCORE does not support FileSystemWatcher errors yet ?
+      :If ⎕SE.Link.Watcher.DOTNET>⎕SE.Link.Watcher.DOTNETCORE ⍝ DOTNETCORE does not support FileSystemWatcher errors yet ?
           'link issue #120'assert'~0∊⍴''FileSystemWatcher error on linked directory''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
       :EndIf
       'link issue #120'assert'n≠≢',name,'.⎕NL ¯3.1'

@@ -4,7 +4,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :Hold '⎕SE.Link.Links'
+     :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
          :If 0=⎕NC'⎕SE.Link.Links' ⋄ ⎕SE.Link.Links←⍬ ⋄ :EndIf ⍝ Start with no links
 
          opts←⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?

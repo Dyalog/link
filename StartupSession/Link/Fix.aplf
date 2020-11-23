@@ -14,7 +14,8 @@
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
      callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
      →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback) - see mantis 18160: can't :Hold 0⍴⊂'' in a high-priority callback
-     :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'  ⍝ ok not to hold ⎕SE.Link.Links in high-priority callback because it only reads it and doesn't change it.
+     :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'  ⍝ ok not to hold ⎕SE.Link.Links in high-priority callback because it only reads it and doesn't change it, and no other APL thread will run.
+     ⍝ However not holding '⎕SE.Link.Notify' is annoying because there is a non-zero probability of the files being in an incomplete/misleading state
 NOHOLD:
          nosrc←0=≢src
          (ns name oldname)←3↑(⊆,where),'' ''
@@ -44,7 +45,7 @@ NOHOLD:
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
              (⊃U.LASTFIX)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
-             :If ~ns U.QFix oldfile oldname tie ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
+             :If 0>ns U.QFix oldfile oldname tie ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
              U.LASTFIX←⍬  ⍝ last fix event consumed
