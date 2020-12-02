@@ -29,7 +29,7 @@ In Dyalog APL v17.0, Link must be manually be added to the existing session. To 
 1. Run `BUILD_DYALOGSPACE`
 1. Save the session
 
-Since SALT is not available, the `Link` user command group is also unavailable, and the only interface to `Link` will be through `⎕SE.Link`.
+Since SALT is not available, the `LINK` user command group is also unavailable, and the only interface to Link will be through `⎕SE.Link`.
 
 
 
@@ -51,7 +51,7 @@ Since SALT is not available, the `Link` user command group is also unavailable, 
      ⎕SE.Link.WSLoaded
  :EndIf</pre>Be especially careful to catch all occurrences of things like `→`, `→0`, `:GoTo 0`, `:Return` etc. and redirect them to reach the above code before the callback function terminates.
 
-Availability of the `Link` user command group will depend on SALT being available.
+Availability of the `LINK` user command group will depend on SALT being available.
 
 
 

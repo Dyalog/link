@@ -27,7 +27,7 @@
    > - `both` will do both.
    >
    > \
-   > Watching a `dir` (or `both`) is currently only supported under Microsoft Windows, but cross-platform support is planned.
+   > Watching a `dir` (or `both`) is currently only supported using the .Net Framework or .NetCore, but a fully cross-platform support is planned.
    > Defaults to `both` where supported, else `ns`.  
 
 - **caseCode** (default off) Adds a suffix to file names on write

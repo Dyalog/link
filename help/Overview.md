@@ -1,6 +1,6 @@
 # Overview
 
-As described on the [Home](Home.md) page, `Link` streamlines working with code in text files by mapping workspace content and filesystem content in a one-to-one relationship. Each unscripted namespace (created by `⎕NS` rather than `⎕FIX`) is associated with a directory of matching name while other workspace content (defined functions and scripted objects) are associated with one file per item. Depending on which synchronisation options have been
+As described on the [Home](Home.md) page, Link streamlines working with code in text files by mapping workspace content and filesystem content in a one-to-one relationship. Each unscripted namespace (created by `⎕NS` rather than `⎕FIX`) is associated with a directory of matching name while other workspace content (defined functions and scripted objects) are associated with one file per item. Depending on which synchronisation options have been
 selected, Link will synchronise changes in none, one or both directions.
 
 ## Scope
@@ -9,14 +9,14 @@ Link automatically manages name classes 3.1 (traditional function), 3.2 (direct 
 
 Unscripted namespaces (created with ⎕NS or )NS and not :Namespace or :Class or :Interface) are mapped to directories. Functions, operators and namespaces that have text source are mapped to text files.
 
-Arrays (nameclass 2.1) may be explicitly linked with [Add](Link.Add.md).
+Arrays (nameclass 2.1) are ignored to start with, but they may be explicitly linked with [Add](Link.Add.md). At that point they are saved to file, and later always loaded from directory.
 
-By default, `Link` will update files with changes made in linked namespaces through the editor (`⎕ED`). It will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is currently supported only on .Net and .NetCore,but support is planned for other operating systems in the near future.
+By default, Link will update files with changes made in linked namespaces through the editor (`⎕ED`). It will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is currently supported only on .Net and .NetCore,but support is planned for other operating systems in the near future.
 
 
 ## Syntax
 
-`Link` provides a set of utility functions in the namespace `⎕SE.Link` (see [the API reference](API.md) for a list). If SALT and user commands are enabled then an additional `LINK` group of user commands are available (and can be listed with `]?link`)
+Link provides a set of utility functions in the namespace `⎕SE.Link` (see [the API reference](API.md) for a list). If SALT and user commands are enabled then an additional `LINK` group of user commands are available (and can be listed with `]?link`)
 
 For performance and ease of debugging, we recommend avoiding the invocation of user commands under program control. Use the utility functions located in `⎕SE.Link` directly instead.
 
@@ -42,14 +42,14 @@ where `options` is a namespace with variables named according to the option they
 
 ## Usage
 
-In most cases, it is unnecessary to use any custom options. `Link` will infer what to do in the first three of the following four cases:
+In most cases, it is unnecessary to use any custom options. Link will infer what to do in the first three of the following four cases:
 
 1. The namespace is empty or doesn't exist and the directory is empty or doesn't exist.
 1. The namespace is empty or doesn't exist but the directory has content
 1. The namespace has content but the directory is empty or doesn't exist
 1. The namespace has content and the directory has content
 
-In the first three cases (where no more than one side has content), `Link` will export/import any content to the other side, and set up tracking of future changes. In the last case, the `source` option must be specified as `ns`, `dir`, or `none` , and the selected side's content will overwrite the other side. **Use this with caution!**
+In the first three cases (where no more than one side has content), Link will export/import any content to the other side, and set up tracking of future changes. In the last case, the `source` option must be specified as `ns`, `dir`, or `none` , and the selected side's content will overwrite the other side. **Use this with caution!**
 
 ## Current Limitations
 
