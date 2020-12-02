@@ -53,7 +53,7 @@
      ⍝ Superseeded by #.SLAVE.⎕NPUT when USE_ISOLATES←1
      
       (file overwrite)←2↑(⊆args),1
-      r←≢bytes←⎕UCS'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
+      r←≢bytes←{⍵-256×⍵≥128}'UTF-8'⎕UCS∊(⊃text),¨⊂⎕UCS 13 10
       :If (⎕NEXISTS file)∧overwrite
           tn←file ⎕NTIE 0 ⋄ 0 ⎕NRESIZE tn ⋄ bytes ⎕NAPPEND tn ⋄ ⎕NUNTIE tn ⋄ ⎕DL 0.01
       :Else
