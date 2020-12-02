@@ -3,18 +3,18 @@ vector or a nested vector as a right argument. The left argument may either be a
 
 ### Basic API Function reference
 
-Function                                              | Right Argument(s)          | Left Argument(s)                               | Result 
-------------------------------------------------------|----------------------------|------------------------------------------------|-------
- [Add](Link.Add.md)<sup>`]`</sup>                     | items                      | *&lt;none&gt;*                                 | message
- [Break](Link.Break.md)<sup>`]`</sup>                 | namespaces                 | options: `all` `exact`                         | message
+Function                                              | Right Argument(s)          | Left Argument(s)                                                                | Result 
+------------------------------------------------------|----------------------------|---------------------------------------------------------------------------------|-------
+ [Add](Link.Add.md)<sup>`]`</sup>                     | items                      | *&lt;none&gt;*                                                                  | message
+ [Break](Link.Break.md)<sup>`]`</sup>                 | namespaces                 | options: `all` `exact`                                                          | message
  [Create](Link.Create.md)<sup>`]`</sup>               | namespace directory        | options: `source` `watch` [and [many more](Link.Create.md#common-options)]      | message
- [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: same as [Create](Link.Create.md)      | message
- [Expunge](Link.Expunge.md)<sup>`]`</sup>             | items                      | *&lt;none&gt;*                                 | boolean array
- [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: same as [Create](Link.Create.md)      | message
- [Pause](Link.Pause.md)<sup>`]`</sup>                 | namespace                  | *&lt;none&gt;*                                                | message
- [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | options: `source`                              | message
- [Status](Link.Status.md)<sup>`]`</sup>               | namespace                  | options: `extended`                            | message
- [Version](Link.Version.md)             | *&lt;none&gt;*             | *&lt;none&gt;*                                 | version number as string
+ [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: `overwrite` `arrays` and same as [Create](Link.Create.md)             | message
+ [Expunge](Link.Expunge.md)<sup>`]`</sup>             | items                      | *&lt;none&gt;*                                                                  | boolean array
+ [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: `overwrite` and same as [Create](Link.Create.md)                       | message
+ [Pause](Link.Pause.md)<sup>`]`</sup>                 | namespace                  | *&lt;none&gt;*                                                                  | message
+ [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | options: `source`                                                               | message
+ [Status](Link.Status.md)<sup>`]`</sup>               | namespace                  | options: `extended`                                                             | message
+ [Version](Link.Version.md)             | *&lt;none&gt;*             | *&lt;none&gt;*                                                                                | version number as string
 
  <sup>`]`</sup> These functions have [user command covers](#user-commands).
 
@@ -34,9 +34,7 @@ Function                                              | Right Argument(s)       
 
 ### Option Namespaces
 
-API functions take a primary argument on the right which is a simple
-character vector or a nested vector as documented above. With the exception of [Fix](Link.Fix.md),
-which takes a 3-element left argument, API functions typically accept an option namespace as
+Some API functions accept an option namespace as
 the left argument. For example, to create a link with non-default `source` and `flatten` options,
 you would write:
 
@@ -48,7 +46,7 @@ you would write:
 
 ### User commands
 
-Most, but not all, API functions have a corresponding user command, to make them a little easier to use interactively. The API functions with user command covers are indicated with <sup>`]`</sup> in the above tables. These user commands all take exactly the same arguments and options as the API functions, specified using user command syntax. The Link.Create call above would thus be written:
+Some API functions have a corresponding user command, to make them a little easier to use interactively. The API functions with user command covers are indicated with <sup>`]`</sup> in the above tables. These user commands all take exactly the same arguments and options as the API functions, specified using user command syntax. The Link.Create call above would thus be written:
 ```apl
       ]LINK.Create myapp /sources/myapp -source=dir -flatten
 ```

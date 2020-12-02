@@ -1,4 +1,4 @@
- msg←{opts}Export(src dest);array;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML
+ msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -6,17 +6,17 @@
  :Trap DEBUG↓0
      (container src)←⎕RSI ⎕XSI U.ContainerNs src
 
-     (defopts←⎕NS ⍬).(overwrite array)←0 0
+     (defopts←⎕NS ⍬).(overwrite arrays)←0 0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
-     :If ~(⊂array←opts.array)∊0 1
-         array←,⊆,array
-         :If ok←(1=≢⍴array)∧(2=|≡array)∧(0=2|⎕DR∊array)∧(1∧.=≢¨⍴¨array)
-             array←','(≠⊆⊢)∊array,[1.5]','  ⍝ allow list of comma-separated names
-             ok←0∊''∘≢¨0⍴¨array
+     :If ~(⊂arrays←opts.arrays)∊0 1
+         arrays←,⊆,arrays
+         :If ok←(1=≢⍴arrays)∧(2=|≡arrays)∧(0=2|⎕DR∊arrays)∧(1∧.=≢¨⍴¨arrays)
+             arrays←','(≠⊆⊢)∊arrays,[1.5]','  ⍝ allow list of comma-separated names
+             ok←0∊''∘≢¨0⍴¨arrays
          :EndIf
-         :If ~ok ⋄ U.Error'Invalid value ',(⍕opts.array),' for modifier "array" - must be 0, 1 or a list of comma-separated names' ⋄ :EndIf
-         array←container U.NormName¨array
+         :If ~ok ⋄ U.Error'Invalid value ',(⍕opts.arrays),' for modifier "arrays" - must be 0, 1 or a list of comma-separated names' ⋄ :EndIf
+         arrays←container U.NormName¨arrays
      :EndIf
 
      :If 0 ¯1∊⍨⌊nc←container U.NameClass src
@@ -31,7 +31,7 @@
          :EndIf
          :If single
              ns←⊃U.SplitNs src←container U.NormName src
-             array←1   ⍝ always export single array
+             arrays←1   ⍝ always export single array
          :Else
              ns←src←U.NormNs src                      ⍝ src is an unscripted namespace
          :EndIf
@@ -41,7 +41,7 @@
          opts.ns←ns
          opts.dir←dir
 
-         (fixed failed)←opts U.WriteFiles src dest array opts.overwrite
+         (fixed failed)←opts U.WriteFiles src dest arrays opts.overwrite
 
          :If ~single
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir

@@ -1368,7 +1368,7 @@
       r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"1S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
       r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"1-2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames  -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one or both if absent)"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -array[=] -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
@@ -1387,7 +1387,7 @@
      
       m←⍉⍪'' '' ''
       m⍪←'-all' '' 'break all links (in all children of # and ⎕SE)'
-      m⍪←'-array' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
+      m⍪←'-arrays' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
       m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
       m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
       m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
@@ -1454,7 +1454,7 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all' 'array' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'recursive' 'source' 'typeExtensions' 'watch'
+          names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'recursive' 'source' 'typeExtensions' 'watch'
           :For name :In names
               lc←819⌶name
               :If ×args.⎕NC lc

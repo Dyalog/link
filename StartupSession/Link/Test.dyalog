@@ -336,7 +336,7 @@
       'link issue #79'assert'foosrc2≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
      
       3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
-      ExportCmd←{'z←Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-array' ⋄ '-array=',∊⍵,[1.5]','}
+      ExportCmd←{'z←Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-arrays' ⋄ '-arrays=',∊⍵,[1.5]','}
       z←ref.{⎕SE.UCMD ⍵}0 ExportCmd 0
       'link issue #37'assert'~∨/''failed''⍷z'
       'link issue #37'assert'0 0 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''

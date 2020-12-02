@@ -1,7 +1,8 @@
 # Installation
 
-Link requires Dyalog APL versions 17.0 and newer. \
-LInk v2.1 has optimal behaviour with Dyalog v19.0 and newer.
+Link requires Dyalog APL versions v17.1 and newer. \
+Link can also work with Dyalog APL v17.0 Unicode, provided [some additional installation steps](#v17.0-default-session) \
+LInk v2.1+ has optimal behaviour with Dyalog v19.0 and newer (see [release notes](ReleaseNotes.md)).
 
 ## Standard installation ##
 
