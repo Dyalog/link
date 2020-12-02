@@ -1,16 +1,15 @@
- msg←Add items;added;item;name;ns;this;unfound;⎕IO;⎕ML
+ msg←Add items;added;item;name;ns;unfound;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      items←(⊆,items)~¨' '
-     this←⊃⌽⎕RSI ⎕XSI U.ContainerNs ⍬
-     items←(this,'.')∘,¨items         ⍝ fully qualified name
+     items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨items        ⍝ fully qualified name
      added←0⍴⊂''
      unfound←0⍴⊂''
      :For item :In items
-         :If 0<⎕NC item
+         :If ~(# U.NameClass item)∊0 ¯1
              (ns name)←U.SplitNs item
              ns name Fix''
              added,←⊂item
@@ -25,7 +24,7 @@
      :If ×≢unfound
          msg,←⊂'Not found:',∊' ',¨unfound
      :EndIf
-     msg←↑msg
+     msg←1↓U.FmtLines msg
  :Else
      U.Resignal 1
  :EndTrap

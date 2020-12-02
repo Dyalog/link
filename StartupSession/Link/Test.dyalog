@@ -344,14 +344,15 @@
       z←ref.{⎕SE.UCMD ⍵}0 ExportCmd 0
       'link issue #37'assert'~∨/''failed''⍷z'
       'link issue #37'assert'0 0 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
-      cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')
+      cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')('sub.⎕IO')('sub.##.sub.⎕THIS.⎕ML')
       assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
-      z←ref.{⎕SE.UCMD ⍵}1 ExportCmd arrays
-      'link issue #37'assert'~∨/''failed''⍷z'
-      'link issue #37'assert'1 1 1 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
       z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
       'link issue #37'assert'~∨/''failed''⍷z'
-      'link issue #37'assert'1 1 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
+      'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
+      3 ⎕NDELETE folder
+      z←ref.{⎕SE.UCMD ⍵}0 ExportCmd arrays
+      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
       3 ⎕NDELETE folder
       ⎕EX name
       ok←1
@@ -369,7 +370,8 @@
       (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/sub/sub2/one2.apla'
       (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/bClass.dyalog'
       (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/aClass.dyalog'
-     
+      (⊂,⊂,'0')⎕NPUT folder,'/sub/⎕IO.dyalog'
+      
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
@@ -388,6 +390,7 @@
       'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
       'link issue #174'assert'foo≡',name,'.⎕NR ''foo'''
       'link issue #174'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.sub.sub2.one2'
+      'link issue #184'assert '1 0≡',name,'.(⎕IO sub.⎕IO)'
       ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
       opts.overwrite←0
       z←opts ⎕SE.Link.Import name folder
@@ -1132,6 +1135,15 @@
       z,←⎕SE.Link.GetItemName'/nope.nope' '/nope/nope.nope',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
       assert'∧/z≡¨⊂'''' '
      
+      ⍝ add some sysvars
+      name⍎'⎕IO←⎕ML←0'
+      z←⎕SE.Link.Add(name,'.⎕IO')(name,'.⎕ML')
+      'link issue #184'assert'1 0≡(∨/''Added:''⍷z)(∨/''Not found:''⍷z)'
+      'link issue #184'assert'1 1 0 0≡⎕NEXISTS folder∘,¨''/⎕IO.apla'' ''/⎕ML.apla'' ''/⎕RL.apla'' ''/⎕CT.apla'' '
+      z←⎕SE.Link.Add(name,'.⎕WSID')(name,'.⎕PATH')
+      'link issue #184'assert'0 1≡(∨/''Added:''⍷z)(∨/''Not found:''⍷z)'
+      'link issue #184'assert'0 0≡⎕NEXISTS folder∘,¨''/⎕WSID.apla'' ''/⎕PATH.apla'' '
+     
       ⍝ attempt to write control characters
       :Trap 0
           name'foo'⎕SE.Link.Fix'res←(op foo)arg'('res←''',(⎕UCS 10),''',arg')
@@ -1154,7 +1166,9 @@
       opts←⎕NS ⍬
       opts.watch←'ns'
       {}(⊂todelete←':Namespace todelete' 'todelete←1' ':EndNamespace')QNPUT(folder,'/todelete.apln')1
-      {}opts ⎕SE.Link.Create name folder
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #184'assert'0 0≡name⍎''⎕IO ⎕ML'''
+     
       'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete'
       ⎕NDELETE folder,'/todelete.apln'
       Breathe ⋄ Breathe

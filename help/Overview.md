@@ -9,7 +9,7 @@ Link automatically manages name classes 3.1 (traditional function), 3.2 (direct 
 
 Unscripted namespaces (created with ⎕NS or )NS and not :Namespace or :Class or :Interface) are mapped to directories. Functions, operators and namespaces that have text source are mapped to text files.
 
-Arrays (nameclass 2.1) are ignored to start with, but they may be explicitly linked with [Add](Link.Add.md). At that point they are saved to file, and later always loaded from directory.
+Arrays (nameclass 2.1) are ignored by default, but they may be explicitly linked with [Add](Link.Add.md). At that point they are saved to file, and later always loaded from directory. Similarly, [Export](Link.Export.md) has an `-arrays` flag to force exporting arrays.
 
 By default, Link will update files with changes made in linked namespaces through the editor (`⎕ED`). It will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is currently supported only on .Net and .NetCore,but support is planned for other operating systems in the near future.
 
