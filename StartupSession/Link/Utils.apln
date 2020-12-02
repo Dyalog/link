@@ -27,7 +27,7 @@
     Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('EM' EM)('Message'(Message,⍺)))}
         Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
     If←⍴⍨
-    ERRNO←99              ⍝ official API error number
+    ERRNO←501              ⍝ official API error number
     LinkCall←{((≢⎕XSI)⌊1++/⎕SE.Link IsParent¨⎕RSI)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link
     :EndSection
 
