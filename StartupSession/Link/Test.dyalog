@@ -47,8 +47,8 @@
     ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;opts;showmsg;slow;test;tests;time;udebug;z;rep
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
-      :if (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
-        rep←⊃test_filter ⋄ test_filter↓⍨←1
+      :If (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
+          rep←⊃test_filter ⋄ test_filter↓⍨←1
       :Else ⋄ rep←1
       :EndIf
       test_filter←,⊆,test_filter
@@ -57,7 +57,7 @@
       slow←'test_threads' 'test_watcherror'  ⍝ slow tests
       :If all←(⊂'all')∊test_filter  ⍝ all tests - nothing to do
       :ElseIf (0∊⍴test_filter)∨(test_filter≡,⊂'') ⋄ tests~←slow  ⍝ basic tests
-          Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests          
+          Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests
       :Else ⋄ tests/⍨←∨⌿1∊¨(test_filter)∘.⍷tests  ⍝ selected tests
       :EndIf
       tests←⊃,/rep⍴⊂tests    ⍝ repeat tests if requested
@@ -273,7 +273,7 @@
       names↓⍨←¯2
       'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
       'link issue #158'assert'0=≢⎕SE.Link.U.WARNLOG'
-      
+     
       ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
      
@@ -1381,10 +1381,10 @@
       nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D'
       ⍝ only v19.0 has ⎕FIX⍠'FixWithErrors'1
       :If ⎕SE.Link.U.IS190 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
-      ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628      'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
+      ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628
+      'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
       'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  ⍝ Mantis 18626 required ⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn
-⍝ BUG the following line is due to Manti 18635 - failed should be 0⍴⊂''
-      failed←⊂'CLASS2A'
+      failed←0⍴⊂'' ⍝ BUG this line was due to Manti 18635 : ⍝ failed←⊂'CLASS2A'
       assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
       assert'∧/',⍕name∘{'(''foo''1234≡(⎕NEW ',⍺,'.',⍵,').foo 1234)'}¨failed~⍨'CLASS'∘,¨'1B' '1D' '2A' '2C'
       assert'∧/',⍕name∘{'(''goo''1234≡(⎕NEW ',⍺,'.',⍵,').goo 1234)'}¨failed~⍨'CLASS'∘,¨'1D' '2A'
@@ -1901,7 +1901,7 @@
       3 ⎕MKDIR src←folder,'/src'
       {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf')1}¨⍕¨⍳n←10000
       3 ⎕MKDIR link←folder,'/link'
-           (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       {}⎕SE.Link.Create name link
       link ⎕NMOVE⍠1⊢src,'/foo*.aplf'
       :If ⎕SE.Link.Watcher.DOTNET>⎕SE.Link.Watcher.DOTNETCORE ⍝ DOTNETCORE does not support FileSystemWatcher errors yet ?
