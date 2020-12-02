@@ -44,20 +44,25 @@
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
 
-
-    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;opts;showmsg;slow;test;tests;time;udebug;z
+    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;opts;showmsg;slow;test;tests;time;udebug;z;rep
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
-      all←0 ⋄ docrawler←⎕SE.Link.Watcher.CRAWLER
-      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
-      :If 0∊⍴test_filter   ⍝ basic tests
-          Log'Not running slow tests:',(⍕slow←'test_threads' 'test_watcherror'),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests
-          tests~←slow
-      :ElseIf all←'all'≡0(819⌶)test_filter  ⍝ all tests - nothing to do
-      :Else ⍝ selected tests
-          tests←(∨⌿1∊¨(,⊆test_filter)∘.⍷tests)/tests
+      :if (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
+        rep←⊃test_filter ⋄ test_filter↓⍨←1
+      :Else ⋄ rep←1
       :EndIf
-      :If docrawler>all ⋄ Log'Not running tests with file crawler - use (',(⊃⎕XSI),' ''all'') to run all tests' ⋄ :EndIf
+      test_filter←,⊆,test_filter
+      docrawler←⎕SE.Link.Watcher.CRAWLER
+      tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
+      slow←'test_threads' 'test_watcherror'  ⍝ slow tests
+      :If all←(⊂'all')∊test_filter  ⍝ all tests - nothing to do
+      :ElseIf (0∊⍴test_filter)∨(test_filter≡,⊂'') ⋄ tests~←slow  ⍝ basic tests
+          Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests          
+      :Else ⋄ tests/⍨←∨⌿1∊¨(test_filter)∘.⍷tests  ⍝ selected tests
+      :EndIf
+      tests←⊃,/rep⍴⊂tests    ⍝ repeat tests if requested
+      :If 0=⎕SE.Link.DEBUG ⋄ Log'Running:',⍕tests ⋄ :EndIf
+      :If docrawler>×all ⋄ Log'Not running tests with file crawler - use (',(⊃⎕XSI),' ''all'') to run all tests' ⋄ :EndIf
       :If ok←0≠≢folder←Setup FOLDER NAME
           ⍝ touch ⎕SE.Link settings
           :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
@@ -69,14 +74,14 @@
      
           time←⎕AI[3] ⋄ ok←1
           :For test :In tests
-              :If debug ⋄ Log⍕'Running'test ⋄ :EndIf
-              :If docrawler∧all  ⍝ test with file watcher
+              :If 0<⎕SE.Link.DEBUG ⋄ Log'Running: ',test ⋄ :EndIf
+              :If docrawler∧×all  ⍝ test with file watcher
                   ⎕SE.Link.Watcher.(CRAWLER DOTNET)←0 dotnet
               :EndIf
 ⍝ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ⍝ run the test_* function
               ok∧←(⍎test)folder NAME    ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
 ⍝ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
-              :If docrawler∧all ⍝ test with file crawler
+              :If docrawler∧×all ⍝ test with file crawler
                   ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
 ⍝ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ⍝ run the test_* function
                   ok∧←(⍎test)folder NAME    ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
@@ -182,7 +187,7 @@
 
 
 
-    ∇ ok←test_failures(folder name);debug;errf;erru;mod;names;opts;z
+    ∇ ok←test_failures(folder name);debug;errf;erru;mod;names;opts;z;warn
       assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source not found'
       assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
      
@@ -217,11 +222,12 @@
       (⊂':Class lostclass' ':EndClass')⎕NPUT(folder,'/lostclass.aplc')1
       2(⍎name).⎕FIX'file://',folder,'/lostclass.aplc'
       ⎕NDELETE folder,'/lostclass.aplc'
-      ⎕SE.Link.U.WARNLOG/⍨←0
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       z←opts ⎕SE.Link.Create name folder
       'Mantis 18638'assert'(∨/''failed''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
       (⍎name).⎕EX'lostclass'
       'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
+      ⎕SE.Link.U.WARN←warn
       assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
       assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
       assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
@@ -245,7 +251,7 @@
       {}(⊂'hoo arg' '⎕←''hoo'' arg')QNPUT(folder,'/sub/.git/info/hoo.aplf')1
       {}(⊂'joo arg' '⎕←''joo'' arg')QNPUT(folder,'/.joo.aplf')1
       {}(⊂'koo arg' '⎕←''koo'' arg')QNPUT(folder,'/koo.tmp')1
-      ⎕SE.Link.U.WARNLOG/⍨←0
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       z←⎕SE.Link.Create name folder
       assert'~∨/''failed''⍷z'
       names←'#.linktest.foo' '#.linktest.sub' '#.linktest.sub.goo'
@@ -267,7 +273,8 @@
       names↓⍨←¯2
       'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
       'link issue #158'assert'0=≢⎕SE.Link.U.WARNLOG'
-     
+      
+      ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
      
       CleanUp folder name
@@ -1374,9 +1381,7 @@
       nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D'
       ⍝ only v19.0 has ⎕FIX⍠'FixWithErrors'1
       :If ⎕SE.Link.U.IS190 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
-⍝ BUG the following line is due to Mantis 18628
-      :If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf
-      'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
+      ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628      'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
       'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  ⍝ Mantis 18626 required ⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn
 ⍝ BUG the following line is due to Manti 18635 - failed should be 0⍴⊂''
       failed←⊂'CLASS2A'
@@ -1887,7 +1892,7 @@
     ∇
 
 
-    ∇ ok←test_watcherror(folder name);i;link;n;src
+    ∇ ok←test_watcherror(folder name);i;link;n;src;warn
       :If ~⎕SE.Link.Watcher.CanWatch
           Log'FileSystemWatcher not available - not running ',⊃⎕SI
           ok←1
@@ -1896,7 +1901,7 @@
       3 ⎕MKDIR src←folder,'/src'
       {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf')1}¨⍕¨⍳n←10000
       3 ⎕MKDIR link←folder,'/link'
-      ⎕SE.Link.U.WARNLOG/⍨←0
+           (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       {}⎕SE.Link.Create name link
       link ⎕NMOVE⍠1⊢src,'/foo*.aplf'
       :If ⎕SE.Link.Watcher.DOTNET>⎕SE.Link.Watcher.DOTNETCORE ⍝ DOTNETCORE does not support FileSystemWatcher errors yet ?
@@ -1905,6 +1910,7 @@
       'link issue #120'assert'n≠≢',name,'.⎕NL ¯3.1'
       {}⎕SE.Link.Refresh name
       'link issue #120'assert'n=≢',name,'.⎕NL ¯3.1'
+      ⎕SE.Link.U.WARN←warn
       ⎕SE.Link.Break name
       CleanUp folder name
       ok←1
