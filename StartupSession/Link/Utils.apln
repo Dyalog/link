@@ -367,7 +367,15 @@
           (container ns)←#(⍕ns)
       :Else
           container←⊃(UcmdStacks xsi)↓rsi
-          ns←(⍕container),(0≠≢ns)/'.',ns  ⍝ can't use NormNs because ns may not exist
+          ⍝ can't use NormNs because ns may not exist
+          :If 0∊⍴ns
+              ns←⍕container
+          :ElseIf (⊂ns)∊(,'#')'⎕SE'
+          :OrIf ∨/'#.' '⎕SE.'Begins¨⊂ns
+              ns←ns  ⍝ ns already fully specified
+          :Else
+              ns←(⍕container),'.',ns
+          :EndIf
       :EndIf
     ∇
 

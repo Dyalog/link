@@ -193,7 +193,7 @@
      
       z←⎕SE.Link.Break'#'
       assert'∨/''No active links''⍷z'
-     
+           
       opts←⎕NS''
       opts.source←'ns'
       assertError('opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
@@ -202,9 +202,13 @@
       opts.source←'dir'
       assertError('opts ⎕SE.Link.Create''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
      
-      name ⎕NS''
-      opts←⎕NS'' ⋄ opts.source←'ns'
-     
+      name ⎕NS'' ⋄ 3⎕MKDIR folder
+      opts←⎕NS'' ⋄ opts.source←'dir'      
+      name⍎'var←1 2 3'
+     'link issue #182' assertError('opts ⎕SE.Link.Create ',⍕Stringify¨name folder) ('Destination namespace not empty: ',name)
+      ⎕EX name,'.var' ⋄ 3 ⎕NDELETE folder
+
+      opts.source←'ns'
       ⍝ link issue #162 test unknown modifiers and invalid values - ⎕EN is almost impossible to predict : 911 when ⎕SE.Link.DEBUG←1, 701, 702 or 704 when ⎕SE.Link.DEBUG←0
       'link issue #162'assertError('⎕SE.UCMD '']link.create -BADMOD=BADVAL '',name,'' "'',folder,''"'' ')'unknown modifier' 0
       'link issue #162'assertError'''{BADMOD:1 2 3}''⎕SE.Link.Create name folder' 'Unknown modifier'
