@@ -61,9 +61,6 @@
          :ElseIf 0∊⍴actname ⋄ actname←expname  ⍝ failed to fix source - nc is 0 - only beforeRead can save us
          :EndIf
 
-         :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
-             →END⊣msg,←⊂'file extension not managed by link'
-         :EndIf
 
          oldname←actname
          affected←nsname,'.',actname
@@ -80,6 +77,8 @@
          :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              →END⊣msg,←⊂(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
+         :ElseIf dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
+             →END⊣msg,←⊂'file extension not managed by link'
          :EndIf
 
          ⍝ determine current file tied to name we plan to use

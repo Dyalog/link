@@ -765,7 +765,7 @@
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0=≢where)∧(nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf ¯1=⎕NC where ⋄ :AndIf ~# IsRootName where ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
+      :ElseIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇
 

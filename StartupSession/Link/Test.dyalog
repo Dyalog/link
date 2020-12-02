@@ -193,7 +193,7 @@
      
       z←⎕SE.Link.Break'#'
       assert'∨/''No active links''⍷z'
-           
+     
       opts←⎕NS''
       opts.source←'ns'
       assertError('opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
@@ -202,12 +202,12 @@
       opts.source←'dir'
       assertError('opts ⎕SE.Link.Create''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
      
-      name ⎕NS'' ⋄ 3⎕MKDIR folder
-      opts←⎕NS'' ⋄ opts.source←'dir'      
+      name ⎕NS'' ⋄ 3 ⎕MKDIR folder
+      opts←⎕NS'' ⋄ opts.source←'dir'
       name⍎'var←1 2 3'
-     'link issue #182' assertError('opts ⎕SE.Link.Create ',⍕Stringify¨name folder) ('Destination namespace not empty: ',name)
+      'link issue #182'assertError('opts ⎕SE.Link.Create ',⍕Stringify¨name folder)('Destination namespace not empty: ',name)
       ⎕EX name,'.var' ⋄ 3 ⎕NDELETE folder
-
+     
       opts.source←'ns'
       ⍝ link issue #162 test unknown modifiers and invalid values - ⎕EN is almost impossible to predict : 911 when ⎕SE.Link.DEBUG←1, 701, 702 or 704 when ⎕SE.Link.DEBUG←0
       'link issue #162'assertError('⎕SE.UCMD '']link.create -BADMOD=BADVAL '',name,'' "'',folder,''"'' ')'unknown modifier' 0
@@ -955,7 +955,7 @@
 
 
 
-    ∇ ok←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z;engine;server
+    ∇ ok←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z;engine;server;warn
     ⍝ Github issues
       name ⎕NS''
       ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
@@ -1097,12 +1097,7 @@
      
       ⍝ .apln must clash with directory of the same name
       {}(⊂':Namespace sub' ':EndNamespace')QNPUT folder,'/sub.apln'
-      :Trap ⎕SE.Link.U.ERRNO
-          z←⎕SE.Link.Create name folder
-          assert'0'
-      :Else
-          assert'∨/''clashing APL names''⍷⊃⎕DM'
-      :EndTrap
+      assertError'z←⎕SE.Link.Create name folder' 'clashing APL names'
       ⎕NDELETE folder,'/sub.apln'
      
       ⍝ attempt to change a function to an operator
@@ -1112,6 +1107,13 @@
       {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
       Breathe
       'link issue #142'assert'(props,[.5]name folder 7)≡⎕SE.Link.Status name'
+     
+      ⍝ attempt to create invalid directory
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+      3 ⎕MKDIR folder,'/New directory (1)/'
+      'link issue #183'assert'~0∊⍴''invalid name defined by file''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
+      ⎕SE.Link.WARN←warn
+      3 ⎕NDELETE folder,'/New directory (1)/'
      
       ⍝ attempt to rename a script
       src2←,¨':Namespace script2' '∇ res←function2 arg' 'res←arg' '∇' ':EndNamespace'
