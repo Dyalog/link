@@ -1,6 +1,6 @@
 # Link.Status
 
-This function provides details of texisting links.
+This function provides details of existing links.
 
 #### Arguments
 
