@@ -36,7 +36,7 @@
       :Select 2⊃args
       :Case TimerEvent  ⍝ Timer; do nothing for now
       :Case NotifyEvent ⍝ Re-queued Notify event
-          ##.Notify& 3⊃args
+          ##.Notify&3⊃args
       :Case CloseEvent  ⍝ We have been asked to go away
           ⎕EX 1⊃args    ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
       :EndSelect
@@ -56,7 +56,7 @@
          ⍝ Do not split the following line into several lines: thread switch must NOT happen
           :If 0≠≢timers←'Timer'⎕WN ⎕SE.Link.Watcher ⋄ ⎕NQ(⊃timers)NotifyEvent nargs ⋄ :EndIf
       :Else      ⍝ Make direct calls to Notify
-          ##.Notify& nargs
+          ##.Notify&nargs
       :EndIf
     ∇
 
@@ -148,6 +148,19 @@
           watch PauseCrawler link  ⍝ can't hurt if non-crawled link
       :EndIf
     ∇
+    ∇ paused←Paused link;fsw
+    ⍝ report whether file watching is paused
+      :If 9=⎕NC'link.fsw.QUEUE'
+          fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
+      :ElseIf 9=⎕NC'link.fsw'
+          fsw←link.fsw
+      :EndIf
+      :If 0≠⎕NC'fsw'
+          paused←~fsw.EnableRaisingEvents
+      :ElseIf CRAWLER
+          paused←~IsCrawlerActive link
+      :EndIf
+    ∇
 
     ∇ Break links;end;tids;timer;timers
     ⍝ Cleanly shut down a file system watcher
@@ -184,24 +197,24 @@
     ⍝⍝⍝⍝⍝ File Crawler ⍝⍝⍝⍝⍝
 
     ⍝ Settings
-    T_PERIOD←.1   ⍝ timer period in seconds
-    T_GRANULARITY←0.02  ⍝ timer granularity in seconds (20ms on Windows, 1ms on Linux)
-    T_WORKLOAD←0.1   ⍝ workload ratio (in [0;1])
+    T_PERIOD←0.2            ⍝ timer period in seconds
+    T_GRANULARITY←0.02      ⍝ timer granularity in seconds (20ms on Windows, 1ms on Linux)
+    T_WORKLOAD←0.1          ⍝ workload ratio (in [0;1])
 
     ⍝ Timer globals
-    OLDTIME←¯1  ⍝ (Time ⍬) can never return a time before that
-    T_START←T_END←OLDTIME  ⍝ last timer event start/end
-    TIMER←⎕NULL  ⍝ Timer object
+    OLDTIME←¯1              ⍝ (Time ⍬) can never return a time before that
+    T_START←T_END←OLDTIME   ⍝ last timer event start/end
+    TIMER←⎕NULL             ⍝ Timer object
 
     ⍝ Crawler globals
     ⍝ LINKS[link;link_opts last_file_update last_check FILES]
     L_OPTS L_ACTIVE L_UPDATE L_CHECK L_FILES←⍳L_COLS←5
-    LINKS←0 L_COLS⍴⍬   ⍝ LINKS must be protected by :Hold '⎕SE.Link.Crawler'
+    LINKS←0 L_COLS⍴⍬        ⍝ LINKS must be protected by :Hold '⎕SE.Link.Crawler'
     ⍝ FILES[file;file_name modification_date hash last_check_date]
     F_NAME F_MOD F_HASH F_CHECK←⍳F_COLS←4
     F_EMPTY←0 F_COLS⍴⍬
 
-    Time←(211⌶⍬)∘{(210⌶⍬)÷⍺}  ⍝ time in seconds
+    Time←{.001×3⊃⎕AI}  ⍝ time in seconds
     ∇ time←EncodeTS TS        ⍝ allows comparing ⎕TS between themselves, NOT to (Time ⍬)
       time←0 12 31 24 60 60 1000⊥⍉↑⊆TS
     ∇
@@ -219,9 +232,14 @@
     ∇
     ∇ active PauseCrawler links;inx;mask
       :Hold '⎕SE.Link.Crawler'
-          :If 1∊mask←LINKS[;L_OPTS]∊links
-              LINKS[⍸mask;L_ACTIVE]←active
-          :EndIf
+          mask←LINKS[;L_OPTS]∊links
+          LINKS[⍸mask;L_ACTIVE]←mask/active
+      :EndHold
+    ∇
+    ∇ active←IsCrawlerActive links;mask
+      :Hold '⎕SE.Link.Crawler'
+          mask←LINKS[;L_OPTS]∊links
+          active←mask\LINKS[⍸mask;L_ACTIVE]
       :EndHold
     ∇
     ∇ RemoveCrawler links
@@ -237,7 +255,7 @@
     ∇
 
     ∇ ok←start CheckWorkload now;elapsed;worked
-      elapsed←T_PERIOD⌊(now-T_END)  ⍝ elapsed since last timer end
+      elapsed←T_PERIOD⌊(now-T_END)  ⍝ elapsed since last timer end - never work more than T_PERIOD×T_WORKLOAD
       worked←now-start              ⍝ elapsed since last timer start
       ok←T_WORKLOAD>worked÷elapsed  ⍝ still under maximum workload
       :If ~ok ⋄ LogCrawler'Workload reached' ⋄ :EndIf  ⍝ worked too much

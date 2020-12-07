@@ -1,4 +1,4 @@
- msg←Add items;added;item;name;ns;unfound;⎕IO;⎕ML
+ msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -6,24 +6,23 @@
  :Trap DEBUG↓0
      items←(⊆,items)~¨' '
      items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨items        ⍝ fully qualified name
-     added←0⍴⊂''
-     unfound←0⍴⊂''
+     added←unlinked←unfound←0⍴⊂''
      :For item :In items
          :If ~(# U.NameClass item)∊0 ¯1
              (ns name)←U.SplitNs item
-             ns name Fix''
-             added,←⊂item
+             :If ns name Fix''  ⍝ was linked and fixed
+                 added,←⊂item
+             :Else
+                 unlinked,←⊂item
+             :EndIf
          :Else
              unfound,←⊂item
          :EndIf
      :EndFor
      msg←0⍴⊂''
-     :If ×≢added
-         msg,←⊂'Added:',∊' ',¨added
-     :EndIf
-     :If ×≢unfound
-         msg,←⊂'Not found:',∊' ',¨unfound
-     :EndIf
+     :If ×≢added ⋄ msg,←⊂'Added:',∊' ',¨added ⋄ :EndIf
+     :If ×≢unlinked ⋄ msg,←⊂'Not in a linked namespace:',∊' ',¨unlinked ⋄ :EndIf
+     :If ×≢unfound ⋄ msg,←⊂'Not found:',∊' ',¨unfound ⋄ :EndIf
      msg←1↓U.FmtLines msg
  :Else
      U.Resignal 1
