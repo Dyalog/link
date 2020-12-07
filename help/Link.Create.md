@@ -1,5 +1,9 @@
 # Link.Create
 
+    ]LINK.Create <ns> <dir> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload]
+
+    msg ← {opts} ⎕SE.Link.Create (ns dir)
+
 #### Arguments
 
 - **namespace** name of, or reference to a namespace

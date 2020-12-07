@@ -1,6 +1,10 @@
 # Link.Import
 
-This function takes the same arguments as [Create](Link.Create.md), but loads a directory containing source files into a namespace without creating a link.
+    ]LINK.Import <ns> <dir> [-overwrite] [-fastload] 
+
+    msg ← {opts} ⎕SE.Link.Import (ns dir)
+
+This function takes the same arguments as [Create](Link.Create.md), but loads a directory containing source files into a namespace without maintaining a link.
 
 If source is a directory, then its contents are imported into the destination namespace.
 

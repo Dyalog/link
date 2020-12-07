@@ -1,5 +1,9 @@
 # Link.Refresh 
 
+    ]LINK.Refresh <ns> [-source={ns|dir|auto}]
+
+    msg ← {opts} ⎕SE.Link.Refresh ns
+
 Refresh is a one-way operation: it will read one side of the link and update the other side of the link accordingly. 
 
 It means that changes on the other side of the link may be lost: if there are un-synchronised changes on both sides of the link, then Refresh will destroy one set of changes (the non-source side will be overwritten by the source side).

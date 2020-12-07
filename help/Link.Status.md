@@ -1,5 +1,9 @@
 # Link.Status
 
+    ]LINK.Status [<ns>] [-extended]
+
+    status ← {opts} ⎕SE.Link.Status ns 
+
 This function provides details of existing links.
 
 #### Arguments
@@ -24,5 +28,5 @@ This function provides details of existing links.
    - force extensions
    - force filenames
    - watch
-   - pause
+   - paused
    

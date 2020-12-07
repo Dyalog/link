@@ -1,5 +1,9 @@
 # Link.Pause 
 
+    ]LINK.Pause <ns>
+    
+    msg ←  ⎕SE.Link.Pause ns
+
 Pause will temporarily disable watching on linked namespaces, so that changes are not synchronised between namespace and directory.
 
 Paused links can later be resumed by calling [Link.Refresh](Link.Refresh.md).

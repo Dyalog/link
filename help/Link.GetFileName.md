@@ -1,5 +1,7 @@
 # Link.GetFileName
 
+    files ←  ⎕SE.Link.GetFileName items
+
 Returns the fully qualified name of the file containing the source of the given APL item.  See also [GetItemName](Link.GetItemName.md).
 
 #### Arguments

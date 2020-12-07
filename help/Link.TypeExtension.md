@@ -1,5 +1,7 @@
 # Link.TypeExtension
 
+    ext ← opts ⎕SE.Link.TypeExtension nc 
+
 #### Right Argument
 
 - nameclass of item

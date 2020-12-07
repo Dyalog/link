@@ -1,7 +1,10 @@
 # Link.Export
 
-This function takes the same arguments as [Create](Link.Create.md) but saves the contents of a namespace to directory without
-creating a Link.
+    ]LINK.Export <ns> <dir> [-overwrite] [-arrays{=name1,name2,...}] [-casecode]
+
+    msg ← {opts} ⎕SE.Link.Export (ns dir) 
+
+This function takes the same arguments as [Create](Link.Create.md) but saves the contents of a namespace to directory without maintaining a Link.
 
 If the source is an unscripted namespace, then the destination is taken as a directory.
 
