@@ -12,9 +12,6 @@ To update Link, copy the contents of the link repository into the Dyalog install
 
 If you have standard v17.1+ installation, you're done. Otherwise a couple more steps might be required.
 
-## TTY version ##
-
-When running the Dyalog interpreter from the console, by default there is no session file, and the session namespace is empty. To use link, follow the intructions for [Session that does *not* use the WorkspaceLoaded event](#session-that-does-not-use-the-workspaceloaded-event).
 
 
 ## Non-standard installations
