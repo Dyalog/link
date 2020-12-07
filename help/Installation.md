@@ -12,12 +12,16 @@ To update Link, copy the contents of the link repository into the Dyalog install
 
 If you have standard v17.1+ installation, you're done. Otherwise a couple more steps might be required.
 
+## TTY version ##
+
+When running the Dyalog interpreter from the console, by default there is no session file, and the session namespace is empty. To use link, follow the intructions for [Session that does *not* use the WorkspaceLoaded event](#session-that-does-not-use-the-workspaceloaded-event).
+
 
 ## Non-standard installations
 
-To use Link from a non-standard v17.1+ session (the .dse file installed with Dyalog APL) where the `WorkspaceLoaded` event is unused, follow the instructions for [Session that does *not* use the `WorkspaceLoaded` event](#session-that-does-not-use-the-workspaceloaded-event). If the `WorkspaceLoaded` is used for something else, follow the instructions for [Session that *does* use the `WorkspaceLoaded` event](#session-that-does-use-the-workspaceloaded-event).
+To use Link from a non-standard v17.1+ session (the .dse file installed with Dyalog APL) where the `WorkspaceLoaded` event is unused, follow the instructions for [Session that does *not* use the WorkspaceLoaded event](#session-that-does-not-use-the-workspaceloaded-event). If the `WorkspaceLoaded` is used for something else, follow the instructions for [Session that *does* use the WorkspaceLoaded event](#session-that-does-use-the-workspaceloaded-event).
 
-In Dyalog APL v17.0, Link must be manually be added to the existing session. To use Link from a default v17.0 session (the .dse file installed with Dyalog APL), follow the instructions for [17.0 default session](#170-default-session). To use Link from a non-standard 17.0 session where the `WorkspaceLoaded` event is unusued, follow the instructions for [Session that does *not* use the `WorkspaceLoaded` event](#session-that-does-not-use-the-workspaceloaded-event). If the `WorkspaceLoaded` is used for something else, follow the instructions for [Session that *does* use the `WorkspaceLoaded` event](#session-that-does-use-the-workspaceloaded-event).
+In Dyalog APL v17.0, Link must be manually be added to the existing session. To use Link from a default v17.0 session (the .dse file installed with Dyalog APL), follow the instructions for [17.0 default session](#170-default-session). To use Link from a non-standard 17.0 session where the `WorkspaceLoaded` event is unusued, follow the instructions for [Session that does *not* use the WorkspaceLoaded event](#session-that-does-not-use-the-workspaceloaded-event). If the `WorkspaceLoaded` is used for something else, follow the instructions for [Session that *does* use the WorkspaceLoaded event](#session-that-does-use-the-workspaceloaded-event).
 
 
 ## Session that does *not* use the `WorkspaceLoaded` event
