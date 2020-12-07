@@ -1370,6 +1370,9 @@
     :Section UCMD
 
     ∇ UCMD_Install;from;to
+    ⍝ FOR INTERNAL TESTING ONLY - DO NOT CALL THIS FUNCTION
+    ⍝ To install link, refer to the installation documentation :
+    ⍝ https://github.com/Dyalog/link/blob/master/help/Installation.md
       from←(⊃⎕NPARTS 4⊃5179⌶⎕SE.Link.U),'../../SALT/spice/Link.dyalog'
       to←(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/SALT/spice/Link.dyalog'
       ⎕←'Copying "',from,'" → "',to,'"'
