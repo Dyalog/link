@@ -371,7 +371,7 @@
       (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/bClass.dyalog'
       (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/aClass.dyalog'
       (⊂,⊂,'0')⎕NPUT folder,'/sub/⎕IO.dyalog'
-      
+     
       opts←⎕NS''
       opts.beforeRead←'⎕SE.Link.Test.onBasicRead'
       opts.beforeWrite←'⎕SE.Link.Test.onBasicWrite'
@@ -390,7 +390,7 @@
       'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
       'link issue #174'assert'foo≡',name,'.⎕NR ''foo'''
       'link issue #174'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.sub.sub2.one2'
-      'link issue #184'assert '1 0≡',name,'.(⎕IO sub.⎕IO)'
+      'link issue #184'assert'1 0≡',name,'.(⎕IO sub.⎕IO)'
       ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
       opts.overwrite←0
       z←opts ⎕SE.Link.Import name folder
@@ -1683,6 +1683,12 @@
       {}(⊂class)QNPUT(folder,'/class.aplc')1
       output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(⊃''Linked:''⍷output)'
+     
+     ⍝ edit a non-existing name, and change its name before fixing
+      ride.Edit(name,'.doesntexist')('res←exists arg' 'res←arg')
+      'link issue #190'assert'(''1'',NL)≡ride.APL ''0 3.1≡',name,'.⎕NC''''doesntexist'''' ''''exists'''' '' '
+      'link issue #190'assert'0=≢⊃⎕NINFO⍠1⊢''',folder,'/doesntexist.*'' '
+      'link issue #190'assert'1=≢⊃⎕NINFO⍠1⊢''',folder,'/exists.*'' '
      
      ⍝ https://github.com/Dyalog/link/issues/154
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
