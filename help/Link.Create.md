@@ -181,10 +181,12 @@
 
 
 - **fastLoad** (default off) Flag to reduce the load time by not inspecting source to detect name clashes
-  >   This affects only initial directory loading, but not subsequent editor or file system watcher events. Worth doing for very large projects with users that don't produce name clashes (two files defining the same APL name). Side effects are (again, only at initial load time, not at subsequent events):
-  >   - good: load will be significantly faster because files will be fixed exactly once in their final destination
-  >   - bad: **forceFileNames**/**forceExtensions** won't be observed
+  >   This affects only initial directory loading, but not subsequent editor or file system watcher events. Worth doing for very large projects with users that don't produce name clashes (i.e. two files defining the same APL name). 
+  >
+  > Side effects are (again, only at initial load time, not at subsequent events):
+  >   - good: load will be significantly faster because files won't be inspected to determine their true APL name.
   >   - bad: clashing names won't be detected: files may silently overwrite each other's APL definition if they define the same APL name.
-  >   - bad: **beforeRead** may report nc=0
+  >   - bad: **forceFileNames**/**forceExtensions** won't be observed
+  >   - bad: **beforeRead** may report incorrect name class
   >
   > This option takes effect only when **source** is **dir**.

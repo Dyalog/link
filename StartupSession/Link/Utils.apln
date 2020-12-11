@@ -706,19 +706,18 @@
       :If nc∊0 ¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid source or name
       ⍝ trad namespace are given name class ¯9.1
       :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
-      :If 0=≢file                   ⍝ no existing file name for it
-      :OrIf forceFilenames     ⍝ force using the default
-          :If isroot  ⍝ if we're asking for opts.ns then the answer is opts.dir
+      :If 0=≢file           ⍝ no existing file name for it
+      :OrIf forceFilenames  ⍝ force using the default
+          :If isroot                ⍝ if we're asking for opts.ns then the answer is opts.dir
               file←dir
           :Else
-              :If ~flatten                ⍝ flatten prevents subdirectory hierarchy
-                  file←(≢ns)↓where              ⍝ Add sub.namespace structure
-                  ((file='.')/file)←'/'            ⍝ Convert dots to /
-              :Else  ⍝ when flattening, use the same dir as the old file (if any)
-                  file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile  ⍝ if 0∊⍴oldfile, then file remains empty
+              :If ~flatten          ⍝ flatten prevents subdirectory hierarchy
+                  file←'/'@(=∘'.')⊢(≢ns)↓where       ⍝ Add sub.namespace structure, replacing dots with slashes
+              :Else                 ⍝ when flattening, use the same dir as the old file (if any)
+                  file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
               :EndIf
-              file←dir,file               ⍝ Add link directory
-              file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name
+              file←dir,file                          ⍝ Add link directory
+              file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
           :EndIf
           file,←typeExtensions Tail nc               ⍝ Add extension
       :EndIf
@@ -726,7 +725,6 @@
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (subdir file ext)←⎕NPARTS path←file
       :If forceExtensions∨0=≢ext
-      ⍝:OrIf ~⎕NEXISTS path    ⍝ why ??? file is not supposed to exist yet
           ext←typeExtensions Tail nc
       :EndIf
       :If isroot<forceFilenames ⋄ file←CaseCodePart⍣caseCode⊢name ⋄ :EndIf  ⍝ forceFileNames does not affect directory - only leaf name
