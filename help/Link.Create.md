@@ -1,6 +1,6 @@
 # Link.Create
 
-    ]LINK.Create <ns> <dir> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload]
+    ]LINK.Create <ns> <dir> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] 
 
     msg ← {opts} ⎕SE.Link.Create (ns dir)
 
@@ -46,11 +46,11 @@
   >
   > Note: you will probably want to enable **forceFilenames** if you enable **caseCode**.
 
-- **forceExtensions** (default off) force correct extensions
+- **forceExtensions** (default off) Force correct extensions
   > If enabled, file extensions will be renamed when an item is defined in the workspace from an external file,
   > so that the file extension accurately reflects the type of the item according to **typeExtensions**.
 
-- **forceFilenames** (default off) force correct filenames
+- **forceFilenames** (default off) Force correct filenames
   > If enabled, file names will be adjusted so that they match the item name, when an item is defined 
   > in the workspace from an external file, so that the file extension accurately reflects the name of the item.
   >
@@ -59,7 +59,16 @@
   > Unless **forceFilenames** is set, Link will write updates to the same file that an item was loaded from,
   > even though the file name does not match the item name.
 
+- **arrays** (default off) Allow exporting arrays too
+   > - if simply set (to 1) (e.g. `-arrays`), then all arrays are exported 
+   > - if set to a comma-separated list of names (e.g. `-arrays=name1{,name2,...}`) then arrays with specified names are exported
+   >
+   > This option takes effect only when **source** is **ns**.
 
+- **sysVars** (default off) Export namespace-scoped system variables to file
+  > The exhaustive list of exported variables is: `⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX`. They will be exported for all unscripted namespaces.
+  >
+  > This option takes effect only when **source** is **ns**.
 
 #### "Advanced" Options
 
@@ -74,6 +83,9 @@
   > same folder as the original item.
   > - If a new item is created, it will be placed in the root of the linked directory.
   > - It is also possible to use the **getFilename** setting to add application-specific logic to determine the file name to be used.
+  >
+  > This option takes effect only when **source** is **dir**.
+
 
 - **beforeWrite** `ns.hookname` name of function to call before writing to file
 
@@ -174,3 +186,5 @@
   >   - bad: **forceFileNames**/**forceExtensions** won't be observed
   >   - bad: clashing names won't be detected: files may silently overwrite each other's APL definition if they define the same APL name.
   >   - bad: **beforeRead** may report nc=0
+  >
+  > This option takes effect only when **source** is **dir**.

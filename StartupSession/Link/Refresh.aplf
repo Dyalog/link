@@ -22,7 +22,7 @@
                  :If 'ns'≡source
                      ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
                      ⍝ TODO : should test for existing arrays in destination to update from workspace - here arrays are not updated
-                     :If 0≠≢outFail←2⊃link U.WriteFiles(⍎link.ns)link.dir 0 1 ⍝ never export unsollicited arrays - always overwrite
+                     :If 0≠≢outFail←2⊃link U.WriteFiles(⍎link.ns)link.dir 0 0 1 ⍝ never export unsollicited arrays - always overwrite
                          ko,←(⊂(⍕≢outFail),' export(s) failed:',),outFail
                      :EndIf
                  :ElseIf 'dir'≡source

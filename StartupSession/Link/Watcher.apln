@@ -284,16 +284,17 @@
       :EndIf
       :Repeat
           :Hold '⎕SE.Link.Crawler' '⎕SE.Link.Notify'
-              :If start∧.≤L_CHECK⌷[2]LINKS  ⍝ all links checked (we need to check links that have no file)
-              :AndIf start∧.≤∊F_CHECK⌷[2]¨L_FILES⌷[2]LINKS  ⍝ all files checked
-                  LogCrawler'All files checked'
-                  :Leave
-              :ElseIf ~1∊mask←LINKS[;L_ACTIVE] ⍝ no active link - nothing to do
+              check←L_CHECK⌷[2]LINKS   ⍝ last check for each link (they may have no file)
+              check⌊←⌊/¨F_CHECK⌷[2]¨L_FILES⌷[2]LINKS  ⍝ oldest check for each link
+              :If ~1∊mask←LINKS[;L_ACTIVE]  ⍝ only crawl active links
                   LogCrawler'No active link'
+                  :Leave
+              :ElseIf ~1∊mask←mask∧start>check  ⍝ only crawl links that haven't been fully checked this time
+                  LogCrawler'All files checked'  ⍝ all files+links fully checked during this callback
                   :Leave
               :EndIf
               ⍝ pick link that was checked least recently
-              linkinx←mask{⍵⍳⌊/⍺/⍵}LINKS[;L_CHECK]
+              linkinx←mask{⍵⍳⌊/⍺/⍵}check
               (link active update check files)←LINKS[linkinx;]
               ⍝ update list of files if needed
               :If (update<start)∧(update<⊃LINKS[linkinx;L_CHECK])   ⍝ file update predates this event, and at least one check was done since
@@ -307,10 +308,10 @@
                       :If 1∊mask←(≢files)<inx←files[;F_NAME]⍳newfiles[;F_NAME]
                           {##.Notify'created'⍵}¨mask/newfiles[;F_NAME]          ⍝ notify creation
                           inx←(~mask)/inx                                       ⍝ don't need to update those
-                          files⍪←mask⌿newfiles                                  ⍝ add to data structure
+                          files⍪←(Time ⍬)@F_CHECK⍤1⊢mask⌿newfiles               ⍝ add to data structure - created files have been Notified so checked
                       :EndIf
                       files[inx;F_MOD]←newfiles[⍸~mask;F_MOD]       ⍝ update modification date but not hash for existing files
-                      LINKS[linkinx;L_UPDATE L_FILES]←(Time ⍬)files
+                      LINKS[linkinx;L_UPDATE L_FILES]←(Time ⍬)files  ⍝ check time not affected
                   :EndIf
               :EndIf
               ⍝ check workload

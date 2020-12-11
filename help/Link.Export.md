@@ -1,6 +1,6 @@
 # Link.Export
 
-    ]LINK.Export <ns> <dir> [-overwrite] [-arrays{=name1,name2,...}] [-casecode]
+    ]LINK.Export <ns> <dir> [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars]
 
     msg ← {opts} ⎕SE.Link.Export (ns dir) 
 
@@ -18,9 +18,7 @@ If the source is anything else, then the destination is taken as a directory (an
 #### Options
 
 - `overwrite`: Allow overwriting files in the destination directory
-- `arrays`: Allow exporting arrays too (disabled by default)\
--- if simply set (to 1) (e.g. `-arrays`), then all arrays are exported \
--- if set to a comma-separated list of names (e.g. `-arrays=name1{,name2,...}`) then arrays with specified names are exported
+- other options have same effect as in [Create](Link.Create.md)
 
 #### Result
 

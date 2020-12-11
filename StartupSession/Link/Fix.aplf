@@ -41,7 +41,7 @@ NOHOLD:
          update∨←added  ⍝ explicit add must update file
          tie←U.FixTie link  ⍝ should we tie files when fixing
 
-         :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename
+         :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename - won't happen if oldname is undefined (link issue #190) because oldfile must then be empty
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
              (⊃U.LASTFIX)U.Into oldfile   ⍝ editor overwrites oldfile with new definition

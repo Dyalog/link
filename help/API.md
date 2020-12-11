@@ -8,9 +8,9 @@ Function                                              | Right Argument(s)       
  [Add](Link.Add.md)<sup>`]`</sup>                     | items                      | *&lt;none&gt;*                                                                  | message
  [Break](Link.Break.md)<sup>`]`</sup>                 | namespaces                 | options: `all` `exact`                                                          | message
  [Create](Link.Create.md)<sup>`]`</sup>               | namespace directory        | options: `source` `watch` [and [many more](Link.Create.md#common-options)]      | message
- [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: `overwrite` `arrays` and same as [Create](Link.Create.md)             | message
+ [Export](Link.Export.md)<sup>`]`</sup>               | namespace directory        | options: `overwrite` `caseCode` `arrays` `sysVars`                              | message
  [Expunge](Link.Expunge.md)<sup>`]`</sup>             | items                      | *&lt;none&gt;*                                                                  | boolean array
- [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: `overwrite` and same as [Create](Link.Create.md)                       | message
+ [Import](Link.Import.md)<sup>`]`</sup>               | namespace directory        | options: `overwrite` `flatten` `fastLoad`                                                 | message
  [Pause](Link.Pause.md)<sup>`]`</sup>                 | namespace                  | *&lt;none&gt;*                                                                  | message
  [Refresh](Link.Refresh.md)<sup>`]`</sup>             | namespace                  | options: `source`                                                               | message
  [Status](Link.Status.md)<sup>`]`</sup>               | namespace                  | options: `extended`                                                             | message

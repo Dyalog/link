@@ -9,15 +9,7 @@
      (defopts←⎕NS ⍬).(overwrite arrays)←0 0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
-     :If ~(⊂arrays←opts.arrays)∊0 1
-         arrays←,⊆,arrays
-         :If ok←(1=≢⍴arrays)∧(2=|≡arrays)∧(0=2|⎕DR∊arrays)∧(1∧.=≢¨⍴¨arrays)
-             arrays←','(≠⊆⊢)∊arrays,[1.5]','  ⍝ allow list of comma-separated names
-             ok←0∊''∘≢¨0⍴¨arrays
-         :EndIf
-         :If ~ok ⋄ U.Error'Invalid value ',(⍕opts.arrays),' for modifier "arrays" - must be 0, 1 or a list of comma-separated names' ⋄ :EndIf
-         arrays←container U.NormName¨arrays
-     :EndIf
+     :if ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
 
      :If 0 ¯1∊⍨⌊nc←container U.NameClass src
          U.Error'Source not found: ',src
@@ -41,7 +33,7 @@
          opts.ns←ns
          opts.dir←dir
 
-         (fixed failed)←opts U.WriteFiles src dest arrays opts.overwrite
+         (fixed failed)←opts U.WriteFiles src dest opts.arrays opts.sysVars opts.overwrite
 
          :If ~single
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir

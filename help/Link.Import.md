@@ -1,6 +1,6 @@
 # Link.Import
 
-    ]LINK.Import <ns> <dir> [-overwrite] [-fastload] 
+    ]LINK.Import <ns> <dir> [-overwrite] [-flatten] [-fastload] 
 
     msg ← {opts} ⎕SE.Link.Import (ns dir)
 
@@ -18,6 +18,7 @@ If source is a file, then the corresponding APL name is created in the destinati
 #### Options
 
 - `overwrite`: Allow overwriting APL names in the destination namespace
+- other options have same effect as in [Create](Link.Create.md)
 
 #### Result
 
