@@ -19,7 +19,7 @@
              :EndIf  ⍝ otherwise default to 'both'
          :EndIf
          opts←U.DefaultOpts opts
-         :if ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
+         :If ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
 
 
          :If hasdir←⎕NEXISTS dir ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
@@ -71,7 +71,6 @@
                  opts.source←'ns'
              :EndIf
          :EndIf
-         :If opts.(flatten∧source≢'dir') ⋄ U.Error'flatten≡1 requires source≡''dir''' ⋄ :EndIf
          :If warn ⋄ ¯1 U.Warn'.NET or .NetCore not available - Link cannot watch directory' ⋄ :EndIf
 
          ⍝ We're all good; do it!
@@ -80,10 +79,14 @@
          msg←0⍴⊂''
          :Select opts.source
          :Case 'ns'
+             :If 0≢opts.flatten ⋄ U.Error'flatten modifier requires source≡''dir''' ⋄ :EndIf
+             :If 0≢opts.fastLoad ⋄ U.Warn'fastLoad modifier ignored when source≡''ns''' ⋄ :EndIf
              overwrite←1 ⍝ we already checked the overwrite condition
              fail←2⊃opts U.WriteFiles ns dir opts.arrays opts.sysVars overwrite
              :If 0≠≢fail ⋄ msg,←(⊂(⍕≢fail),' export(s) failed:'),fail ⋄ :EndIf
          :Case 'dir'
+             :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
+             :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
              :If 0≠≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
          :Else
