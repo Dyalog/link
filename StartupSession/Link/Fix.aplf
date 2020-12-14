@@ -48,14 +48,16 @@ NOHOLD:
              :If 0>ns U.QFix oldfile oldname tie ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
-             U.LASTFIX←⍬  ⍝ last fix event consumed
              delete←0  ⍝ old file must be preserved
          :Else
              delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
          :EndIf
 
-         :If update<callback ⍝ Editor fix when not watching the workspace
-             →0  ⍝ job done
+         :If callback   ⍝ called back from editor
+             U.LASTFIX←⍬  ⍝ last fix event consumed
+             :If ~update ⍝ Editor fix when not watching the namespace
+                 →0  ⍝ job done
+             :EndIf
          :EndIf
 
          :If nosrc    ⍝ Source not provided - find it

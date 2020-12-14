@@ -65,6 +65,7 @@ In the first three cases (where no more than one side has content), Link will ex
 
 * The detection of external changes to files and directories is currently only supported under .Net and .NetCore. However, changes to a file will be reflected in the namespace if the file's item is opened in APL's editor, on all platforms.
 
+* Source code must not have embedded newlines within a string, whereas Dyalog APL tolerates it through various hacks. Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newlines characters must be used in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
 
 
 
