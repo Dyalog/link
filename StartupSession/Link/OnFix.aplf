@@ -1,4 +1,4 @@
- {res}←OnFix(obj evt src ns oldname name file)
+ {res}←OnFix(obj evt src ns oldname name file);error
  ⍝ Thin cover for editor onFix event
 
  ⍝ link issue #152: keep track of last fix to recover source as typed
@@ -6,7 +6,7 @@
  :If (name≢oldname)∧(~0∊⍴name)   ⍝ when name is empty, it means that we create a new object that doesn't yet have a source
      :If 0=ns.⎕NC oldname  ⍝ oldname did not exit (link issue #190)
          src←0⍴⊂''
-     :Else  
+     :Else
          src←ns U.GetAplSource oldname  ⍝ about to rename : get old source as typed before it disappears
          :If 1=≡src ⋄ error←src ⋄ src←0⍴⊂'' ⋄ :EndIf   ⍝ failed to get source - should not happen
      :EndIf
@@ -14,4 +14,4 @@
  U.LASTFIX←src(⍕ns)oldname  ⍝ format nsref to avoid cross-references between # and ⎕SE
  res←1
 
- :if ~0∊⍴error ⋄ U.Error error ⋄ :EndIf  ⍝ error AFTER setting U.LASTFIX
+ :If ~0∊⍴error ⋄ U.Error error ⋄ :EndIf  ⍝ error AFTER setting U.LASTFIX

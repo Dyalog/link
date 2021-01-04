@@ -1,8 +1,9 @@
- {r}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
+ {name}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
+⍝ returns the name affected by the file
  ⎕IO ⎕ML←1 1
- r←⍬⊤⍬  ⍝ no result
+ name←''  ⍝ no apl name
  :Select U.debug
  :Case 1 ⋄ ⍝⎕←'Notify'args  ⍝ no need for this - Notify calls U.Log a lot
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
@@ -177,6 +178,8 @@
              →END ⍝ might as well give up now
 
          :EndSelect
+
+         name←affected   ⍝ return APL name affected by the Notify
 
          ⍝ rename files if incorrectly named
          :If link.fastLoad<(link.forceFilenames∨link.forceExtensions) ⍝ fastLoad is disabled in Notify

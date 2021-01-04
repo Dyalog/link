@@ -1,5 +1,6 @@
 ﻿:Namespace Watcher
     ⎕IO ⎕ML←1 1
+    ⎕CT←0  ⍝ to compare EncodeTS
 
     ⍝⍝⍝⍝⍝ .Net System.IO.FileSystemWatcher ⍝⍝⍝⍝⍝
 
@@ -93,17 +94,8 @@
       ⎕USING←',System',(~DOTNETCORE)/'.dll'
       watcher←⎕NEW System.IO.FileSystemWatcher
       watcher.(Path Filter)←args
-      :If 1
-          watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
-          watcher.onError←'WatchError'
-      :Else
-          watcher(2455⌶)'Changed' 'WatchEvent'
-          watcher(2455⌶)'Created' 'WatchEvent'
-          watcher(2455⌶)'Deleted' 'WatchEvent'
-          watcher(2455⌶)'Renamed' 'WatchEvent'
-          ⍝ watcher(2455⌶)'Error' 'WatchError'  ⍝ DOMAIN ERROR - why ?
-          watcher.onError←'WatchError'
-      :EndIf
+      watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
+      watcher.onError←'WatchError'
       watcher.IncludeSubdirectories←1
     ∇
 
@@ -216,7 +208,7 @@
 
     Time←{.001×3⊃⎕AI}  ⍝ time in seconds
     ∇ time←EncodeTS TS        ⍝ allows comparing ⎕TS between themselves, NOT to (Time ⍬)
-      time←0 12 31 24 60 60 1000⊥⍉↑⊆TS
+      time←0 12 31 24 60 60 1000⊥⍉↑⊆TS  ⍝ takes about 14 digits - ⎕CT must be zero
     ∇
     LogCrawler←'⎕SE.Link.Crawler'∘##.U.Log
 
@@ -275,6 +267,7 @@
 
     ∇ {msg}←CrawlerEvent msg;active;check;file;files;hash;inx;link;linkinx;mask;newfiles;start;update
     ⍝ TODO: optimisation: ##.Notify → ##.U.QFix → ##.U.FileHasChanged will re-hash the file
+    ⍝ TODO: optimisation: no need to 3 ⎕NINFO dirs
       start←Time ⍬
       :If (2×T_PERIOD+T_GRANULARITY)<(start-T_START)  ⍝ last start was too long ago - do not dare work yet
       :OrIf (T_PERIOD-T_GRANULARITY)>(start-T_START)  ⍝ last start was too recent - timer probably overloaded
@@ -326,6 +319,7 @@
               :EndIf
               files[inx;F_CHECK]←Time ⍬             ⍝ update check time
               ⍝ check most recently modified - but not checked during this timer event
+              ⍝ TODO: do not check directories
               :If 1∊mask←files[;F_CHECK]<start      ⍝ not checked during this timer event
                   inx←mask{⍵⍳⌈/⍺/⍵}files[;F_MOD]    ⍝ most recently modified
                   :If (⊃files[inx;F_HASH])≢(hash←##.U.FileHash file←⊃files[inx;F_NAME])  ⍝ hash has changed
@@ -342,5 +336,68 @@
       (T_START T_END)←start(Time ⍬)
     ∇
 
+
+
+
+
+    ⍝⍝⍝⍝ NEW Crawler ⍝⍝⍝⍝
+
+    CRAWLERLINKS←3 0⍴⍬  ⍝ [link names files;]
+    L_LINK L_NAME L_FILE L_CHECK←⍳4
+    NO_NAMES←4 0⍴⍬  ⍝ [name src nc check;]
+    N_NAME N_SRC N_NC N_CHECK←⍳4
+    NO_FILES←5 0⍴⍬  ⍝ [file src nc check mod;]
+    F_NAME F_SRC F_NC F_CHECK F_MOD←⍳5
+    ⍝ 0∊⍴src means source hasn't been fetched
+    TS_OLD←EncodeTS 0  ⍝ old timestamp
+    ∇ ts←TS
+      ts←EncodeTS ⎕TS
+    ∇
+
+
+    ∇ Crawl link;aplsrc;changedfiles;changedinx;changedmod;changedsrc;check;creations;deletions;files;filesrc;inx;mask;mewmod;names;newdirs;newfiles;newnames;newnc;newsrc;nsref;oldfiles;oldmask;oldnames;src;time
+      :If (≢CRAWLERLINKS)<inx←CRAWLERLINKS[;L_LINKS]⍳link
+          CRAWLERLINKS⍪←link NO_NAMES NO_FILES TS_OLD
+      :EndIf
+      (link names files check)←CRAWLERLINKS[;inx]
+    ⍝ look for creation/deletion of APL names
+      time←TS
+      newnames←##.U.ListNs nsref←⍎link.ns
+      oldnames←names[N_NAME;]
+      ⍝newnames←↑[0.5]newnames((≢newnames)⍴⊂⍬)((≢newnames)⍴⊂OLDTIME)
+      creations←newnames~oldnames ⋄ deletions←oldnames~newnames
+      newsrc←nsref ##.U.GetAplSource¨creations
+      newnc←nsref ##.U.NameClass¨creations
+      newfiles←⊃link(1 ##.U.DetermineFileName)((≢creations)⍴nsref)creations((≢creations)⍴⊂'')newnc
+      newsrc ##.U.Into¨newfiles
+      oldmask←oldnames∊deletions
+      oldfiles←⊃link(1 ##.U.DetermineFileName)((+/oldmask)⍴nsref)(oldmask/oldnames)((+/oldmask)⍴⊂'')(oldmask/names[;N_NC])
+      3 ⎕NDELETE oldfiles~4⊃¨5177⌶⍬  ⍝ delete oldfiles that are not tied to anything
+      names←((~oldmask)/names),↑creations newsrc newnc((≢creations)⍴⊂time)
+    ⍝ look for files with a change of modification timestamp
+      time←TS
+      (newfiles newdirs)←link ListFiles link.dir
+      oldfiles←files[F_NAME;]
+      changedfiles←newfiles∩oldfiles ⋄ newfiles~←oldfiles ⋄ newdirs~←oldfiles
+      changedmod←EncodeTS↑3 ⎕NINFO changedfiles
+      changedinx←oldfiles⍳changedfiles
+      mask←changedmod≠files[F_FMOD;changedinx]  ⍝ file modification timestamp has changed
+      {##.Notify'changed'⍵}##.U.OnEach mask/changedfiles
+      files[F_FMOD F_CHECK;mask/changedinx]←↑(mask/changedmod)((+/mask)⍴⊂time)
+    ⍝ look for creation/deletion of files (modification may be old in case unzipped)
+      newnames←{##.Notify'created'⍵}##.U.OnEach newdirs,newfiles
+      files,←↑newdirs((≢newdirs)⍴⎕NULL)((≢newdirs)⍴¯9.1)((≢newdirs)⍴time)
+      files,←↑newfiles(##.U.GetFile¨newfiles)((≢newdirs)⍴time)
+      {##.Notify'deleted'⍵}##.U.OnEach oldfiles~newdirs,newfiles
+    ⍝ look for content difference between APL and files
+      mask←~mask
+      {##.Notify'changed'⍵}##.U.OnEach mask/changedfiles
+      files[F_FMOD F_CHECK;mask/changedinx]←↑(mask/changedmod)((+/mask)⍴⊂time)
+      ⍝ TODO must compare newnames/oldnames to newfiles/oldfiles
+      (file oldfile nc)←link(1 ##.U.DetermineFileName)(where name oldname src)
+      (where expname actname nc)←link ##.U.DetermineAplName files
+     
+      ⍝ TODO error on mismatches between APL and files
+    ∇
 
 :EndNamespace
