@@ -3,7 +3,7 @@
 
     :Section Constants
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
-        IS190←{19≤⊃⊃(//)⎕VFI(¯1+⍵⍳'.')↑⍵}2⊃# ⎕WG'APLVersion'
+        IS181←{18.1≤⊃(//)⎕VFI⍵/⍨2>+\⍵='.'}2⊃# ⎕WG'APLVersion' 
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -572,7 +572,7 @@
           :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
               src←⎕NULL
               ⍝ ⎕INFO left arguments:  ⍝ SRC_AS_TYPED    =0,     // aka ⎕SRC        ⍝ SRC_CANONICAL   =1,     // aka ⎕NR        ⍝ SRC_FILEINFO    =2,     // aka 517n ⌶        ⍝ SRC_LOCATION    =3,     // aka 517n ⌶        ⍝ VALUE_NC        =4,     // aka ⎕NC        ⍝ VALUE_NCX       =5,     // aka ⎕Nc,⊂        ⍝ VALUE_QAT_SYNTAX=6,     // aka 1⊃⎕AT        ⍝ VALUE_QAT_TIMESTAMP=7,  // aka 2⊃⎕AT        ⍝ VALUE_QAT_LOCK  =8,     // aka 3⊃⎕AT        ⍝ VALUE_USERSTAMP =9,     // aka 4⊃⎕AT        ⍝ VALUE_QAT_SIZE  =10,    // aka ⎕SIZE
-              :If IS190 ⋄ :Trap 11 ⋄ src←0 ns.⎕INFO name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕INFO returns ⎕NULL if source not available - ⎕INFO errors if name doesn't exist - Mantis 18610: ⎕INFO encloses one too many depth
+              :If IS181 ⋄ :Trap 11 ⋄ src←0 ns.⎕INFO name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕INFO returns ⎕NULL if source not available - ⎕INFO errors if name doesn't exist - Mantis 18610: ⎕INFO encloses one too many depth
               :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
           :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
           :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
@@ -604,7 +604,7 @@
       :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
       :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf ⍝ file name given instead of source
-      :If ~IS190 ⋄ FIX←where.⎕FIX ⋄ :Else
+      :If ~IS181 ⋄ FIX←where.⎕FIX ⋄ :Else
           ⍝ Quiet            0|1     (default 0)   ⍝ do not output status messages - link issue #149
           ⍝ AllowLateBinding 0|1     (default 1)   ⍝ allow missing dependencies
           ⍝ FixWithErrors    0|1|2   (default 0,2=prompt)  ⍝ allow errors in script - link issue #144
@@ -1006,7 +1006,7 @@
       :If 900⌶⍬ ⋄ :OrIf ~recur ⋄ names,⍨←⊂ns ⋄ :EndIf
     ∇
     ∇ mat←{errors}FixTree src;FIX;mask;names;nc
-      :If 900⌶⍬ ⋄ errors←IS190 ⋄ :EndIf ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
+      :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
       :If errors ⋄ FIX←⎕FIX⍠'FixWithErrors' 1 ⋄ :Else ⋄ FIX←⎕FIX ⋄ :EndIf
       mask←9=⌊|nc←⎕NC names←('.',⍨⍕⎕THIS)∘,¨2 FIX,,¨⊆,src
       :If 1∊mask ⋄ names←((~mask)/names),⊃,/NsTree¨(mask/names) ⋄ :EndIf
@@ -1017,7 +1017,7 @@
     ⍝ Sniff source for a single name defined, and find out its name class.
     ⍝ False negatives are bad because we won't fix the script.
     ⍝ False positives are not too bad since the fix will fail anyway.
-      :If 900⌶⍬ ⋄ errors←IS190 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
+      :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
       src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
       ⍝ define useful regular expressions
       Decase←{,'[',']',⍨(0(819⌶)⍵),[1.5](1(819⌶)⍵)} ⍝ case-insensitive word

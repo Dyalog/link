@@ -296,7 +296,7 @@
       varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
       2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
       2 ref.⎕FIX nssrc←,¨'  :Namespace ns' 'where←''ns'' ' ':EndNamespace'
-      :If ~⎕SE.Link.U.IS190 ⋄ foosrc←ref.⎕NR'foo' ⋄ :EndIf  ⍝ Dyalog v19.0 can preserve source !
+      :If ~⎕SE.Link.U.IS181 ⋄ foosrc←ref.⎕NR'foo' ⋄ :EndIf  ⍝ Dyalog v19.0 can preserve source !
       subref←⍎(name,'.sub')⎕NS''
       subref.(var1 var2 var3 var4)←'VAR1' 'VAR2' 'VAR3' 'VAR4'
      
@@ -313,7 +313,7 @@
       assert'~⎕NEXISTS ''',folder,'/var.apla'''
       2 ref.⎕FIX foosrc2←,¨'     ∇ res  ←foo arg ; local' 'res←''foo2''   arg' '∇'
       2 ref.⎕FIX nssrc2←,¨'  :Namespace ns' 'where←''ns2'' ' ':EndNamespace'
-      :If ~⎕SE.Link.U.IS190 ⋄ foosrc2←ref.⎕NR'foo' ⋄ :EndIf
+      :If ~⎕SE.Link.U.IS181 ⋄ foosrc2←ref.⎕NR'foo' ⋄ :EndIf
       'link issue #175'assertError'z←⎕SE.Link.Export name folder' 'Files already exist'
       opts←⎕NS ⍬ ⋄ opts.overwrite←1
       z←opts ⎕SE.Link.Export name folder
@@ -903,7 +903,7 @@
       varfile←⎕SE.Link.CaseCode folder,'/HeLLo.apla'
       assert'varfile≡folder,''/HeLLo-15.apla'''
       assert'(folder,''/HeLLo.apla'')≡⎕SE.Link.StripCaseCode varfile'
-      :If ⎕SE.Link.U.IS190 ⋄ fn←'   r   ← OhMyOhMy  ( oh   my  )' 'r←  oh my   oh my'
+      :If ⎕SE.Link.U.IS181 ⋄ fn←'   r   ← OhMyOhMy  ( oh   my  )' 'r←  oh my   oh my'
       :Else ⋄ fn←' r←OhMyOhMy(oh my)' ' r←oh my oh my'
       :EndIf
       fnfile←⎕SE.Link.CaseCode folder,'/OhMyOhMy.aplf'
@@ -1207,7 +1207,7 @@
       3 ⎕NDELETE folder,'/jsondict-0'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
-      :If ⎕SE.Link.U.IS190 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
+      :If ⎕SE.Link.U.IS181 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
           ⎕EX name
           {}(⊂server←':Require file://Engine.apln' ':Namespace  Server' ' dup ← ##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
           {}(⊂engine←':Namespace  Engine' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
@@ -1358,7 +1358,7 @@
       newnssrc←('  ⍝  new  comment  ' 'foo ← { ''newfoo'' ⍵ } ')@2 3⊢nssrc
       newfootok←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢footok
       ⍝ expected results
-      (foonr newfoonr)←(1+⎕SE.Link.U.IS190)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
+      (foonr newfoonr)←(1+⎕SE.Link.U.IS181)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
       (foonget newfoonget)←(foosrc newfoosrc)
       ⍝ bug from Morten
       ns2←,¨':Namespace ns2' '∇res←{larg}fn rarg' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{' '1:∇⍵⋄⍵' '}rarg' '∇' 'dfn←{' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{' '1:⍵⋄⍵' '}rarg' '}' ':EndNamespace'
@@ -1381,7 +1381,7 @@
       reqfile←subfolder,'/require.apln'
       reqsrc←'' '   ⍝ :Namespace notyet '(':Require "file://',folder,'/required.apln"')':Namespace require' 'testvar←##.required.testvar' ':EndNamespace'
      
-      :If ⎕SE.Link.U.IS190 ⍝ link issue #144
+      :If ⎕SE.Link.U.IS181 ⍝ link issue #144
           opts.source←'dir' ⋄ opts.watch←'both'
           z←opts ⎕SE.Link.Create name folder
           'link issue #144'assert'badsrc1≡⎕SRC ',name,'.badns1'
@@ -1395,16 +1395,16 @@
       opts.watch←'ns' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
-      :If ⎕SE.Link.U.IS190 ⋄ assert'~∨/''failed''⍷z'
+      :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
       nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
       nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D'
       ⍝ only v19.0 has ⎕FIX⍠'FixWithErrors'1
-      :If ⎕SE.Link.U.IS190 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
+      :If ⎕SE.Link.U.IS181 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
       ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
-      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  ⍝ Mantis 18626 required ⎕SE.Link.U.IS190++/~3⊃⎕SE.Link.U.GetFileTiesIn
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  ⍝ Mantis 18626 required ⎕SE.Link.U.IS181++/~3⊃⎕SE.Link.U.GetFileTiesIn
       failed←0⍴⊂'' ⍝ BUG this line was due to Manti 18635 : ⍝ failed←⊂'CLASS2A'
       assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
       assert'∧/',⍕name∘{'(''foo''1234≡(⎕NEW ',⍺,'.',⍵,').foo 1234)'}¨failed~⍨'CLASS'∘,¨'1B' '1D' '2A' '2C'
@@ -1416,7 +1416,7 @@
       opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
-      :If ⎕SE.Link.U.IS190 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''
+      :If ⎕SE.Link.U.IS181 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''
       :Else ⋄ assert'foonr∘≡¨NR¨name subname,¨⊂''.foo'''
       :EndIf
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
@@ -1486,7 +1486,7 @@
      
      
       ⍝ now try source=ns watch=dir
-      :If ~⎕SE.Link.U.IS190 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ source=ns means 18.0 can't export whitespace-preserved
+      :If ~⎕SE.Link.U.IS181 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ source=ns means 18.0 can't export whitespace-preserved
       opts.source←'ns' ⋄ opts.watch←'dir' ⋄ opts.arrays←name,'.var,',name,'.sub.var'
       name⍎'derived←∧.∧'
       name⍎'array←1 2 3'
@@ -1500,7 +1500,7 @@
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
-      :If ~⎕SE.Link.U.IS190 ⋄ newfoonget←newfoosrc ⋄ :EndIf   ⍝ we just wrote it to file
+      :If ~⎕SE.Link.U.IS181 ⋄ newfoonget←newfoosrc ⋄ :EndIf   ⍝ we just wrote it to file
       1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
@@ -1522,13 +1522,13 @@
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
-      :If ~⎕SE.Link.U.IS190 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
+      :If ~⎕SE.Link.U.IS181 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
       ⍝ now try source=ns watch=none
-      :If ~⎕SE.Link.U.IS190 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
+      :If ~⎕SE.Link.U.IS181 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
       opts.source←'ns' ⋄ opts.watch←'none'
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
@@ -1547,13 +1547,13 @@
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
-      :If ~⎕SE.Link.U.IS190 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
+      :If ~⎕SE.Link.U.IS181 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
       ⍝ link issue #160 try having items in the namespace already tied to items in the folder
-      :If ~⎕SE.Link.U.IS190 ⋄ (foonget newfoonget)←(foosrc newfoosrc) ⋄ :EndIf  ⍝ start again from dir
+      :If ~⎕SE.Link.U.IS181 ⋄ (foonget newfoonget)←(foosrc newfoosrc) ⋄ :EndIf  ⍝ start again from dir
       ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 ⎕MKDIR subfolder
       {}(⊂nssrc)QNPUT(folder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(folder,'/foo.aplf')1
@@ -1590,7 +1590,7 @@
       assert'0=≢⎕SE.Link.Links'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'  ⍝ TODO : should recognise that the files are correctly linked to the namespace
       'link issue #160'assert'0=≢⎕SE.Link.Links'
-      :If ⎕SE.Link.U.IS190 ⋄ 2(⍎name).⎕FIX NR name,'.foo' ⋄ 2(⍎subname).⎕FIX NR subname,'.foo'  ⍝ the ⎕NDELETE would make (0⎕INFO) produce ⎕NULL
+      :If ⎕SE.Link.U.IS181 ⋄ 2(⍎name).⎕FIX NR name,'.foo' ⋄ 2(⍎subname).⎕FIX NR subname,'.foo'  ⍝ the ⎕NDELETE would make (0⎕INFO) produce ⎕NULL
       :Else ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
       3 ⎕NDELETE folder
       z←opts ⎕SE.Link.Create name folder
@@ -1685,7 +1685,7 @@
       assert'(∨/''Linked:''⍷output)'
      
       ⍝ https://github.com/Dyalog/link/issues/48
-      :If ⎕SE.Link.U.IS190≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
+      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
           ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
           'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
           output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
@@ -2022,7 +2022,7 @@
       :If ~⎕SE.Link.Watcher.DOTNET
           Log'.Net Framework or .NetCore required to run tests'
           :Return
-      :ElseIf ~⎕SE.Link.U.IS190
+      :ElseIf ~⎕SE.Link.U.IS181
           Log'Not running Dyalog v19.0 or later - some tests will be skipped'
       :EndIf
       :If 0≠⎕NC'⎕SE.Link.Links'
