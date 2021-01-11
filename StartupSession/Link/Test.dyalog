@@ -1298,7 +1298,7 @@
       'link issue #197'assertError'opts ⎕SE.Link.Create ref folder' 'Not a properly named namespace'
       'link issue #197'assertError'⎕SE.Link.Import ref folder' 'Not a properly named namespace'
       'link issue #197'assertError'⎕SE.Link.Import ref (folder,''/ns.apln'')' 'Not a properly named namespace'
-       3 ⎕NDELETE folder
+      3 ⎕NDELETE folder
      
      
      
@@ -1671,7 +1671,7 @@
 
     Stringify←{'''',((1+⍵='''')/⍵),''''}
 
-    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
+    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;newdfn;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
@@ -1730,6 +1730,10 @@
       'link issue #190'assert'(''1'',NL)≡ride.APL ''0 3.1≡',name,'.⎕NC''''doesntexist'''' ''''exists'''' '' '
       'link issue #190'assert'0=≢⊃⎕NINFO⍠1⊢''',folder,'/doesntexist.*'' '
       'link issue #190'assert'1=≢⊃⎕NINFO⍠1⊢''',folder,'/exists.*'' '
+     
+     ⍝ link issue #196: whitespace not preserved on first fix
+      ride.Edit(name,'.newdfn')(newdfn←,⊂'   newdfn   ←   {  ⍺ + ⍵  }   ')
+      'link issue #196'assert'(¯3↓¨newdfn)≡⊃⎕NGET (folder,''/newdfn.aplf'') 1'  ⍝ bug? trailing whitespaces are dropped
      
      ⍝ https://github.com/Dyalog/link/issues/154
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
@@ -1825,7 +1829,7 @@
       ride.CloseWindow ed
       'link issue #153'assert'1≡res'  ⍝ fix succeeded
       'link issue #153'assert' (''4 5 6'',NL) ≡ ride.APL name,''.text'' '
-      'link issue #153'assert' '' res←text'' '' res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must NOT be created
+      'link issue #153'assert' ''res←text'' ''res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must NOT be created
      
        ⍝ link issue #139 and #86 - Fixed by replacing ⎕SE.Link.U.Fix by ⎕SE.Link.U.Sniff
       {}ride.APL'#.FIXCOUNT←0'  ⍝ just write the file
