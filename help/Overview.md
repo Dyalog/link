@@ -35,9 +35,11 @@ The general syntax of the utility functions is
 ```apl
 options FnName arg
 ```
-where `options` is a namespace with variables named according to the option they set, containing their corresponding values. The `-name=value` option can be set by `options.name←value`, and switches with values (e.g. `-name`) can be set by `options.name←1`
+where `options` is a namespace with variables named according to the option they set, containing their corresponding values. The `-name=value` option can be set by `options.name←value`, and switches with values (e.g. `-name`) can be set by `options.name←1`.
 
-`arg` is a simple character vector or a two element vector of character vectors, depending on the specific function.
+Unset options take their default value (just like omitted modifiers in the user command).
+
+`arg` is detailed in each function help: see the [summary of the API](API.md)
 
 
 ## Usage
