@@ -1258,7 +1258,7 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1286,6 +1286,21 @@
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
       assert'0=≢⎕SE.Link.Links'
+     
+      opts.source←'auto'
+      ⍎name,'←⎕NS ⍬'  ⍝ unnamed namespace name
+      2 ⎕MKDIR subfolder
+      (⊂':Namespace ns' ':EndNamespace')⎕NPUT folder,'/ns.apln'
+      'link issue #197'assertError'opts ⎕SE.Link.Create name folder' 'Not a properly named namespace'
+      'link issue #197'assertError'⎕SE.Link.Import name folder' 'Not a properly named namespace'
+      'link issue #197'assertError'⎕SE.Link.Import name (folder,''/ns.apln'')' 'Not a properly named namespace'
+      ⎕EX name ⋄ ref←⎕NS ⍬  ⍝ unnamed namespace reference
+      'link issue #197'assertError'opts ⎕SE.Link.Create ref folder' 'Not a properly named namespace'
+      'link issue #197'assertError'⎕SE.Link.Import ref folder' 'Not a properly named namespace'
+      'link issue #197'assertError'⎕SE.Link.Import ref (folder,''/ns.apln'')' 'Not a properly named namespace'
+       3 ⎕NDELETE folder
+     
+     
      
       ⍝ link issue #163
       2 ⎕MKDIR folder
@@ -1602,7 +1617,7 @@
       assert'0=≢⎕SE.Link.Links'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
-      ⍝ test exporting arrays and sysvars      
+      ⍝ test exporting arrays and sysvars
       (name,'.sub')⎕NS''
       name⍎'var←1 2 3 ⋄ sub.subvar←4 5 6'
       files←,'' 'sub/'∘.,'⎕AVU' '⎕CT' '⎕DCT' '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'

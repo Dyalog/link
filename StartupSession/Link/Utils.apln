@@ -3,7 +3,7 @@
 
     :Section Constants
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
-        IS181←{18.1≤⊃(//)⎕VFI⍵/⍨2>+\⍵='.'}2⊃# ⎕WG'APLVersion' 
+        IS181←{18.1≤⊃(//)⎕VFI⍵/⍨2>+\⍵='.'}2⊃# ⎕WG'APLVersion'
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0

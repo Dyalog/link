@@ -10,16 +10,20 @@
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
- 
+
      files←opts U.FindFile src  ⍝ candidates for source file
      :If 0=≢files
          U.Error'Source not found: ',src
      :ElseIf 1<≢files
          U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
-         U.Error'Not a namespace: ',ns
-     :ElseIf ~U.IsNamedRef nsref
-         U.Error'Not a properly named namespace: '
+         :If ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
+             U.Error'Not a properly named namespace: ',ns
+         :Else
+             U.Error'Not a namespace: ',ns
+         :EndIf
+     :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace
+         U.Error'Not a properly named namespace: ',ns
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else

@@ -51,8 +51,12 @@
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
              U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
-             U.Error'Not a namespace: ',ns
-         :ElseIf ~U.IsNamedRef nsref
+             :If ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
+                 U.Error'Not a properly named namespace: ',ns
+             :Else
+                 U.Error'Not a namespace: ',ns
+             :EndIf
+         :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace
              U.Error'Not a properly named namespace: ',ns
          :ElseIf U.IsScripted nsref
              U.Error'Cannot link to scripted namespaces: ',ns
