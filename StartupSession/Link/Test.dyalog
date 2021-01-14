@@ -1809,12 +1809,14 @@
       ride.CloseWindow ed
       'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ Mantis 18412 foo has not changed within workspace because fix has failed
       'link issue #109'assert'foobad≡⊃⎕NGET(folder,''/foo.aplf'')1'  ⍝ but file correctly has new code
-      ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
-      'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
-      'link issue #109'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
-      ride.Edit(name,'.foo')foo  ⍝ put back original foo
-      'link issue #109'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
-      'link issue #109'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ Mantis 18762
+          ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
+          'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+          'link issue #109'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+          ride.Edit(name,'.foo')foo  ⍝ put back original foo
+          'link issue #109'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+          'link issue #109'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+      :EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/153
       'link issue #153'assert'~⎕NEXISTS folder,''/text.apla'' '
