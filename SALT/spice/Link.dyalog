@@ -14,11 +14,18 @@
 ⍝ 2020 11 02 Nic: Moved code to ⎕SE.Link.U
 ⍝ 2021 01 14 Nic: Do not error if UCMD functions not found
 
+    ∇ Error;msg
+      msg←'Link User Commands are incompatible with Link installed version'
+      :If 3=⎕NC'⎕SE.Link.Version'
+          msg,←' (',⎕SE.Link.Version,')'
+      :EndIf
+      ⎕←'Please follow installation instructions from the Link help to install Link properly'
+    ∇
+
     ∇ r←List
       :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
           r←⎕SE.Link.U.UCMD_List
       :Else
-          ⎕←'Link User Commands not correctly installed - see https://github.com/Dyalog/link/blob/master/help/Installation.md'
           r←⍬
       :EndIf
     ∇
@@ -27,7 +34,7 @@
       :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
           r←level ⎕SE.Link.U.UCMD_Help cmd
       :Else
-          ⎕←'Link User Commands not correctly installed - see https://github.com/Dyalog/link/blob/master/help/Installation.md'
+          Error
           r←0⍴⊂''
       :EndIf
     ∇
@@ -36,7 +43,7 @@
       :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
           r←⎕SE.Link.U.UCMD_Run(cmd args)
       :Else
-          ⎕←'Link User Commands not correctly installed - see https://github.com/Dyalog/link/blob/master/help/Installation.md'
+          Error
           r←''
       :EndIf
     ∇
