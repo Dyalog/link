@@ -12,17 +12,33 @@
 ⍝ 2020 10 27 Nic: Run: Fix :With making locals visible to ⎕SE.Link.*
 ⍝ 2020 11 02 Nic: Run: Cleaned calls to ⎕SE.Link.*
 ⍝ 2020 11 02 Nic: Moved code to ⎕SE.Link.U
+⍝ 2021 01 14 Nic: Do not error if UCMD functions not found
 
     ∇ r←List
-       r←⎕SE.Link.U.UCMD_List
+      :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
+          r←⎕SE.Link.U.UCMD_List
+      :Else
+          ⎕←'Link User Commands not correctly installed - see https://github.com/Dyalog/link/blob/master/help/Installation.md'
+          r←⍬
+      :EndIf
     ∇
 
     ∇ r←level Help cmd
-      r←level ⎕SE.Link.U.UCMD_Help cmd
+      :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
+          r←level ⎕SE.Link.U.UCMD_Help cmd
+      :Else
+          ⎕←'Link User Commands not correctly installed - see https://github.com/Dyalog/link/blob/master/help/Installation.md'
+          r←0⍴⊂''
+      :EndIf
     ∇
 
     ∇ r←Run(cmd args)
-      r←⎕SE.Link.U.UCMD_Run(cmd args)
+      :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
+          r←⎕SE.Link.U.UCMD_Run(cmd args)
+      :Else
+          ⎕←'Link User Commands not correctly installed - see https://github.com/Dyalog/link/blob/master/help/Installation.md'
+          r←''
+      :EndIf
     ∇
 
 :EndNamespace

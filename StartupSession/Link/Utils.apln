@@ -1389,7 +1389,13 @@
     ⍝ FOR INTERNAL TESTING ONLY - DO NOT CALL THIS FUNCTION
     ⍝ To install link, refer to the installation documentation :
     ⍝ https://github.com/Dyalog/link/tree/master/help/Installation.md
-      from←(⊃⎕NPARTS 4⊃5179⌶⎕SE.Link.U),'../../SALT/spice/Link.dyalog'
+      :If ~0∊⍴from←⊃⎕NPARTS 4⊃5179⌶⎕SE.Link.U   ⍝ DYALOGSTARTUPKEEPLINK
+          from,←'../../SALT/spice/Link.dyalog'
+      :ElseIf ~0∊⍴from←+2 ⎕NQ'.' 'GetEnvironment' 'DYALOGSTARTUPSE'
+          from,←'../SALT/spice/Link.dyalog'
+      :Else
+          'Not a development link installation - Cannot update Link User Commands'⎕SIGNAL 999
+      :EndIf
       to←(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/SALT/spice/Link.dyalog'
       ⎕←'Copying "',from,'" → "',to,'"'
       to ⎕NCOPY⍠'IfExists' 'Replace'⊢from
@@ -1474,10 +1480,10 @@
       :EndIf
       r/⍨←~'' ''⍷r
       r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
-
+     
       :If 1.31>⎕SE.Dyalog.Utils.Version ⋄ :AndIf ⎕PW<80   ⍝ link issue #199 - fixed in Utils v1.31
-          r←,⊂'Cannot display help with ⎕PW<80' 
-      :EndIf   
+          r←,⊂'Cannot display help with ⎕PW<80'
+      :EndIf
     ∇
 
     ∇ r←UCMD_Run(cmd args);lc;name;names;opts;spice;this;val
@@ -1500,7 +1506,7 @@
               :AndIf 0≢val←args⍎lc  ⍝ UCMD interface defaults unset modifiers to 0 - so don't execute them
                   :Select name
                   :CaseList 'codeExtensions' 'customExtensions' 'typeExtensions' ⋄ val←this⍎val
-                  :Case 'arrays' ⋄ :if val≡,'1' ⋄ val←1 ⋄ :Endif  ⍝ link issue #192 - ]link.create -arrays=1 doesn't work
+                  :Case 'arrays' ⋄ :If val≡,'1' ⋄ val←1 ⋄ :EndIf  ⍝ link issue #192 - ]link.create -arrays=1 doesn't work
                   :EndSelect
                   name opts.{⍎⍺,'←⍵'}val
               :EndIf
