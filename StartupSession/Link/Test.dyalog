@@ -2381,8 +2381,8 @@
 
 
 
-    ∇ {step}try_crawler(name folder);foofile;foofile2
-    ⍝ manual testing of crawler
+    ∇ {step}try_filecrawler(name folder);foofile;foofile2
+    ⍝ manual testing of file crawler
       :If 900⌶⍬ ⋄ step←0 ⋄ :EndIf   ⍝ step-by-step crawling
       :If (0≠⎕NC name)∨(⎕NEXISTS folder) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
       ⎕EX name ⋄ 3 ⎕MKDIR folder
@@ -2415,6 +2415,206 @@
       ⎕SE.Link.Break name
       ⎕EX name ⋄ 3 ⎕NDELETE folder
     ∇
+
+
+    ∇ {debug}try_newcrawler(name folder);Crawl;NS;NS2;debug;dop;dop2;folders;link;mat;mat2;matsrc;matsrc2;opts;sub2;sub6;subs;tradfn;tradfn2
+      :If 0=⎕NC'debug' ⋄ debug←0⊣×⎕SE.Link.U.debug ⋄ :EndIf
+      ⍝:If (0≠⎕NC name)∨(⎕NEXISTS folder)∨(0≠≢⎕SE.Link.Links) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
+      assert'0=≢⎕SE.Link.Links'
+      ⎕SE.Link.Watcher.(CRAWLERLINKS/⍨←0)
+      ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+      opts←⎕NS ⍬ ⋄ opts.watch←'none'  ⍝ not only to disable watcher, but also to prevent tying source to files
+      {}opts ⎕SE.Link.Create name folder
+      assert'1=≢⎕SE.Link.Links'
+      link←⊃⎕SE.Link.Links
+      Crawl←{
+          ⎕←0 0⍴⍣(~⍵)⊢'before'{⍺ ⍵}before←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃CRAWLERLINKS[C_ITEMS;])
+          ⎕←0⍴⍣(⍵)⊢'====================================='
+          _←⎕SE.Link.Watcher.Crawl link
+          ⎕←0 0⍴⍣(~⍵)⊢'after'{⍺ ⍵}after←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃CRAWLERLINKS[C_ITEMS;])
+      }
+      ⎕SE.Link.Watcher.Crawl link
+      assert'0∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ create files
+      3 ⎕MKDIR¨(folder,'/')∘,¨'sub1' 'sub1/subsub1'
+      (⊂matsrc←⎕SE.Dyalog.Array.Serialise mat←⍳3 4)⎕NPUT folder,'/sub1/mat.apla'
+      (⊂tradfn←'   res ← tradfn (arg1 arg2)   ' '   res ← arg1 arg2   ')⎕NPUT folder,'/sub1/tradfn.aplf'
+      (⊂dop←,⊂'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}')⎕NPUT folder,'/sub1/dop.aplo'
+      NS←{(':Namespace ',⍵)'mat←⍳3 4' '∇   res ← tradfn (arg1 arg2)   ' '   res ← arg1 arg2   ' '∇' 'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}' ':EndNamespace'}
+      (⊂NS'ns1')⎕NPUT folder,'/ns1.apln'
+      Crawl debug
+      assert'6∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ create apl items
+      sub2←⍎(name,'.sub2')⎕NS'' ⋄ (name,'.sub2.subsub2')⎕NS''
+      sub2.mat←mat
+      sub2.⎕FX¨tradfn dop
+      (⍎name).⎕FIX NS'ns2'
+      Crawl debug
+      assert'12∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ modify files
+      (⊂matsrc2←⎕SE.Dyalog.Array.Serialise mat2←⍳2 3 4)⎕NPUT(folder,'/sub1/mat.apla')1
+      (⊂tradfn2←'   res2 ← tradfn (arg1 arg2)   ' '   res2 ← arg1 arg2   ')⎕NPUT(folder,'/sub1/tradfn.aplf')1
+      (⊂dop2←,⊂'dop←{⍵ ⍵⍵ ⍺⍺ ⍺}')⎕NPUT(folder,'/sub1/dop.aplo')1
+      NS2←{(':Namespace ',⍵)'mat←⍳2 3 4' '∇   res2 ← tradfn (arg1 arg2)   ' '   res2 ← arg1 arg2   ' '∇' 'dop←{⍵ ⍵⍵ ⍺⍺ ⍺}' ':EndNamespace'}
+      (⊂NS2'ns1')⎕NPUT(folder,'/ns1.apln')1
+      Crawl debug
+      assert'12∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ modify apl items
+      sub2.mat←mat2
+      sub2.⎕FX¨tradfn2 dop2
+      (⍎name).⎕FIX NS2'ns2'
+      Crawl debug
+      assert'12∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ delete files
+      3 ⎕NDELETE¨(folder,'/')∘,¨'sub1' 'ns1.apln'
+      Crawl debug
+      assert'6∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ delete apl items
+      ⎕EX(name,'.')∘,¨'sub2' 'ns2'
+      Crawl debug
+      ⍝ check it worked
+      assert'0∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ create items on both sides
+      3 ⎕MKDIR¨folders←(folder,'/')∘,¨'sub1' 'sub3' 'sub1/subsub1' 'sub3/subsub3'
+      folders←2↑folders
+      (⊂⊂matsrc)⎕NPUT¨folders,¨⊂'/mat.apla'
+      (⊂⊂tradfn)⎕NPUT¨folders,¨⊂'/tradfn.aplf'
+      (⊂⊂dop)⎕NPUT¨folders,¨⊂'/dop.aplo'
+      (⊂⊂NS'ns')⎕NPUT¨folders,¨⊂'/ns.apln'
+      subs←⍎¨(name∘,¨'.sub2' '.sub4')⎕NS¨'' ''
+      ((⍕¨subs),¨'.subsub2' '.subsub4')⎕NS¨'' ''
+      subs.mat←⊂mat
+      subs.⎕FX¨⊂¨tradfn dop
+      subs.⎕FIX⊂NS'ns'
+      Crawl debug
+      assert'24∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ do modifications + creations + deletions on both sides
+      (⊂matsrc2)⎕NPUT(folder,'/sub1/mat.apla')1
+      (⊂tradfn2)⎕NPUT(folder,'/sub1/tradfn.aplf')1
+      (⊂dop2)⎕NPUT(folder,'/sub1/dop.aplo')1
+      (⊂NS2'ns')⎕NPUT(folder,'/sub1/ns.apln')1
+      3 ⎕NDELETE folder,'/sub3'
+      3 ⎕MKDIR folder,'/sub5/subsub5'
+      (⊂matsrc2)⎕NPUT(folder,'/sub5/mat.apla')1
+      (⊂tradfn2)⎕NPUT(folder,'/sub5/tradfn.aplf')1
+      (⊂dop)⎕NPUT(folder,'/sub5/dop.aplo')1
+      (⊂NS'ns')⎕NPUT(folder,'/sub5/ns.apln')1
+      sub2←⍎name,'.sub2'
+      sub2.mat←mat2
+      sub2.⎕FX¨tradfn2 dop2
+      sub2.⎕FIX NS2'ns'
+      ⎕EX name,'.sub4'
+      sub6←⍎(name,'.sub6')⎕NS'' ⋄ (name,'.sub6.subsub6')⎕NS''
+      sub6.mat←mat
+      sub6.⎕FX¨tradfn dop
+      sub6.⎕FIX NS'ns'
+      Crawl debug
+      assert'24∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ clean up
+      ⎕SE.Link.Expunge name
+      3 ⎕NDELETE folder
+    ∇
+
+
+    ∇ res←bench_newcrawler(name folder);ALPHABET;FileName;Function;Name;Time;cmpx;cols;crawler;dotnet;files;fns;link;names;new;news;old;olds;opts;rows
+      ALPHABET←'⍺⍵⍬⊢⊣⌷¨⍨/⌿\⍀<≤=≥>≠∨∧-+÷×?∊⍴~↑↓⍳○*⌈⌊∘⊂⊃∩∪⊥⊤|,⍱⍲⍒⍋⍉⌽⊖⍟⌹!⍕⍎⍪≡≢#&@:⋄←→⍝⎕⍞⍣'
+      ALPHABET,←⎕A,10⍴' '
+      Function←{(⊂'res←',⍵,' arg'),↓ALPHABET[?10 50⍴≢ALPHABET]}
+      FileName←{folder,'/',⍵,'.aplf'}
+      Name←{⎕A[?⍵⍴26]}
+      Time←{
+          start←3⊃⎕AI ⋄ _←⎕SE.Link.Watcher.Crawl link ⋄ end←3⊃⎕AI
+          res[⍵;olds⍳old;news⍳new]+←end-start
+      }
+     
+      opts←⎕NS ⍬ ⋄ opts.watch←'both'  ⍝ force tying to files so that DetermineFileName is fast
+      (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
+      ⍝⎕SE.Link.Watcher.(CRAWLER DOTNET)←0  ⍝ disable file watching implementations
+     
+      olds←1 0 1 1/0 10 1000 100000
+      news←1 0 0 1/1 10 100 1000
+      res←(6,≢¨olds news)⍴0
+      :For old :In olds   ⍝ items already linked before operations
+          ⎕EX name
+          3 ⎕NDELETE folder
+          3 ⎕MKDIR folder
+          fns←Function¨names←Name¨old⍴10 ⋄ files←FileName¨names
+          fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+          {}opts ⎕SE.Link.Create name folder
+          {}⎕SE.Link.Pause name  ⍝ temporary disable watching to step our crawler
+          assert'1=≢⎕SE.Link.Links'
+          link←⊃⎕SE.Link.Links
+          :For new :In news
+              ⍝ 1 = create files
+              fns←Function¨names←Name¨new⍴10
+              files←FileName¨names
+              fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+              Time 1
+              ⍝ 2 = modify files
+              fns←Function¨names
+              fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+              Time 2
+              ⍝ 3 = delete files
+              3 ⎕NDELETE¨files
+              Time 3
+              ⍝ 4 = create apl items
+              fns←Function¨names←Name¨new⍴10
+              2(⍎name).⎕FIX¨fns
+              Time 4
+              ⍝ 5 = modify apl items
+              fns←Function¨names
+              2(⍎name).⎕FIX¨fns
+              Time 5
+              ⍝ 6 = delete apl items
+              (⍎name).⎕EX names
+              Time 6
+          :EndFor
+          {}⎕SE.Link.Expunge name
+          3 ⎕NDELETE folder
+      :EndFor
+      :If 0
+          cols←(≢news)/'create_files' 'mod_files' 'del_files' 'create_apl' 'mod_apl' 'del_apl'
+          cols←cols,[0.5],{(6×⍴⍵)⍴⍵}⍕¨news
+          rows←('linked_items' ''),⍕¨olds
+          res←rows,cols⍪{(⍕⍵),'ms'}¨,[2 3]2 1 3⍉res
+      :Else
+          rows←'create_files' 'mod_files' 'del_files' 'create_apl' 'mod_apl' 'del_apl'
+          rows←,rows∘.{'_'⎕R(' ',(⍕⍵),' ')⊢⍺}news
+          cols←(⊂'pre-linked items'),⍕¨olds
+          res←cols⍪rows,{⍵⊣(⍕⍵),'ms'}¨,[1 2]1 3 2⍉res
+      :EndIf
+      ⎕SE.Link.Watcher.(CRAWLER DOTNET)←(crawler dotnet)
+    ∇
+
+⍝         ⎕SE.Link.Test.bench_newcrawler '#.linktest' '/tmp/linktest'
+⍝  pre-linked items       0   1000  100000
+⍝  create 1 files       116    198   16568
+⍝  create 1000 files  91851  68233   90215
+⍝  mod 1 files           93    151   10000
+⍝  mod 1000 files     73143  66418   88112
+⍝  del 1 files           81    146    9765
+⍝  del 1000 files     61076  70053   85292
+⍝  create 1 apl           1     75    9641
+⍝  create 1000 apl      115    203    9535
+⍝  mod 1 apl              1     77    8986
+⍝  mod 1000 apl         128    217    9531
+⍝  del 1 apl            343    380    9586
+⍝  del 1000 apl         340    460   10005
+
+⍝         ⎕SE.Link.Test.bench_newcrawler '#.linktest' '/tmp/linktest'
+⍝  pre-linked items      0  1000  100000 
+⍝  create 1 files       15   207   17266 
+⍝  create 1000 files  6578  7182  113374 
+⍝  mod 1 files           9   123   11067 
+⍝  mod 1000 files     7123  6807  105347 
+⍝  del 1 files           9   113   10254 
+⍝  del 1000 files     7605  6683   97521 
+⍝  create 1 apl          0   126   10267 
+⍝  create 1000 apl     122   209   10303 
+⍝  mod 1 apl             1   121   10274 
+⍝  mod 1000 apl        152   226   10062 
+⍝  del 1 apl            30   170   11264 
+⍝  del 1000 apl        108   190    9808     
 
     :EndSection Benchmarks
 
