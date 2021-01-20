@@ -13,20 +13,23 @@
 ⍝ 2020 11 02 Nic: Run: Cleaned calls to ⎕SE.Link.*
 ⍝ 2020 11 02 Nic: Moved code to ⎕SE.Link.U
 ⍝ 2021 01 14 Nic: Do not error if UCMD functions not found
+⍝ 2021 01 21 MKrom: Tested the previous fix and made it actually work
 
     ∇ Error;msg
-      msg←'Link User Commands are incompatible with Link installed version'
+      msg←'Link User Commands are incompatible with the installed version of Link'
       :If 3=⎕NC'⎕SE.Link.Version'
-          msg,←' (',⎕SE.Link.Version,')'
+          msg,←' (',⎕SE.Link.Version,' - required version is 2.1 or later)'
       :EndIf
-      ⎕←'Please follow installation instructions from the Link help to install Link properly'
+      ⎕←msg
     ∇
 
     ∇ r←List
       :If 3=⎕NC'⎕SE.Link.U.UCMD_List'
           r←⎕SE.Link.U.UCMD_List
       :Else
-          r←⍬
+          ⍝ /// Return one fake UCMD to prevent Spice from falling over
+          r←,⎕JSON '{"Name":"NotInstalled", "args":"[ns1]",   "Parse":"1S", "Desc":"Link is not installed", "Group":"Link"}'
+          Error
       :EndIf
     ∇
 
