@@ -11,7 +11,7 @@
  :Trap DEBUG↓0
 
      :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
-         :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         :If ~U.HasLinks 0 ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'

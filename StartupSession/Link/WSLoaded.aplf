@@ -1,6 +1,6 @@
  WSLoaded;i;keep
 ⍝ Action to be taken upon )LOAD or )CLEAR
- :If U.HasLinks
+ :If U.HasLinks 0
  :AndIf 0∊keep←⎕SE=U.RootOf⍎¨⎕SE.Link.Links.ns
      1 U.Log'Clearing '(⍕(~keep)/⎕SE.Link.Links)
      Watcher.Break(~keep)/⎕SE.Link.Links

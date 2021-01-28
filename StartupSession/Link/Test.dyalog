@@ -1006,6 +1006,17 @@
       assert'0=≢⎕SE.Link.Links'
       ⎕EX name
      
+      ⍝ link issue #204
+      z←⎕SE.Link.Create name folder
+      'link issue #204'assert'~∨/''failed''⍷z'
+      'link issue #204'assert'1=≢⎕SE.Link.Links'
+      ⎕EX name
+      z←⎕SE.Link.Create'#.unlikelyname'folder
+      'link issue #204'assert'~∨/''failed''⍷z'
+      'link issue #204'assert'1=≢⎕SE.Link.Links'
+      {}⎕SE.Link.Expunge'#.unlikelyname'
+      'link issue #204'assert'0=≢⎕SE.Link.Links'
+     
       ⍝ link issue #111 : ]link.break -all must work
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
@@ -1299,8 +1310,6 @@
       'link issue #197'assertError'⎕SE.Link.Import ref folder' 'Not a properly named namespace'
       'link issue #197'assertError'⎕SE.Link.Import ref (folder,''/ns.apln'')' 'Not a properly named namespace'
       3 ⎕NDELETE folder
-     
-     
      
       ⍝ link issue #163
       2 ⎕MKDIR folder
@@ -2602,19 +2611,19 @@
 ⍝  del 1000 apl         340    460   10005
 
 ⍝         ⎕SE.Link.Test.bench_newcrawler '#.linktest' '/tmp/linktest'
-⍝  pre-linked items      0  1000  100000 
-⍝  create 1 files       15   207   17266 
-⍝  create 1000 files  6578  7182  113374 
-⍝  mod 1 files           9   123   11067 
-⍝  mod 1000 files     7123  6807  105347 
-⍝  del 1 files           9   113   10254 
-⍝  del 1000 files     7605  6683   97521 
-⍝  create 1 apl          0   126   10267 
-⍝  create 1000 apl     122   209   10303 
-⍝  mod 1 apl             1   121   10274 
-⍝  mod 1000 apl        152   226   10062 
-⍝  del 1 apl            30   170   11264 
-⍝  del 1000 apl        108   190    9808     
+⍝  pre-linked items      0  1000  100000
+⍝  create 1 files       15   207   17266
+⍝  create 1000 files  6578  7182  113374
+⍝  mod 1 files           9   123   11067
+⍝  mod 1000 files     7123  6807  105347
+⍝  del 1 files           9   113   10254
+⍝  del 1000 files     7605  6683   97521
+⍝  create 1 apl          0   126   10267
+⍝  create 1000 apl     122   209   10303
+⍝  mod 1 apl             1   121   10274
+⍝  mod 1000 apl        152   226   10062
+⍝  del 1 apl            30   170   11264
+⍝  del 1000 apl        108   190    9808
 
     :EndSection Benchmarks
 

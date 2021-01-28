@@ -7,7 +7,7 @@
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
          container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-         :If ~U.HasLinks ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
+         :If ~U.HasLinks 0 ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
          scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
          :For i :In ⍳≢names
              nc←container U.NameClass name←(⍕container),'.',i⊃names

@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
-         :If 0=⎕NC'⎕SE.Link.Links' ⋄ ⎕SE.Link.Links←⍬ ⋄ :EndIf ⍝ Start with no links
+         {}U.HasLinks 1  ⍝ Start with no links
          (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
          msg←⍕⍬⊤⍬
 

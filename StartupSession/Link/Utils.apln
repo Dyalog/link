@@ -455,16 +455,19 @@
 
     :Section Lookup
 
-    ∇ ok←HasLinks
+    ∇ {ok}←HasLinks init
       :If ok←×⎕NC'⎕SE.Link.Links'
-      :AndIf ok←×≢⎕SE.Link.Links
-          ⎕SE.Link.Links/⍨←0≠⎕NC ⎕SE.Link.Links.ns
-          ok←×≢⎕SE.Link.Links
+          :If ok←×≢⎕SE.Link.Links
+              ⎕SE.Link.Links/⍨←0≠⎕NC ⎕SE.Link.Links.ns
+              ok←×≢⎕SE.Link.Links
+          :EndIf
+      :ElseIf init  ⍝ initialise structure
+          ⎕SE.Link.Links←⍬
       :EndIf
     ∇
     ∇ linkns←LookupFile file;dirs;inx;links;mask
     ⍝ look up which linked directory has file
-      :If HasLinks
+      :If HasLinks 0
           dirs←(links←⎕SE.Link.Links).dir
       :AndIf ∨/mask←dirs Begins¨⊂file
           inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
@@ -477,7 +480,7 @@
     ⍝ lookup which linked namespace has nsref
       linkns←⍬
       :If 900⌶⍬
-          :If HasLinks
+          :If HasLinks 0
               links←⎕SE.Link.Links
           :Else
               :Return
