@@ -51,7 +51,11 @@ NOHOLD:
              delete←0  ⍝ old file must be preserved
          :ElseIf callback∧(0=≢oldfile)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
-             src←⊃U.LASTFIX  ⍝ source as typed
+             :If 2=ns.⎕NC oldname
+                 src←⎕SE.Dyalog.Array.Serialise ns⍎oldname
+             :Else
+                 src←⊃U.LASTFIX  ⍝ source as typed
+             :EndIf
              nosrc←0 ⋄ delete←0
          :Else
              delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
