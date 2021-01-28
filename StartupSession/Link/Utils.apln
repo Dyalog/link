@@ -789,15 +789,21 @@
       :EndIf
     ∇
 
-    ∇ names←trad ListNs ns;mask;pre;ref;refs;subns;tradns
+    ∇ names←{allrefs}(trad ListNs)ns;mask;pre;ref;refs;subns;tradns
+    ⍝ Note that duplicate refs are ignored (otherwise endless loop, generally yielding a LIMIT ERROR because of the number of '.' in the name)
+      :If 900⌶⍬ ⋄ allrefs←0⍴⎕NULL ⋄ :EndIf  ⍝ to avoid re-visiting a parent namespace
       ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
+      allrefs∪←ref
       names←pre∘,¨ListNames ref    ⍝ all names
       :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
           refs←ref⍎¨subns
-      :AndIf ∨/mask←~IsScripted¨refs  ⍝ trad ns
+      :AndIf 1∊mask←~refs∊allrefs
+          (refs subns)/⍨←⊂mask
+      :AndIf 1∊mask←~IsScripted¨refs  ⍝ trad ns
+          allrefs,←mask/refs
           tradns←pre∘,¨mask/subns
           :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
-          names,←⊃,/trad ListNs¨tradns  ⍝ list trad namespaces before their children names
+          names,←⊃,/allrefs∘(trad ListNs)¨tradns  ⍝ list trad namespaces before their children names
       :EndIf
     ∇
 
