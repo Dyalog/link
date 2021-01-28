@@ -455,21 +455,24 @@
 
     :Section Lookup
 
-    ∇ {ok}←HasLinks init;mask;links
-      :If ok←×⎕NC'⎕SE.Link.Links'
-          :If ok←×≢links←⎕SE.Link.Links
-              mask←0≠⎕NC links.ns
-              0 Break(~mask)/links ⍝ do not untie because namespaces don't exist
-              ⎕SE.Link.Links/⍨←mask
-              ok←×≢⎕SE.Link.Links
+    ∇ {ok}←HasLinks;mask;links
+      :Trap 0  ⍝ anything broken should mean no links available
+          :If ok←×⎕NC'⎕SE.Link.Links'
+              :If ok←×≢links←⎕SE.Link.Links  ⍝ clean up "zombie" links
+                  mask←0≠⎕NC links.ns
+                  0 Break(~mask)/links ⍝ disable file watcher - do not untie because namespaces don't exist
+                  ⎕SE.Link.Links/⍨←mask
+                  ok←×≢⎕SE.Link.Links
+              :EndIf
           :EndIf
-      :ElseIf init  ⍝ initialise structure
-          ⎕SE.Link.Links←⍬
-      :EndIf
+      :Else
+          ok←0
+      :EndTrap
     ∇
+
     ∇ {n}←untie Break links
       n←0
-      :If ~0∊⍴links 
+      :If ~0∊⍴links
           ##.Watcher.Break links  ⍝ will ⎕DL slightly
           :If untie
               n←+/RemoveFileTiesIn¨⍎¨links.ns  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
@@ -1382,7 +1385,7 @@
     ∇
     ∇ {errno}Error msg;caller
       :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
-      (⊃,/(LinkCall ⍬)': ',⊆msg)⎕SIGNAL errno
+      (,⍕⊃,/(LinkCall ⍬)': ',⊆msg)⎕SIGNAL errno
     ∇
     ∇ {msg}←{caller}Warn msg
     ⍝ Warn user

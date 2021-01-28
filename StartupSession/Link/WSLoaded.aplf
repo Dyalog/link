@@ -1,10 +1,14 @@
  WSLoaded;i;keep
 ⍝ Action to be taken upon )LOAD or )CLEAR
- :If U.HasLinks 0
- :AndIf 0∊keep←⎕SE=U.RootOf⍎¨⎕SE.Link.Links.ns
-     1 U.Log'Clearing '(⍕(~keep)/⎕SE.Link.Links)
-     Watcher.Break(~keep)/⎕SE.Link.Links
-     ⎕SE.Link.Links/⍨←keep
+ :Trap 0  ⍝ can't afford to error
+     :If U.HasLinks
+     :AndIf 0∊keep←⎕SE=U.RootOf⍎¨⎕SE.Link.Links.ns
+         1 U.Log'Clearing '(⍕(~keep)/⎕SE.Link.Links)
+         Watcher.Break(~keep)/⎕SE.Link.Links
+         ⎕SE.Link.Links/⍨←keep
+     :Else
+         1 U.Log'Nothing to clear'
+     :EndIf
  :Else
-     1 U.Log'Nothing to clear'
- :EndIf
+     ⎕←'WSLoaded: Unable to clear links (',(⎕DMX.(OSError{⍵,2⌽(×≢3⊃⍺)/'") ("',3⊃⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃DM) ),')'
+ :EndTrap

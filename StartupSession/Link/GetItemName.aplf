@@ -8,7 +8,7 @@
  :Trap DEBUG↓0
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
-         :If ~U.HasLinks 0 ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf
+         :If ~U.HasLinks ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf
          scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
          :For i :In ⍳≢files
              :If ~0∊⍴link←U.LookupFile file←i⊃files

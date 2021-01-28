@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
-         :If ~U.HasLinks 0 ⋄ status←'No active links' ⋄ :Return ⋄ :EndIf
+         :If ~U.HasLinks ⋄ status←'No active links' ⋄ :Return ⋄ :EndIf
          links←⎕SE.Link.Links
          :If ×≢ns
              there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container

@@ -1373,8 +1373,8 @@
      
       2 ⎕MKDIR subfolder
       ⍝ actual contents
-      foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ whitespace-preserved
-      footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form
+      foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
+      footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
       (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo ← { ''foo'' ⍵ } ' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
@@ -1444,8 +1444,8 @@
       opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
-      :If ⎕SE.Link.U.IS181 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''
-      :Else ⋄ assert'foonr∘≡¨NR¨name subname,¨⊂''.foo'''
+      :If ⎕SE.Link.U.IS181 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''  ⍝ source-as-typed
+      :Else ⋄ assert'foonr∘≡¨NR¨name subname,¨⊂''.foo'''                  ⍝ de-tokenised form
       :EndIf
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
       0 assert_create 0
@@ -2061,7 +2061,7 @@
           Log'.Net Framework or .NetCore required to run tests'
           :Return
       :ElseIf ~⎕SE.Link.U.IS181
-          Log'Not running Dyalog v19.0 or later - some tests will be skipped'
+          Log'Not running Dyalog v18.1 or later - some tests will be skipped'
       :EndIf
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
@@ -2599,20 +2599,6 @@
       ⎕SE.Link.Watcher.(CRAWLER DOTNET)←(crawler dotnet)
     ∇
 
-⍝         ⎕SE.Link.Test.bench_newcrawler '#.linktest' '/tmp/linktest'
-⍝  pre-linked items       0   1000  100000
-⍝  create 1 files       116    198   16568
-⍝  create 1000 files  91851  68233   90215
-⍝  mod 1 files           93    151   10000
-⍝  mod 1000 files     73143  66418   88112
-⍝  del 1 files           81    146    9765
-⍝  del 1000 files     61076  70053   85292
-⍝  create 1 apl           1     75    9641
-⍝  create 1000 apl      115    203    9535
-⍝  mod 1 apl              1     77    8986
-⍝  mod 1000 apl         128    217    9531
-⍝  del 1 apl            343    380    9586
-⍝  del 1000 apl         340    460   10005
 
 ⍝         ⎕SE.Link.Test.bench_newcrawler '#.linktest' '/tmp/linktest'
 ⍝  pre-linked items      0  1000  100000

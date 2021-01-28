@@ -10,6 +10,8 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     :If ~U.HasLinks ⋄ linked←0 ⋄ :Return ⋄ :EndIf
+
      XSI←⎕XSI ⋄ RSI←⎕RSI
      added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
      callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
@@ -25,8 +27,8 @@ NOHOLD:
          nsname←⍕nsref←this(0 U.GetRefTo)ns
 
          :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
-         :If ~U.IsNamedRef nsref ⋄ U.Error'Not a properly named namespace: ',ns ⋄ :EndIf
          :If ~linked←~0∊⍴link←U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
+         :If ~U.IsNamedRef nsref ⋄ U.Error'Not a properly named namespace: ',ns ⋄ :EndIf
 
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src    ⍝ must fix in dummy namespace to determine nameclass
 
