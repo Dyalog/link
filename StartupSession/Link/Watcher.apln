@@ -134,7 +134,7 @@
       :ElseIf 9=⎕NC'link.fsw'
           fsw←link.fsw
       :EndIf
-      :If 0≠⎕NC'fsw'
+      :If 0≠⎕NC'fsw' 
           fsw.EnableRaisingEvents←watch
       :ElseIf CRAWLER
           watch PauseCrawler link  ⍝ can't hurt if non-crawled link

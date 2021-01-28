@@ -49,9 +49,8 @@
          :If ~0∊⍴tobreak  ⍝ stop the file watcher
              :Hold '⎕SE.Link.Notify'  ⍝ about to change file ties
                  ⍝ because we're :Hold-ing '⎕SE.Link.Notify' '⎕SE.Link.Links', the Notify events will happen after we're done breaking the link
-                 Watcher.Break∪(linked∊tobreak)/links  ⍝ will ⎕DL slightly
-                 n←+/U.RemoveFileTiesIn¨∪tobreak  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
-                 ⎕SE.Link.Links/⍨←~(⍎¨⎕SE.Link.Links.ns)∊tobreak
+                 1 U.Break∪(mask←linked∊tobreak)/links  ⍝ will ⎕DL slightly - unti because we know they exist
+                 ⎕SE.Link.Links/⍨←~mask
              :EndHold
          :EndIf
          ⍝:Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table given by 5176⌶⍬

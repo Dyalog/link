@@ -455,14 +455,25 @@
 
     :Section Lookup
 
-    ∇ {ok}←HasLinks init
+    ∇ {ok}←HasLinks init;mask;links
       :If ok←×⎕NC'⎕SE.Link.Links'
-          :If ok←×≢⎕SE.Link.Links
-              ⎕SE.Link.Links/⍨←0≠⎕NC ⎕SE.Link.Links.ns
+          :If ok←×≢links←⎕SE.Link.Links
+              mask←0≠⎕NC links.ns
+              0 Break(~mask)/links ⍝ do not untie because namespaces don't exist
+              ⎕SE.Link.Links/⍨←mask
               ok←×≢⎕SE.Link.Links
           :EndIf
       :ElseIf init  ⍝ initialise structure
           ⎕SE.Link.Links←⍬
+      :EndIf
+    ∇
+    ∇ {n}←untie Break links
+      n←0
+      :If ~0∊⍴links 
+          ##.Watcher.Break links  ⍝ will ⎕DL slightly
+          :If untie
+              n←+/RemoveFileTiesIn¨⍎¨links.ns  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
+          :EndIf
       :EndIf
     ∇
     ∇ linkns←LookupFile file;dirs;inx;links;mask
@@ -677,7 +688,7 @@
       :If (src≢⎕NULL)∧(1=≡,src) ⋄ src←GetFileSource src ⋄ :EndIf
       :If src≡⍬ ⋄ actname←'' ⋄ nameclass←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If src≡⎕NULL ⋄ actname←expname ⋄ nameclass←¯9.1 ⋄ :Return ⋄ :EndIf  ⍝ trad ns
-      (actname nameclass)←errors SniffScript(expname src)
+      (actname nameclass)←errors SniffScript(expname src)  ⍝ unfixable yields ('' 0)
       :If 0=nameclass ⋄ :Trap 0
               array←⎕SE.Dyalog.Array.Deserialise src
               actname←expname ⋄ nameclass←⎕NC⊂'array'
@@ -785,7 +796,7 @@
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0=≢where)∧(nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
+      :ElseIf (nc≠0)∧(¯1∊# NameClass¨where expname actname) ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇
 
@@ -1528,7 +1539,6 @@
     ∇
 
     :EndSection
-
 
 
 

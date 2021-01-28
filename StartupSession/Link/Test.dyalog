@@ -1164,6 +1164,10 @@
       :EndTrap
       'link issue #151'assert'foo≡⎕NR ''',name,'.foo'''
      
+      ⍝ link issue #205 - check round-trip of arrays
+      name⍎'limit_error←⍉(9⍴3)⊤⍳3*9'
+      'link issue #205'assertError ('⎕SE.Link.Add ''',name,'.limit_error'' ') 'Cannot round-trip serialisation of array'     
+     
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
       'link issue #132 and #133'assert'⊃''Imported:''⍷z'

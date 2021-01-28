@@ -74,12 +74,12 @@
              :EndIf
          :EndIf
 
-         :If 0=≢nsref ⋄ warn←1 ⋄ →END⊣msg,←⊂'file does not reflect in a valid namespace'
+     :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
+             →END⊣msg,←⊂'file extension not managed by link'
+         :ElseIf 0=≢nsref ⋄ warn←1 ⋄ →END⊣msg,←⊂'file does not reflect in a valid namespace'
          :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
-             →END⊣msg,←⊂(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
-         :ElseIf dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
-             →END⊣msg,←⊂'file extension not managed by link'
+             warn←1 ⋄ →END⊣msg,←⊂(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
          :EndIf
 
          ⍝ determine current file tied to name we plan to use
