@@ -99,7 +99,7 @@
           dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
           core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
           aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-              aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
+          aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
           opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕⎕SE.Link.Watcher.USE_NQ),')'
           Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
       :EndIf
@@ -1716,8 +1716,13 @@
           Log'Not a unicode interpreter - not running ',⊃⎕SI
           ok←1 ⋄ :Return
       :EndIf
-     
-      ride←NewGhostRider ⋄ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
+      :Trap 0  ⍝ Link issue #219
+          ride←NewGhostRider
+      :Else
+          Log'ERROR: Could not start GhostRider - not running ',(⊃⎕SI),' (',⎕DMX.(Message{⍵,⍺,⍨':'/⍨×≢⍺}EM),')'
+          ok←0 ⋄ :Return
+      :EndTrap
+      (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
       ⎕MKDIR Retry⊢folder
       varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
@@ -2043,8 +2048,18 @@
     :Section GhostRider QAs
     GhostRider←⎕NULL
     ⍝ WARNING we Import the GhostRider instead of Link.Create because some QAs check ≢⎕SE.Link.Links.
-    ∇ file←GetSourceFile
-      file←4⊃5179⌶⊃⎕SI
+    ∇ file←GetSourceFile;filename;msg
+      filename←'Test.dyalog'  ⍝ should be 'Test.apln' ???
+      file←4⊃5179⌶⊃⎕SI  ⍝ in case source is tied (DYALOGSTARTUPKEEPLINK=1)
+      :If ⎕NEXISTS file ⋄ :Return ⋄ :EndIf
+       ⍝ try reading DYALOGSTARTUPSE  - ⍝ Link issue #219
+      file←(+2 ⎕NQ'.' 'GetEnvironment' 'DYALOGSTARTUPSE'),'/Link/',filename
+      :If ⎕NEXISTS file ⋄ :Return ⋄ :EndIf
+      ⍝ try looking in DYALOG installation folder - ⍝ Link issue #219
+      file←(+2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/StartupSession/Link/',filename
+      :If ⎕NEXISTS file ⋄ :Return ⋄ :EndIf
+      'Source file for ',(⍕⎕THIS),' not found - can not load GhostRider'
+      msg ⎕SIGNAL 999
     ∇
 
     ∇ instance←NewGhostRider;Env;env;file;msg;names;ok
