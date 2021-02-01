@@ -1290,6 +1290,14 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
+    ∇ on←AutoFormat
+      :Trap 0  ⍝ Dyalog v17.1 doesn't have ⎕SE.Dyalog.Utils.Config
+          on←⍎⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ should be (,'1') or (,'0')
+      :Else
+          on←1  ⍝ assume 1, the default
+      :EndTrap
+    ∇
+
     ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
@@ -1394,8 +1402,8 @@
       (⊂quadvars)⎕NPUT folder,'/quadVars.apln'  ⍝ link issue #206
       foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
       footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
-      :If (,'0')≡⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
-          footok←(1 0 1/¨' '),¨footok  ⍝ AUTOFORMAT add a space excepted where commented
+      :If ~AutoFormat   ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
+          footok←(1 0 1/¨' '),¨footok  ⍝ AUTOFORMAT=0 adds a space excepted where commented
       :EndIf
       (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
@@ -1407,8 +1415,8 @@
       newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
       newnssrc←('  ⍝  new  comment  ' 'foo ← { ''newfoo'' ⍵ } ')@2 3⊢nssrc
       newfootok←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢footok
-      :If (,'0')≡⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
-          newfootok←(0 0 1/¨' '),¨newfootok  ⍝ AUTOFORMAT add a space excepted where commented
+      :If ~AutoFormat  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
+          newfootok←(0 0 1/¨' '),¨newfootok  ⍝ AUTOFORMAT=0 adds a space excepted where commented
       :EndIf
       ⍝ expected results
       (foonr newfoonr)←(1+⎕SE.Link.U.IS181)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
@@ -1448,7 +1456,7 @@
       opts.watch←'ns' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
-      'link issue #206' assert '0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
+      'link issue #206'assert'0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
       :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
