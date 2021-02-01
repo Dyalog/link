@@ -248,9 +248,9 @@
       z←⎕SE.Link.Break'#.unlikelyname'
       assert'∨/''Not found:''⍷z'
      
-      z←name'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'
+          z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
       assert'z≡1'
-      z←'#' 'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'
+      z←# 'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
       assert'z≡0'
       Breathe ⍝ windows needs some time to clean up the file ties
      
