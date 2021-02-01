@@ -1,4 +1,4 @@
-﻿:Namespace U ⍝ Utilities    
+﻿:Namespace U ⍝ Utilities
     ⎕IO ⎕ML←1 1
 
     :Section Constants
@@ -29,7 +29,7 @@
     If←⍴⍨
     ERRNO←501              ⍝ official API error number
 ⍝    LinkCall←{((≢⎕XSI)⌊1++/∧\## IsParent¨⎕RSI)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link or any subnamespace
-        LinkCall←{((≢⎕XSI)⌊1++/∧\⎕RSI∊⎕SE.Link ⎕SE.Link.U ⎕SE.Link.Watcher)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link or any subnamespace        
+    LinkCall←{((≢⎕XSI)⌊1++/∧\⎕RSI∊⎕SE.Link ⎕SE.Link.U ⎕SE.Link.Watcher)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link or any subnamespace
     :EndSection
 
 
@@ -985,12 +985,13 @@
               nss←names ⎕NS¨⊂⍬       ⍝ preserve root namespace in case it has non-imported stuff
               mask←0=≢¨nss   ⍝ could not create namespace
               fixed,←(~mask)/names ⋄ failed,←mask/dirs
+              (dirs names)/⍨←⊂~mask ⋄ nss←⍎OnEach(~mask)/nss
           :Else
               nss←target   ⍝ all files fixed in target namespace
           :EndIf
           ⍝ set sysvars before anything else - these files are produced by Acre and must be supported
           :If ∨/mask←⎕NEXISTS¨quadfiles←dirs,¨⊂'quadVars.apln'
-              mask←mask\~FixFile¨↓nss,mask⌿quadfiles,[1.5]⊂'quadVars'
+              mask←mask\~FixFile¨↓mask⌿nss,quadfiles,[1.5]⊂'quadVars'
               failed,←mask/quadfiles
           :EndIf
       :Else ⋄ quadfiles←0⍴⊂''

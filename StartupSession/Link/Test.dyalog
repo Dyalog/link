@@ -44,7 +44,7 @@
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
 
-    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;opts;showmsg;slow;test;tests;time;udebug;z;rep
+    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;oktxt;opts;rep;showmsg;slow;test;tests;time;udebug;z
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
       :If (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
@@ -101,7 +101,8 @@
           aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
           aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
           opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕⎕SE.Link.Watcher.USE_NQ),')'
-          Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+          oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
+          Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
       :EndIf
      
     ∇
@@ -248,9 +249,9 @@
       z←⎕SE.Link.Break'#.unlikelyname'
       assert'∨/''Not found:''⍷z'
      
-          z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
+      z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
       assert'z≡1'
-      z←# 'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
+      z←#'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
       assert'z≡0'
       Breathe ⍝ windows needs some time to clean up the file ties
      
@@ -1289,7 +1290,7 @@
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1389,6 +1390,8 @@
      
       2 ⎕MKDIR subfolder
       ⍝ actual contents
+      quadvars←':Namespace quadVars' '##.(⎕IO ⎕ML ⎕WX)←0 2 1' ':EndNamespace'  ⍝ link issue #206 - try unusual values
+      (⊂quadvars)⎕NPUT folder,'/quadVars.apln'  ⍝ link issue #206
       foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
       footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
       :If (,'0')≡⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
@@ -1445,11 +1448,13 @@
       opts.watch←'ns' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
+      'link issue #206' assert '0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
       :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
       nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
       nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D'
+      nstree,←⊂name,'.quadVars'  ⍝ link issue #206 - bug ? should allow unnamed quadVars.apln ?
       ⍝ only v18.1 has ⎕FIX⍠'FixWithErrors'1
       :If ⎕SE.Link.U.IS181 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
       ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628
