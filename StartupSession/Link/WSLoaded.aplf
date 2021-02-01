@@ -10,5 +10,5 @@
          1 U.Log'Nothing to clear'
      :EndIf
  :Else
-     ⎕←'WSLoaded: Unable to clear links (',(⎕DMX.(OSError{⍵,2⌽(×≢3⊃⍺)/'") ("',3⊃⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃DM) ),')'
+     ⎕←'Link/WSLoaded: Unable to clear links (',⎕DMX.(Message{⍵,⍺,⍨': '/⍨×≢⍺}EM),')'
  :EndTrap

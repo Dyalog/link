@@ -187,7 +187,7 @@
 
 
 
-    ∇ ok←test_failures(folder name);debug;errf;erru;mod;names;opts;z;warn
+    ∇ ok←test_failures(folder name);debug;err;errf;erru;mod;names;opts;warn;z
       assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source not found'
       assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
      
@@ -214,11 +214,16 @@
       'link issue #162'assertError'''{BADMOD:1 2 3}''⎕SE.Link.Create name folder' 'Unknown modifier'
       :For mod :In 'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename'
           :Select mod
-          :CaseList 'source' 'watch' ⋄ erru←819⌶errf←'Invalid value'
-          :CaseList 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' ⋄ erru←'no value allowed' ⋄ errf←'Invalid value'
-          :CaseList 'beforeWrite' 'beforeRead' 'getFilename' ⋄ erru←errf←'must be the name of an APL function'
+          :CaseList 'source' 'watch' ⋄ err←1 ⋄ erru←819⌶errf←'Invalid value'
+          :CaseList 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' ⋄ err←1 ⋄ erru←'no value allowed' ⋄ errf←'Invalid value'
+          :CaseList 'beforeWrite' 'beforeRead' 'getFilename' ⋄ err←0 ⋄ erru←errf←'must be the name of an APL function'
           :EndSelect
-          'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(819⌶mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
+          :If err  ⍝ UCMD expected to error (misusage of the UCMD syntax)
+              'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(819⌶mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
+          :Else ⍝ Error in link - UCMD must not error and return a shorter message (link issue #217)
+              z←⎕SE.UCMD']link.create -',(819⌶mod),'=BADVAL ',name,' "',folder,'"'
+              'link issue #162'assert'∨/erru⍷z'
+          :EndIf
           'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
       :EndFor
       ⍝ Mantis 18638 - handle lost source
@@ -281,6 +286,9 @@
       ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
      
+      z←⎕SE.UCMD']Link.Create ',name,' ',folder
+      'link issue #217'assert'⊃''⎕SE.Link.Create: Cannot link a non-empty namespace to a non-empty directory''⍷z'
+     
       CleanUp folder name
       ok←1
     ∇
@@ -340,12 +348,14 @@
       'link issue #79'assert'foosrc2≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
      
       3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
-      ExportCmd←{'z←Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-arrays' ⋄ '-arrays=',∊⍵,[1.5]','}
+      ExportCmd←{'Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-arrays' ⋄ '-arrays=',∊⍵,[1.5]','}
       z←ref.{⎕SE.UCMD ⍵}0 ExportCmd 0
       'link issue #37'assert'~∨/''failed''⍷z'
       'link issue #37'assert'0 0 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
       cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')('sub.⎕IO')('sub.##.sub.⎕THIS.⎕ML')
-      assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
+      ⍝assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
+      z←ref.{⎕SE.UCMD ⍵}cmd  ⍝ link issue #217 - UCMD must not error
+      assert '⊃''⎕SE.Link.Export: Files already exist:''⍷z' 
       z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
       'link issue #37'assert'~∨/''failed''⍷z'
       'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
@@ -1166,7 +1176,7 @@
      
       ⍝ link issue #205 - check round-trip of arrays
       name⍎'limit_error←⍉(9⍴3)⊤⍳3*9'
-      'link issue #205'assertError ('⎕SE.Link.Add ''',name,'.limit_error'' ') 'Cannot round-trip serialisation of array'     
+      'link issue #205'assertError('⎕SE.Link.Add ''',name,'.limit_error'' ')'Cannot round-trip serialisation of array'
      
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
@@ -1190,7 +1200,10 @@
       'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete' ⍝ source still available
       ⎕SE.Link.Expunge name,'.todelete'
       (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'{var:42 ⋄ list:1 2 3}'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
-      'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0  ⍝ UCMD may trigger any error number
+      ⍝'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0 ⍝ UCMD may trigger any error number
+      z←(⍎name).{⎕SE.UCMD']Link.Add jsondict.list'}⍬
+      'link issue #177'assert'⊃''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
+     
       ⎕EX name,'.jsondict'
       {}⎕SE.Link.Break name
       assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
@@ -1212,7 +1225,9 @@
       'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
       'link issue #177'assert'~⎕NEXISTS ''',folder,'/jsondict/list.apla'''
       #.jsondict←#.⎕JSON'{"var":42,"list":[1,2,3]}'
-      'link issue #177'assertError'#.{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬' 'Not a properly named namespace' 0
+      ⍝'link issue #177'assertError'#.{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬' 'Not a properly named namespace' 0  ⍝ UCMD may trigger any error number
+      z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
+      'link issue #177'assert'⊃''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
       ⎕EX'#.jsondict' ⋄ '#.jsondict'⎕NS'' ⋄ #.jsondict.(var list)←42(1 2 3)
       z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
       'link issue #177'assert'⎕NEXISTS ''',folder,'/jsondict-0/list-0.apla'''
@@ -2175,15 +2190,17 @@
           ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
       }
 
-    ∇ {txt}←{msg}assertError args;errmsg;errno;expr
+    ∇ {txt}←{msg}assertError args;errmsg;errno;expr;ok
       :If 900⌶⍬ ⋄ msg←⊢ ⋄ :EndIf
       (expr errmsg errno)←(⊆args),(≢⊆args)↓'' ''⎕SE.Link.U.ERRNO
       :Trap errno
           {}⍎expr
-          txt←msg assert'0'
+          ok←1
       :Else
+          ok←0
           txt←msg assert'∨/errmsg⍷⊃⎕DM'  ⍝ always true if errmsg≡''
       :EndTrap
+      :If ok ⋄ txt←msg assert'0' ⋄ :EndIf
     ∇
     ∇ {txt}←{msg}assert args;clean;expr;maxwait;end;timeout;txt
       ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
