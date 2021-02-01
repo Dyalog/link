@@ -99,8 +99,9 @@
           dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
           core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
           aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
+              aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
           opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕⎕SE.Link.Watcher.USE_NQ),')'
-          Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+          Log(⍕≢tests),' test[s] passed OK in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
       :EndIf
      
     ∇
@@ -304,7 +305,7 @@
       varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
       2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
       2 ref.⎕FIX nssrc←,¨'  :Namespace ns' 'where←''ns'' ' ':EndNamespace'
-      :If ~⎕SE.Link.U.IS181 ⋄ foosrc←ref.⎕NR'foo' ⋄ :EndIf  ⍝ Dyalog v19.0 can preserve source !
+      :If ~⎕SE.Link.U.IS181 ⋄ foosrc←ref.⎕NR'foo' ⋄ :EndIf  ⍝ Dyalog v18.1 can preserve source !
       subref←⍎(name,'.sub')⎕NS''
       subref.(var1 var2 var3 var4)←'VAR1' 'VAR2' 'VAR3' 'VAR4'
      
@@ -355,7 +356,7 @@
       cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')('sub.⎕IO')('sub.##.sub.⎕THIS.⎕ML')
       ⍝assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
       z←ref.{⎕SE.UCMD ⍵}cmd  ⍝ link issue #217 - UCMD must not error
-      assert '⊃''⎕SE.Link.Export: Files already exist:''⍷z' 
+      assert'⊃''⎕SE.Link.Export: Files already exist:''⍷z'
       z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
       'link issue #37'assert'~∨/''failed''⍷z'
       'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
@@ -1390,6 +1391,9 @@
       ⍝ actual contents
       foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
       footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
+      :If (,'0')≡⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
+          footok←(1 0 1/¨' '),¨footok  ⍝ AUTOFORMAT add a space excepted where commented
+      :EndIf
       (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
       (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo ← { ''foo'' ⍵ } ' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
@@ -1400,6 +1404,9 @@
       newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
       newnssrc←('  ⍝  new  comment  ' 'foo ← { ''newfoo'' ⍵ } ')@2 3⊢nssrc
       newfootok←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢footok
+      :If (,'0')≡⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
+          newfootok←(0 0 1/¨' '),¨newfootok  ⍝ AUTOFORMAT add a space excepted where commented
+      :EndIf
       ⍝ expected results
       (foonr newfoonr)←(1+⎕SE.Link.U.IS181)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
       (foonget newfoonget)←(foosrc newfoosrc)
@@ -1443,7 +1450,7 @@
       :EndIf
       nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
       nstree,←(name,'.')∘,¨'REQ1A' 'REQ1B' 'REQ2A' 'REQ2B' 'CLASS1A' 'CLASS1B' 'CLASS1C' 'CLASS1D' 'CLASS2A' 'CLASS2B' 'CLASS2C' 'CLASS2D'
-      ⍝ only v19.0 has ⎕FIX⍠'FixWithErrors'1
+      ⍝ only v18.1 has ⎕FIX⍠'FixWithErrors'1
       :If ⎕SE.Link.U.IS181 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
       ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree

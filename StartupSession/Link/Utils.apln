@@ -565,7 +565,7 @@
 
     ∇ src←GetRefSource ns;file
       :Trap 16 22 ⋄ src←⎕SRC ns   ⍝ scripted namespace
-      :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v19.0 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
+      :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v18.1 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
       :Else
           :If ~0∊⍴file←# CurrentFileName ns ⍝ source not available anymore - cannot be an unscripted namespace (⎕SRC should really set ⎕DMX.ENX)
               src←'Cannot get source of ',(⍕ns),': File not found: ',file
