@@ -1092,6 +1092,17 @@
       'link issue #89 and #104'assert'~⎕NEXISTS folder,''/var.myapla'''
       {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
      
+      ⍝ link issue #207
+      3 ⎕MKDIR folder
+      (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+      {}⎕SE.Link.Create name folder
+      (⊂';some new text')⎕NPUT(folder,'/config.ini')1  ⍝ should be ignored
+      Breathe ⍝ allow notify to run before the break
+      {}⎕SE.Link.Expunge name ⋄ 3 ⎕NDELETE folder
+      'link issue #207'assert '0=≢⎕SE.Link.U.WARNLOG'
+      ⎕SE.Link.WARN←warn
+     
       ⍝ rebuild a namespace from scratch
       (name,'.sub')⎕NS ⍬
       :For sub :In name∘,¨'' '.sub'
