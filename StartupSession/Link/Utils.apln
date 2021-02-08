@@ -315,7 +315,11 @@
     _NameClasses,←¯9.1 9.1 9.4 9.5   ⍝ ns/class/interface
     NameClasses←{(~⍵)↓_NameClasses}  ⍝ 0=exclude arrays ⋄ 1=include arrays
     NsSysVars← '⎕AVU'  '⎕CT'  '⎕DCT'  '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
-    ListNames←{nl←⍵.⎕NL-⍳10 ⋄ (0≤⍵.⎕NC nl)/nl} ⍝ ignore OO attributes (in particular exposed Root properties)
+      ListNames←{⍺←1  
+          ⎕CT←1E¯14  ⍝ to allow (0.6=1|9.6)
+          nc←⍵.⎕NC nl←⍵.⎕NL-⍳10
+          ((0≤nc)∧(~0.6 0.7∊⍨1|nc))/nl  ⍝ ignore OO attributes (in particular exposed Root properties - link issue #161) and ignore external objects (link issue #220)
+      }
 
       IsScripted←{
           0<≢# CurrentFileName ⍵:1          ⍝ tied namespaces are always scripted !!! tied scripted namespace where file is lost produce a pop up at ⎕SRC time !!!
