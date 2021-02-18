@@ -308,7 +308,7 @@
 
 
 
-    ∇ ok←test_export(folder name);ExportCmd;arrays;cmd;foosrc;foosrc2;nssrc;nssrc2;opts;ref;subref;varsrc;z
+    ∇ ok←test_export(folder name);ExportCmd;arrays;cmd;foosrc;foosrc2;io;ml;nssrc;nssrc2;opts;ref;subref;varsrc;z
       ref←⍎name ⎕NS''
       varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
       2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
@@ -374,6 +374,22 @@
       'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
       3 ⎕NDELETE folder
       ⎕EX name
+     
+      :For io ml :In (0 3)(1 1)
+          3 ⎕NDELETE folder
+          ⎕EX name
+          ref←⍎name ⎕NS ⍬
+          ref.⎕FIX':Namespace quadVars' '##.⎕IO←' '##.⎕ML←' ':EndNamespace',¨⍕¨⍬ io ml ⍬
+          'sub'ref.⎕NS ⍬
+          {}⎕SE.UCMD']link.export ',name,' "',folder,'"'
+          ⎕EX name
+          {}⎕SE.UCMD']link.import ',name,' "',folder,'"'
+          'link issue #223'assert'io ml≡',name,'.(⎕IO ⎕ML)'
+          'link issue #223'assert'io ml≡',name,'.sub.(⎕IO ⎕ML)'
+          3 ⎕NDELETE folder
+          ⎕EX name
+      :EndFor
+     
       ok←1
     ∇
 
@@ -497,6 +513,7 @@
       assert'9=⎕NC ''ns'''
       #.⎕EX name
       ok←1
+     
     ∇
 
 
@@ -1126,7 +1143,7 @@
       ⍝ TODO allow exporting variables ?
       {}opts ⎕SE.Link.Export name folder
       'link issue #21'assert'WRFILES ≡ folder∘,¨''/foo.aplf''  ''/script.apln'' ''/sub/'' ''/sub/foo.aplf''  ''/sub/script.apln'' '
-      'link issue #21'assert'WRNAMES ≡ name∘,¨''.foo''  ''.script'' ''.sub'' ''.sub.foo''  ''.sub.script''  '
+      'link issue #21'assert'WRNAMES ≡ name∘,¨''.foo''  ''.script'' ''.sub'' ''.sub.foo''  ''.sub.script'' '
       'link issue #21'assert'0∊⍴RDFILES,RDNAMES'
       WRFILES←WRNAMES←⍬
       ⎕EX name
@@ -1134,8 +1151,11 @@
       (⊂⍕var)⎕NPUT folder,'/var.apla'
       (⊂⍕var)⎕NPUT folder,'/sub/var.apla'
       {}opts ⎕SE.Link.Import name folder
-      'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'''
-      'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'''
+      ⍝'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
+      ⍝'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'' '
+     
+      'link issue #68'assert'RDFILES ≡ folder∘,¨''/''    ''/foo.aplf'' ''/script.apln'' ''/sub/'' ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
+      'link issue #68'assert'RDNAMES ≡ name∘,¨''''   ''.foo''  ''.script'' ''.sub'' ''.sub.foo'' ''.sub.script'' ''.sub.var'' ''.var'' '
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
       ⎕EX name
      
@@ -1475,7 +1495,7 @@
       opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
       'link issue #206'assert'0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
-      :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'
+       :If 0 ⍝ :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'       ⍝ badns are reported as failed to fix since Link v2.1.0-beta42
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
       nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
@@ -2614,8 +2634,8 @@
       (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
       ⍝⎕SE.Link.Watcher.(CRAWLER DOTNET)←0  ⍝ disable file watching implementations
      
-      olds←1 0 1 1/0 10 1000 100000
-      news←1 0 0 1/1 10 100 1000
+      olds←,100⊣0 1000 100000
+      news←,100⊣1 1000
       res←(6,≢¨olds news)⍴0
       :For old :In olds   ⍝ items already linked before operations
           ⎕EX name
@@ -2684,6 +2704,9 @@
 ⍝  mod 1000 apl        152   226   10062
 ⍝  del 1 apl            30   170   11264
 ⍝  del 1000 apl        108   190    9808
+
+⍝ 76% of the time used by creating 1000 files in a 100000-file repo is taken by Notify → U.CurrentAplName → GetFileInfo → 5174⌶
+⍝ repro : 3 ⎕MKDIR folder←'/tmp/myfolder' ⋄ files←folder∘,¨'.aplf'∘(,⍨)¨names←'foo'∘,¨⍕¨⍳100000 ⋄ (⊂¨names)⎕NPUT¨files ⋄ 2 ⎕FIX¨ 'file://'∘,¨files ⋄ cmpx '5174⌶⊃files'
 
     :EndSection Benchmarks
 

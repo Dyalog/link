@@ -47,7 +47,7 @@ NOHOLD:
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
              (⊃U.LASTFIX)U.Into oldfile   ⍝ editor overwrites oldfile with new definition
-             :If 0>ns U.QFix oldfile oldname tie ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
+             :If 0>ns U.QFix oldfile oldname tie 1 ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
              delete←0  ⍝ old file must be preserved
@@ -109,7 +109,7 @@ NOHOLD:
 
          :If fix
              :If update∧tie ⋄ src←file ⋄ :EndIf
-             :If ¯1 0∊⍨2⊃ns U.Fix name src   ⍝ do not call QFix because file may be out-of-sync
+             :If ¯1 0∊⍨2⊃ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
                  U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
              :EndIf
          :EndIf

@@ -186,7 +186,12 @@
 
 
 
-    ⍝⍝⍝⍝⍝ File Crawler ⍝⍝⍝⍝⍝
+
+
+    ⍝⍝⍝⍝⍝ OLD File Crawler ⍝⍝⍝⍝⍝
+    ⍝ Light-weight file crawler, ensures taking no more than 10% of the CPU
+    ⍝ Doesn't work when APL threads are running
+    ⍝ No namespace crawler 
 
     ⍝ Settings
     T_PERIOD←0.2            ⍝ timer period in seconds
@@ -254,7 +259,7 @@
     ∇
 
     ∇ files←oldfiles NewFiles link;check;done;hash;hash1;mask;mod;mod1;mod2;newdone;ok;todo
-      files←(⊃,/link ##.U.ListFiles link.dir)~⊂link.dir,'/'
+      files←(⊃link ##.U.ListFiles link.dir)~⊂link.dir,'/'
       :If 0∊⍴files ⋄ files←F_EMPTY ⋄ :Return ⋄ :EndIf  ⍝ no files to check
       mod←EncodeTS↑3 ⎕NINFO files    ⍝ always update modification dates
       :If 1∊mask←~files∊oldfiles[;F_NAME]  ⍝ fetch hash only for unknown files
@@ -340,7 +345,10 @@
 
 
 
-    ⍝⍝⍝⍝ NEW Crawler ⍝⍝⍝⍝
+
+    ⍝⍝⍝⍝⍝ NEW Crawler ⍝⍝⍝⍝⍝
+    ⍝ Crawls BOTH the namespace and the directory
+    ⍝ Will always fully crawl when interpreter comes back to descalc 
 
     CRAWLERLINKS←3 0⍴⍬  ⍝ [link items check;]
     C_LINK C_ITEMS C_CHECK←⍳3
@@ -359,7 +367,7 @@
           CRAWLERLINKS,←link NO_ITEMS TS_OLD
       :EndIf
       (link items check)←CRAWLERLINKS[;inx]
-    ⍝ look for creation/deletion of APL names
+    ⍝⍝⍝ Look for creation/deletion of APL names
       time←TS
       nsref←⍎ns←link.ns
       newnames←1 ##.U.ListNs ns
@@ -390,9 +398,10 @@
       :EndIf
       ⍝ update data structure
       items←((~delmask)/items),↑newfiles creations newnc((≢creations)⍴⊂time)newmod
-    ⍝ look for files (not dirs) with a change of modification timestamp
+    ⍝⍝⍝ Look for files (not dirs) with a change of modification timestamp
       time←TS
       (newfiles newdirs)←link ##.U.ListFiles link.dir
+      (newfiles newdirs)←(0 1=⊂newdirs)/¨⊂newfiles
       newdirs~←⊂link.dir,'/'  ⍝ do not keep track of root
       newfiles←newdirs,newfiles  ⍝ keep dir first
       oldfiles←items[I_FILE;]
@@ -406,7 +415,7 @@
           ⍝ update data structure
           items[I_CHECK I_FMOD;modmask/changedinx]←↑((+/modmask)⍴⊂time)(modmask/changedmod)
       :EndIf
-    ⍝ look for creation/deletion of files (modification may be old in case unzipped)
+    ⍝⍝⍝ Look for creation/deletion of files (modification may be old in case unzipped)
       newnames←newnc←newmod←⍬
       :If ~0∊⍴newfiles
           newnames←{##.Notify'created'⍵}¨newfiles
@@ -418,7 +427,7 @@
       :EndIf
       ⍝ update data structures
       items←((~oldfiles∊delfiles)/items),↑newfiles newnames newnc((≢newfiles)⍴time)newmod
-    ⍝ look for content difference between APL and files
+    ⍝⍝⍝ Look for content difference between APL and files
     ⍝ assume that if file modification timestamp hasn't changed,
     ⍝ then in case of difference that APL side is the "new" one.
       time←TS
@@ -434,9 +443,9 @@
           ⍝ update datastructure
           items[;differ]←↑(mask/filenames)(mask/aplnames)(##.U.NameClass¨mask/aplnames)((+/mask)⍴time)mod
       :EndIf
-    ⍝ update global data structure
+    ⍝⍝⍝ Update global data structure
       CRAWLERLINKS[;inx]←link items time
-      ⎕←'Items: ',(⍕⊃⌽⍴items),' ⋄ Not checked: ',(⍕≢notchecked),' ⋄ Differ: ',(⍕≢differ)
+      LogCrawler 'Items: ',(⍕⊃⌽⍴items),' ⋄ Source compared: ',(⍕≢notchecked),' ⋄ Differ: ',(⍕≢differ)
     ∇
     
     

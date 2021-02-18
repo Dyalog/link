@@ -78,7 +78,7 @@
           Error src
       :EndIf
       {}ns.(5178⌶)name   ⍝ mants 18606 : ⎕FIX∘⎕SRC may leave ghost ties
-      nc←2⊃ns Fix name src
+      nc←2⊃ns Fix name src 1
       ok←~nc∊0 ¯1
     ∇
 
@@ -283,11 +283,6 @@
       :EndIf
     ∇
 
-    ∇ order←GradeFiles files
-    ⍝ slashes after all chars and quads before all
-    ⍝ in "descending" order into folders: must process parent folders first
-      order←⍋¯1@{9109=⍵}9999999@{47=⍵}↑⎕UCS¨files
-    ∇
     ∇ {r}←to Relocate from;i;nextfrom;nextto
     ⍝ move list of files, updating file names as we go through the list
       r←⍬
@@ -315,7 +310,7 @@
     _NameClasses,←¯9.1 9.1 9.4 9.5   ⍝ ns/class/interface
     NameClasses←{(~⍵)↓_NameClasses}  ⍝ 0=exclude arrays ⋄ 1=include arrays
     NsSysVars← '⎕AVU'  '⎕CT'  '⎕DCT'  '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
-      ListNames←{⍺←1  
+      ListNames←{⍺←1
           ⎕CT←1E¯14  ⍝ to allow (0.6=1|9.6)
           nc←⍵.⎕NC nl←⍵.⎕NL-⍳10
           ((0≤nc)∧(~0.6 0.7∊⍨1|nc))/nl  ⍝ ignore OO attributes (in particular exposed Root properties - link issue #161) and ignore external objects (link issue #220)
@@ -620,7 +615,7 @@
       :EndIf
     ∇
 
-    ∇ (name nc)←{where}Fix(name src);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed
+    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
@@ -632,7 +627,7 @@
           ⍝ AllowLateBinding 0|1     (default 1)   ⍝ allow missing dependencies
           ⍝ FixWithErrors    0|1|2   (default 0,2=prompt)  ⍝ allow errors in script - link issue #144
           ⍝ Link             0|1     (default 1)   ⍝ maintain the link to the file - link issue #155
-          FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors' 1)('Link'(~0∊⍴file))
+          FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors'force)('Link'(~0∊⍴file))
       :EndIf
       :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
       :Else ⋄ stops←trace←monitor←⍬
@@ -654,6 +649,7 @@
       unnamed←11 121≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because script was unnamed
       ⍝noaccess←19 12≡⎕DMX.(EN ENX)   ⍝ 2 ⎕FIX 'file://' on directory
       ⍝nofile←22 12≡⎕DMX.(EN ENX)   ⍝ 2 ⎕FIX 'file://' on missing file
+      ⍝nointerface←11 31≡⎕DMX.(EN ENX)  ⍝ fixing class with missing interface
       ⍝ name must be valid because we define it in the following code
       :If ¯1=where NameClass name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
       :If unnamed  ⍝ unnamed script
@@ -675,7 +671,7 @@
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
     ∇
-    ∇ fixed←target QFix(file name tie);changed;nc;src;tie
+    ∇ fixed←target QFix(file name tie force);changed;nc;src;tie
     ⍝ fixed=1: fixed source
     ⍝ fixed=0: source already up to date - not fixed
     ⍝ fixed=¯1: failed to fix source
@@ -687,7 +683,7 @@
       :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
       :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
       :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
-          (name nc)←target Fix(name src)
+          (name nc)←target Fix(name src force)
           fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
       :Else ⋄ fixed←0 ⋄ :EndIf
     ∇
@@ -843,7 +839,7 @@
       :EndIf
       ⍝ Create directory for namespace
       3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
-      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃,/opts ListFiles opts.dir
+      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts ListFiles opts.dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
       ⍝ filter which names to export
@@ -905,7 +901,7 @@
       :EndIf
     ∇
 
-    ∇ (files dirs)←opts ListFiles dir;hidden;list;mask
+    ∇ (files isdir)←opts ListFiles dir;dirs;hidden;list;mask;order
       list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
      
       mask←1=list[3;] ⋄ list←¯1↓list                ⍝ mask for hidden items
@@ -920,28 +916,33 @@
      
       files←(2=list[2;])/list[1;]                   ⍝ second column has 2 for files; first column is filename
       files/⍨←opts HasExtn files                    ⍝ must be of correct extension
-      files←files[GradeFiles files]                 ⍝ dirs then quads then files
+     
+      files,←dirs ⋄ isdir←(-≢files)↑(≢dirs)⍴1       ⍝ 1 for dirs, 0 for files
+      ⍝ slashes after all chars and quads before all
+      ⍝ in "descending" order into folders:
+      ⍝ must process parent folders and all its files (including sysvars) first
+      ⍝ we do ↑1+⎕UCS so that fill item (0) is not the same as have (⎕UCS 0) in filename (and comes before it)
+      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨files
+      (files isdir){⍺[⍵]}←⊂order
     ∇
 
-    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;actnames;actnc;allfiles;allnames;dirs;expfiles;expnames;exts;files;hidden;i;inx;lastn;list;mask;n;names;nc;ndirs;nss;ord;parents;quadfiles;source
+    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;actname;actnames;actnc;actncs;alldirs;allfiles;allnames;dir;expfiles;expname;expnames;exts;file;flatten;fullname;hidden;i;inx;lasttodo;list;mask;ns;order;parent;parents;quadfile;source;todo
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
       fixed←failed←0⍴⊂''
-      :If 1≠1 ⎕NINFO source ⋄ files←,⊂,source ⋄ dirs←0⍴⊂''  ⍝ single filename
-      :Else ⋄ (files dirs)←opts ListFiles source  ⍝ whole directory
+      :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
+      :Else ⋄ allfiles←⊃opts ListFiles source    ⍝ whole directory
       :EndIf
-      ndirs←≢dirs ⋄ allfiles←dirs,files
      
-      (parents expnames actnames actnc)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+      (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
       :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
           allnames←parents('.'JoinEach)expnames  ⍝ do not infer true apl name from source
       :Else
-          mask←actnc∊¯1 0    ⍝ invalid names or source
+          mask←actncs∊¯1 0    ⍝ invalid names or source
           failed,←mask/allfiles
-          (allfiles parents expnames actnames actnc)/⍨←⊂~mask    ⍝ keep only names that are valid
-          ndirs←+/ndirs↑~mask
+          (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
           allnames←parents('.'JoinEach)actnames  ⍝ fully qualified names
           :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
               Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
@@ -950,7 +951,7 @@
      
       ⍝ rename files if incorrectly named - cannot work with opts.fastLoad
       :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
-          expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actnc
+          expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs
           expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
           :If ∨/mask←expfiles≢¨allfiles
               :If (≢expfiles)≠(≢∪819⌶expfiles)
@@ -967,9 +968,9 @@
       :If 3=⎕NC opts.beforeRead ⍝ user handler defined?
           mask←(⍴allfiles)⍴1
           :For i :In ⍳⍴allfiles
-              mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actnc) ⍝ return 1 to continue else 0
+              mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actncs) ⍝ return 1 to continue else 0
           :EndFor
-          (allfiles parents expnames actnames actnc allnames)/⍨←⊂mask    ⍝ keep what was not processed by user
+          (allfiles parents expnames actnames actncs allnames)/⍨←⊂mask    ⍝ keep what was not processed by user
       :EndIf
      
       :Select overwrite
@@ -978,47 +979,64 @@
       :Case 0 ⋄ :If ∨/mask←0<⎕NC allnames~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
               Error'Names already exist: use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
       :Else ⋄ ⍝ otherwise silently overwrite - excepted root namespace
-          ⎕EX(⊂⍕target)~⍨(⌊|actnc){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
+          ⎕EX(⊂⍕target)~⍨(⌊|actncs){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
       :EndSelect
      
-      FixFile←(FixTie opts)∘{(target file name)←⍵ ⋄ 0≤target QFix file name ⍺}
-      ⍝ create namespaces for directories and load quadVars.apln
-      (dirs names)←ndirs↑¨(allfiles allnames)
-      :If ~0∊⍴dirs
-          :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-              nss←names ⎕NS¨⊂⍬       ⍝ preserve root namespace in case it has non-imported stuff
-              mask←0=≢¨nss   ⍝ could not create namespace
-              fixed,←(~mask)/names ⋄ failed,←mask/dirs
-              (dirs names)/⍨←⊂~mask ⋄ nss←⍎OnEach(~mask)/nss
-          :Else
-              nss←target   ⍝ all files fixed in target namespace
-          :EndIf
-          ⍝ set sysvars before anything else - these files are produced by Acre and must be supported
-          :If ∨/mask←⎕NEXISTS¨quadfiles←dirs,¨⊂'quadVars.apln'
-              mask←mask\~FixFile¨↓mask⌿nss,quadfiles,[1.5]⊂'quadVars'
-              failed,←mask/quadfiles
-          :EndIf
-      :Else ⋄ quadfiles←0⍴⊂''
-      :EndIf
+      FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺}  ⍝ ⍺ is force, ⍵ is (target file name)
+      flatten←opts.flatten
      
-      ⍝ fix individual files
-      (files names nc)←ndirs∘↓¨(allfiles allnames actnc)
-      (files names nc)/⍨←⊂~files∊quadfiles
-      :If ~0∊⍴files
-          :If ~opts.flatten                               ⍝ If we are not flattening, create nss
-              nss←⍎∘Parent¨names
-          :Else
-              nss←target   ⍝ all files fixed in target namespace
+      ⍝ process one directory and all its files at once - process parent before children
+      todo←{⊂⍵}⌸alldirs←⊃¨⎕NPARTS allfiles  ⍝ no need to sort because ListFiles lists parents before children
+      :Repeat   ⍝ keep fixing as long as at least one succeeds - we might have :Class inheristance/interfaces, :Includes, etc.
+          lasttodo←todo ⋄ todo←⍬ ⍝ first todo is a list of lists, to fix by directory, but then all remaining files are fixed in one block
+          :For inx :In ⊆lasttodo
+              (file parent expname actname actnc fullname)←inx∘{⍵[⍺]}¨(allfiles parents expnames actnames actncs allnames)
+              ⍝ create namespace for directory and load quadVars.apln
+              :If ¯9.1∊actnc
+                  :If 1≠≢∪('/'=⊢/¨file)(actnc=¯9.1)((≢inx)↑1) ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
+                  dir←⊃file ⋄ ns←⊃fullname
+                  :If ~flatten            ⍝ if not flattening, create nss
+                      ns←ns ⎕NS ⍬       ⍝ preserve root namespace in case it has non-imported stuff
+                      :If 0=≢ns       ⍝ could not create namespace
+                          failed,←file  ⍝ will not attempt to fix any file in that namespace
+                          :Continue
+                      :EndIf
+                      fixed,←⊂ns
+                      ns←⍎ns
+                  :Else
+                      ns←target   ⍝ all files fixed in target namespace
+                  :EndIf
+                  ⍝ set sysvars before anything else - these files are produced by Acre and must be supported
+                  :If ⎕NEXISTS quadfile←dir,'quadVars.apln'
+                  :AndIf ~1 FixFile ns quadfile'quadVars'
+                      failed,←⊂quadfile
+                  :EndIf
+                  mask←0@1⊢(~file∊⊂quadfile)  ⍝ ⍝ directory and quadfile are done
+                  (file parent expname actname actnc fullname inx)/⍨←⊂mask
+              :Else
+                  :If ∨/'/'=⊢/¨file ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
+              :EndIf
+              ⍝ fix individual files
+              :If 0∊⍴inx ⋄ :Continue ⋄ :EndIf       ⍝ no file to fix
+              :If ~flatten ⋄ ns←⍎¨parent   ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
+              :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
+              :EndIf
+              ⍝ fix in order: tradns, vars, fns/ops, scripted ns, interfaces, classes
+              ⍝ note that ⎕*.apla is expected to remain in front because ListFiles has put them first
+              order←⍋¯9.1 2.1 3.1 3.2 4.1 4.2 9.1 9.4 9.5⍳actnc
+              mask←0 FixFile¨(⊂order)⌷↓ns,file,[1.5]actname  ⍝ do not fix with error because Classes could become uninstanciatable
+              fixed,←fullname[mask/order]     ⍝ those fixed OK
+              todo,←inx[(~mask)/order]        ⍝ those failed to fix - try again at next :Repeat
+          :EndFor
+      :Until (≢∊todo)∊0(≢∊lasttodo)   ⍝ all fixed or number of failures hasn't changed
+      :If 1∨IS181 ⋄ :AndIf ~0∊⍴todo←∊todo  ⍝ last attemp to fix those that failed - v18.0 cannot fix with errors
+          :If ~flatten ⋄ ns←⍎¨parents[todo]     ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
+          :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
           :EndIf
-          ord←⍒9.4 9.5⍳nc  ⍝ classes last and interfaces just before them
-          n←≢list←(⊂ord)⌷↓nss,files,[1.5]names
-          :Repeat ⋄ lastn←n       ⍝ keep fixing as long as at least one succeeds - we might have :Class inheristance/interfaces, :Includes, etc.
-              mask←~FixFile¨list  ⍝ fixes that failed
-              fixed,←3⊃¨(~mask)/list
-              n←≢list←mask/list   ⍝ remove fixes that succeeded
-          :Until n∊0 lastn        ⍝ all fixed or number of failures hasn't changed
-          failed,←2⊃¨list         ⍝ file names of failures
+          {}1 FixFile¨↓ns,allfiles[todo],[1.5]actnames[todo]  ⍝ attempt to fix with error - will be considered failed whether it succeeds or not
       :EndIf
+      failed,←allfiles[todo]    ⍝ mark as failed even if fixed with errors
+      ⍝failed,←allnames[todo]     ⍝ give APL name rather than file name so that user can double click on it ?
     ∇
 
     :EndSection
@@ -1346,7 +1364,7 @@
       ⍝ actually run the tests
       Test←{
           src←'%'(≠⊆⊢)⍵ ⋄ expname←Name ⍬
-          (exp←where Fix expname src)≡(res←SniffScript expname src):1
+          (exp←where Fix expname src 1)≡(res←SniffScript expname src):1
           msg←⍕'"',⍵,'" gave',res,'instead of',exp
           stop:⎕SIGNAL⊂('EN' 8)('EM' 'ASSERTION ERROR')('Message'msg)
           ⎕←msg ⋄ 0

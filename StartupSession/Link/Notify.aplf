@@ -196,7 +196,7 @@
          :EndIf
 
          ⍝ fix file
-         :Select nsref U.QFix path actname(U.FixTie link)
+         :Select nsref U.QFix path actname(U.FixTie link) 1
          :Case 1 ⋄ msg,←⊂' - fixed from file'
          :Case 0 ⋄ msg,←⊂' - APL already up to date'
          :Case ¯1 ⋄ warn←1 ⋄ msg,←⊂'- failed to fix file'
