@@ -926,7 +926,7 @@
       (files isdir){⍺[⍵]}←⊂order
     ∇
 
-    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;actname;actnames;actnc;actncs;alldirs;allfiles;allnames;dir;expfiles;expname;expnames;exts;file;flatten;fullname;hidden;i;inx;lasttodo;list;mask;ns;order;parent;parents;quadfile;source;todo
+    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
@@ -984,13 +984,19 @@
      
       FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺}  ⍝ ⍺ is force, ⍵ is (target file name)
       flatten←opts.flatten
+      hasnc←~opts.fastLoad ⍝0∨.≠actnc  ⍝ fastLoad produces actnc∧.=0 - so must rely on file extension to classify order
+      (alldirs allfiles allexts)←↓⍉↑⎕NPARTS allfiles
+      ⍝ fix in order: tradns, vars, fns/ops, scripted ns, interfaces, classes
+      ⍝ note that ⎕*.apla is expected to remain in front because ListFiles has put them first
+      ncorder←¯9.1 2.1 3.1 3.2 4.1 4.2 9.1 9.4 9.5  ⍝ sort by actual name class (default)
+      extorder←opts.typeExtensions Tail¨ncorder     ⍝ sort by file extension (fastLoad)
      
       ⍝ process one directory and all its files at once - process parent before children
-      todo←{⊂⍵}⌸alldirs←⊃¨⎕NPARTS allfiles  ⍝ no need to sort because ListFiles lists parents before children
+      todo←{⊂⍵}⌸alldirs  ⍝ no need to sort because ListFiles lists parents before children
       :Repeat   ⍝ keep fixing as long as at least one succeeds - we might have :Class inheristance/interfaces, :Includes, etc.
           lasttodo←todo ⋄ todo←⍬ ⍝ first todo is a list of lists, to fix by directory, but then all remaining files are fixed in one block
           :For inx :In ⊆lasttodo
-              (file parent expname actname actnc fullname)←inx∘{⍵[⍺]}¨(allfiles parents expnames actnames actncs allnames)
+              (file parent expname actname actnc fullname ext)←inx∘{⍵[⍺]}¨(allfiles parents expnames actnames actncs allnames allexts)
               ⍝ create namespace for directory and load quadVars.apln
               :If ¯9.1∊actnc
                   :If 1≠≢∪('/'=⊢/¨file)(actnc=¯9.1)((≢inx)↑1) ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
@@ -1021,15 +1027,15 @@
               :If ~flatten ⋄ ns←⍎¨parent   ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
               :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
               :EndIf
-              ⍝ fix in order: tradns, vars, fns/ops, scripted ns, interfaces, classes
-              ⍝ note that ⎕*.apla is expected to remain in front because ListFiles has put them first
-              order←⍋¯9.1 2.1 3.1 3.2 4.1 4.2 9.1 9.4 9.5⍳actnc
+              :If hasnc ⋄ order←⍋ncorder⍳actnc
+              :Else ⋄ order←⍋extorder⍳ext
+              :EndIf
               mask←0 FixFile¨(⊂order)⌷↓ns,file,[1.5]actname  ⍝ do not fix with error because Classes could become uninstanciatable
               fixed,←fullname[mask/order]     ⍝ those fixed OK
               todo,←inx[(~mask)/order]        ⍝ those failed to fix - try again at next :Repeat
           :EndFor
       :Until (≢∊todo)∊0(≢∊lasttodo)   ⍝ all fixed or number of failures hasn't changed
-      :If 1∨IS181 ⋄ :AndIf ~0∊⍴todo←∊todo  ⍝ last attemp to fix those that failed - v18.0 cannot fix with errors
+      :If IS181 ⋄ :AndIf ~0∊⍴todo←∊todo  ⍝ last attempt to fix those that failed - v18.0 cannot fix with errors
           :If ~flatten ⋄ ns←⍎¨parents[todo]     ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
           :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
           :EndIf
