@@ -3,7 +3,8 @@
 
     :Section Constants
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
-        IS181←{18.1≤⊃(//)⎕VFI⍵/⍨2>+\⍵='.'}2⊃# ⎕WG'APLVersion'
+    DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
+    IS181←18.1≤DYALOGVERSION
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -1405,9 +1406,9 @@
       :ElseIf 0≡caller  ⍝ no preprending of call
       :Else ⋄ msg,⍨←((1+depth+caller)⊃⎕XSI)': '  ⍝ look up the stack : 1 is for self, 2 if for one' caller etc
       :EndIf
-      msg←⊃,/msg
+      msg←⊃,/,∘⍕¨msg
       :If 0∊(1=≡msg)(1=≢⍴msg)(2 0∊⍨10|⎕DR msg)
-          ∘∘∘
+          Error'Internal error: badly formatted error message'
       :EndIf
     ∇
     ∇ msg←TimeStamp msg

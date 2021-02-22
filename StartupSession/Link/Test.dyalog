@@ -297,6 +297,9 @@
       z←⎕SE.Link.Create name folder
       'link issue #220'assert'~∨/''failed''⍷z'
       {}⎕SE.Link.Break name
+
+      ⎕EX name
+      'link issue #226'assertError '⎕SE.Link.Create ''C:\temp\dir'' ''#.temp.dir'' '  'Not a properly named namespace'
      
       CleanUp folder name
       ok←1
@@ -1394,7 +1397,7 @@
       ⍝ test source=auto
       opts.source←'auto'
       ⍝ both don't exist
-      assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existing namespace to a non-existing directory'
+      assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existent namespace to a non-existent directory'
       assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
       assert'0=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
@@ -1495,7 +1498,7 @@
       opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
       'link issue #206'assert'0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
-       :If 0 ⍝ :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'       ⍝ badns are reported as failed to fix since Link v2.1.0-beta42
+      :If 0 ⍝ :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'       ⍝ badns are reported as failed to fix since Link v2.1.0-beta42
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
       nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
@@ -2254,7 +2257,7 @@
     ⍝ producing two callbacks to notify, the first one making assert succeeds,
     ⍝ then the second one conflicting with whichever code is run after the assert (e.g. a ⎕FIX which would be undone by the pending second Notify)
       :If ⎕SE.Link.Watcher.DOTNET ⋄ ⎕DL 0.1  ⍝ FileSystemWatcher
-      :Else ⋄ ⎕DL 2.1×⎕SE.Link.Watcher.T_PERIOD ⍝ ensure two runs
+      :Else ⋄ ⎕DL 2.1×0.001×⎕SE.Link.Watcher.INTERVAL ⍝ ensure two runs
       :EndIf
     ∇
 
@@ -2270,8 +2273,9 @@
           {}⍎expr
           ok←1
       :Else
-          ok←0
-          txt←msg assert'∨/errmsg⍷⊃⎕DM'  ⍝ always true if errmsg≡''
+
+        ok←0
+          txt←msg assert'∨/errmsg⍷⎕DMX.EM'  ⍝ always true if errmsg≡''
       :EndTrap
       :If ok ⋄ txt←msg assert'0' ⋄ :EndIf
     ∇
@@ -2484,59 +2488,26 @@
 
 
 
-    ∇ {step}try_filecrawler(name folder);foofile;foofile2
-    ⍝ manual testing of file crawler
-      :If 900⌶⍬ ⋄ step←0 ⋄ :EndIf   ⍝ step-by-step crawling
-      :If (0≠⎕NC name)∨(⎕NEXISTS folder) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
-      ⎕EX name ⋄ 3 ⎕MKDIR folder
-      ⎕SE.Link.Watcher.T_PERIOD←1
-      ⎕SE.Link.Watcher.CRAWLER←1
-      ⎕SE.Link.Watcher.DOTNET←0
-      {}⎕SE.Link.Create name folder
-      ⍝{}⎕SE.Link.Pause ⎕SE.Link.Links
-      :If step
-          ⎕SE.Link.Watcher.TIMER←⎕NULL
-          ⎕SE.Link.Watcher.T_WORKLOAD←9999999  ⍝ never time out until job finished
-          ⎕SE.Link.Watcher.T_GRANULARITY←9999999  ⍝ never overload the timer
-      :EndIf
-      ⎕SE.Link.DEBUG←1
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      (⊂'this is total garbage !!!!;;;;')⎕NPUT folder,'/garbage.ini'
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      (⊂'foo')⎕NPUT foofile←folder,'/foo.aplf'
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      (⊂'res←foo arg' 'res←''foo'' arg')⎕NPUT foofile 1
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      (⊂'res←foo arg' 'res←''foo'' arg')⎕NPUT foofile 1
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      (foofile2←folder,'/foo2.aplf')⎕NMOVE foofile
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      (⊂'res←goo arg' 'res←''goo'' arg')⎕NPUT foofile 1
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      ⎕NDELETE foofile foofile2
-      ⎕SE.Link.Watcher.CrawlerEvent 0
-      ⎕SE.Link.Break name
-      ⎕EX name ⋄ 3 ⎕NDELETE folder
-    ∇
-
-
-    ∇ {debug}try_newcrawler(name folder);Crawl;NS;NS2;debug;dop;dop2;folders;link;mat;mat2;matsrc;matsrc2;opts;sub2;sub6;subs;tradfn;tradfn2
+    ∇ {debug}try_crawler(name folder);Crawl;NS;NS2;crawler;debug;dop;dop2;dotnet;folders;link;mat;mat2;matsrc;matsrc2;opts;sub2;sub6;subs;tradfn;tradfn2
       :If 0=⎕NC'debug' ⋄ debug←0⊣×⎕SE.Link.U.debug ⋄ :EndIf
       ⍝:If (0≠⎕NC name)∨(⎕NEXISTS folder)∨(0≠≢⎕SE.Link.Links) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
-      assert'0=≢⎕SE.Link.Links'
-      ⎕SE.Link.Watcher.(CRAWLERLINKS/⍨←0)
+     
+      assert'~⎕SE.Link.U.HasLinks'
+      (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
+      ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
       ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
       opts←⎕NS ⍬ ⋄ opts.watch←'none'  ⍝ not only to disable watcher, but also to prevent tying source to files
       {}opts ⎕SE.Link.Create name folder
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
+      ⎕SE.Link.Watcher.AddCrawler link  ⍝ because we have set watch←'none'
+      ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer
       Crawl←{
-          ⎕←0 0⍴⍣(~⍵)⊢'before'{⍺ ⍵}before←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃CRAWLERLINKS[C_ITEMS;])
+          ⎕←0 0⍴⍣(~⍵)⊢'before'{⍺ ⍵}before←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃LINKS[L_ITEMS;])
           ⎕←0⍴⍣(⍵)⊢'====================================='
           _←⎕SE.Link.Watcher.Crawl link
-          ⎕←0 0⍴⍣(~⍵)⊢'after'{⍺ ⍵}after←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃CRAWLERLINKS[C_ITEMS;])
+          ⎕←0 0⍴⍣(~⍵)⊢'after'{⍺ ⍵}after←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃LINKS[L_ITEMS;])
       }
-      ⎕SE.Link.Watcher.Crawl link
       assert'0∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ create files
       3 ⎕MKDIR¨(folder,'/')∘,¨'sub1' 'sub1/subsub1'
@@ -2545,15 +2516,17 @@
       (⊂dop←,⊂'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}')⎕NPUT folder,'/sub1/dop.aplo'
       NS←{(':Namespace ',⍵)'mat←⍳3 4' '∇   res ← tradfn (arg1 arg2)   ' '   res ← arg1 arg2   ' '∇' 'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}' ':EndNamespace'}
       (⊂NS'ns1')⎕NPUT folder,'/ns1.apln'
+      (⊂'this is total garbage !!!!;;;;')⎕NPUT folder,'/garbage.ini'
+      (⊂'res←Hidden arg' 'res←arg')⎕NPUT folder,'/.hidden.aplf'
       Crawl debug
-      assert'6∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'6 8≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ create apl items
       sub2←⍎(name,'.sub2')⎕NS'' ⋄ (name,'.sub2.subsub2')⎕NS''
       sub2.mat←mat
       sub2.⎕FX¨tradfn dop
       (⍎name).⎕FIX NS'ns2'
       Crawl debug
-      assert'12∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'12 14≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ modify files
       (⊂matsrc2←⎕SE.Dyalog.Array.Serialise mat2←⍳2 3 4)⎕NPUT(folder,'/sub1/mat.apla')1
       (⊂tradfn2←'   res2 ← tradfn (arg1 arg2)   ' '   res2 ← arg1 arg2   ')⎕NPUT(folder,'/sub1/tradfn.aplf')1
@@ -2561,22 +2534,22 @@
       NS2←{(':Namespace ',⍵)'mat←⍳2 3 4' '∇   res2 ← tradfn (arg1 arg2)   ' '   res2 ← arg1 arg2   ' '∇' 'dop←{⍵ ⍵⍵ ⍺⍺ ⍺}' ':EndNamespace'}
       (⊂NS2'ns1')⎕NPUT(folder,'/ns1.apln')1
       Crawl debug
-      assert'12∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'12 14≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ modify apl items
       sub2.mat←mat2
       sub2.⎕FX¨tradfn2 dop2
       (⍎name).⎕FIX NS2'ns2'
       Crawl debug
-      assert'12∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'12 14≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ delete files
       3 ⎕NDELETE¨(folder,'/')∘,¨'sub1' 'ns1.apln'
       Crawl debug
-      assert'6∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'6 8≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ delete apl items
       ⎕EX(name,'.')∘,¨'sub2' 'ns2'
       Crawl debug
       ⍝ check it worked
-      assert'0∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'0 2≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ create items on both sides
       3 ⎕MKDIR¨folders←(folder,'/')∘,¨'sub1' 'sub3' 'sub1/subsub1' 'sub3/subsub3'
       folders←2↑folders
@@ -2590,7 +2563,7 @@
       subs.⎕FX¨⊂¨tradfn dop
       subs.⎕FIX⊂NS'ns'
       Crawl debug
-      assert'24∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'24 26≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ do modifications + creations + deletions on both sides
       (⊂matsrc2)⎕NPUT(folder,'/sub1/mat.apla')1
       (⊂tradfn2)⎕NPUT(folder,'/sub1/tradfn.aplf')1
@@ -2612,14 +2585,15 @@
       sub6.⎕FX¨tradfn dop
       sub6.⎕FIX NS'ns'
       Crawl debug
-      assert'24∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      assert'24 26≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ clean up
       ⎕SE.Link.Expunge name
       3 ⎕NDELETE folder
+      ⎕SE.Link.Watcher.(CRAWLER DOTNET)←(crawler dotnet)
     ∇
 
 
-    ∇ res←bench_newcrawler(name folder);ALPHABET;FileName;Function;Name;Time;cmpx;cols;crawler;dotnet;files;fns;link;names;new;news;old;olds;opts;rows
+    ∇ res←bench_crawler(name folder);ALPHABET;FileName;Function;Name;Time;cmpx;cols;crawler;dotnet;files;fns;link;names;new;news;old;olds;opts;rows
       ALPHABET←'⍺⍵⍬⊢⊣⌷¨⍨/⌿\⍀<≤=≥>≠∨∧-+÷×?∊⍴~↑↓⍳○*⌈⌊∘⊂⊃∩∪⊥⊤|,⍱⍲⍒⍋⍉⌽⊖⍟⌹!⍕⍎⍪≡≢#&@:⋄←→⍝⎕⍞⍣'
       ALPHABET,←⎕A,10⍴' '
       Function←{(⊂'res←',⍵,' arg'),↓ALPHABET[?10 50⍴≢ALPHABET]}
@@ -2632,7 +2606,7 @@
      
       opts←⎕NS ⍬ ⋄ opts.watch←'both'  ⍝ force tying to files so that DetermineFileName is fast
       (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
-      ⍝⎕SE.Link.Watcher.(CRAWLER DOTNET)←0  ⍝ disable file watching implementations
+      ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0  ⍝ disable file watching
      
       olds←,100⊣0 1000 100000
       news←,100⊣1 1000
@@ -2643,8 +2617,9 @@
           3 ⎕MKDIR folder
           fns←Function¨names←Name¨old⍴10 ⋄ files←FileName¨names
           fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+          assert'~⎕SE.Link.U.HasLinks'
           {}opts ⎕SE.Link.Create name folder
-          {}⎕SE.Link.Pause name  ⍝ temporary disable watching to step our crawler
+          ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer
           assert'1=≢⎕SE.Link.Links'
           link←⊃⎕SE.Link.Links
           :For new :In news
@@ -2711,6 +2686,19 @@
     :EndSection Benchmarks
 
 
+
+    ∇ Issue225;dir;ns
+      dir←(739⌶0),'/',⎕D∩⍨⍕⎕TS
+      3 ⎕MKDIR dir,'/foo'
+      ns←'NsIssue225'⎕NS ⍬
+      ⎕SE.Link.Create ns dir
+      (⍎ns).⎕ED'goo'
+      ⍝ )Clear
+      ns←'NsIssue225b'⎕NS ⍬
+      ⎕SE.Link.Create ns dir,'/foo'
+      'Plus←{⍺+⍵}'⎕NPUT dir,'/hoo.aplf'
+      ⍝ shouldn't see a warning
+    ∇
 
 
 :EndNamespace

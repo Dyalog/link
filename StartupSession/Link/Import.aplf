@@ -9,8 +9,7 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
-     rawns←,⍕ns
-     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
+     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs rawns←ns
 
      files←opts U.FindFile src  ⍝ candidates for source file
      :If 0=≢files
@@ -18,15 +17,13 @@
      :ElseIf 1<≢files
          U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
-        :if ¯1=U.NameClass ns
-             U.Error'Mal-formed namespace name: ',rawns
-        :ElseIf ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
-             U.Error'Not a properly named namespace: ',ns
+         :If ¯1=U.NameClass ns  ⍝ either invalid name or ref to unnamed namespace
+             U.Error'Not a properly named namespace: ',,⍕rawns
          :Else
              U.Error'Not a namespace: ',ns
          :EndIf
      :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace
-         U.Error'Not a properly named namespace: ',ns
+             U.Error'Not a properly named namespace: ',ns
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else

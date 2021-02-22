@@ -10,7 +10,7 @@
              ⎕SE.Link.Links←⍬
          :EndIf
 
-         msg←⍕⍬⊤⍬ ⋄ rawns←,⍕ns
+         msg←⍕⍬⊤⍬ ⋄ rawns←ns
          (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
 
          opts←⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
@@ -42,8 +42,8 @@
 
          :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir' ⋄ :AndIf ⎕SE.Link.Test≢⊃⎕RSI  ⍝ ⎕SE.Link.Test is allowed to toy with file watching/crawling
              U.Error'Watching directories requires Dyalog v18.0 and either .NET or .NetCore'
-         :ElseIf ¯1=nc  ⍝ typically when doing (⎕SE.Link.Create dir ns) instead of (⎕SE.Link.Create ns dir)
-             U.Error'Mal-formed namespace name: ',rawns
+         :ElseIf ¯1=nc   ⍝ invalid namespace
+             U.Error'Not a properly named namespace: ',,⍕rawns
          :ElseIf ~hasdir ⋄ :AndIf opts.source≡'dir'
              U.Error'Source directory not found: ',dir
          :ElseIf ~hasns ⋄ :AndIf opts.source≡'ns'
@@ -57,11 +57,7 @@
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
              U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
-             :If ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
-                 U.Error'Not a properly named namespace: ',ns
-             :Else
-                 U.Error'Not a namespace: ',ns
-             :EndIf
+             U.Error'Not a namespace: ',ns
          :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace
              U.Error'Not a properly named namespace: ',ns
          :ElseIf U.IsScripted nsref

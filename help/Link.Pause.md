@@ -23,6 +23,4 @@ It may also be useful when running code, to ensure that the code may not change 
 
 #### Result
 
-- one boolean per argument namespace:
-  - `1` if namespace was linked (and watching is now paused)
-  - `0` if namesapce was not linked (and Pause did nothing)
+- String describing whether each namespace was paused (success) or not linked (failure)
