@@ -840,7 +840,7 @@
       :EndIf
       ⍝ Create directory for namespace
       3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
-      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts ListFiles opts.dir
+      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles)opts.dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
       ⍝ filter which names to export
@@ -902,29 +902,33 @@
       :EndIf
     ∇
 
-    ∇ (files isdir)←opts ListFiles dir;dirs;hidden;list;mask;order
-      list←↑0 1 6 ⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+    ∇ (files isdir ts)←opts(ts ListFiles)dir;dirs;hidden;list;mask;order
+      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
      
-      mask←1=list[3;] ⋄ list←¯1↓list                ⍝ mask for hidden items
+      mask←1=list[3;]                               ⍝ mask for hidden items
       hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
       hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
       hidden←hidden,¨'/'                            ⍝ protect against similarly named files
       hidden,←('.'=⊃¨∊¨1↓¨⎕NPARTS¨list[1;])/list[1;]⍝ files and directories that start with a '.' are considered hidden too
       list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
      
-      dirs←(1=list[2;])/list[1;]                    ⍝ second column has 1 for dirs
-      dirs←((⊂dir),{⍵[⍋⍵]}dirs),¨'/'                ⍝ all directories (including self)
+      dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
+      dirs,⍨←(-~ts)↓dir 1 0 (0 0 0 0 0 0 0)         ⍝ add self with a fake timestamp (dir timestamps are ignored)
+      dirs[1;],←'/'                                 ⍝ add slash to name
      
-      files←(2=list[2;])/list[1;]                   ⍝ second column has 2 for files; first column is filename
-      files/⍨←opts HasExtn files                    ⍝ must be of correct extension
+      files←(2=list[2;])/list                       ⍝ second column has 2 for files; first column is filename
+      files/⍨←opts HasExtn files[1;]                ⍝ must be of correct extension
      
-      files,←dirs ⋄ isdir←(-≢files)↑(≢dirs)⍴1       ⍝ 1 for dirs, 0 for files
+      list←files,dirs
       ⍝ slashes after all chars and quads before all
       ⍝ in "descending" order into folders:
       ⍝ must process parent folders and all its files (including sysvars) first
       ⍝ we do ↑1+⎕UCS so that fill item (0) is not the same as have (⎕UCS 0) in filename (and comes before it)
-      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨files
-      (files isdir){⍺[⍵]}←⊂order
+      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨list[1;]
+      list←list[;order]
+     
+      files←list[1;] ⋄ isdir←1=list[2;]
+      :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
     ∇
 
     ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
@@ -934,7 +938,7 @@
     ⍝ overwrite=1 : non-empty target - overwrite
       fixed←failed←0⍴⊂''
       :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
-      :Else ⋄ allfiles←⊃opts ListFiles source    ⍝ whole directory
+      :Else ⋄ allfiles←⊃opts(0 ListFiles)source    ⍝ whole directory
       :EndIf
      
       (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)

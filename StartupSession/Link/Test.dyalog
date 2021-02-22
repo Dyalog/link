@@ -44,7 +44,7 @@
     ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
     STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
 
-    ∇ {ok}←{debug}Run test_filter;all;aplv;core;crawler;dnv;docrawler;dotnet;folder;ok;oktxt;opts;rep;showmsg;slow;test;tests;time;udebug;z
+    ∇ {ok}←{debug}Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
       :If (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
@@ -52,7 +52,6 @@
       :Else ⋄ rep←1
       :EndIf
       test_filter←,⊆,test_filter
-      docrawler←⎕SE.Link.Watcher.CRAWLER
       tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
       slow←'test_threads' 'test_watcherror'  ⍝ slow tests
       :If all←(⊂'all')∊test_filter  ⍝ all tests - nothing to do
@@ -61,50 +60,67 @@
       :Else ⋄ tests/⍨←∨⌿1∊¨(test_filter)∘.⍷tests  ⍝ selected tests
       :EndIf
       tests←⊃,/rep⍴⊂tests    ⍝ repeat tests if requested
-      :If 0=⎕SE.Link.DEBUG ⋄ Log'Running:',⍕tests ⋄ :EndIf
-      :If docrawler>×all ⋄ Log'Not running tests with file crawler - use (',(⊃⎕XSI),' ''all'') to run all tests' ⋄ :EndIf
-      :If ok←0≠≢folder←Setup FOLDER NAME
-          ⍝ touch ⎕SE.Link settings
-          :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
-          :If 0=⎕NC'debug' ⋄ debug←⎕SE.Link.DEBUG ⋄ :EndIf
-          (⎕SE.Link.DEBUG debug)←(debug ⎕SE.Link.DEBUG)
-          udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨0 1⍸⎕SE.Link.DEBUG
-          (showmsg ⎕SE.Link.U.SHOWMSG)←(⎕SE.Link.U.SHOWMSG)(0<⎕SE.Link.DEBUG)  ⍝ do not show messages if not debugging
-          (dotnet crawler)←⎕SE.Link.Watcher.(DOTNET CRAWLER)
-     
-          time←⎕AI[3] ⋄ ok←1
-          :For test :In tests
-              :If 0<⎕SE.Link.DEBUG ⋄ Log'Running: ',test ⋄ :EndIf
-              :If docrawler∧×all  ⍝ test with file watcher
-                  ⎕SE.Link.Watcher.(CRAWLER DOTNET)←0 dotnet
-              :EndIf
-⍝ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ⍝ run the test_* function
-              ok∧←(⍎test)folder NAME    ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
-⍝ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
-              :If docrawler∧×all ⍝ test with file crawler
-                  ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
-⍝ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ⍝ run the test_* function
-                  ok∧←(⍎test)folder NAME    ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
-⍝ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
-              :EndIf
-          :EndFor
-          time←⎕AI[3]-time
-          UnSetup
-          ⍝ restore ⎕SE.Link settings
-          {}⎕SE.UCMD']udebug ',udebug
-          ⎕SE.Link.DEBUG←debug
-          ⎕SE.Link.U.SHOWMSG←showmsg
-          ⎕SE.Link.Watcher.(DOTNET CRAWLER)←(dotnet crawler)
-          ⍝ display results
-          dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
-          core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
-          aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
-          aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
-          opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕⎕SE.Link.Watcher.USE_NQ),')'
-          oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
-          Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+      ⍝ check file system
+      :If 0=≢folder←Setup FOLDER NAME
+          :Return
       :EndIf
-     
+      ⍝ set up watcher/crawler
+      (canwatch cancrawl interval)←⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)
+      :If canwatch⍱cancrawl
+          Log'FileSystemWatcher or Crawler required to run tests'
+          :Return
+      :ElseIf all∧(canwatch⍲cancrawl)
+          Log'FileSystemWatcher and Crawler required to run all tests'
+      :EndIf
+      :If (~all)∧(canwatch⍲cancrawl)
+          notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
+          Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),' ''all'') to run all tests'
+      :EndIf
+      :If ~⎕SE.Link.U.IS181 ⋄ Log'Not running Dyalog v18.1 or later - some tests will be skipped' ⋄ :EndIf
+      :If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
+      :ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
+      :ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
+      :EndIf
+      ⍝ touch ⎕SE.Link settings
+      :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
+      :If 0=⎕NC'debug' ⋄ debug←⎕SE.Link.DEBUG ⋄ :EndIf
+      (⎕SE.Link.DEBUG olddebug)←(debug ⎕SE.Link.DEBUG)
+      udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨1+×debug
+      (showmsg ⎕SE.Link.U.SHOWMSG)←(⎕SE.Link.U.SHOWMSG)(×debug)  ⍝ do not show messages if not debugging
+      ⎕SE.Link.Watcher.INTERVAL←0.1 1⊃⍨1+×debug  ⍝ force watching a lot - can't go below 100ms because windows may have granularity of 20ms
+      ⍝ run tests
+      time←⎕AI[3] ⋄ ok←1
+      :If ~×debug ⋄ Log'Running:',⍕tests ⋄ :EndIf
+      :For test :In tests
+          :If ×debug ⋄ Log'Running: ',test ⋄ :EndIf
+          :If canwatch ⍝ test with file watcher
+              ⎕SE.Link.Watcher.(CRAWLER DOTNET)←0 1
+⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
+              ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
+⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
+          :EndIf
+          :If cancrawl ⍝ test with crawler
+              ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
+⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
+              ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
+⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
+          :EndIf
+      :EndFor
+      time←⎕AI[3]-time
+      UnSetup
+      ⍝ restore ⎕SE.Link settings
+      {}⎕SE.UCMD']udebug ',udebug
+      ⎕SE.Link.DEBUG←olddebug
+      ⎕SE.Link.U.SHOWMSG←showmsg
+      ⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←(canwatch cancrawl interval)
+      ⍝ display results
+      dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
+      core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
+      aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
+      aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
+      opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕⎕SE.Link.Watcher.USE_NQ),')'
+      oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
+      Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
     ∇
 
     :EndSection Main entry point and global settings
@@ -297,9 +313,9 @@
       z←⎕SE.Link.Create name folder
       'link issue #220'assert'~∨/''failed''⍷z'
       {}⎕SE.Link.Break name
-
+     
       ⎕EX name
-      'link issue #226'assertError '⎕SE.Link.Create ''C:\temp\dir'' ''#.temp.dir'' '  'Not a properly named namespace'
+      'link issue #226'assertError'⎕SE.Link.Create ''C:\temp\dir'' ''#.temp.dir'' ' 'Not a properly named namespace'
      
       CleanUp folder name
       ok←1
@@ -2064,7 +2080,7 @@
 
 
     ∇ ok←test_watcherror(folder name);i;link;n;src;warn
-      :If ~⎕SE.Link.Watcher.CanWatch
+      :If ~⎕SE.Link.Watcher.DOTNET
           Log'FileSystemWatcher not available - not running ',⊃⎕SI
           ok←1
           :Return
@@ -2148,12 +2164,6 @@
 
     ∇ r←Setup(folder name);udebug
       r←'' ⍝ Run will abort if empty
-      :If ~⎕SE.Link.Watcher.DOTNET
-          Log'.Net Framework or .NetCore required to run tests'
-          :Return
-      :ElseIf ~⎕SE.Link.U.IS181
-          Log'Not running Dyalog v18.1 or later - some tests will be skipped'
-      :EndIf
       :If 0≠⎕NC'⎕SE.Link.Links'
       :AndIf 0≠≢⎕SE.Link.Links
           Log'Please break all links and try again.'
@@ -2273,8 +2283,8 @@
           {}⍎expr
           ok←1
       :Else
-
-        ok←0
+     
+          ok←0
           txt←msg assert'∨/errmsg⍷⎕DMX.EM'  ⍝ always true if errmsg≡''
       :EndTrap
       :If ok ⋄ txt←msg assert'0' ⋄ :EndIf
@@ -2700,5 +2710,61 @@
       ⍝ shouldn't see a warning
     ∇
 
+
+    :Namespace Timer
+        Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
+          Start←{
+              ⎕←'      ⎕SE.Link.Test.Timer.Stop⍬'
+              args←('Active' 1)('Interval' 3000)('Event'('onTimer' 'Callback'))
+              ⍝args,←##.U.IS181/⊂('FireOnce' 1)
+              ⊢⎕THIS.TIMER←⎕NEW'Timer'args
+          }
+        Stop←{⎕THIS.TIMER.Active←0 ⋄ ⎕THIS.⎕EX'TIMER'}
+        Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
+        Time←{.001×3⊃⎕AI}
+        Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
+
+        ∇ Test
+          Start&⍬
+          Busy 10
+        ∇
+
+    :EndNamespace
+
+    :Namespace FixedTimer
+        TIMER←⎕NEW 'Timer' (('Active' 0)('Interval' 3000)('Event'('onTimer' 'Callback')))
+        Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
+          Start←{
+              ⎕←'      ⎕SE.Link.Test.FixedTimer.Stop⍬'
+              ⎕THIS.TIMER.Active←1
+          }
+        Stop←{⎕THIS.TIMER.Active←0}
+        Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
+        Time←{.001×3⊃⎕AI}
+        Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
+
+        ∇ Test sink
+          Start ⍬
+          Busy 10
+          Stop ⍬
+        ∇
+
+        ⍝ There is one message queue per thread for APL events/callbacks
+
+        ⍝ Objects will only see the message queue of the thread that created it (by calling ⎕NEW, ⎕WC, etc.)
+        ⍝ When the thread is destroyed ;
+        ⍝ - we don't know whether it (hands the queue to the parent thread) or (destroys the queue)
+        ⍝ - future events will be passed to the parent thread
+
+        ⍝The message queue is processed :
+        ⍝ - When the thread reaches descalc (size space prompt) (there can only be one at any given time)
+        ⍝    (unless there is a ⎕DQ on the stack, so while we are tracing)
+        ⍝ - its thread is running ⎕DQ
+
+        ⍝ - create timer on its own thread, and call ⎕DQ on it in the same thread
+        ⍝ - create timer in thread 0, run QA in a new thread
+        ⍝ - create timer at fix time, run QA in a new thread
+
+    :EndNamespace
 
 :EndNamespace

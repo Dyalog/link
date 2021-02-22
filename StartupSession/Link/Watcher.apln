@@ -208,30 +208,51 @@
     ⍝⍝⍝⍝⍝ Crawler ⍝⍝⍝⍝⍝
     ⍝ Crawls BOTH the namespace and the directory
     ⍝ Will always fully crawl when interpreter comes back to descalc
-    ⍝ v18.1 required for Timer.FireOnce←1
-    ⍝ TODO v18.0 and earlier need to check that the last timer event was reasonably long ago to crawl only once when catching up the piled queue of timer events when coming back to descalc
+
+    ⍝ Issues :
+    ⍝ - Crawl should be allowed to fail once (race condition) before timer is de-activated (on second failure in a row)
+    ⍝ - Comparing source is slow
+    ⍝ - Looking for files with 5174⌶ is slow
+    ⍝ - To compare sources, APL must NOT be tied to files
+    ⍝ - Do a single ⎕NINFO to get timestamps too
+    ⍝ - Synchronising the ⎕NINFO with the ⎕NGET
 
     LOGCRAWLER←1  ⍝ Log crawler-specific internals - undesirable unless debugging the crawler itself
 
-    ⍝Time←{.001×3⊃⎕AI}  ⍝ time in seconds
-    ∇ time←EncodeTS TS        ⍝ time in milliseconds
+    ∇ time←EncodeTS TS        ⍝ time in seconds
       time←0.001×0 12 31 24 60 60 1000⊥⍉↑⊆TS  ⍝ takes about 14 digits - ⎕CT must be zero
     ∇
     TS_OLD←EncodeTS 0  ⍝ old timestamp
-    ∇ ts←TS  ⍝ Time stamp in milliseconds
+    ∇ ts←TS  ⍝ Time stamp in seconds
       ts←EncodeTS ⎕TS
     ∇
-
 
     LINKS←4 0⍴⍬  ⍝ [link items check active;]
     L_LINK L_ITEMS L_CHECK L_ACTIVE←⍳4
     NO_ITEMS←5 0⍴⍬  ⍝ [file name nc check filemod;]
     I_FILE I_NAME I_NC I_CHECK I_FMOD←⍳5
-    LASTEND←TS_OLD
+    LASTSTART←LASTEND←TS_OLD
 
-    TIMER←⎕NULL
-    INTERVAL←2000⊣100    ⍝ Timer interval in milliseconds
-    GRANULARITY←20  ⍝ Time granularity in milliseconds
+    INTERVAL←2⊣.1    ⍝ Timer interval in seconds
+    GRANULARITY←.02  ⍝ Time granularity in seconds
+    ∇ timer←CreateTimer;args
+    ⍝ create Timer in thread 0, so that timer events will be generated when thread 0 comes back to six-space prompt
+      :If 0≠⎕TID ⋄ (⎕←'⎕SE.Link.Watcher namespace must be fixed in thread 0')⎕SIGNAL 999 ⋄ :EndIf
+      args←('Active' 0)('Interval'(⌈1000×INTERVAL))('Event'('onTimer' 'CrawlerEvent'))
+      :If IS181 ⋄ args,←⊂('FireOnce' 1) ⋄ :EndIf
+      timer←⎕NEW'Timer'args
+    ∇
+    TIMER←CreateTimer
+    ⍝ There is one message queue per thread for APL events/callbacks
+    ⍝ Objects will only see the message queue of the thread that created it (by calling ⎕NEW, ⎕WC, etc.)
+    ⍝ When the thread is destroyed ;
+    ⍝ - we don't know whether it (hands the queue to the parent thread) or (destroys the queue)
+    ⍝ - future events will be passed to the parent thread
+    ⍝ The message queue is processed :
+    ⍝ - When the thread reaches descalc (size space prompt) (there can only be one thread in descalc at any given time)
+    ⍝    (unless there is a ⎕DQ on the stack, so while we are tracing)
+    ⍝ - its thread is running ⎕DQ
+
 
     ∇ warn LogCrawler msg;title
     ⍝ Use 1 to warn, 0 to log link-specific events, ¯1 to log crawler-specific events
@@ -246,10 +267,9 @@
           ¯1 LogCrawler'Adding link: 'link' to ',LINKS[L_LINK;]
           LINKS,←link NO_ITEMS TS_OLD 1
           Crawl link  ⍝ set up
-          :If ⎕NULL≡TIMER
-              args←('Interval'(⌈INTERVAL))('Event'('onTimer' 'CrawlerEvent&'))('Active' 1)  ⍝ trigger event in a parallel thread to avoid DEADLOCK on ⎕SE.Link.Crawler  
-              :If IS181 ⋄ args,←⊂('FireOnce' 1) ⋄ :EndIf
-              TIMER←⎕NEW'Timer'args
+          :If ~TIMER.Active
+              TIMER.Interval←⌈1000×INTERVAL  ⍝ for ⎕SE.Link.Test to change it
+              TIMER.Active←1
               ¯1 LogCrawler'Started timer'
           :EndIf
       :EndHold
@@ -269,9 +289,9 @@
     ∇ RemoveCrawler links;msg
       :Hold '⎕SE.Link.Crawler'
           LINKS/⍨←~LINKS[L_LINK;]∊links
-          ¯1 LogCrawler(⊂'Removing link: '),links,(⊂'- Remaining links: '),(LINKS[L_LINK;])
-          :If (0∊⍴LINKS)∧(TIMER≢⎕NULL)
-              TIMER.Active←0 ⋄ TIMER←⎕NULL
+          ¯1 LogCrawler(⊂'Removing link: '),links,(⊂' - Remaining links: '),(LINKS[L_LINK;])
+          :If 0∊⍴LINKS
+              TIMER.Active←0
               ¯1 LogCrawler'Stopping timer'
           :EndIf
       :EndHold
@@ -279,30 +299,46 @@
 
 
 
-    ∇ {msg}←CrawlerEvent msg
-      :If ~IS181  ⍝ v18.1 has FireOnce property so events never pile up
-      :AndIf (INTERVAL-GRANULARITY)>(TS-LASTEND)  ⍝ wait at least INTERVAL since last crawl to crawl again
-          ¯1 LogCrawler'Crawler timer overloaded'
-          :Return
+    ∇ {msg}←CrawlerEvent msg;mask;ok;start
+      :If ##.U.debug=2
+          (1+⊃⎕LC)⎕STOP⊃⎕SI
       :EndIf
-      :Hold '⎕SE.Link.Crawler' '⎕SE.Link.Notify'
-          Crawl¨LINKS[L_LINK;]  ⍝ Crawl must call Notify directly for the :Hold to work !
-      :EndHold
-      LASTEND←TS
-      :If IS181  ⍝ v18.1 has FireOnce property so set it up again
-          (⊃msg).FireOnce←1  ⍝ fire once more
-      :EndIf
+      :Trap ##.DEBUG↓0
+          start←TS
+          :If ~IS181  ⍝ v18.1 has FireOnce property so events never pile up
+          :AndIf (INTERVAL-GRANULARITY)>(TS-LASTSTART)  ⍝ prevent running several events in a row when the queue has piled up
+              ¯1 LogCrawler'Timer event: Event queue overloaded'
+              :Return
+          :ElseIf (0.5×INTERVAL)>(TS-LASTEND)  ⍝ prevent spending more than half the time crawling
+              ¯1 LogCrawler'Timer event: Crawler overloaded'
+          :EndIf
+          ¯1 LogCrawler'Timer event'
+          :Hold '⎕SE.Link.Crawler' '⎕SE.Link.Notify'
+          ⍝ Crawl must call Notify directly for the :Hold to work !
+              :If 1∊mask←LINKS[L_ACTIVE;]
+                  Crawl¨mask/LINKS[L_LINK;]
+              :EndIf
+          :EndHold
+          :If IS181  ⍝ v18.1 has FireOnce property so set it up again
+              (⊃msg).FireOnce←1  ⍝ fire once more
+          :EndIf
+          LASTSTART←start
+          LASTEND←TS
+      :Else
+          (⊃msg).Active←0
+          ⎕←'Link: Crawler callback internal error - Crawler stopped'
+      :EndTrap
     ∇
 
-    ∇ {start}←Crawl link;active;allfiles;aplnames;aplsrc;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;check;creations;deletions;delfiles;delmask;delnames;differ;filenames;filesrc;inx;items;mask;mewmod;mod;modmask;newdirs;newfiles;newmod;newnames;newnc;newsrc;notchecked;ns;nsref;oldfiles;oldnames;src;start;time
+    ∇ {start}←Crawl link;active;allfiles;aplnames;aplsrc;changed;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;check;creations;deletions;delfiles;delmask;delnames;differ;dirs;filelist;filemod;filenames;filesrc;inx;items;mask;mewmod;mod;modmask;new;newfiles;newmod;newnames;newnc;newsrc;notchecked;ns;nsref;oldfiles;oldnames;src;start;time
       start←TS
       :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
           1 LogCrawler'Link not crawled: '(,⍕link)  ⍝ should not happen
           :Return
       :EndIf
       (link items check active)←LINKS[;inx]
-      :If ~active
-          ¯1 LogCrawler'Link not active: '(,⍕link)
+      :If ~active  ⍝ should not happen
+          1 LogCrawler'Link not active: '(,⍕link)
       :EndIf
     ⍝⍝⍝ Look for creation/deletion of APL names
       time←TS
@@ -313,6 +349,9 @@
       newnc←newfiles←newmod←⍬
       :If ~0∊⍴creations←newnames~oldnames
           newsrc←nsref ##.U.GetAplSource¨creations
+          :If {1=≡⍵}¨newsrc
+              ∘∘∘
+          :EndIf
           newnc←nsref ##.U.NameClass¨creations
           newfiles←⊃link(1 ##.U.DetermineFileName)((≢creations)⍴⊂ns)((1+≢ns)↓¨creations)((≢creations)⍴⊂'')newnc
           creations{0 LogCrawler'Created APL item: '⍺' → '⍵}¨newfiles
@@ -321,7 +360,7 @@
       :EndIf
       ⍝ check for deletions
       oldfiles←⍬
-      deletions←oldnames~newnames
+      deletions←oldnames~newnames,⊂''  ⍝ files that don't have a proper name (oldname≡'') don't contribute to APL deletions !
       :If 1∊delmask←oldnames∊deletions
           oldfiles←⊃link(1 ##.U.DetermineFileName)((+/delmask)⍴⊂ns)((1+≢ns)↓¨delmask/oldnames)((+/delmask)⍴⊂'')(delmask/items[I_NC;])
           allfiles←4⊃¨5177⌶⍬
@@ -337,27 +376,27 @@
       items←((~delmask)/items),↑newfiles creations newnc((≢creations)⍴⊂time)newmod
     ⍝⍝⍝ Look for files (not dirs) with a change of modification timestamp
       time←TS
-      (newfiles newdirs)←link ##.U.ListFiles link.dir
-      (newfiles newdirs)←(0 1=⊂newdirs)/¨⊂newfiles
-      newdirs~←⊂link.dir,'/'  ⍝ do not keep track of root
-      newfiles←newdirs,newfiles  ⍝ keep dir first
+      (filelist dirs filemod)←link(1 ##.U.ListFiles)link.dir ⋄ filemod←EncodeTS↑filemod
+      (filelist dirs filemod)/⍨←⊂~filelist∊⊂link.dir,'/'  ⍝ do not keep track of root
+      (filelist filemod){⍺[⍵]}←⊂⍒dirs ⋄ dirs←(+/dirs)↑filelist ⍝ keep dirs first
       oldfiles←items[I_FILE;]
-      delfiles←oldfiles~newfiles ⋄ changedfiles←newfiles∩oldfiles ⋄ newfiles~←oldfiles
-      :If ~0∊⍴changedfiles
-          changedmod←EncodeTS↑3 ⎕NINFO changedfiles
+      delfiles←oldfiles~filelist
+      new←~changed←filelist∊oldfiles
+      :If ~0∊⍴changedfiles←changed/filelist
+          changedmod←changed/filemod
           changedinx←oldfiles⍳changedfiles
-      :AndIf 1∊modmask←changedmod≠items[I_FMOD;changedinx]  ⍝ file modification timestamp has changed
-      :AndIf 1∊modmask←modmask∧(¯9.1≠items[I_NC;changedinx])∨(~changedfiles∊newdirs)  ⍝ ignore change of timestamps for dirs that remain dirs
+      :AndIf 1∊modmask←changedmod≠¨items[I_FMOD;changedinx]  ⍝ file modification timestamp has changed
+      :AndIf 1∊modmask←modmask∧(¯9.1≠items[I_NC;changedinx])∨(~changedfiles∊dirs)  ⍝ ignore change of timestamps for dirs that remain dirs
           changednames←##.Notify¨{'changed'⍵}¨modmask/changedfiles
           ⍝ update data structure
           items[I_CHECK I_FMOD;modmask/changedinx]←↑((+/modmask)⍴⊂time)(modmask/changedmod)
       :EndIf
     ⍝⍝⍝ Look for creation/deletion of files (modification may be old in case unzipped)
       newnames←newnc←newmod←⍬
-      :If ~0∊⍴newfiles
+      :If ~0∊⍴newfiles←new/filelist
+          newmod←new/filemod
           newnames←##.Notify¨{'created'⍵}¨newfiles
           newnc←##.U.NameClass ##.U.OnEach newnames
-          newmod←EncodeTS↑3 ⎕NINFO newfiles  ⍝ ⎕OPT could avoid doing it on dirs
       :EndIf
       :If ~0∊⍴delfiles
           delnames←##.Notify¨{'deleted'⍵}¨⌽delfiles  ⍝ delete directories last
@@ -370,13 +409,18 @@
       time←TS
       differ←notchecked←⍬
       :If ~0∊⍴items  ⍝ otherwise  items[I_CHECK;]  may have nested prototype
-      :AndIf ~0∊⍴notchecked←⍸items[I_CHECK;]<start  ⍝ items not checked so far
+          mask←items[I_CHECK;]<start  ⍝ items not checked so far
+          mask∧←0<≢¨items[I_NAME;]    ⍝ items that have a valid APL name
+      :AndIf ~0∊⍴notchecked←⍸mask
           aplsrc←# ##.U.GetAplSource¨aplnames←items[I_NAME;notchecked]
           filesrc←##.U.GetFileSource¨filenames←items[I_FILE;notchecked]
       :AndIf ~0∊⍴differ←(mask←aplsrc≢¨filesrc)/notchecked  ⍝ items that differ from file definition
+          :If ∨/∨/¨{1=≡⍵}¨¨aplsrc filesrc
+              ∘∘∘
+          :EndIf
           (mask/aplnames){0 LogCrawler'Changed APL item: '⍺' → '⍵}¨(mask/filenames)
-          (mask/aplsrc)##.U.Into¨(mask/filenames)
-          mod←EncodeTS↑3 ⎕NINFO(mask/filenames)
+          ⍝ PLEASE keep the following code on same line to avoid switching thread between the file write and the ⎕NINFO
+          (mask/aplsrc)##.U.Into¨(mask/filenames) ⋄ mod←EncodeTS↑3 ⎕NINFO mask/filenames  
           ⍝ update datastructure
           items[;differ]←↑(mask/filenames)(mask/aplnames)(##.U.NameClass¨mask/aplnames)((+/mask)⍴time)mod
       :EndIf
@@ -384,7 +428,6 @@
       LINKS[;inx]←link items time active
       ⍝##.U.Log'Items: ',(⍕⊃⌽⍴items),' ⋄ Source compared: ',(⍕≢notchecked),' ⋄ Differ: ',(⍕≢differ)
     ∇
-
 
 
 :EndNamespace
