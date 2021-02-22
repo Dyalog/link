@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;nsref;nsrefs;overwrite;rsi;warn;xsi;⎕IO;⎕ML
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;nc;nsref;nsrefs;overwrite;rawns;rsi;warn;xsi;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -10,8 +10,8 @@
              ⎕SE.Link.Links←⍬
          :EndIf
 
+         msg←⍕⍬⊤⍬ ⋄ rawns←,⍕ns
          (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
-         msg←⍕⍬⊤⍬
 
          opts←⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
          :If warn←~Watcher.CanWatch  ⍝ warn if not watching directory by default - will disappear when file crawler works
@@ -30,7 +30,7 @@
          :Else ⋄ emptydir←1
          :EndIf
 
-         :If hasns←¯9.1=U.NameClass ns
+         :If hasns←¯9.1=nc←U.NameClass ns
              :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
              :AndIf ~emptydir                       ⍝ some dir/files defined
              :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
@@ -41,19 +41,21 @@
          :EndIf
 
          :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir' ⋄ :AndIf ⎕SE.Link.Test≢⊃⎕RSI  ⍝ ⎕SE.Link.Test is allowed to toy with file watching/crawling
-             U.Error'Watching directories is only supported if .NET or .NetCore is available'
+             U.Error'Watching directories requires Dyalog v18.0 and either .NET or .NetCore'
+         :ElseIf ¯1=nc  ⍝ typically when doing (⎕SE.Link.Create dir ns) instead of (⎕SE.Link.Create ns dir)
+             U.Error'Mal-formed namespace name: ',rawns
          :ElseIf ~hasdir ⋄ :AndIf opts.source≡'dir'
              U.Error'Source directory not found: ',dir
-         :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
-             U.Error'Destination namespace not empty: ',ns
          :ElseIf ~hasns ⋄ :AndIf opts.source≡'ns'
              U.Error'Source namespace not found: ',ns
+         :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
+             U.Error'Destination namespace not empty: ',ns
          :ElseIf ~emptydir ⋄ :AndIf opts.source≡'ns'
              U.Error'Destination directory not empty: ',dir
          :ElseIf emptydir⍱emptyns ⋄ :AndIf opts.source≡'auto'
              U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
-             U.Error'Cannot link a non-existing namespace to a non-existing directory: ',ns,' ←→ ',dir
+             U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
              :If ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
                  U.Error'Not a properly named namespace: ',ns

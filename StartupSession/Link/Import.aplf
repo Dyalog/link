@@ -1,4 +1,4 @@
- msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;single;⎕IO;⎕ML
+ msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -9,6 +9,7 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
+     rawns←,⍕ns
      ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs ns
 
      files←opts U.FindFile src  ⍝ candidates for source file
@@ -17,7 +18,9 @@
      :ElseIf 1<≢files
          U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
-         :If ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
+        :if ¯1=U.NameClass ns
+             U.Error'Mal-formed namespace name: ',rawns
+        :ElseIf ~U.IsNamedNs ns  ⍝ link issue #197 - ns is ref to unnamed namespace
              U.Error'Not a properly named namespace: ',ns
          :Else
              U.Error'Not a namespace: ',ns

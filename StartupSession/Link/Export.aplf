@@ -1,17 +1,20 @@
- msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML
+ msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     rawsrc←,⍕src
      (container src)←⎕RSI ⎕XSI U.ContainerNs src
 
      (defopts←⎕NS ⍬).(overwrite arrays)←0 0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
-     :if ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
+     :If ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
 
-     :If 0 ¯1∊⍨⌊nc←container U.NameClass src
+     :If ¯1=nc←container U.NameClass src
+         U.Error'Mal-formed namespace name: ',rawsrc
+     :ElseIf 0=nc
          U.Error'Source not found: ',src
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
