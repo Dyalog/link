@@ -564,6 +564,11 @@
     :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
 
     ∇ src←GetRefSource ns;file
+      :If ~0∊⍴file←# CurrentFileName ns  ⍝ TODO Mantis this - ⎕SRC won't provide :Require headers if they exist
+      :AndIf ~0∊⍴src←GetFileSource file  ⍝ source accessible
+          :Return
+
+        :EndIf
       :Trap 16 22 ⋄ src←⎕SRC ns   ⍝ scripted namespace
       :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v18.1 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
       :Else
@@ -612,7 +617,7 @@
       :If has←src≢⎕NULL
       :AndIf has←~0∊⍴req←⎕IO+'^\s*:require\s+' '^\s*(⍝.*)?$'⎕S 2 3⍠'IC' 1⊢src  ⍝ lines startting with ':Require ' and empty lines
       :AndIf has←1∊2⊃(line patt)←↓⍉↑req   ⍝ just because ↓⍉↑ won't work on empty ⎕S, which yields ⊂⍬
-          has←1∊(⍳⍴line)=(line[⍋line])/patt  ⍝ found at top of script (consecutive row of empty lines and :Require's
+          has←1∊((⍳⍴line)=line[⍋line])/patt  ⍝ found at top of script (consecutive row of empty lines and :Require's
       :EndIf
     ∇
 
@@ -823,8 +828,24 @@
       :EndIf
     ∇
 
+    ∇ (names nc failed)←root ListLinkedNs link;mask;nsref
+      names←(root/⊂link.ns),1 ListNs link.ns
+      ⍝ filter which names to export
+      nc←(nsref←⍎link.ns)NameClass¨names
+      :If 0∊mask←nc∊(NameClasses link.arrays≡1)   ⍝ keep only names in allowed class
+          failed←((nc≠2.1)∧(~mask))/names  ⍝ these names won't be exported at all - ignored arrays are OK
+          (names nc)/⍨←⊂mask
+      :Else ⋄ failed←0⍴⊂''
+      :EndIf
+      :If ~0=≡link.arrays  ⍝ add some arrays too
+          nc,⍨←2.1⍴⍨≢names,⍨←link.arrays/⍨(nsref NameClass¨link.arrays)=2.1
+      :EndIf
+      :If link.sysVars  ⍝ add sysvars for all unscripted namespaces
+          nc,⍨←2.1⍴⍨≢names,⍨←,((⊂link.ns),((nc=¯9.1)/names))∘.,('.',¨⎕SE.Link.U.NsSysVars)
+      :EndIf
+    ∇
 
-    ∇ (written failed)←opts WriteFiles(src dest arrays sysvars overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
+    ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
     ⍝ Write items to file in folders
     ⍝ ns must be a fully specified unscripted namespace
     ⍝ arrays: boolean to include/exclude arrays, or list of normalised APL names to include
@@ -834,24 +855,19 @@
     ⍝ overwrite=1 : non-empty target - overwrite
       written←failed←0⍴⊂'' ⋄ file←dest≢opts.dir  ⍝ single file provided
       :If ~single←¯9.1≠NameClass src  ⍝ map unscripted namespace to directory
-          nsref←⍎ns←src ⋄ names←1 ListNs ns ⍝ list trad namespaces (excepted ns itself)
+          nsref←⍎ns←src
+          (names nc failed)←0 ListLinkedNs opts ⍝ list trad namespaces (excepted ns itself)
           :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
-      :Else ⋄ names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
+      :Else
+          names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
+          nc←nsref NameClass¨names
       :EndIf
       ⍝ Create directory for namespace
       3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
       :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles)opts.dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
-      ⍝ filter which names to export
-      nc←nsref NameClass¨names
-      :If 0∊mask←nc∊(NameClasses arrays≡1)   ⍝ keep only names in allowed class
-          failed,←((nc≠2.1)∧(~mask))/names  ⍝ these names won't be exported at all - ignored arrays are OK
-      :EndIf
-      (names nc)/⍨←⊂mask
       ⍝ Write files
-      :If ~0=≡arrays ⋄ names,←arrays/⍨(nsref NameClass¨arrays)=2.1 ⋄ :EndIf  ⍝ add arrays too
-      :If sysvars ⋄ names,←,((⊂ns),((nc=¯9.1)/names))∘.,('.',¨⎕SE.Link.U.NsSysVars) ⋄ :EndIf  ⍝ add sysvars for all unscripted namespaces
       :If 0≠≢names←∪names
           src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
           :If 1∊mask←{1=≡⍵}¨src     ⍝ can't get source
@@ -913,7 +929,7 @@
       list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
      
       dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
-      dirs,⍨←(-~ts)↓dir 1 0 (0 0 0 0 0 0 0)         ⍝ add self with a fake timestamp (dir timestamps are ignored)
+      dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)         ⍝ add self with a fake timestamp (dir timestamps are ignored)
       dirs[1;],←'/'                                 ⍝ add slash to name
      
       files←(2=list[2;])/list                       ⍝ second column has 2 for files; first column is filename

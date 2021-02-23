@@ -56,7 +56,7 @@
       slow←'test_threads' 'test_watcherror'  ⍝ slow tests
       :If all←(⊂'all')∊test_filter  ⍝ all tests - nothing to do
       :ElseIf (0∊⍴test_filter)∨(test_filter≡,⊂'') ⋄ tests~←slow  ⍝ basic tests
-          Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),' ''all'') to run all tests'  ⍝ remove slow tests
+          Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),'& ''all'') to run all tests'  ⍝ remove slow tests
       :Else ⋄ tests/⍨←∨⌿1∊¨(test_filter)∘.⍷tests  ⍝ selected tests
       :EndIf
       tests←⊃,/rep⍴⊂tests    ⍝ repeat tests if requested
@@ -74,12 +74,16 @@
       :EndIf
       :If (~all)∧(canwatch⍲cancrawl)
           notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
-          Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),' ''all'') to run all tests'
+          Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
       :EndIf
       :If ~⎕SE.Link.U.IS181 ⋄ Log'Not running Dyalog v18.1 or later - some tests will be skipped' ⋄ :EndIf
       :If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
       :ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
       :ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
+      :EndIf
+      :If cancrawl∧⎕TID=0
+          Log(⊃⎕XSI),'&',(⍕''''{⍺,((1+⍵=⍺)/⍵),⍺}¨⊆test_filter),'   ⍝ Crawler QA''s must be run in a non-zero thread'
+          :Return
       :EndIf
       ⍝ touch ⎕SE.Link settings
       :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
@@ -688,23 +692,19 @@
      
       ⍝ Now test whether exits implement ".charmat" support
       ⍝ First, write vars in the workspace to file'
-     
-      ns.cm←↑ns.cv←'Line 1' 'Line two'
-      ns'cm'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
-      ns'cv'⎕SE.Link.Fix ⍬ ⍝ Ditto for charvec
+      ⍝ prevent thread-switch across the next line to avoid the crawler picking up APL changes before the Fix - they would be mapped to cm.apla and cv.apla because user doesn't declare a getFilename callback
+      ns.cm←↑ns.cv←'Line 1' 'Line two' ⋄ ns'cm'⎕SE.Link.Fix ⍬ ⋄ ns'cv'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
       assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
       assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
      
       ⍝ Then verify that modifying the file brings changes back
       _←(⊂cv←ns.cv,⊂'Line three')QNPUT(folder,'/cv.charvec')1
-      _←(⊂↓cm←↑ns.cv)QNPUT(folder,'/cm.charmat')1
-     
-      assert'cm≡↑⊃#.SLAVE.⎕NGET (folder,''/cm.charmat'') 1'
-      assert'cv≡⊃#.SLAVE.⎕NGET (folder,''/cv.charvec'') 1'
+      _←(⊂↓cm←↑cv)QNPUT(folder,'/cm.charmat')1
+      assert'cm≡ns.cm'
+      assert'cv≡ns.cv'
      
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
-      Breathe
       _←2 QNDELETE folder,'/bus'
       assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
      
@@ -1340,10 +1340,10 @@
 
       assert_create←{  ⍝ ⍺=newapl ⋄ ⍵=newfile
           _←assert(⍺/'new'),'var≡⍎subname,''.var'''
-          _←assert(⍺/'new'),'foonr≡NR subname,''.foo'''
+          _←assert(⍺/'new'),'foosrc≡NR subname,''.foo'''
           _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''   ⍝ problem is that ⎕SRC reads directly from file !
           _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
-          _←assert(⍵/'new'),'foonget≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+          _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
           _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
@@ -1355,7 +1355,7 @@
       :EndTrap
     ∇
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foonget;foonr;foosrc;footok;newfoonget;newfoonr;newfoosrc;newfootok;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1457,10 +1457,16 @@
       ⍝ actual contents
       quadvars←':Namespace quadVars' '##.(⎕IO ⎕ML ⎕WX)←0 2 1' ':EndNamespace'  ⍝ link issue #206 - try unusual values
       (⊂quadvars)⎕NPUT folder,'/quadVars.apln'  ⍝ link issue #206
-      foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
-      footok←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
-      :If ~AutoFormat   ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
-          footok←(1 0 1/¨' '),¨footok  ⍝ AUTOFORMAT=0 adds a space excepted where commented
+      :If ⎕SE.Link.U.IS181
+          foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
+          newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
+      :Else
+          foosrc←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
+          newfoosrc←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢foosrc
+          :If ~AutoFormat   ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
+              foosrc←(1 0 1/¨' '),¨foosrc  ⍝ AUTOFORMAT=0 adds a space excepted where commented
+              newfoosrc←(0 0 1/¨' '),¨newfoosrc  ⍝ AUTOFORMAT=0 adds a space excepted where commented
+          :EndIf
       :EndIf
       (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
       (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
@@ -1469,15 +1475,7 @@
       (⊂badsrc1←,¨':Namespace badns1' '  ∇  res  ←  foo  arg  ;  ' '  res  ←  arg  ' '∇' ':EndNamespace')⎕NPUT folder,'/badns1.apln'
       (⊂badsrc2←,¨':Namespace badns2' '  ∇  res  ←  foo  arg  ' '  res  ←  arg  ' '∇' ':EndClass')⎕NPUT folder,'/badns2.apln'
       newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'new hello')@2)¨var
-      newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
       newnssrc←('  ⍝  new  comment  ' 'foo ← { ''newfoo'' ⍵ } ')@2 3⊢nssrc
-      newfootok←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢footok
-      :If ~AutoFormat  ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
-          newfootok←(0 0 1/¨' '),¨newfootok  ⍝ AUTOFORMAT=0 adds a space excepted where commented
-      :EndIf
-      ⍝ expected results
-      (foonr newfoonr)←(1+⎕SE.Link.U.IS181)⊃¨(footok foosrc)(newfootok newfoosrc)  ⍝ v18.0 can't read source of APL functions as typed
-      (foonget newfoonget)←(foosrc newfoosrc)
       ⍝ bug from Morten
       ns2←,¨':Namespace ns2' '∇res←{larg}fn rarg' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{' '1:∇⍵⋄⍵' '}rarg' '∇' 'dfn←{' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{' '1:⍵⋄⍵' '}rarg' '}' ':EndNamespace'
       (⊂ns2)⎕NPUT folder,'/ns2.apln'
@@ -1524,7 +1522,9 @@
       :If ⎕SE.Link.U.IS181 ⋄ nstree,←'#.linktest.badns1' '#.linktest.badns2' ⋄ :EndIf
       ⍝:If 82=⎕DR'' ⋄ nstree~←'#.linktest.sub.require' '#.linktest.sub.required' ⋄ :EndIf  ⍝ BUG this line was due to Mantis 18628
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
-      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'  ⍝ Mantis 18626 required ⎕SE.Link.U.IS181++/~3⊃⎕SE.Link.U.GetFileTiesIn
+      ⍝ Mantis 18626 required the line below to read :  ⎕SE.Link.U.IS181++/~3⊃⎕SE.Link.U.GetFileTiesIn
+      ⍝ Crawler has the same requirement because it "sees" sub.required being fixed into APL.
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(⎕SE.Link.Watcher.(CRAWLER>DOTNET)++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
       failed←0⍴⊂'' ⍝ BUG this line was due to Manti 18635 : ⍝ failed←⊂'CLASS2A'
       assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
       assert'∧/',⍕name∘{'(''foo''1234≡(⎕NEW ',⍺,'.',⍵,').foo 1234)'}¨failed~⍨'CLASS'∘,¨'1B' '1D' '2A' '2C'
@@ -1536,11 +1536,10 @@
       opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts ⎕SE.Link.Create name folder
       assert'''Linked:''≡7↑z'
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
-      :If ⎕SE.Link.U.IS181 ⋄ assert'foosrc∘≡¨NR¨name subname,¨⊂''.foo'''  ⍝ source-as-typed
-      :Else ⋄ assert'foonr∘≡¨NR¨name subname,¨⊂''.foo'''                  ⍝ de-tokenised form
-      :EndIf
+      assert'∧/foosrc∘≡¨NR¨name subname,¨⊂''.foo'''  ⍝ source-as-typed
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
       0 assert_create 0
+     
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ watch=dir must reflect changes from files to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
@@ -1606,7 +1605,6 @@
      
      
       ⍝ now try source=ns watch=dir
-      :If ~⎕SE.Link.U.IS181 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ source=ns means 18.0 can't export whitespace-preserved
       opts.source←'ns' ⋄ opts.watch←'dir' ⋄ opts.arrays←name,'.var,',name,'.sub.var'
       name⍎'derived←∧.∧'
       name⍎'array←1 2 3'
@@ -1620,7 +1618,6 @@
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
-      :If ~⎕SE.Link.U.IS181 ⋄ newfoonget←newfoosrc ⋄ :EndIf   ⍝ we just wrote it to file
       1 assert_create 1
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
@@ -1644,13 +1641,11 @@
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
-      :If ~⎕SE.Link.U.IS181 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
       ⍝ now try source=ns watch=none
-      :If ~⎕SE.Link.U.IS181 ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
       opts.source←'ns' ⋄ opts.watch←'none'
       {}opts ⎕SE.Link.Create name folder
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
@@ -1669,13 +1664,11 @@
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
-      :If ~⎕SE.Link.U.IS181 ⋄ foonget←foosrc ⋄ :EndIf  ⍝ just wrote to file
       Breathe
       1 assert_create 0
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
      
       ⍝ link issue #160 try having items in the namespace already tied to items in the folder
-      :If ~⎕SE.Link.U.IS181 ⋄ (foonget newfoonget)←(foosrc newfoosrc) ⋄ :EndIf  ⍝ start again from dir
       ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 ⎕MKDIR subfolder
       {}(⊂nssrc)QNPUT(folder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(folder,'/foo.aplf')1
@@ -1712,12 +1705,14 @@
       assert'0=≢⎕SE.Link.Links'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'  ⍝ TODO : should recognise that the files are correctly linked to the namespace
       'link issue #160'assert'0=≢⎕SE.Link.Links'
-      :If ⎕SE.Link.U.IS181 ⋄ 2(⍎name).⎕FIX NR name,'.foo' ⋄ 2(⍎subname).⎕FIX NR subname,'.foo'  ⍝ the ⎕NDELETE would make (0⎕INFO) produce ⎕NULL
-      :Else ⋄ (foonget newfoonget)←(footok newfootok) ⋄ :EndIf  ⍝ start again from ns
+      :If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕INFO) produce ⎕NULL
+          foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
+      :EndIf
       3 ⎕NDELETE folder
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Add name subname,¨⊂'.var'
+     
       1 assert_create 1
       assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
       z←⎕SE.Link.Break name
@@ -1780,6 +1775,16 @@
 
     Stringify←{'''',((1+⍵='''')/⍵),''''}
 
+    ∇ RideBreathe n
+    ⍝ TODO WHY IS THIS NEEDED ???
+      :If ⎕SE.Link.Watcher.(CRAWLER>DOTNET)
+          :If 0≥n ⋄ :Return ⋄ :EndIf
+          {}ride.APL'⎕DQ #'
+          :If 1≥n ⋄ :Return ⋄ :EndIf
+          {}ride.APL¨(n-1)⍴⊂'⎕DL ⎕SE.Link.Watcher.INTERVAL ⋄ ⎕DQ #'
+      :EndIf
+    ∇
+
     ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;newdfn;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
@@ -1793,6 +1798,9 @@
           ok←0 ⋄ :Return
       :EndTrap
       (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
+     
+      ⍝ride.TRACE←1
+      ⍝ride.Execute'⎕SE.Link.U.SHOWMSG←1'
      
       ⎕MKDIR Retry⊢folder
       varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
@@ -1813,8 +1821,9 @@
       output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(∨/''Linked:''⍷output)'
      
+     
       ⍝ https://github.com/Dyalog/link/issues/48
-      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655
+      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655 - linux + 18.1
           ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
           'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
           output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
@@ -1827,27 +1836,33 @@
       'link issue #49'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
       'link issue #49'assert' foo≡⊃⎕NGET (folder,''/sub/foo.aplf'') 1 '   ⍝ foo is untouched
       'link issue #49'assert' goo≡⊃⎕NGET (folder,''/sub/goo.aplf'') 1 '   ⍝ goo is defined in the same directory as foo
+      RideBreathe 1
       {}QNDELETE folder,'/sub/goo.aplf'
+      RideBreathe 2
       'link issue #49'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
      
       ⍝ now copy files in the root to have two namespace (root and root.sub)
       output←ride.APL' ⎕SE.Link.Break ',(Stringify name),' ⋄ ⎕EX ',(Stringify name)
+     
       assert'(⊃''Unlinked''⍷output)'
       {}(⊂varsrc)QNPUT(folder,'/var.apla')1
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/class.aplc')1
       output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(⊃''Linked:''⍷output)'
+      RideBreathe 1
      
      ⍝ link issue #190: edit a non-existing name, and change its name before fixing
       ride.Edit(name,'.doesntexist')('res←exists arg' 'res←arg')
       'link issue #190'assert'(''1'',NL)≡ride.APL ''0 3.1≡',name,'.⎕NC''''doesntexist'''' ''''exists'''' '' '
       'link issue #190'assert'0=≢⊃⎕NINFO⍠1⊢''',folder,'/doesntexist.*'' '
       'link issue #190'assert'1=≢⊃⎕NINFO⍠1⊢''',folder,'/exists.*'' '
+      RideBreathe 1
      
      ⍝ link issue #196: whitespace not preserved on first fix
       ride.Edit(name,'.newdfn')(newdfn←,⊂'   newdfn   ←   {  ⍺ + ⍵  }   ')
       'link issue #196'assert'(¯3↓¨newdfn)≡⊃⎕NGET (folder,''/newdfn.aplf'') 1'  ⍝ Mantis 18758 trailing whitespaces are dropped
+      RideBreathe 1
      
      ⍝ https://github.com/Dyalog/link/issues/154
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
@@ -1862,6 +1877,7 @@
      ⍝ https://github.com/Dyalog/link/issues/30
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
       {}(⊂goo)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
+      RideBreathe 2
       'link issue #30'assert'('''')≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
       'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ⎕CR ''''goo'''' '' '  ⍝ goo is there
       (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
@@ -1870,16 +1886,19 @@
       'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is there
       ⍝ do the same thing without modifying the name of the function
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
+      RideBreathe 1
       'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
       'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
       {}(⊂foo2)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
+      RideBreathe 2
       'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has changed
       (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
       'link issue #30'assert'1 ('' foo2  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ ⎕BUG? traced code HAS changed although the tracer window still displays the old code
       'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ goo is there
       ⍝ restore what we've done
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
+      RideBreathe 2
       'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
       'link issue #30'assert'(''0'',NL)≡ride.APL'' ⎕NC⊂''''foo2'''' '' '
      
@@ -1950,6 +1969,7 @@
        ⍝ link issue #139 and #86 - Fixed by replacing ⎕SE.Link.U.Fix by ⎕SE.Link.U.Sniff
       {}ride.APL'#.FIXCOUNT←0'  ⍝ just write the file
       {}(⊂':Namespace FixCount' '#.FIXCOUNT+←1' ':EndNamespace')QNPUT(folder,'/FixCount.apln')1  ⍝ could produce two Notify events (created + changed), where each one fix in U.DetermineAplName, plus the actual QFix
+      RideBreathe 1
       'link issue #139'assert' (''1'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
       {}ride.APL'#.FIXCOUNT←0'  ⍝ force a Notify event
       {}ride.APL'⎕SE.Link.Notify ''changed'' (''',folder,'/FixCount.apln'') '  ⍝ spurious notify when no change has happened
@@ -1969,7 +1989,6 @@
       'link issue #86'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
       {}ride.APL' ⎕SE.Link.Expunge ''',name,'.FixCount'' '
       {}ride.APL' ⎕EX''#.FIXCOUNT'' '
-     
      
       ⍝ https://github.com/Dyalog/link/issues/129 https://github.com/Dyalog/link/issues/148
       :If 0 ⍝ requires fix to Mantis 18408
@@ -2019,7 +2038,9 @@
       ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
       assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
       assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
+      RideBreathe 2
       ⎕NDELETE folder,'/sub/ns.apln'
+      RideBreathe 1
       assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
       ride.Edit(name,'.sub.class')(class) ⍝ put back original class
       assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
@@ -2132,6 +2153,7 @@
       msg ⎕SIGNAL 999
     ∇
 
+
     ∇ instance←NewGhostRider;Env;env;file;msg;names;ok
       :If GhostRider≡⎕NULL
           file←(⊃⎕NPARTS GetSourceFile),'GhostRider/GhostRider.dyalog'  ⍝ in the directory of the git submodule
@@ -2150,9 +2172,9 @@
       Env←{⍵,'="',(2 ⎕NQ'.' 'GetEnvironment'⍵),'"'}
       env←⍕Env¨'SESSION_FILE' 'MAXWS' 'DYALOGSTARTUPSE' 'DYALOGSTARTUPKEEPLINK' 'DYALOG_NETCORE'
       instance←⎕NEW GhostRider env
-      {}instance.APL'⎕SE.Link.Watcher.CRAWLER←',⍕⎕SE.Link.Watcher.CRAWLER  ⍝ because ⎕SE.Link.Test.Run sets it
-      {}instance.APL'⎕SE.Link.Watcher.DOTNET←',⍕⎕SE.Link.Watcher.DOTNET  ⍝ because ⎕SE.Link.Test.Run sets it
-      {}instance.APL'⎕SE.Link.DEBUG←0 ⋄ ⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
+      {}instance.APL'⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←',⍕⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL) ⍝ because ⎕SE.Link.Test.Run sets it
+      {}instance.APL'⎕SE.Link.DEBUG←',⍕⎕SE.Link.DEBUG
+      {}instance.APL'⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
     ∇
     :EndSection
 
@@ -2267,7 +2289,7 @@
     ⍝ producing two callbacks to notify, the first one making assert succeeds,
     ⍝ then the second one conflicting with whichever code is run after the assert (e.g. a ⎕FIX which would be undone by the pending second Notify)
       :If ⎕SE.Link.Watcher.DOTNET ⋄ ⎕DL 0.1  ⍝ FileSystemWatcher
-      :Else ⋄ ⎕DL 2.1×0.001×⎕SE.Link.Watcher.INTERVAL ⍝ ensure two runs
+      :Else ⋄ ⎕DL 2.1×⎕SE.Link.Watcher.INTERVAL ⍝ ensure two runs
       :EndIf
     ∇
 
@@ -2711,60 +2733,65 @@
     ∇
 
 
-    :Namespace Timer
-        Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
-          Start←{
-              ⎕←'      ⎕SE.Link.Test.Timer.Stop⍬'
-              args←('Active' 1)('Interval' 3000)('Event'('onTimer' 'Callback'))
-              ⍝args,←##.U.IS181/⊂('FireOnce' 1)
-              ⊢⎕THIS.TIMER←⎕NEW'Timer'args
-          }
-        Stop←{⎕THIS.TIMER.Active←0 ⋄ ⎕THIS.⎕EX'TIMER'}
-        Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
-        Time←{.001×3⊃⎕AI}
-        Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
 
-        ∇ Test
-          Start&⍬
-          Busy 10
-        ∇
 
-    :EndNamespace
 
-    :Namespace FixedTimer
-        TIMER←⎕NEW 'Timer' (('Active' 0)('Interval' 3000)('Event'('onTimer' 'Callback')))
-        Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
-          Start←{
-              ⎕←'      ⎕SE.Link.Test.FixedTimer.Stop⍬'
-              ⎕THIS.TIMER.Active←1
-          }
-        Stop←{⎕THIS.TIMER.Active←0}
-        Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
-        Time←{.001×3⊃⎕AI}
-        Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
+    ⍝ THIS SECTION MAKES 5177⌶⍬ fail to display {2⊃¨⍵}
 
-        ∇ Test sink
-          Start ⍬
-          Busy 10
-          Stop ⍬
-        ∇
+    ⍝ :Namespace Timer
+    ⍝     Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
+    ⍝       Start←{
+    ⍝           ⎕←'      ⎕SE.Link.Test.Timer.Stop⍬'
+    ⍝           args←('Active' 1)('Interval' 3000)('Event'('onTimer' 'Callback'))
+    ⍝           ⍝args,←##.U.IS181/⊂('FireOnce' 1)
+    ⍝           ⊢⎕THIS.TIMER←⎕NEW'Timer'args
+    ⍝       }
+    ⍝     Stop←{⎕THIS.TIMER.Active←0 ⋄ ⎕THIS.⎕EX'TIMER'}
+    ⍝     Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
+    ⍝     Time←{.001×3⊃⎕AI}
+    ⍝     Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
 
-        ⍝ There is one message queue per thread for APL events/callbacks
+    ⍝     ∇ Test
+    ⍝       Start&⍬
+    ⍝       Busy 10
+    ⍝     ∇
 
-        ⍝ Objects will only see the message queue of the thread that created it (by calling ⎕NEW, ⎕WC, etc.)
-        ⍝ When the thread is destroyed ;
-        ⍝ - we don't know whether it (hands the queue to the parent thread) or (destroys the queue)
-        ⍝ - future events will be passed to the parent thread
+    ⍝ :EndNamespace
 
-        ⍝The message queue is processed :
-        ⍝ - When the thread reaches descalc (size space prompt) (there can only be one at any given time)
-        ⍝    (unless there is a ⎕DQ on the stack, so while we are tracing)
-        ⍝ - its thread is running ⎕DQ
+    ⍝ :Namespace FixedTimer
+    ⍝     TIMER←⎕NEW 'Timer' (('Active' 0)('Interval' 3000)('Event'('onTimer' 'Callback')))
+    ⍝     Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
+    ⍝       Start←{
+    ⍝           ⎕←'      ⎕SE.Link.Test.FixedTimer.Stop⍬'
+    ⍝           ⎕THIS.TIMER.Active←1
+    ⍝       }
+    ⍝     Stop←{⎕THIS.TIMER.Active←0}
+    ⍝     Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
+    ⍝     Time←{.001×3⊃⎕AI}
+    ⍝     Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
 
-        ⍝ - create timer on its own thread, and call ⎕DQ on it in the same thread
-        ⍝ - create timer in thread 0, run QA in a new thread
-        ⍝ - create timer at fix time, run QA in a new thread
+    ⍝     ∇ Test sink
+    ⍝       Start ⍬
+    ⍝       Busy 10
+    ⍝       Stop ⍬
+    ⍝     ∇
 
-    :EndNamespace
+    ⍝     ⍝ There is one message queue per thread for APL events/callbacks
+
+    ⍝     ⍝ Objects will only see the message queue of the thread that created it (by calling ⎕NEW, ⎕WC, etc.)
+    ⍝     ⍝ When the thread is destroyed ;
+    ⍝     ⍝ - we don't know whether it (hands the queue to the parent thread) or (destroys the queue)
+    ⍝     ⍝ - future events will be passed to the parent thread
+
+    ⍝     ⍝The message queue is processed :
+    ⍝     ⍝ - When the thread reaches descalc (size space prompt) (there can only be one at any given time)
+    ⍝     ⍝    (unless there is a ⎕DQ on the stack, so while we are tracing)
+    ⍝     ⍝ - its thread is running ⎕DQ
+
+    ⍝     ⍝ - create timer on its own thread, and call ⎕DQ on it in the same thread
+    ⍝     ⍝ - create timer in thread 0, run QA in a new thread
+    ⍝     ⍝ - create timer at fix time, run QA in a new thread
+
+    ⍝ :EndNamespace
 
 :EndNamespace

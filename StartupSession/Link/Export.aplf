@@ -35,7 +35,7 @@
          opts.ns←ns
          opts.dir←dir
 
-         (fixed failed)←opts U.WriteFiles src dest opts.arrays opts.sysVars opts.overwrite
+         (fixed failed)←opts U.WriteFiles src dest opts.overwrite
 
          :If ~single
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir

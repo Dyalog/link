@@ -227,14 +227,14 @@
       ts←EncodeTS ⎕TS
     ∇
 
-    LINKS←4 0⍴⍬  ⍝ [link items check active;]
-    L_LINK L_ITEMS L_CHECK L_ACTIVE←⍳4
-    NO_ITEMS←5 0⍴⍬  ⍝ [file name nc check filemod;]
-    I_FILE I_NAME I_NC I_CHECK I_FMOD←⍳5
+    LINKS←3 0⍴⍬  ⍝ [link items active;]
+    L_LINK L_ITEMS L_ACTIVE←⍳3
+    NO_ITEMS←5 0⍴⍬  ⍝ [file name nc checked filemod;]
+    I_FILE I_NAME I_NC I_CHECKED I_FMOD←⍳5
     LASTSTART←LASTEND←TS_OLD
 
-    INTERVAL←2⊣.1    ⍝ Timer interval in seconds
-    GRANULARITY←.02  ⍝ Time granularity in seconds
+    INTERVAL←3⊣.1    ⍝ Timer interval in seconds
+    GRANULARITY←.02  ⍝ Time granularity in seconds - as bad as 20ms on Windows
     ∇ timer←CreateTimer;args
     ⍝ create Timer in thread 0, so that timer events will be generated when thread 0 comes back to six-space prompt
       :If 0≠⎕TID ⋄ (⎕←'⎕SE.Link.Watcher namespace must be fixed in thread 0')⎕SIGNAL 999 ⋄ :EndIf
@@ -265,7 +265,7 @@
     ∇ AddCrawler link;args
       :Hold '⎕SE.Link.Crawler'
           ¯1 LogCrawler'Adding link: 'link' to ',LINKS[L_LINK;]
-          LINKS,←link NO_ITEMS TS_OLD 1
+          LINKS,←link NO_ITEMS 1
           Crawl link  ⍝ set up
           :If ~TIMER.Active
               TIMER.Interval←⌈1000×INTERVAL  ⍝ for ⎕SE.Link.Test to change it
@@ -276,8 +276,11 @@
     ∇
     ∇ active PauseCrawler links;inx;mask
       :Hold '⎕SE.Link.Crawler'
-          mask←LINKS[L_LINK;]∊links
-          LINKS[L_ACTIVE;⍸mask]←mask/active
+          :If ∨/mask←LINKS[L_LINK;]∊links
+              LINKS[L_ACTIVE;⍸mask]←1 ⍝ update all states when pausing or unpausing
+              Crawl¨LINKS[L_LINK;⍸mask]
+              LINKS[L_ACTIVE;⍸mask]←mask/active
+          :EndIf
       :EndHold
     ∇
     ∇ active←IsCrawlerActive links;mask
@@ -306,10 +309,10 @@
       :Trap ##.DEBUG↓0
           start←TS
           :If ~IS181  ⍝ v18.1 has FireOnce property so events never pile up
-          :AndIf (INTERVAL-GRANULARITY)>(TS-LASTSTART)  ⍝ prevent running several events in a row when the queue has piled up
+          :AndIf (INTERVAL-GRANULARITY)>(start-LASTSTART)  ⍝ prevent running several events in a row when the queue has piled up
               ¯1 LogCrawler'Timer event: Event queue overloaded'
               :Return
-          :ElseIf (0.5×INTERVAL)>(TS-LASTEND)  ⍝ prevent spending more than half the time crawling
+          :ElseIf (0.5×INTERVAL)>(start-LASTEND)  ⍝ prevent spending more than half the time crawling
               ¯1 LogCrawler'Timer event: Crawler overloaded'
           :EndIf
           ¯1 LogCrawler'Timer event'
@@ -330,102 +333,128 @@
       :EndTrap
     ∇
 
-    ∇ {start}←Crawl link;active;allfiles;aplnames;aplsrc;changed;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;check;creations;deletions;delfiles;delmask;delnames;differ;dirs;filelist;filemod;filenames;filesrc;inx;items;mask;mewmod;mod;modmask;new;newfiles;newmod;newnames;newnc;newsrc;notchecked;ns;nsref;oldfiles;oldnames;src;start;time
-      start←TS
+    ∇ {crawled}←Crawl link;active;actname;allfiles;apllist;aplnames;aplnc;aplsrc;changed;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;delfiles;delmask;delnames;differ;dirs;expname;filelist;filemod;filenames;filesrc;inx;items;mask;mewmod;mod;modmask;nc;newfiles;newmask;newmod;newnames;newnc;newsrc;notchecked;ns;nsref;oldfiles;oldnames;src;watchdir;watchns;where
+    ⍝ crawler must keep track of files changes even if not watching dir, to be able to interpret APL changes correctly
+      crawled←0 ⋄ watchdir←'dir' 'both'∊⍨⊂link.watch ⋄ watchns←'ns' 'both'∊⍨⊂link.watch
       :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
           1 LogCrawler'Link not crawled: '(,⍕link)  ⍝ should not happen
           :Return
       :EndIf
-      (link items check active)←LINKS[;inx]
+      (link items active)←LINKS[;inx]
       :If ~active  ⍝ should not happen
           1 LogCrawler'Link not active: '(,⍕link)
       :EndIf
-    ⍝⍝⍝ Look for creation/deletion of APL names
-      time←TS
-      nsref←⍎ns←link.ns
-      newnames←1 ##.U.ListNs ns
-      oldnames←items[I_NAME;]
-      ⍝ check for creations
-      newnc←newfiles←newmod←⍬
-      :If ~0∊⍴creations←newnames~oldnames
-          newsrc←nsref ##.U.GetAplSource¨creations
-          :If {1=≡⍵}¨newsrc
-              ∘∘∘
-          :EndIf
-          newnc←nsref ##.U.NameClass¨creations
-          newfiles←⊃link(1 ##.U.DetermineFileName)((≢creations)⍴⊂ns)((1+≢ns)↓¨creations)((≢creations)⍴⊂'')newnc
-          creations{0 LogCrawler'Created APL item: '⍺' → '⍵}¨newfiles
-          newsrc ##.U.Into¨newfiles
-          newmod←EncodeTS↑3 ⎕NINFO newfiles
-      :EndIf
-      ⍝ check for deletions
-      oldfiles←⍬
-      deletions←oldnames~newnames,⊂''  ⍝ files that don't have a proper name (oldname≡'') don't contribute to APL deletions !
-      :If 1∊delmask←oldnames∊deletions
-          oldfiles←⊃link(1 ##.U.DetermineFileName)((+/delmask)⍴⊂ns)((1+≢ns)↓¨delmask/oldnames)((+/delmask)⍴⊂'')(delmask/items[I_NC;])
-          allfiles←4⊃¨5177⌶⍬
-          :If 1∊mask←oldfiles∊allfiles  ⍝oldfiles∩allfiles  ⍝ some oldfiles still tied - should not happen
-              (mask/delmask/oldnames){1 LogCrawler'Deleted APL item: file still in use: '⍺' → '⍵}¨(mask/oldfiles)
-          :EndIf
-          :If 1∊mask←~mask  ⍝~0∊⍴lostfiles←oldfiles~allfiles  ⍝ delete oldfiles that are not tied to anything
-              (mask/delmask/oldnames){0 LogCrawler'Deleted APL item: '⍺' → '⍵}¨(mask/oldfiles)
-              3 ⎕NDELETE⌽(mask/oldfiles)  ⍝ delete directories last
-          :EndIf
-      :EndIf
-      ⍝ update data structure
-      items←((~delmask)/items),↑newfiles creations newnc((≢creations)⍴⊂time)newmod
-    ⍝⍝⍝ Look for files (not dirs) with a change of modification timestamp
-      time←TS
-      (filelist dirs filemod)←link(1 ##.U.ListFiles)link.dir ⋄ filemod←EncodeTS↑filemod
+      crawled←1 ⋄ nsref←⍎ns←link.ns ⋄ items[I_CHECKED;]←0
+      (filelist dirs filemod)←link(1 ##.U.ListFiles)link.dir
+      filemod←EncodeTS↑filemod
       (filelist dirs filemod)/⍨←⊂~filelist∊⊂link.dir,'/'  ⍝ do not keep track of root
       (filelist filemod){⍺[⍵]}←⊂⍒dirs ⋄ dirs←(+/dirs)↑filelist ⍝ keep dirs first
-      oldfiles←items[I_FILE;]
-      delfiles←oldfiles~filelist
-      new←~changed←filelist∊oldfiles
-      :If ~0∊⍴changedfiles←changed/filelist
-          changedmod←changed/filemod
-          changedinx←oldfiles⍳changedfiles
-      :AndIf 1∊modmask←changedmod≠¨items[I_FMOD;changedinx]  ⍝ file modification timestamp has changed
-      :AndIf 1∊modmask←modmask∧(¯9.1≠items[I_NC;changedinx])∨(~changedfiles∊dirs)  ⍝ ignore change of timestamps for dirs that remain dirs
-          changednames←##.Notify¨{'changed'⍵}¨modmask/changedfiles
-          ⍝ update data structure
-          items[I_CHECK I_FMOD;modmask/changedinx]←↑((+/modmask)⍴⊂time)(modmask/changedmod)
-      :EndIf
-    ⍝⍝⍝ Look for creation/deletion of files (modification may be old in case unzipped)
-      newnames←newnc←newmod←⍬
-      :If ~0∊⍴newfiles←new/filelist
-          newmod←new/filemod
-          newnames←##.Notify¨{'created'⍵}¨newfiles
-          newnc←##.U.NameClass ##.U.OnEach newnames
-      :EndIf
-      :If ~0∊⍴delfiles
-          delnames←##.Notify¨{'deleted'⍵}¨⌽delfiles  ⍝ delete directories last
-      :EndIf
-      ⍝ update data structures
-      items←((~oldfiles∊delfiles)/items),↑newfiles newnames newnc((≢newfiles)⍴time)newmod
-    ⍝⍝⍝ Look for content difference between APL and files
-    ⍝ assume that if file modification timestamp hasn't changed,
-    ⍝ then in case of difference the APL side is the "new" one.
-      time←TS
-      differ←notchecked←⍬
-      :If ~0∊⍴items  ⍝ otherwise  items[I_CHECK;]  may have nested prototype
-          mask←items[I_CHECK;]<start  ⍝ items not checked so far
-          mask∧←0<≢¨items[I_NAME;]    ⍝ items that have a valid APL name
-      :AndIf ~0∊⍴notchecked←⍸mask
-          aplsrc←# ##.U.GetAplSource¨aplnames←items[I_NAME;notchecked]
-          filesrc←##.U.GetFileSource¨filenames←items[I_FILE;notchecked]
-      :AndIf ~0∊⍴differ←(mask←aplsrc≢¨filesrc)/notchecked  ⍝ items that differ from file definition
-          :If ∨/∨/¨{1=≡⍵}¨¨aplsrc filesrc
-              ∘∘∘
+      :If 1
+      ⍝⍝⍝ Look for creation/deletion of files (modification may be old in case unzipped)
+      ⍝ look files before APL because user may have special handling such as "*.charmat" with beforeread/beforewrite, yet without providing proper getFilename
+      ⍝ do deletions before creations for rename to work
+          oldfiles←items[I_FILE;]
+          newfiles←newnames←newnc←newmod←⍬
+          :If 1∊delmask←~oldfiles∊filelist
+              delfiles←delmask/oldfiles
+              :If watchdir
+                  delnames←##.Notify¨{'deleted'⍵}¨⌽delfiles  ⍝ delete directories last
+              :EndIf
           :EndIf
-          (mask/aplnames){0 LogCrawler'Changed APL item: '⍺' → '⍵}¨(mask/filenames)
-          ⍝ PLEASE keep the following code on same line to avoid switching thread between the file write and the ⎕NINFO
-          (mask/aplsrc)##.U.Into¨(mask/filenames) ⋄ mod←EncodeTS↑3 ⎕NINFO mask/filenames  
-          ⍝ update datastructure
-          items[;differ]←↑(mask/filenames)(mask/aplnames)(##.U.NameClass¨mask/aplnames)((+/mask)⍴time)mod
+          :If 1∊newmask←~filelist∊oldfiles
+              newfiles←newmask/filelist
+              newmod←newmask/filemod
+              :If watchdir
+                  newnames←##.Notify¨{'created'⍵}¨newfiles  ⍝ create directories first
+                  newnc←# ##.U.NameClass¨newnames
+              :Else
+                  (where expname actname newnc)←link ##.U.DetermineAplName newfiles
+                  newnames←where('.'##.U.JoinEach)actname
+              :EndIf
+              (newfiles newnames newnc newmod)/⍨←⊂~newnc∊0 ¯1  ⍝ ignore unidentifiable files
+          :EndIf
+      ⍝ update data structures
+          items←((~delmask)/items),↑newfiles newnames newnc((≢newfiles)⍴1)newmod
+      :EndIf
+      :If watchns
+      ⍝⍝⍝ Look for creation/deletion of APL names
+          (apllist aplnc)←2↑0 ##.U.ListLinkedNs link
+          oldnames←items[I_NAME;]
+          ⍝ check for deletions
+          delmask←~oldnames∊apllist,⊂''   ⍝ files that don't have a proper name (oldname≡'') don't contribute to APL deletions !
+          :If 1∊mask←2.1=items[I_NC;⍸delmask]  ⍝ double-check deletion of variable
+              delmask∧←delmask\mask\0=#.⎕NC mask/delmask/oldnames    ⍝ variables in directory may not appear in ListLinkedNs - delete only if name class is zero
+          :EndIf
+          :If 1∊delmask ⋄ :AndIf watchns
+              delfiles←⊃link(1 ##.U.DetermineFileName)((+/delmask)⍴⊂ns)((1+≢ns)↓¨delmask/oldnames)((+/delmask)⍴⊂'')(delmask/items[I_NC;])
+              allfiles←4⊃¨5177⌶⍬
+              :If 1∊mask←delfiles∊allfiles  ⍝oldfiles∩allfiles  ⍝ some oldfiles still tied - should not happen
+                  (mask/delmask/oldnames){1 LogCrawler'Deleted APL item: file still in use: '⍺' → '⍵}¨(mask/delfiles)
+              :EndIf
+              :If 1∊mask←~mask  ⍝~0∊⍴lostfiles←oldfiles~allfiles  ⍝ delete oldfiles that are not tied to anything
+                  (mask/delmask/oldnames){0 LogCrawler'Deleted APL item: '⍺' → '⍵}¨(mask/delfiles)
+                  3 ⎕NDELETE⌽(mask/delfiles)  ⍝ delete directories last
+              :EndIf
+          :EndIf
+          ⍝ check for creations
+          newnc←newfiles←newnames←newmod←⍬
+          :If 1∊mask←~apllist∊oldnames
+              (newnames newnc)←mask∘/¨(apllist aplnc)
+              :If ∨/mask←{1=≡⍵}¨newsrc←nsref ##.U.GetAplSource¨newnames
+                  ¯1 LogCrawler'Failures to get APL source:',⍕mask/newnames
+                  (newnames newnc newsrc)/⍨←⊂~mask
+              :EndIf
+          :AndIf ~0∊⍴newnames
+              newfiles←⊃link(1 ##.U.DetermineFileName)((≢newnames)⍴⊂ns)((1+≢ns)↓¨newnames)((≢newnames)⍴⊂'')newnc
+              newnames{0 LogCrawler'Created APL item: '⍺' → '⍵}¨newfiles
+              ⍝ avoid thread-switch across the next two line
+              newsrc ##.U.Into¨newfiles ⋄ newmod←EncodeTS↑3 ⎕NINFO newfiles
+          :EndIf
+          ⍝ update data structure
+          items←((~delmask)/items),↑newfiles newnames newnc((≢newnames)⍴1)newmod
+      :EndIf
+      :If 1
+      ⍝⍝⍝ Look for files (not dirs) with a change of modification timestamp
+          changed←filelist∊oldfiles←items[I_FILE;]
+          :If ~0∊⍴changedfiles←changed/filelist
+              changedmod←changed/filemod
+              changedinx←oldfiles⍳changedfiles
+          :AndIf 1∊modmask←changedmod≠¨items[I_FMOD;changedinx]  ⍝ file modification timestamp has changed
+          :AndIf 1∊modmask←modmask∧(¯9.1≠items[I_NC;changedinx])∨(~changedfiles∊dirs)  ⍝ ignore change of timestamps for dirs that remain dirs
+              changednames←##.Notify¨{'changed'⍵}¨modmask/changedfiles
+          ⍝ update data structure
+              items[I_NAME I_CHECKED I_FMOD;modmask/changedinx]←↑changednames((+/modmask)⍴1)(modmask/changedmod)
+          :EndIf
+      :EndIf
+      :If watchns
+      ⍝⍝⍝ Look for content difference between APL and files
+      ⍝ assume that if file modification timestamp hasn't changed,
+      ⍝ then in case of difference the APL side is the "new" one.
+      ⍝ this is why we must keep tracking dir even when no watching it
+          differ←notchecked←⍬
+          :If ~0∊⍴items  ⍝ otherwise  items[I_CHECKED;]  may have nested prototype
+              mask←~items[I_CHECKED;]     ⍝ items not checked so far
+              mask∧←0<≢¨items[I_NAME;]    ⍝ items that have a valid APL name
+          :AndIf ~0∊⍴notchecked←⍸mask
+              ⍝ avoid thread switch over the next line
+              aplsrc←# ##.U.GetAplSource¨aplnames←items[I_NAME;notchecked] ⋄ filesrc←##.U.GetFileSource¨filenames←items[I_FILE;notchecked] ⋄ nc←# ##.U.NameClass¨aplnames
+              :If ∨/mask←{1=≡⍵}¨aplsrc ⋄ ¯1 LogCrawler'Failures to get APL source:',⍕mask/aplnames ⋄ :EndIf
+              :If ∨/mask←{1=≡⍵}¨filesrc ⋄ ¯1 LogCrawler'Failures to get file source:',⍕mask/filenames ⋄ :EndIf
+              mask←aplsrc≢¨filesrc             ⍝ items that differ from file definition
+              mask∧←⊃∧/~{1=≡⍵}¨¨aplsrc filesrc ⍝ ignore failures to get source on either side (probably a deletion, handled at next crawl)
+          :AndIf ~0∊⍴differ←mask/notchecked
+              (mask/aplnames){0 LogCrawler'Changed APL item: '⍺' → '⍵}¨(mask/filenames)
+              ⍝ avoid switching thread between the file write and the ⎕NINFO
+              (mask/aplsrc)##.U.Into¨(mask/filenames) ⋄ mod←EncodeTS↑3 ⎕NINFO mask/filenames
+              ⍝ update datastructure
+              items[;differ]←↑(mask/filenames)(mask/aplnames)(mask/nc)((+/mask)⍴1)mod
+          :EndIf
       :EndIf
     ⍝⍝⍝ Update global data structure
-      LINKS[;inx]←link items time active
+      :If {(≢¨∪¨⍵)≢(≢¨⍵)}(↓2↑items)~¨⊂⊂''
+          ##.U.Error'Internal error: non-unique items'
+      :EndIf
+      LINKS[;inx]←link items active
       ⍝##.U.Log'Items: ',(⍕⊃⌽⍴items),' ⋄ Source compared: ',(⍕≢notchecked),' ⋄ Differ: ',(⍕≢differ)
     ∇
 

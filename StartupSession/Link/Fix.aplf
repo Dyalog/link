@@ -81,7 +81,10 @@ NOHOLD:
          :EndIf
 
          :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
-             →0 U.If~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)(|nc)(nsname,'.',oldname)src
+             :If ~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)(|nc)(nsname,'.',oldname)src
+                 1 U.Log'name='nsname'.'name' file="'file'" handled by user'
+                 →0
+             :EndIf
          :EndIf
 
          fix←~nosrc ⍝ no need to update if source was read from APL

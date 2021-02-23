@@ -11,6 +11,7 @@
          :If ~(# U.NameClass item)∊0 ¯1
              (ns name)←U.SplitNs item
              :If ns name Fix''  ⍝ was linked and fixed
+                 ⍝ TODO: if fixed an array, add it to link.arrays ?
                  added,←⊂item
              :Else
                  unlinked,←⊂item

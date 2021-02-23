@@ -87,8 +87,7 @@
          :Case 'ns'
              :If 0≢opts.flatten ⋄ U.Error'flatten modifier requires source≡''dir''' ⋄ :EndIf
              :If 0≢opts.fastLoad ⋄ U.Warn'fastLoad modifier ignored when source≡''ns''' ⋄ :EndIf
-             overwrite←1 ⍝ we already checked the overwrite condition
-             fail←2⊃opts U.WriteFiles ns dir opts.arrays opts.sysVars overwrite
+             fail←2⊃opts U.WriteFiles ns dir 1 ⍝ we already checked the overwrite condition
              :If 0≠≢fail ⋄ msg,←(⊂(⍕≢fail),' export(s) failed:'),fail ⋄ :EndIf
          :Case 'dir'
              :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
@@ -98,12 +97,12 @@
          :Else
              U.Error'Unknown source setting:'opts.source
          :EndSelect
-         :If 'dir' 'both'∊⍨⊂opts.watch
-             Watcher.Watch opts
-         :EndIf
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
          ⎕SE.Link.Links,←opts
+         :If 'dir' 'both'∊⍨⊂opts.watch
+             Watcher.Watch opts  ⍝ first crawler may call Notify
+         :EndIf
          msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
      :EndHold
  :Else

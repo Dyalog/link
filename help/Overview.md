@@ -69,7 +69,7 @@ In the first three cases (where no more than one side has content), Link will ex
 
 * Source code must not have embedded newlines within a string, whereas Dyalog APL tolerates it through various hacks. Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newlines characters must be used in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
 
-
+* Dyalog v18.1 is required for source to be preserved as typed. That includes handling :Require keywords, whitespaces in code, formatting of numeric constants, and more.
 
 
 
