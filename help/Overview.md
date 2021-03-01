@@ -65,9 +65,11 @@ In the first three cases (where no more than one side has content), Link will ex
 
 * Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` or the APL line `∇` editor are not currently detected. For link to be aware of the change, they must be replaced by a call to [Link.Fix](Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](Link.Expunge.md).
 
+* Link does not support files that define multiple names, whereas 2∘⎕FIX supports it.
+
 * The detection of external changes to files and directories is currently only supported under .Net and .NetCore. However, changes to a file will be reflected in the namespace if the file's item is opened in APL's editor, on all platforms.
 
-* Source code must not have embedded newlines within a string, whereas Dyalog APL tolerates it through various hacks. Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newlines characters must be used in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
+* Source code must not have embedded newlines within a string, whereas ⎕FX tolerates it. Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newlines characters must be used in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
 
 * Dyalog v18.1 is required for source to be preserved as typed. That includes handling :Require keywords, whitespaces in code, formatting of numeric constants, and more.
 

@@ -1355,7 +1355,7 @@
       :EndTrap
     ∇
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z;mantis18626
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1524,7 +1524,8 @@
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
       ⍝ Mantis 18626 required the line below to read :  ⎕SE.Link.U.IS181++/~3⊃⎕SE.Link.U.GetFileTiesIn
       ⍝ Crawler has the same requirement because it "sees" sub.required being fixed into APL.
-      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(⎕SE.Link.Watcher.(CRAWLER>DOTNET)++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
+      mantis18626←⎕SE.Link.Watcher.(CRAWLER>DOTNET)⍝(~⎕SE.Link.U.IS181)  
+      'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(mantis18626++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
       failed←0⍴⊂'' ⍝ BUG this line was due to Manti 18635 : ⍝ failed←⊂'CLASS2A'
       assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
       assert'∧/',⍕name∘{'(''foo''1234≡(⎕NEW ',⍺,'.',⍵,').foo 1234)'}¨failed~⍨'CLASS'∘,¨'1B' '1D' '2A' '2C'
@@ -1781,11 +1782,16 @@
           :If 0≥n ⋄ :Return ⋄ :EndIf
           {}ride.APL'⎕DQ #'
           :If 1≥n ⋄ :Return ⋄ :EndIf
-          {}ride.APL¨(n-1)⍴⊂'⎕DL ⎕SE.Link.Watcher.INTERVAL ⋄ ⎕DQ #'
+          {}ride.APL¨(n-1)⍴⊂'⎕DL 1.1×⎕SE.Link.Watcher.INTERVAL ⋄ ⎕DQ #'
       :EndIf
     ∇
+    ∇ {time}←RideWait start;end
+    ⍝ Ensure file timestamp has a 1second difference - user start←⍬ to get a timestamp without waiting
+      end←⊃start+1000
+      :While (~0∊⍴start)∧(end>time←3⊃⎕AI) ⋄ ⎕DL 0.01 ⋄ :EndWhile
+    ∇
 
-    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;newdfn;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z
+    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;newdfn;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z;start
     ⍝ Test editor and tracer
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
@@ -1799,8 +1805,8 @@
       :EndTrap
       (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
-      ⍝ride.TRACE←1
-      ⍝ride.Execute'⎕SE.Link.U.SHOWMSG←1'
+      ⍝ride.TRACE←1   ⍝
+      ⍝ride.MULTITHREADING←1 ⋄ ride.Execute'⎕SE.Link.U.SHOWMSG←1'     ⍝ display link messages - will make QA fails because of spurious Link messages in AppendSessionOutput
      
       ⎕MKDIR Retry⊢folder
       varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
@@ -1819,8 +1825,7 @@
       {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
       output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(∨/''Linked:''⍷output)'
-     
+      assert'(∨/''Linked:''⍷output)' 
      
       ⍝ https://github.com/Dyalog/link/issues/48
       :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655 - linux + 18.1
@@ -1836,33 +1841,29 @@
       'link issue #49'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
       'link issue #49'assert' foo≡⊃⎕NGET (folder,''/sub/foo.aplf'') 1 '   ⍝ foo is untouched
       'link issue #49'assert' goo≡⊃⎕NGET (folder,''/sub/goo.aplf'') 1 '   ⍝ goo is defined in the same directory as foo
-      RideBreathe 1
+      RideBreathe 2
       {}QNDELETE folder,'/sub/goo.aplf'
       RideBreathe 2
       'link issue #49'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
      
       ⍝ now copy files in the root to have two namespace (root and root.sub)
       output←ride.APL' ⎕SE.Link.Break ',(Stringify name),' ⋄ ⎕EX ',(Stringify name)
-     
       assert'(⊃''Unlinked''⍷output)'
       {}(⊂varsrc)QNPUT(folder,'/var.apla')1
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/class.aplc')1
       output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(⊃''Linked:''⍷output)'
-      RideBreathe 1
+      assert'(⊃''Linked:''⍷output)' 
      
      ⍝ link issue #190: edit a non-existing name, and change its name before fixing
       ride.Edit(name,'.doesntexist')('res←exists arg' 'res←arg')
       'link issue #190'assert'(''1'',NL)≡ride.APL ''0 3.1≡',name,'.⎕NC''''doesntexist'''' ''''exists'''' '' '
       'link issue #190'assert'0=≢⊃⎕NINFO⍠1⊢''',folder,'/doesntexist.*'' '
       'link issue #190'assert'1=≢⊃⎕NINFO⍠1⊢''',folder,'/exists.*'' '
-      RideBreathe 1
      
      ⍝ link issue #196: whitespace not preserved on first fix
       ride.Edit(name,'.newdfn')(newdfn←,⊂'   newdfn   ←   {  ⍺ + ⍵  }   ')
       'link issue #196'assert'(¯3↓¨newdfn)≡⊃⎕NGET (folder,''/newdfn.aplf'') 1'  ⍝ Mantis 18758 trailing whitespaces are dropped
-      RideBreathe 1
      
      ⍝ https://github.com/Dyalog/link/issues/154
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
@@ -1871,31 +1872,33 @@
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']Link.Status'
       'link issue #154'assert'(1=≢z)∧(∨/''No active links''⍷∊z)'
       output←ride.APL']Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(⊃''Linked:''⍷output)'
-     
+       assert'(⊃''Linked:''⍷output)'   
      
      ⍝ https://github.com/Dyalog/link/issues/30
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
       {}(⊂goo)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
-      RideBreathe 2
+      start←RideWait ⍬ ⋄ RideBreathe 2
       'link issue #30'assert'('''')≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
       'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ⎕CR ''''goo'''' '' '  ⍝ goo is there
       (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
       'link issue #30'assert'1 ('' foo  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ traced code has NOT changed - sounds reasonable
       'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
       'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is there
+      RideWait start ⋄ RideBreathe 2
       ⍝ do the same thing without modifying the name of the function
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
-      RideBreathe 1
+      start←RideWait ⍬ ⋄ RideBreathe 2
       'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
       'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
+      RideWait start ⋄ RideBreathe 2
       {}(⊂foo2)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
-      RideBreathe 2
+      start←RideWait ⍬ ⋄ RideBreathe 2
       'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has changed
       (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
       'link issue #30'assert'1 ('' foo2  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ ⎕BUG? traced code HAS changed although the tracer window still displays the old code
       'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ goo is there
+      RideWait start ⋄ RideBreathe 2
       ⍝ restore what we've done
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
       RideBreathe 2
@@ -1933,7 +1936,7 @@
       ride.Reply res  ⍝ just close the error message
       ed.saved←⍬
       res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
-      'link issue #109'assert'res≡¯1 '''' (,ed) NO_ERROR'
+      'link issue #109'assert'((⊃res)∊¯1)∧(1↓res)≡'''' (,ed) NO_ERROR'
       'link issue #109'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
       ride.CloseWindow ed
       'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ Mantis 18412 foo has not changed within workspace because fix has failed
@@ -1964,12 +1967,12 @@
       ride.CloseWindow ed
       'link issue #153'assert'1≡res'  ⍝ fix succeeded
       'link issue #153'assert' (''4 5 6'',NL) ≡ ride.APL name,''.text'' '
-      'link issue #153'assert' ''res←text'' ''res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must NOT be created
+      'link issue #153'assert' ''res←text'' ''res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must be created
      
        ⍝ link issue #139 and #86 - Fixed by replacing ⎕SE.Link.U.Fix by ⎕SE.Link.U.Sniff
       {}ride.APL'#.FIXCOUNT←0'  ⍝ just write the file
       {}(⊂':Namespace FixCount' '#.FIXCOUNT+←1' ':EndNamespace')QNPUT(folder,'/FixCount.apln')1  ⍝ could produce two Notify events (created + changed), where each one fix in U.DetermineAplName, plus the actual QFix
-      RideBreathe 1
+      RideBreathe 2
       'link issue #139'assert' (''1'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
       {}ride.APL'#.FIXCOUNT←0'  ⍝ force a Notify event
       {}ride.APL'⎕SE.Link.Notify ''changed'' (''',folder,'/FixCount.apln'') '  ⍝ spurious notify when no change has happened
@@ -2040,7 +2043,7 @@
       assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
       RideBreathe 2
       ⎕NDELETE folder,'/sub/ns.apln'
-      RideBreathe 1
+      RideBreathe 2
       assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
       ride.Edit(name,'.sub.class')(class) ⍝ put back original class
       assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
@@ -2400,14 +2403,19 @@
       names←trad ⎕SE.Link.U.ListNs ns
     ∇
 
-    ∇ to NSMOVE from;name;nl
+    ∇ to NSMOVE from;name;nl;nc;file
       :If ~0∊⍴⎕SE.Link.U.ListNames to ⋄ 'Destination must be empty'⎕SIGNAL 11 ⋄ :EndIf
       :For name :In nl←⎕SE.Link.U.ListNames from
-          :If (⌊|from.⎕NC⊂name)∊2 9  ⍝ array (or scalar ref)
+          :Select nc←⊃from.⎕NC⊂name
+          :CaseList 2.1 9.1 9.4 9.5  ⍝ array (or scalar ref)
               name(to{⍺⍺⍎⍺,'←⍵'})from⍎name
-          :Else  ⍝ function or operator
-              to.⎕FX from.⎕NR name
-          :EndIf
+          :CaseList 3.1 3.2 4.1 4.2  ⍝ function or operator - won't work if anything was 2 ⎕FIX'file://...'
+              :If ~0∊⍴file←4⊃from.(5179⌶)'foo' ⋄ 2 to.⎕FIX 'file://',file
+              :Else ⋄ to.⎕FX from.⎕NR name
+              :EndIf
+          :Else
+              'Unhandled name class'⎕SIGNAL 11
+          :EndSelect
       :EndFor
       from.⎕EX nl
     ∇

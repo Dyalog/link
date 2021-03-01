@@ -1,24 +1,25 @@
 ﻿:Namespace Watcher
     ⎕IO ⎕ML←1 1
     ⎕CT←0  ⍝ to compare EncodeTS
-
+    
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'  ⍝ required at ⎕FIX time - can't rely on ##.U
     IS180←18≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
-
+    
     CRAWLER←0                               ⍝ allow using crawler
 
-
+    
+        
     ⍝⍝⍝⍝⍝ .Net System.IO.FileSystemWatcher ⍝⍝⍝⍝⍝
-
+    
     USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.Watcher.QUEUE'           ⍝ FSW Queue Object name prefix
-
+    
     TimerEvent←140
     NotifyEvent←7777
     CloseEvent←7778
     Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
-
+    
     ∇ (dotnet dotnetcore)←HasDotNet;⎕USING
     ⍝ FileSystemWatcher usable only with v18.0 and later
       :If ~IS180    ⍝ Executed at ⎕FIX time, so can't rely on ##.U
@@ -41,8 +42,8 @@
     ∇ canwatch←CanWatch         ⍝ FileSystemWatcher or Crawler
       canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
     ∇
-
-
+    
+    
     ∇ RequeuedEvent args
      ⍝ Process events redirected via the timer
       :Select 2⊃args
@@ -53,7 +54,7 @@
           ⎕EX 1⊃args    ⍝ Erase the QUEUE object; WatcherThread will exit from DQ and the :Disposable control structure
       :EndSelect
     ∇
-
+    
     ∇ WatchEvent(obj args);ct;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
@@ -71,7 +72,7 @@
           ##.Notify&nargs
       :EndIf
     ∇
-
+    
     ∇ WatchError(obj args);link;msg
       :Hold '⎕SE.Link.Links'
           :If 0∊⍴link←##.U.LookupFile obj.Path
@@ -84,7 +85,7 @@
           :EndIf
       :EndHold
     ∇
-
+    
     ∇ WatcherThread args;q;watcher
      ⍝ Run a thread which creates a FileSystemWatcher object
      ⍝ ... makes sure there is a ⎕DQ to allow processing of events
@@ -98,7 +99,7 @@
           ⎕DL 1 ⍝ Wait for events to stop
       :EndDisposable
     ∇
-
+    
     ∇ watcher←MakeWatcher args;⎕USING
      ⍝ Return a FileSystemWatcher object
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
@@ -109,12 +110,12 @@
       watcher.onError←'WatchError'
       watcher.IncludeSubdirectories←1
     ∇
-
-
-
-
+    
+    
+    
+    
    ⍝⍝⍝⍝⍝ MAIN API ⍝⍝⍝⍝⍝⍝⍝⍝
-
+    
     ∇ Watch link;args;end;q;r;tid;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       :If DOTNET
@@ -137,7 +138,7 @@
           ##.U.Error'Cannot watch files'
       :EndIf
     ∇
-
+    
     ∇ watch Pause link;fsw;link
     ⍝ pause/resume file watching
       :If 9=⎕NC'link.fsw.QUEUE'
@@ -164,7 +165,7 @@
           paused←~IsCrawlerActive link
       :EndIf
     ∇
-
+    
     ∇ Break links;end;tids;timer;timers
     ⍝ Cleanly shut down a file system watcher
     ⍝ Called by ⎕SE.Link.Break
@@ -193,32 +194,33 @@
           links.fsw←⊂⍬
       :EndIf
     ∇
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ⍝⍝⍝⍝⍝ Crawler ⍝⍝⍝⍝⍝
     ⍝ Crawls BOTH the namespace and the directory
     ⍝ Will always fully crawl when interpreter comes back to descalc
-
+    
     ⍝ Issues :
+    ⍝ - Crawler should ignore -fastLoad ?
     ⍝ - Crawl should be allowed to fail once (race condition) before timer is de-activated (on second failure in a row)
     ⍝ - Comparing source is slow
     ⍝ - Looking for files with 5174⌶ is slow
     ⍝ - To compare sources, APL must NOT be tied to files
     ⍝ - Do a single ⎕NINFO to get timestamps too
     ⍝ - Synchronising the ⎕NINFO with the ⎕NGET
-
+    
     LOGCRAWLER←1  ⍝ Log crawler-specific internals - undesirable unless debugging the crawler itself
-
+    
     ∇ time←EncodeTS TS        ⍝ time in seconds
       time←0.001×0 12 31 24 60 60 1000⊥⍉↑⊆TS  ⍝ takes about 14 digits - ⎕CT must be zero
     ∇
@@ -226,13 +228,13 @@
     ∇ ts←TS  ⍝ Time stamp in seconds
       ts←EncodeTS ⎕TS
     ∇
-
+    
     LINKS←3 0⍴⍬  ⍝ [link items active;]
     L_LINK L_ITEMS L_ACTIVE←⍳3
     NO_ITEMS←5 0⍴⍬  ⍝ [file name nc checked filemod;]
     I_FILE I_NAME I_NC I_CHECKED I_FMOD←⍳5
     LASTSTART←LASTEND←TS_OLD
-
+    
     INTERVAL←3⊣.1    ⍝ Timer interval in seconds
     GRANULARITY←.02  ⍝ Time granularity in seconds - as bad as 20ms on Windows
     ∇ timer←CreateTimer;args
@@ -252,8 +254,8 @@
     ⍝ - When the thread reaches descalc (size space prompt) (there can only be one thread in descalc at any given time)
     ⍝    (unless there is a ⎕DQ on the stack, so while we are tracing)
     ⍝ - its thread is running ⎕DQ
-
-
+    
+    
     ∇ warn LogCrawler msg;title
     ⍝ Use 1 to warn, 0 to log link-specific events, ¯1 to log crawler-specific events
       title←'⎕SE.Link.Crawler'
@@ -261,7 +263,7 @@
       :ElseIf (warn=0)∨(LOGCRAWLER∧warn=¯1) ⋄ title ##.U.Log msg
       :EndIf
     ∇
-
+    
     ∇ AddCrawler link;args
       :Hold '⎕SE.Link.Crawler'
           ¯1 LogCrawler'Adding link: 'link' to ',LINKS[L_LINK;]
@@ -299,9 +301,9 @@
           :EndIf
       :EndHold
     ∇
-
-
-
+    
+    
+    
     ∇ {msg}←CrawlerEvent msg;mask;ok;start
       :If ##.U.debug=2
           (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -332,7 +334,7 @@
           ⎕←'Link: Crawler callback internal error - Crawler stopped'
       :EndTrap
     ∇
-
+    
     ∇ {crawled}←Crawl link;active;actname;allfiles;apllist;aplnames;aplnc;aplsrc;changed;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;delfiles;delmask;delnames;differ;dirs;expname;filelist;filemod;filenames;filesrc;inx;items;mask;mewmod;mod;modmask;nc;newfiles;newmask;newmod;newnames;newnc;newsrc;notchecked;ns;nsref;oldfiles;oldnames;src;watchdir;watchns;where
     ⍝ crawler must keep track of files changes even if not watching dir, to be able to interpret APL changes correctly
       crawled←0 ⋄ watchdir←'dir' 'both'∊⍨⊂link.watch ⋄ watchns←'ns' 'both'∊⍨⊂link.watch
@@ -345,7 +347,8 @@
           1 LogCrawler'Link not active: '(,⍕link)
       :EndIf
       crawled←1 ⋄ nsref←⍎ns←link.ns ⋄ items[I_CHECKED;]←0
-      (filelist dirs filemod)←link(1 ##.U.ListFiles)link.dir
+      ⍝ avoid thread-switch across the next line
+      (filelist dirs filemod)←link(1 ##.U.ListFiles)link.dir ⋄ (apllist aplnc)←2↑0 ##.U.ListLinkedNs link
       filemod←EncodeTS↑filemod
       (filelist dirs filemod)/⍨←⊂~filelist∊⊂link.dir,'/'  ⍝ do not keep track of root
       (filelist filemod){⍺[⍵]}←⊂⍒dirs ⋄ dirs←(+/dirs)↑filelist ⍝ keep dirs first
@@ -371,14 +374,17 @@
                   (where expname actname newnc)←link ##.U.DetermineAplName newfiles
                   newnames←where('.'##.U.JoinEach)actname
               :EndIf
-              (newfiles newnames newnc newmod)/⍨←⊂~newnc∊0 ¯1  ⍝ ignore unidentifiable files
+              (newfiles newnames newnc newmod)/⍨←⊂~(newnc∊0 ¯1)∨(0=≢¨newnames)  ⍝ ignore unidentifiable files
+              delmask∨←(items[I_NAME;]∊newnames~⊂'') ⍝ remove previous entries on those names
           :EndIf
-      ⍝ update data structures
+          ⍝ update data structures
+          (apllist aplnc)/⍨←⊂~apllist∊items[I_NAME;⍸delmask]  ⍝ remove deleted objects for list
+          (apllist aplnc),←(newnames newnc)                   ⍝ add created objects to list
           items←((~delmask)/items),↑newfiles newnames newnc((≢newfiles)⍴1)newmod
       :EndIf
       :If watchns
       ⍝⍝⍝ Look for creation/deletion of APL names
-          (apllist aplnc)←2↑0 ##.U.ListLinkedNs link
+      ⍝ names created by file detection won't be created again
           oldnames←items[I_NAME;]
           ⍝ check for deletions
           delmask←~oldnames∊apllist,⊂''   ⍝ files that don't have a proper name (oldname≡'') don't contribute to APL deletions !
@@ -409,21 +415,27 @@
               newnames{0 LogCrawler'Created APL item: '⍺' → '⍵}¨newfiles
               ⍝ avoid thread-switch across the next two line
               newsrc ##.U.Into¨newfiles ⋄ newmod←EncodeTS↑3 ⎕NINFO newfiles
+              delmask∨←(items[I_FILE;]∊newfiles)  ⍝ remove previous entries on those files - newfiles can never be ''
           :EndIf
           ⍝ update data structure
+          (filelist filemod)/⍨←⊂~filelist∊items[I_FILE;⍸delmask]   ⍝ remove deleted files from list
+          (filelist filemod),←(newfiles newmod)                    ⍝ add created files to list          
           items←((~delmask)/items),↑newfiles newnames newnc((≢newnames)⍴1)newmod
       :EndIf
       :If 1
       ⍝⍝⍝ Look for files (not dirs) with a change of modification timestamp
-          changed←filelist∊oldfiles←items[I_FILE;]
+          changed←filelist∊oldfiles←(~items[I_CHECKED;])/items[I_FILE;]
           :If ~0∊⍴changedfiles←changed/filelist
               changedmod←changed/filemod
               changedinx←oldfiles⍳changedfiles
           :AndIf 1∊modmask←changedmod≠¨items[I_FMOD;changedinx]  ⍝ file modification timestamp has changed
           :AndIf 1∊modmask←modmask∧(¯9.1≠items[I_NC;changedinx])∨(~changedfiles∊dirs)  ⍝ ignore change of timestamps for dirs that remain dirs
               changednames←##.Notify¨{'changed'⍵}¨modmask/changedfiles
-          ⍝ update data structure
+              ⍝ update data structure
+              mask←~items[I_NAME;]∊changednames  ⍝ delete entries
+              mask[modmask/changedinx]←1         ⍝ excepted self
               items[I_NAME I_CHECKED I_FMOD;modmask/changedinx]←↑changednames((+/modmask)⍴1)(modmask/changedmod)
+              items/⍨←mask
           :EndIf
       :EndIf
       :If watchns
@@ -457,6 +469,6 @@
       LINKS[;inx]←link items active
       ⍝##.U.Log'Items: ',(⍕⊃⌽⍴items),' ⋄ Source compared: ',(⍕≢notchecked),' ⋄ Differ: ',(⍕≢differ)
     ∇
-
-
+    
+    
 :EndNamespace
