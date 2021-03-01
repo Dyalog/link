@@ -71,6 +71,7 @@
           :Return
       :ElseIf all∧(canwatch⍲cancrawl)
           Log'FileSystemWatcher and Crawler required to run all tests'
+          :Return
       :EndIf
       :If (~all)∧(canwatch⍲cancrawl)
           notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
@@ -104,6 +105,7 @@
 ⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
           :EndIf
           :If cancrawl ⍝ test with crawler
+          :AndIf canwatch∧test≢'test_watcherrors'  ⍝ already done with file watcher - no need to do it with file crawler
               ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
 ⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
               ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
@@ -309,7 +311,7 @@
       {}⎕SE.Link.Break name
      
       z←⎕SE.UCMD']Link.Create ',name,' ',folder
-      'link issue #217'assert'⊃''⎕SE.Link.Create: Cannot link a non-empty namespace to a non-empty directory''⍷z'
+      'link issue #217'assert'∨/''⎕SE.Link.Create: Cannot link a non-empty namespace to a non-empty directory''⍷z'
      
       3 ⎕NDELETE folder
       name⍎'⎕USING←'''''
@@ -387,7 +389,7 @@
       cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')('sub.⎕IO')('sub.##.sub.⎕THIS.⎕ML')
       ⍝assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
       z←ref.{⎕SE.UCMD ⍵}cmd  ⍝ link issue #217 - UCMD must not error
-      assert'⊃''⎕SE.Link.Export: Files already exist:''⍷z'
+      assert'∨/''⎕SE.Link.Export: Files already exist:''⍷z'
       z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
       'link issue #37'assert'~∨/''failed''⍷z'
       'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
@@ -535,8 +537,7 @@
       _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
       #.⎕EX name
-      ok←1
-     
+      ok←1     
     ∇
 
 
@@ -1261,7 +1262,7 @@
       (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'{var:42 ⋄ list:1 2 3}'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
       ⍝'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0 ⍝ UCMD may trigger any error number
       z←(⍎name).{⎕SE.UCMD']Link.Add jsondict.list'}⍬
-      'link issue #177'assert'⊃''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
+      'link issue #177'assert'∨/''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
      
       ⎕EX name,'.jsondict'
       {}⎕SE.Link.Break name
@@ -1286,7 +1287,7 @@
       #.jsondict←#.⎕JSON'{"var":42,"list":[1,2,3]}'
       ⍝'link issue #177'assertError'#.{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬' 'Not a properly named namespace' 0  ⍝ UCMD may trigger any error number
       z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
-      'link issue #177'assert'⊃''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
+      'link issue #177'assert'∨/''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
       ⎕EX'#.jsondict' ⋄ '#.jsondict'⎕NS'' ⋄ #.jsondict.(var list)←42(1 2 3)
       z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
       'link issue #177'assert'⎕NEXISTS ''',folder,'/jsondict-0/list-0.apla'''
@@ -1524,7 +1525,7 @@
       'link issue #173'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]}',⍕Stringify¨nstree
       ⍝ Mantis 18626 required the line below to read :  ⎕SE.Link.U.IS181++/~3⊃⎕SE.Link.U.GetFileTiesIn
       ⍝ Crawler has the same requirement because it "sees" sub.required being fixed into APL.
-      mantis18626←⎕SE.Link.Watcher.(CRAWLER>DOTNET)⍝(~⎕SE.Link.U.IS181)  
+      mantis18626←⎕SE.Link.Watcher.(CRAWLER>DOTNET)
       'link issue #173'assert'(≢{(2≠⌊|⎕NC⍵)/⍵}0 NSTREE name)≡(mantis18626++/~3⊃⎕SE.Link.U.GetFileTiesIn ',name,')'
       failed←0⍴⊂'' ⍝ BUG this line was due to Manti 18635 : ⍝ failed←⊂'CLASS2A'
       assert'∧/1234∘≡¨',⍕name∘{⍺,'.',⍵,'.TestVar'}¨failed~⍨('REQ'∘,¨'1B' '2A'),('CLASS'∘,¨'1B' '1D' '2A' '2C')
@@ -1828,12 +1829,12 @@
       assert'(∨/''Linked:''⍷output)' 
      
       ⍝ https://github.com/Dyalog/link/issues/48
-      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655 - linux + 18.1
+      ⍝:If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655 - linux + 18.1
           ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
           'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
           output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
           'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
-      :EndIf
+      ⍝:EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/49
       ride.Edit(name,'.foo')(goo)  ⍝ edit foo and type goo in it
@@ -2250,7 +2251,6 @@
 
     ∇ CleanUp(folder name);z;m
     ⍝ Tidy up after test
-      ⍝⎕SE.Link.DEBUG←0
       z←⎕SE.Link.Break name
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared

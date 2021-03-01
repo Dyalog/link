@@ -157,7 +157,7 @@
       :If 9=⎕NC'link.fsw.QUEUE'
           fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
       :ElseIf 9=⎕NC'link.fsw'
-          fsw←link.fsw          
+          fsw←link.fsw
       :EndIf
       :If 0≠⎕NC'fsw' ⋄ paused←~fsw.EnableRaisingEvents
       :ElseIf CRAWLER ⋄ paused←~IsCrawlerActive link
@@ -228,17 +228,20 @@
       ts←EncodeTS ⎕TS
     ∇
 
-    LINKS←3 0⍴⍬  ⍝ [link items active;]
-    L_LINK L_ITEMS L_ACTIVE←⍳3
+    LINKS←4 0⍴⍬  ⍝ [link items active warned;]
+    L_LINK L_ITEMS L_ACTIVE L_WARNED←⍳4
     NO_ITEMS←5 0⍴⍬  ⍝ [file name nc checked filemod;]
     I_FILE I_NAME I_NC I_CHECKED I_FMOD←⍳5
     LASTSTART←LASTEND←TS_OLD
 
     INTERVAL←3⊣.1    ⍝ Timer interval in seconds
     GRANULARITY←.02  ⍝ Time granularity in seconds - as bad as 20ms on Windows
+    WORKLOAD←0.5     ⍝ Crawler maximum workload, in timer intervals
+
+
     ∇ timer←CreateTimer;args
     ⍝ create Timer in thread 0, so that timer events will be generated when thread 0 comes back to six-space prompt
-      :If 0≠⎕TID ⋄ (⎕←'⎕SE.Link.Watcher namespace must be fixed in thread 0')⎕SIGNAL 999 ⋄ :EndIf
+      :If 0≠⎕TID ⋄ ⎕←'⎕SE.Link.Watcher namespace must be fixed in thread 0 - crawler may not work properly' ⋄ :EndIf
       args←('Active' 0)('Interval'(⌈1000×INTERVAL))('Event'('onTimer' 'CrawlerEvent'))
       :If IS181 ⋄ args,←⊂('FireOnce' 1) ⋄ :EndIf
       timer←⎕NEW'Timer'args
@@ -262,11 +265,12 @@
       :ElseIf (warn=0)∨(LOGCRAWLER∧warn=¯1) ⋄ title ##.U.Log msg
       :EndIf
     ∇
+    ErrorCrawler←'⎕SE.Link.Crawler'∘##.U.Error
 
     ∇ AddCrawler link;args
       :Hold '⎕SE.Link.Crawler'
           ¯1 LogCrawler'Adding link: 'link' to ',LINKS[L_LINK;]
-          LINKS,←link NO_ITEMS 1
+          LINKS,←link NO_ITEMS 1 0
           Crawl link  ⍝ set up
           :If ~TIMER.Active
               TIMER.Interval←⌈1000×INTERVAL  ⍝ for ⎕SE.Link.Test to change it
@@ -303,30 +307,36 @@
 
 
 
-    ∇ {msg}←CrawlerEvent msg;mask;ok;start
+    ∇ {msg}←CrawlerEvent msg;laststart;links;mask;ok;start
       :If ##.U.debug=2
           (1+⊃⎕LC)⎕STOP⊃⎕SI
       :EndIf
       :Trap ##.DEBUG↓0
-          start←TS
-          :If ~IS181  ⍝ v18.1 has FireOnce property so events never pile up
-          :AndIf (INTERVAL-GRANULARITY)>(start-LASTSTART)  ⍝ prevent running several events in a row when the queue has piled up
-              ¯1 LogCrawler'Timer event: Event queue overloaded'
-              :Return
-          :ElseIf (0.5×INTERVAL)>(start-LASTEND)  ⍝ prevent spending more than half the time crawling
-              ¯1 LogCrawler'Timer event: Crawler overloaded'
-          :EndIf
+          start←TS ⋄ (laststart LASTSTART)←(LASTSTART start)
           ¯1 LogCrawler'Timer event'
-          :Hold '⎕SE.Link.Crawler' '⎕SE.Link.Notify'
-          ⍝ Crawl must call Notify directly for the :Hold to work !
-              :If 1∊mask←LINKS[L_ACTIVE;]
-                  Crawl¨mask/LINKS[L_LINK;]
-              :EndIf
-          :EndHold
+          :If ~IS181  ⍝ v18.1 has FireOnce property so events never pile up
+          :AndIf (INTERVAL-GRANULARITY)>(start-laststart)  ⍝ prevent running several events in a row when the queue has piled up
+              ¯1 LogCrawler'Event queue overloaded'
+          :ElseIf (WORKLOAD×INTERVAL)>(start-LASTEND)  ⍝ prevent spending too much time crawling
+              ¯1 LogCrawler'Crawler overloaded: not crawling at all'
+          :Else
+              :Hold '⎕SE.Link.Crawler' '⎕SE.Link.Notify'
+               ⍝ Crawl must call Notify directly for the :Hold to work !
+                  :If 1∊mask←LINKS[L_ACTIVE;]
+                      Crawl¨links←mask/LINKS[L_LINK;]
+                      ⍝ prevent spending too much time crawling
+                      ⍝ ns diffs are time-consuming so avoid it if overloaded
+                      :If (WORKLOAD×INTERVAL)>(TS-LASTEND)
+                          ¯1 LogCrawler'Crawler overloaded: not crawling namespace differences'
+                      :Else
+                          CrawlNsDiffs¨links
+                      :EndIf
+                  :EndIf
+              :EndHold
+          :EndIf
           :If IS181  ⍝ v18.1 has FireOnce property so set it up again
               (⊃msg).FireOnce←1  ⍝ fire once more
           :EndIf
-          LASTSTART←start
           LASTEND←TS
       :Else
           (⊃msg).Active←0
@@ -334,16 +344,28 @@
       :EndTrap
     ∇
 
-    ∇ {crawled}←Crawl link;active;actname;allfiles;apllist;aplnames;aplnc;aplsrc;changed;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;delfiles;delmask;delnames;differ;dirs;expname;filelist;filemod;filenames;filesrc;inx;items;mask;mewmod;mod;modmask;nc;newfiles;newmask;newmod;newnames;newnc;newsrc;notchecked;ns;nsref;oldfiles;oldnames;src;watchdir;watchns;where
+    ∇ (link items active warned)←GetCrawlerLink link;inx
+      :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
+          ErrorCrawler'Link not found: ',⍕link
+      :EndIf
+      (link items active warned)←LINKS[L_LINK L_ITEMS L_ACTIVE L_WARNED;inx]
+    ∇
+    ∇ SetCrawlerLink(link items active warned);inx
+      :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
+          ErrorCrawler'Link not found: ',⍕link
+      :ElseIf {(≢¨∪¨⍵)≢(≢¨⍵)}(↓2↑items)~¨⊂⊂''
+          ErrorCrawler'Internal error: non-unique items'
+      :EndIf
+      LINKS[L_LINK L_ITEMS L_ACTIVE L_WARNED;inx]←(link items active warned)
+    ∇
+
+    ∇ {crawled}←Crawl link;active;actname;allfiles;apllist;aplnames;aplnc;aplsrc;changed;changedfiles;changedinx;changedmod;changednames;changednc;changedsrc;delfiles;delmask;delnames;dirs;expname;filelist;filemod;filenames;filesrc;inx;items;link2;mask;mewmod;mod;modmask;nc;newfiles;newmask;newmod;newnames;newnc;newsrc;ns;nsref;oldfiles;oldnames;src;warned;watchdir;watchns;where
     ⍝ crawler must keep track of files changes even if not watching dir, to be able to interpret APL changes correctly
       crawled←0 ⋄ watchdir←'dir' 'both'∊⍨⊂link.watch ⋄ watchns←'ns' 'both'∊⍨⊂link.watch
-      :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
-          1 LogCrawler'Link not crawled: '(,⍕link)  ⍝ should not happen
-          :Return
-      :EndIf
-      (link items active)←LINKS[;inx]
+      (link items active warned)←GetCrawlerLink link
       :If ~active  ⍝ should not happen
           1 LogCrawler'Link not active: '(,⍕link)
+          :Return
       :EndIf
       crawled←1 ⋄ nsref←⍎ns←link.ns ⋄ items[I_CHECKED;]←0
       ⍝ avoid thread-switch across the next line
@@ -437,18 +459,30 @@
               items/⍨←mask
           :EndIf
       :EndIf
-      :If watchns
+      ⍝⍝⍝ Update global data structure
+      SetCrawlerLink link items active warned
+    ∇
+
+    ∇ {crawled}←CrawlNsDiffs link;active;aplnames;aplsrc;differ;filenames;filesrc;items;mask;mod;nc;notchecked;warned;watchns
+      :If crawled←watchns←'ns' 'both'∊⍨⊂link.watch
       ⍝⍝⍝ Look for content difference between APL and files
       ⍝ assume that if file modification timestamp hasn't changed,
       ⍝ then in case of difference the APL side is the "new" one.
       ⍝ this is why we must keep tracking dir even when no watching it
+          (link items active warned)←GetCrawlerLink link
+          :If ~crawled←active  ⍝ should not happen
+              1 LogCrawler'Link not active: '(,⍕link)
+              :Return
+          :EndIf
           differ←notchecked←⍬
           :If ~0∊⍴items  ⍝ otherwise  items[I_CHECKED;]  may have nested prototype
               mask←~items[I_CHECKED;]     ⍝ items not checked so far
-              mask∧←0<≢¨items[I_NAME;]    ⍝ items that have a valid APL name
+              mask∧←0<≢¨aplnames←items[I_NAME;]    ⍝ items that have a valid APL name
+              mask∧←0=≢¨# ##.U.CurrentFileName¨aplnames  ⍝ items tied to files will necessarily have matching ⎕SRC/⎕NGET
           :AndIf ~0∊⍴notchecked←⍸mask
+              (aplnames filenames)←↓items[I_NAME I_FILE;notchecked]
               ⍝ avoid thread switch over the next line
-              aplsrc←# ##.U.GetAplSource¨aplnames←items[I_NAME;notchecked] ⋄ filesrc←##.U.GetFileSource¨filenames←items[I_FILE;notchecked] ⋄ nc←# ##.U.NameClass¨aplnames
+              aplsrc←# ##.U.GetAplSource¨aplnames ⋄ nc←# ##.U.NameClass¨aplnames ⋄ filesrc←##.U.GetFileSource¨filenames
               :If ∨/mask←{1=≡⍵}¨aplsrc ⋄ ¯1 LogCrawler'Failures to get APL source:',⍕mask/aplnames ⋄ :EndIf
               :If ∨/mask←{1=≡⍵}¨filesrc ⋄ ¯1 LogCrawler'Failures to get file source:',⍕mask/filenames ⋄ :EndIf
               mask←aplsrc≢¨filesrc             ⍝ items that differ from file definition
@@ -460,13 +494,8 @@
               ⍝ update datastructure
               items[;differ]←↑(mask/filenames)(mask/aplnames)(mask/nc)((+/mask)⍴1)mod
           :EndIf
+          SetCrawlerLink link items active warned
       :EndIf
-    ⍝⍝⍝ Update global data structure
-      :If {(≢¨∪¨⍵)≢(≢¨⍵)}(↓2↑items)~¨⊂⊂''
-          ##.U.Error'Internal error: non-unique items'
-      :EndIf
-      LINKS[;inx]←link items active
-      ⍝##.U.Log'Items: ',(⍕⊃⌽⍴items),' ⋄ Source compared: ',(⍕≢notchecked),' ⋄ Differ: ',(⍕≢differ)
     ∇
 
 

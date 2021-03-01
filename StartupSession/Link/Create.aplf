@@ -77,7 +77,11 @@
                  opts.source←'ns'
              :EndIf
          :EndIf
-         :If warn ⋄ ¯1 U.Warn'.NET or .NetCore not available - Link cannot watch directory' ⋄ :EndIf
+         :If warn 
+             :If U.IS180 ⋄ ¯1 U.Warn'.NET or .NetCore not available - Link cannot watch directory' 
+             :ELse ⋄ ¯1 U.Warn'Dyalog v18.0 is required to watch directories with .NET or .NetCore' 
+             :EndIf
+         :EndIf
 
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
