@@ -1,4 +1,4 @@
- {linked}←where Fix src;RSI;XSI;added;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
+ {linked}←where Fix src;RSI;XSI;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -13,7 +13,7 @@
      :If ~U.HasLinks ⋄ linked←0 ⋄ :Return ⋄ :EndIf
 
      XSI←⎕XSI ⋄ RSI←⎕RSI
-     added←'⎕SE.Link.Add'≡⊃1↓XSI  ⍝ user explicitly added the name to the link - update file independently of watch
+     :If 900⌶⍬ ⋄ where←'' ⋄ :EndIf  ⍝ fix into calling space by default
      callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
      →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback) - see mantis 18160: can't :Hold 0⍴⊂'' in a high-priority callback
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
@@ -21,7 +21,9 @@
      ⍝ However not holding '⎕SE.Link.Notify' is annoying because there is a non-zero probability of the files being in an incomplete/misleading state
 NOHOLD:
          nosrc←0=≢src
-         (ns name oldname)←3↑(⊆,where),'' ''
+         :If 0≠⎕NC'where' ⋄ where←⊆,where ⋄ :EndIf  ⍝ do not ravel reference
+         (ns name oldname)←3↑where,'' '' ''
+         :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
          oldname,←(0=≢oldname)/name ⍝ oldname not specified
          name,←(0=≢name)/oldname ⍝ name not specified
          this←⊃RSI XSI U.ContainerNs ns
@@ -38,10 +40,11 @@ NOHOLD:
          :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
          :EndIf
 
-         update←('ns'≡link.watch)      ⍝  watching namespace : update file (not tied to file with 2 ⎕FIX)
-         update∨←('both'≡link.watch)∧(2=⌊nc)∨(~⎕NEXISTS file)  ⍝ watching both ways : new file need to be created - file needs to be updated if editing a linked array
-         update>←(2=⌊nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
-         update∨←added  ⍝ explicit add must update file
+         update←1  ⍝ explicit call always updates file
+         :If callback
+             update←(⊂link.watch)∊'ns' 'both'   ⍝ callback must watch ns
+             update>←(2=⌊nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
+         :EndIf
          tie←U.FixTie link  ⍝ should we tie files when fixing
 
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename - won't happen if oldname is undefined (link issue #190) because oldfile must then be empty
@@ -89,7 +92,6 @@ NOHOLD:
 
          fix←~nosrc ⍝ no need to update if source was read from APL
          fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
-         update∨←fix∧('both' 'ns'∊⍨⊂link.watch)  ⍝ update file if watching namespace
          1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
 
          :If update  ⍝ file system must reflect changes - FileWatcher may pick it up after this high-priority callback, and should notice no change in source, therefore not fix it  - TODO it means it will re-hash the file

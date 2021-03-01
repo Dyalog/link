@@ -8,7 +8,7 @@
 
 #### Left argument
 
-- link options namespace used as left argument of [Create](Link.Create.md)
+- link options namespace used as left argument of [Link.Create](Link.Create.md)
 
 #### Result
 

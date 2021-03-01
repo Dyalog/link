@@ -1,6 +1,6 @@
 # Overview
 
-As described on the [Home](Home.md) page, Link streamlines working with code in text files by mapping workspace content and filesystem content in a one-to-one relationship. Each unscripted namespace (created by `⎕NS` rather than `⎕FIX`) is associated with a directory of matching name while other workspace content (defined functions and scripted objects) are associated with one file per item. Depending on which synchronisation options have been
+As described on the [Home](Home.md) page, Link streamlines working with code in text files by mapping workspace content and filesystem content in a one-to-one relationship. Each unscripted namespace (created by `⎕NS` rather than `⎕FIX`) is associated with a directory of matching name while other workspace content (defined functions, scripted namespaces, classes and interfaces, arrays) are associated with one file per item. Depending on which synchronisation options have been
 selected, Link will synchronise changes in none, one or both directions.
 
 ## Scope
@@ -9,7 +9,7 @@ Link automatically manages name classes 3.1 (traditional function), 3.2 (direct 
 
 Unscripted namespaces (created with ⎕NS or )NS and not :Namespace or :Class or :Interface) are mapped to directories. Functions, operators and namespaces that have text source are mapped to text files.
 
-Arrays (nameclass 2.1) are ignored by default, but they may be explicitly linked with [Add](Link.Add.md). At that point they are saved to file, and later always loaded from directory. Similarly, [Export](Link.Export.md) has an `-arrays` flag to force exporting arrays.
+APL Arrays (nameclass 2.1) are ignored by default, but they may be explicitly linked and saved to file with [Link.Add](Link.Add.md), or with the `-arrays` modifier for [Link.Create](Link.Create.md) and [Link.Export](Link.Export.md).
 
 By default, Link will update files with changes made in linked namespaces through the editor (`⎕ED`). It will also watch the file system for changes to the linked directory, modifying the linked namespace accordingly. Watching the file system is currently supported only on .Net and .NetCore,but support is planned for other operating systems in the near future.
 

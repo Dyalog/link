@@ -4,7 +4,13 @@
 
     msg ← ⎕SE.Link.Add items                                      
 
-This function allows you to add an item to the link, creating the appropriate representation in the linked directory. Normally, new APL items (except arrays) will automatically be added when saved by the editor (including closing the editor by hitting <kbd>Esc</kbd>), but if you create an item outside the editor (for example using `⎕FX`, `⎕CY`/`)copy`, or `⎕NS` ), or you want to explicitly add an array to the link, you will need to tell Link to add this item.
+This function allows you to add one or more existing APL items to the link, creating the appropriate representation in the linked directory. The file will be created/updated whether the linked namespace is watched or not.
+
+This is useful to add arrays to a linked directory, because arrays are ignored by default (unless using the `-arrays` modifier with [Link.Create](Link.Create.md) and [Link.Export](Link.Export.md)). Since array files are never ignored, the Add needs to be done only once, then subsequent load from directory will always get the linked arrays.
+
+This is also useful to force updating a linked file from the current APL definition, for example if not watching the namespace, or if modified an array by running APL code.
+
+Note: You can create or update an item from source while adding it to the Link by calling [Link.Fix](Link.Fix.md)
 
 #### Arguments
 

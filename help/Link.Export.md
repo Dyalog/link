@@ -4,7 +4,7 @@
 
     msg ← {opts} ⎕SE.Link.Export (ns dir) 
 
-This function takes the same arguments as [Create](Link.Create.md) but saves the contents of a namespace to directory without maintaining a Link.
+This function takes the same arguments as [Link.Create](Link.Create.md) but saves the contents of a namespace to directory without maintaining a Link.
 
 If the source is an unscripted namespace, then the destination is taken as a directory.
 
@@ -18,7 +18,7 @@ If the source is anything else, then the destination is taken as a directory (an
 #### Options
 
 - `overwrite`: Allow overwriting files in the destination directory
-- other options have same effect as in [Create](Link.Create.md)
+- other options have same effect as in [Link.Create](Link.Create.md)
 
 #### Result
 

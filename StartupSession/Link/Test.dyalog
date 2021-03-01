@@ -105,7 +105,7 @@
 ⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
           :EndIf
           :If cancrawl ⍝ test with crawler
-          :AndIf canwatch∧test≢'test_watcherrors'  ⍝ already done with file watcher - no need to do it with file crawler
+          :AndIf ~(canwatch∧test≡'test_watcherrors')  ⍝ already done with file watcher - no need to do it with file crawler
               ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
 ⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
               ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
@@ -537,7 +537,7 @@
       _←2 QNDELETE folder
       assert'9=⎕NC ''ns'''
       #.⎕EX name
-      ok←1     
+      ok←1
     ∇
 
 
@@ -1356,6 +1356,15 @@
       :EndTrap
     ∇
 
+    ∇ where EdFix src;evt;file;name;ns;obj;oldname
+    ⍝ Emulate editor fix - better use GhostRider, but more complex and unicode only
+    ⍝ Can't call ⎕SE.Link.Fix directly because it would always update the file
+      (ns name)←where ⋄ obj←⎕NULL ⋄ evt←'AfterFix' ⋄ oldname←name ⋄ file←''
+      ⎕SE.Link.OnFix(obj evt src ns oldname name file)  ⍝ for OnAfterFix to work
+      {}(⍎ns)⎕SE.Link.U.Fix name src 1  ⍝ update APL side like editor would
+      ⎕SE.Link.OnAfterFix(obj evt src ns oldname name file)  ⍝ calls ⎕SE.Link.Fix with the watch setting
+    ∇
+
     ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z;mantis18626
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
@@ -1552,7 +1561,11 @@
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
-      Breathe ⋄ 0 assert_create 1   ⍝ breathe to ensure it's not reflected
+      0 assert_create 0    ⍝  ⎕SE.Link.Fix updates files independently of watch setting
+      subname'var'EdFix newvarsrc
+      subname'foo'EdFix newfoosrc
+      subname'ns'EdFix newnssrc
+      Breathe ⋄ 1 assert_create 0   ⍝ breathe to ensure it's not reflected
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
@@ -1574,9 +1587,9 @@
       1 assert_create 1
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ APL changes must be reflected to file
-      subname'var'⎕SE.Link.Fix varsrc
-      subname'foo'⎕SE.Link.Fix foosrc
-      subname'ns'⎕SE.Link.Fix nssrc
+      subname'var'EdFix varsrc
+      subname'foo'EdFix foosrc
+      subname'ns'EdFix nssrc
       0 assert_create 0
       ⍝ file changes must not be reflected back to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
@@ -1598,9 +1611,9 @@
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       Breathe ⋄ 1 assert_create 1
-      subname'var'⎕SE.Link.Fix varsrc
-      subname'foo'⎕SE.Link.Fix foosrc
-      subname'ns'⎕SE.Link.Fix nssrc
+      subname'var'EdFix varsrc
+      subname'foo'EdFix foosrc
+      subname'ns'EdFix nssrc
       Breathe ⋄ 0 assert_create 1
       {}⎕SE.Link.Break name
       3 ⎕NDELETE folder
@@ -1621,9 +1634,9 @@
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       1 assert_create 1
-      subname'var'⎕SE.Link.Fix varsrc
-      subname'foo'⎕SE.Link.Fix foosrc
-      subname'ns'⎕SE.Link.Fix nssrc
+      subname'var'EdFix varsrc
+      subname'foo'EdFix foosrc
+      subname'ns'EdFix nssrc
       Breathe
       0 assert_create 1
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
@@ -1636,9 +1649,9 @@
       'link issue #194'assert'∧/⎕NEXISTS folder folder subfolder,¨''/array.apla'' ''/var.apla'' ''/var.apla'' '
       0 assert_create 0
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
-      subname'var'⎕SE.Link.Fix newvarsrc
-      subname'foo'⎕SE.Link.Fix newfoosrc
-      subname'ns'⎕SE.Link.Fix newnssrc
+      subname'var'EdFix newvarsrc
+      subname'foo'EdFix newfoosrc
+      subname'ns'EdFix newnssrc
       1 assert_create 1
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
@@ -1653,14 +1666,14 @@
       {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
       1 assert_create 1
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
-      subname'var'⎕SE.Link.Fix varsrc
-      subname'foo'⎕SE.Link.Fix foosrc
-      subname'ns'⎕SE.Link.Fix nssrc
+      subname'var'EdFix varsrc
+      subname'foo'EdFix foosrc
+      subname'ns'EdFix nssrc
       Breathe
       0 assert_create 1
-      subname'var'⎕SE.Link.Fix newvarsrc
-      subname'foo'⎕SE.Link.Fix newfoosrc
-      subname'ns'⎕SE.Link.Fix newnssrc
+      subname'var'EdFix newvarsrc
+      subname'foo'EdFix newfoosrc
+      subname'ns'EdFix newnssrc
       Breathe
       1 assert_create 1
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
@@ -1826,14 +1839,14 @@
       {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
       output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(∨/''Linked:''⍷output)' 
+      assert'(∨/''Linked:''⍷output)'
      
       ⍝ https://github.com/Dyalog/link/issues/48
       ⍝:If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655 - linux + 18.1
-          ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
-          'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
-          output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
-          'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
+      ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
+      'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
+      output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
+      'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
       ⍝:EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/49
@@ -1854,7 +1867,7 @@
       {}(⊂foo)QNPUT(folder,'/foo.aplf')1
       {}(⊂class)QNPUT(folder,'/class.aplc')1
       output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
-      assert'(⊃''Linked:''⍷output)' 
+      assert'(⊃''Linked:''⍷output)'
      
      ⍝ link issue #190: edit a non-existing name, and change its name before fixing
       ride.Edit(name,'.doesntexist')('res←exists arg' 'res←arg')
@@ -1873,7 +1886,7 @@
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']Link.Status'
       'link issue #154'assert'(1=≢z)∧(∨/''No active links''⍷∊z)'
       output←ride.APL']Link.Create ',(Stringify name),' ',(Stringify folder)
-       assert'(⊃''Linked:''⍷output)'   
+      assert'(⊃''Linked:''⍷output)'
      
      ⍝ https://github.com/Dyalog/link/issues/30
       tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
@@ -2410,7 +2423,7 @@
           :CaseList 2.1 9.1 9.4 9.5  ⍝ array (or scalar ref)
               name(to{⍺⍺⍎⍺,'←⍵'})from⍎name
           :CaseList 3.1 3.2 4.1 4.2  ⍝ function or operator - won't work if anything was 2 ⎕FIX'file://...'
-              :If ~0∊⍴file←4⊃from.(5179⌶)'foo' ⋄ 2 to.⎕FIX 'file://',file
+              :If ~0∊⍴file←4⊃from.(5179⌶)'foo' ⋄ 2 to.⎕FIX'file://',file
               :Else ⋄ to.⎕FX from.⎕NR name
               :EndIf
           :Else

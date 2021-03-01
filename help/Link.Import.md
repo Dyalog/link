@@ -4,7 +4,7 @@
 
     msg ← {opts} ⎕SE.Link.Import (ns dir)
 
-This function takes the same arguments as [Create](Link.Create.md), but loads a directory containing source files into a namespace without maintaining a link.
+This function takes the same arguments as [Link.Create](Link.Create.md), but loads a directory containing source files into a namespace without maintaining a link.
 
 If source is a directory, then its contents are imported into the destination namespace.
 
@@ -18,7 +18,7 @@ If source is a file, then the corresponding APL name is created in the destinati
 #### Options
 
 - `overwrite`: Allow overwriting APL names in the destination namespace
-- other options have same effect as in [Create](Link.Create.md)
+- other options have same effect as in [Link.Create](Link.Create.md)
 
 #### Result
 
