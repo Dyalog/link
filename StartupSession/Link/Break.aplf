@@ -1,4 +1,4 @@
- msg←{opts}Break nss;defopts;link;linked;links;mask;missing;n;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
@@ -19,7 +19,7 @@
          :ElseIf ~(⊂opts.recursive)∊'on' 'off' 'error' ⋄ U.Error'Invalid value ',(⍕opts.recursive),' for modifier "recursive" - must be one of: on off error'
          :EndIf
 
-         tobreak←unlinked←missing←0⍴# ⋄ n←0
+         tobreak←unlinked←missing←0⍴#
 
          there←⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ reference to calling namespace
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
@@ -57,7 +57,7 @@
 
          msg←''
          :If ×≢tobreak
-             msg,←⊂'Unlinked ',(⍕n),' items in:',U.List∪tobreak
+             msg,←⊂'Unlinked:',U.List∪tobreak
          :EndIf
          :If ×≢missing
              msg,←⊂'Not found:',U.List∪missing

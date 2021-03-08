@@ -24,7 +24,7 @@
          ⍝ status,←items
          status←↑links.(ns dir)
          status,←¯1+≢¨⊃¨links (0 U.ListFiles)¨status[;2]  ⍝ exclude root
-         status⍪⍨←'Namespace' 'Directory' 'Items'
+         status⍪⍨←'Namespace' 'Directory' 'Files'
 
          (defopts←⎕NS ⍬).(extended)←0
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'

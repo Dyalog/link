@@ -364,7 +364,8 @@
       :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
       :AndIf nsref IsRootName name
           nc←¯9.1
-      :ElseIf nc=¯1
+      :ElseIf nc=¯1 
+      :AndIf '⎕'∊name
           (parent name)←SplitNs name
       :AndIf (⊂name)∊NsSysVars           ⍝ name is a namespace system variable
       :AndIf (0∊⍴parent)∨(9=⌊|nsref NameClass parent)  ⍝ parent is a valid namespace

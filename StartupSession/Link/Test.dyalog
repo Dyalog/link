@@ -1089,7 +1089,7 @@
       z←⎕SE.Link.Create'#.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname.sub'folder
       assert'3=≢⎕SE.Link.Links'
-      props←'Namespace' 'Directory' 'Items'
+      props←'Namespace' 'Directory' 'Files'
       'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 2⍴folder 1)≡⎕SE.Link.Status '''''
       'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
      
