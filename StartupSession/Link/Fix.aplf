@@ -38,12 +38,15 @@ NOHOLD:
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
          :ElseIf (0=nc)∧(~nosrc) ⋄ U.Error'Invalid source for ',nsname,'.',name ⍝ ,': ',⍕src
          :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
+         :ElseIf callback∧(2.1=nc)  ⍝ never watch namespace arrays
+             ¯1 U.Log'ignoring editing of array: 'nsname'.'name
+             :Return
          :EndIf
 
          update←1  ⍝ explicit call always updates file
          :If callback
              update←(⊂link.watch)∊'ns' 'both'   ⍝ callback must watch ns
-             update>←(2=⌊nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
+             ⍝update>←(2.1=nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
          :EndIf
          tie←U.FixTie link  ⍝ should we tie files when fixing
 
@@ -57,10 +60,8 @@ NOHOLD:
              delete←0  ⍝ old file must be preserved
          :ElseIf callback∧(0=≢oldfile)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
-             :If 2=ns.⎕NC oldname
-                 src←⎕SE.Dyalog.Array.Serialise ns⍎oldname
-             :Else
-                 src←⊃U.LASTFIX  ⍝ source as typed
+             :If 0 ⋄ :AndIf 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array (never happens)
+             :Else ⋄ src←⊃U.LASTFIX  ⍝ source as typed
              :EndIf
              nosrc←0 ⋄ delete←0
          :Else
@@ -70,7 +71,7 @@ NOHOLD:
          :If callback   ⍝ called back from editor
              U.LASTFIX←⍬  ⍝ last fix event consumed
              :If ~update ⍝ Editor fix when not watching the namespace
-                 →0  ⍝ job done
+                 :Return  ⍝ job done
              :EndIf
          :EndIf
 
@@ -85,14 +86,14 @@ NOHOLD:
 
          :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
              :If ~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)(|nc)(nsname,'.',oldname)src
-                 1 U.Log'name='nsname'.'name' file="'file'" handled by user'
-                 →0
+                 ¯1 U.Log'name='nsname'.'name' file="'file'" handled by user'
+                 :Return
              :EndIf
          :EndIf
 
          fix←~nosrc ⍝ no need to update if source was read from APL
          fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
-         1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
+         ¯1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
 
          :If update  ⍝ file system must reflect changes - FileWatcher may pick it up after this high-priority callback, and should notice no change in source, therefore not fix it  - TODO it means it will re-hash the file
              :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src

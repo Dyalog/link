@@ -1353,9 +1353,9 @@
           _←assert(⍺/'new'),'var≡⍎subname,''.var'''
           _←assert(⍺/'new'),'foosrc≡NR subname,''.foo'''
           _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''   ⍝ problem is that ⎕SRC reads directly from file !
-          _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
-          _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
-          _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
+          _←assert((⊃⍵)/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'    ⍝ namespace arrays must not be watched
+          _←assert((⊃⌽⍵)/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+          _←assert((⊃⌽⍵)/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
     ∇ on←AutoFormat
@@ -1611,7 +1611,7 @@
       subname'var'EdFix varsrc
       subname'foo'EdFix foosrc
       subname'ns'EdFix nssrc
-      0 assert_create 0
+      0 assert_create 1 0  ⍝ excepted for arrays
       ⍝ file changes must not be reflected back to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
@@ -1673,7 +1673,7 @@
       subname'var'EdFix newvarsrc
       subname'foo'EdFix newfoosrc
       subname'ns'EdFix newnssrc
-      1 assert_create 1
+      1 assert_create 0 1  ⍝ files updated excepted for arrays
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1

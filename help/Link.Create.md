@@ -26,7 +26,7 @@
 
  - **watch**	{none|ns|dir|**both**} 
    > Specifies which sides of the link to watch for changes (and synchronise).
-   > - `ns` will mirror namespace changes (done with the editor) to files. Note that it will **not** reflect changes made by running code (e.g. using assignment, `⎕FX`, `⎕FIX`, `⎕CY`, `⎕NS`, etc). If you want to programmatically change an item so that the change is reflected to files, you need to use [⎕SE.Link.Fix](Link.Fix.md)
+   > - `ns` will mirror namespace changes (done with the editor) to files. Note that it will **not** reflect changes to arrays, nor changes made by running code (e.g. using assignment, `⎕FX`, `⎕FIX`, `⎕CY`, `⎕NS`, etc). If you want to programmatically change an item so that the change is reflected to files, you need to use [Link.Add](Link.Add.md) or [Link.Fix](Link.Fix.md)
    > - `dir` will mirror file changes (done with any software) into the namespace. Note that massive file changes (e.g. git checkout or git pull) may fail and leave the link in an unsynchronised state, in which case you will get a warning message. Therefore it is desirable to [Pause](Link.Pause.md) the link before doing massive changes to files, then [Refresh](Link.Refresh.md) the link to resume file watching.
    > - `both` will do both.
    >

@@ -364,7 +364,7 @@
       :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
       :AndIf nsref IsRootName name
           nc←¯9.1
-      :ElseIf nc=¯1 
+      :ElseIf nc=¯1
       :AndIf '⎕'∊name
           (parent name)←SplitNs name
       :AndIf (⊂name)∊NsSysVars           ⍝ name is a namespace system variable
@@ -836,15 +836,16 @@
       :EndIf
     ∇
 
-    ∇ (names nc failed)←root ListLinkedNs link;mask;nsref
+    ∇ (names nc failed)←(root ListLinkedNs arrays)link;mask;nsref
       names←(root/⊂link.ns),1 ListNs link.ns
       ⍝ filter which names to export
       nc←(nsref←⍎link.ns)NameClass¨names
-      :If 0∊mask←nc∊(NameClasses link.arrays≡1)   ⍝ keep only names in allowed class
+      :If 0∊mask←nc∊(NameClasses arrays∧link.arrays≡1)   ⍝ keep only names in allowed class
           failed←((nc≠2.1)∧(~mask))/names  ⍝ these names won't be exported at all - ignored arrays are OK
           (names nc)/⍨←⊂mask
       :Else ⋄ failed←0⍴⊂''
-      :EndIf
+      :EndIf      
+      :If ~arrays ⋄ :Return ⋄ :EndIf  ⍝ ignore all arrays
       :If ~0=≡link.arrays  ⍝ add some arrays too
           nc,⍨←2.1⍴⍨≢names,⍨←link.arrays/⍨(nsref NameClass¨link.arrays)=2.1
       :EndIf
@@ -864,7 +865,7 @@
       written←failed←0⍴⊂'' ⋄ file←dest≢opts.dir  ⍝ single file provided
       :If ~single←¯9.1≠NameClass src  ⍝ map unscripted namespace to directory
           nsref←⍎ns←src
-          (names nc failed)←0 ListLinkedNs opts ⍝ list trad namespaces (excepted ns itself)
+          (names nc failed)←(0 ListLinkedNs 1) opts ⍝ list trad namespaces (excepted ns itself)
           :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
       :Else
           names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
