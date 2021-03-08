@@ -27,7 +27,7 @@
          :If 0∊⍴link←U.LookupFile path  ⍝ not linked - should not happen
              :If 900⌶⍬ ⋄ :OrIf 0∊⍴⎕SE.Link.Links ⋄ :OrIf obj∊⎕SE.Link.Links.fsw
                  warn←1  ⍝ link issue #225
-             :EndIf ⍝ otherwise not Link's fault (Mantis XXX)
+             :EndIf ⍝ otherwise not Link's fault (Mantis 18903)
              →END⊣msg,←⊂'path not in a linked directory'
          :EndIf
          ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time - done by Link.Create

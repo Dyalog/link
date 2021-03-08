@@ -404,7 +404,7 @@
           :Return
       :EndIf
       :If 9=⌊|nc←where NameClass ns      ⍝ is a fully qualified name
-          r←⍎ns
+          r←where⍎ns
       :ElseIf 0≠nc ⍝ Invalid or used name, not worth trying
       :ElseIf create  ⍝ doesn't exist yet - attempt to create it
           :Trap 0 ⋄ r←⍎ns where.⎕NS''  ⍝ create it

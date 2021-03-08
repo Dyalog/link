@@ -14,7 +14,9 @@
              :If ~0∊⍴link←U.LookupFile file←i⊃files
                  ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents - done by Link.Create
                  (where expname actname nc)←link U.DetermineAplName file
-                 (i⊃items)←(~nc∊0 ¯1)/where,'.',actname
+                 :If nc∊0 ¯1 ⋄ (i⊃items)←''  ⍝ invalid filename or file contents - cannot work
+                 :Else ⋄ (i⊃items)←where,'.',actname,(0=≢actname)/expname
+                 :EndIf
              :Else
                  (i⊃items)←''
              :EndIf

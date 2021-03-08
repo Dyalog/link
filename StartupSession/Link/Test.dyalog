@@ -1208,7 +1208,7 @@
       z←⎕SE.Link.GetItemName 1 NTREE folder
       'link issue #128'assert'({⍵[⍋⍵]}z)≡({⍵[⍋⍵]} 1 NSTREE name)'
       z←⎕SE.Link.GetFileName'⎕SE.nope' '⎕SE.nope.nope',name∘,¨'.nope' '.sub.nope' '.nope.nope'
-      z,←⎕SE.Link.GetItemName'/nope.nope' '/nope/nope.nope',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
+      z,←⎕SE.Link.GetItemName'/nope.aplf' '/nope/nope.aplf',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
       assert'∧/z≡¨⊂'''' '
      
       ⍝ add some sysvars
@@ -1411,6 +1411,16 @@
       'link issue #163'assert'1=≢⎕SE.Link.Links'
       'link issue #163'assert'3.2 3.2≡#.⎕NC''uc'' ''lc'''
       {}⎕SE.Link.Break #
+      ⍝ link issue #229
+      z←#.{⎕SE.UCMD ⍵}']Link.Create linkedns ',folder
+      'link issue #229'assert'1=≢⎕SE.Link.Links'
+      'link issue #229'assert'9.1=⎕NC⊂''#.linkedns'' '
+      #.linkedns.⎕FX'res←foo arg' 'res←arg'
+      z←,⊂#.{⎕SE.Link.GetFileName ⍵}'linkedns.foo'
+      z∪←⊂#.linkedns.{⎕SE.Link.GetFileName ⍵}'foo'
+      'link issue #229'assert'z≡,⊂folder,''/foo.aplf'' '
+      z←#.{⎕SE.UCMD ⍵}']Link.Break linkedns'
+      'link issue #229'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       #.⎕EX #.⎕NL-⍳10
       # NSMOVE root ⋄ ⎕EX'root'  ⍝ restore #
       3 ⎕NDELETE folder
@@ -1790,7 +1800,7 @@
     ⍝ TODO WHY IS THIS NEEDED ???
       :If ⎕SE.Link.Watcher.(CRAWLER>DOTNET)
           :If 0≥n ⋄ :Return ⋄ :EndIf
-          {}ride.APL '⎕DQ #'
+          {}ride.APL'⎕DQ #'
           :If 1≥n ⋄ :Return ⋄ :EndIf
           {}ride.APL¨(n-1)⍴⊂'⎕DL 1.1×⎕SE.Link.Watcher.INTERVAL ⋄ ⎕DQ #'
       :EndIf
@@ -1815,7 +1825,7 @@
       :EndTrap
       (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
-      ⍝ride.TRACE←1   
+      ⍝ride.TRACE←1
       ⍝ride.MULTITHREADING←1 ⋄ ride.Execute'⎕SE.Link.U.SHOWMSG←1'     ⍝ display link messages - will make QA fails because of spurious Link messages in AppendSessionOutput
      
       ⎕MKDIR Retry⊢folder
@@ -2207,7 +2217,7 @@
       {}instance.APL'⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←',⍕⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL) ⍝ because ⎕SE.Link.Test.Run sets it
       {}instance.APL'⎕SE.Link.DEBUG←',⍕⎕SE.Link.DEBUG
       {}instance.APL'⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
-      {} instance.MULTITHREADING←⎕SE.Link.Watcher.(CRAWLER>DOTNET)
+      {}instance.MULTITHREADING←⎕SE.Link.Watcher.(CRAWLER>DOTNET)
     ∇
     :EndSection
 
@@ -2515,7 +2525,7 @@
     ∇ (time dirs files)←{opts}bench_large folder;clear;fastload;filetype;name;opts;profile;temp;time
     ⍝ times with (ndirs nfiles nlines maxdepth)←10 10 0 3 → (dirs files)≡1110 11100
     ⍝ v2.0:        fastLoad=1:1500  ⋄ fastLoad=0:N/A
-    ⍝ v2.1-beta52: fastLoad=1:1000  ⋄ fastLoad=0:6500 
+    ⍝ v2.1-beta52: fastLoad=1:1000  ⋄ fastLoad=0:6500
       :If 900⌶⍬ ⋄ opts←⍬ ⋄ :EndIf
       (fastload profile clear)←opts,(≢opts)↓1 0 0
       name←'#.largelink'

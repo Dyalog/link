@@ -8,7 +8,13 @@ LInk v2.1+ has optimal behaviour with Dyalog v18.1 and newer (see [release notes
 
 To download the latest Link, visit [https://github.com/dyalog/link/branches](https://github.com/dyalog/link/branches), click on the branch you wish to download from, then click on the green button labelled "**↓Code**" then select "**Download ZIP**" to download the Link repository as a ZIP file.
 
-To update Link, copy the contents of the link repository into the Dyalog installation directory so **startup.dyalog** ends up in the same directory as **dyalog.exe**, confirming the overwriting of **$DYALOG/SALT/spice/Link.dyalog** and of **$DYALOG/StartupSession/\***. Then restart Dyalog APL.
+To update Link, copy the contents of the link repository into the Dyalog installation directory (**$DYALOG**) so that the following files/directories are replaced :
+* **$DYALOG/startup.dyalog** 
+* **$DYALOG/SALT/spice/Link.dyalog** 
+* **$DYALOG/StartupSession/Link/** 
+* **$DYALOG/StartupSession/Dyalog/** 
+
+Then restart the interpreter.
 
 If you have standard v17.1+ installation, you're done. Otherwise a couple more steps might be required.
 
