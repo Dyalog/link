@@ -756,7 +756,7 @@
 
 
 
-    ∇ ok←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;var;var2;varfile;winfolder;z
+    ∇ ok←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;sub;var;var2;varfile;winfolder;z
      
       ⍝ Test creating a folder from a namespace with Case Conflicts
       winfolder←⎕SE.Link.U.WinSlash folder
@@ -995,6 +995,21 @@
       assert'0∧.=⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
      
       {}⎕SE.Link.Break name
+      ⎕EX name ⋄ 3 ⎕NDELETE folder
+     
+      ⍝ https://github.com/Dyalog/link/issues/231
+      sub←⍎(name,'.Sub')⎕NS ⍬
+      sub.⎕FX'res←SubFoo arg' 'res←arg'
+      {}⎕SE.UCMD']Link.Create ',name,' ',folder,' -source=ns -casecode -forcefilenames'
+      {}⎕SE.UCMD']Link.Expunge ',name
+      'link issue #231'assert'0=⎕NC name'
+      opts←⎕NS ⍬ ⋄ opts.(caseCode forceFilenames)←1
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #231' assert '~''failed''⍷z'
+      (name,'.Sub')⎕SE.Link.Fix'res←SubFoo arg' 'res←arg arg'
+      'link issue #231' assert '(,⊂folder,''/Sub-1/SubFoo-11.aplf'')≡(0 NTREE folder)'
+      ⎕SE.Link.Expunge name
+     
       CleanUp folder name
       ok←1
     ∇

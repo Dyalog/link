@@ -758,7 +758,6 @@
       :If forceExtensions∨0=≢ext
           ext←typeExtensions Tail nc
       :EndIf
-      :If isroot<forceFilenames ⋄ file←CaseCodePart⍣caseCode⊢name ⋄ :EndIf  ⍝ forceFileNames does not affect directory - only leaf name
       file←subdir,file,ext
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
