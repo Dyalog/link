@@ -1,5 +1,5 @@
- {name}←Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
- ⍝ Notify Link system that an external file has changed
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
+⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
  ⎕IO ⎕ML←1 1
@@ -24,10 +24,13 @@
              msg←(¯1↓msg),'←'oldpath,': '
          :EndIf
 
-         :If 0∊⍴link←U.LookupFile path  ⍝ not linked => done
-             warn←1 ⋄ →END⊣msg,←⊂'path not in a linked directory'  ⍝ should not happen
+         :If 0∊⍴link←U.LookupFile path  ⍝ not linked - should not happen
+             :If 900⌶⍬ ⋄ :OrIf 0∊⍴⎕SE.Link.Links ⋄ :OrIf obj∊⎕SE.Link.Links.fsw
+                 warn←1  ⍝ link issue #225
+             :EndIf ⍝ otherwise not Link's fault (Mantis XXX)
+             →END⊣msg,←⊂'path not in a linked directory'
          :EndIf
-         link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time
+         ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time - done by Link.Create
 
          :If '.'∨.=⊃¨U.SplitDir(≢link.dir)↓path  ⍝ link issue #156 - due to unreliable 6∘⎕NINFO
              →END⊣msg,←⊂'file/directory name has a leading dot'
@@ -96,7 +99,7 @@
              :If 0≠⎕NC affected    ⍝ object already exists - avoid re-linking when file was copy/pasted
              :AndIf curfile≢path   ⍝ sometimes file writes produce a create event on the same file - let it run
              :AndIf 0<≢curfile     ⍝ otherwise it's a regular file creation
-                 warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
+                 warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected' which is linked to 'curfile
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  (⍎curnsname)U.Untie curactname
                  msg,←'creating 'affected' - unlinking previously linked 'curname
@@ -105,11 +108,12 @@
              :EndIf
 
          :Case 'changed'               ⍝ Update to existing file?
-             :If dir ⋄ →END⊣msg,←⊂'ignoring change to directory' ⋄ :EndIf
+             :If dir ⋄ :AndIf ¯9.1=# U.NameClass affected ⋄ →END⊣msg,←⊂'ignoring change to directory' ⋄ :EndIf
              :If path≡curfile      ⍝ name already tied to the same file
-                 ⍝ checking if file is worth refix-ing (hash etc.) will be done in U.QFix
-                 :If (0<≢curname)∧(curname≢affected) ⋄ ⎕EX curname ⋄ :EndIf   ⍝ name changed
-                 msg,←'updating previously linked 'affected,((0<≢curname)∧(curname≢affected))/' deleting previously defined 'curname
+                 msg,←'updating previously linked 'affected   ⍝ checking if file is worth refix-ing (hash etc.) will be done in U.QFix
+                 :If (0<≢curname)∧(curname≢affected)   ⍝ name changed
+                     ⎕EX curname ⋄ msg,←' deleting previously defined 'curname
+                 :EndIf
              :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)      ⍝ name was tied to a different file
                  warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected' which is linked to 'curfile
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name

@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;nc;nsref;nsrefs;overwrite;rawns;rsi;warn;xsi;⎕IO;⎕ML
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -10,21 +10,21 @@
              ⎕SE.Link.Links←⍬
          :EndIf
 
-         msg←⍕⍬⊤⍬ ⋄ rawns←ns
+         msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
          (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
 
          opts←⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
-         :If warn←~Watcher.CanWatch  ⍝ warn if not watching directory by default - will disappear when file crawler works
-             :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
-             :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
-             :EndIf
-             :If warn←0=opts.⎕NC⊂'watch' ⋄ :AndIf warn←~Watcher.CanWatch
-                 opts.watch←'ns' ⍝ default to watch='ns' and warn about it
-             :EndIf  ⍝ otherwise default to 'both'
+         :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
+         :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
          :EndIf
+         :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works
+             opts.watch←'ns' ⍝ default to watch='ns' and warn about it
+             :If U.IS180 ⋄ warnmsg←'.NET or .NetCore not available - watch defaults to ''ns'''
+             :ELse ⋄ warnmsg←'Dyalog v18.0 is required to watch directories with .NET or .NetCore - watch defaults to ''ns'''
+             :EndIf
+         :EndIf  ⍝ otherwise watch defaults to 'both'
          opts←U.DefaultOpts opts
          :If ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
-
 
          :If hasdir←⎕NEXISTS dir ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
          :Else ⋄ emptydir←1
@@ -77,11 +77,7 @@
                  opts.source←'ns'
              :EndIf
          :EndIf
-         :If warn 
-             :If U.IS180 ⋄ ¯1 U.Warn'.NET or .NetCore not available - Link cannot watch directory' 
-             :ELse ⋄ ¯1 U.Warn'Dyalog v18.0 is required to watch directories with .NET or .NetCore' 
-             :EndIf
-         :EndIf
+         :If ~0∊⍴warnmsg ⋄ ¯1 U.Warn warmsg ⋄ :EndIf
 
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
@@ -101,13 +97,12 @@
          :Else
              U.Error'Unknown source setting:'opts.source
          :EndSelect
+         opts.fastLoad←0  ⍝ fastLoad is observed only at load (FixFiles) time - affects U.DetermineAplName
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
          ⎕SE.Link.Links,←opts
-         :If 'dir' 'both'∊⍨⊂opts.watch
-             Watcher.Watch opts  ⍝ first crawler may call Notify
-         :EndIf
-         msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
+         Watcher.Watch opts  ⍝ first crawler may call Notify
+         ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
      :EndHold
  :Else
      U.Resignal 1

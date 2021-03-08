@@ -21,7 +21,7 @@
      ⍝ However not holding '⎕SE.Link.Notify' is annoying because there is a non-zero probability of the files being in an incomplete/misleading state
 NOHOLD:
          nosrc←0=≢src
-         :If 0≠⎕NC'where' ⋄ where←⊆,where ⋄ :EndIf  ⍝ do not ravel reference
+         :If 9≠⎕NC'where' ⋄ where←⊆,where ⋄ :EndIf  ⍝ do not ravel reference
          (ns name oldname)←3↑where,'' '' ''
          :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
          oldname,←(0=≢oldname)/name ⍝ oldname not specified

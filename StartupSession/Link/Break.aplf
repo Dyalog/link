@@ -65,7 +65,7 @@
          :If ×≢unlinked
              msg,←⊂'Not linked:',U.List∪unlinked
          :EndIf
-         :If ~0∊⍴msg ⋄ msg←'; 'U.JoinList msg ⋄ :EndIf
+         :If ~0∊⍴msg ⋄ ¯1 U.Log msg←'; 'U.JoinList msg ⋄ :EndIf
      :EndHold
  :Else
      U.Resignal 1

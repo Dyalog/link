@@ -69,11 +69,8 @@
       :If canwatch⍱cancrawl
           Log'FileSystemWatcher or Crawler required to run tests'
           :Return
-      :ElseIf all∧(canwatch⍲cancrawl)
-          Log'FileSystemWatcher and Crawler required to run all tests'
-          :Return
       :EndIf
-      :If (~all)∧(canwatch⍲cancrawl)
+      :If (canwatch⍲cancrawl)
           notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
           Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
       :EndIf
@@ -92,7 +89,7 @@
       (⎕SE.Link.DEBUG olddebug)←(debug ⎕SE.Link.DEBUG)
       udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨1+×debug
       (showmsg ⎕SE.Link.U.SHOWMSG)←(⎕SE.Link.U.SHOWMSG)(×debug)  ⍝ do not show messages if not debugging
-      ⎕SE.Link.Watcher.INTERVAL←0.1 1⊃⍨1+×debug  ⍝ force watching a lot - can't go below 100ms because windows may have granularity of 20ms
+      ⎕SE.Link.Watcher.INTERVAL←0.1 1⊃⍨1+(×debug)∧⎕SE.Link.Watcher.LOGCRAWLER  ⍝ force watching a lot - can't go below 100ms because windows may have granularity of 20ms
       ⍝ run tests
       time←⎕AI[3] ⋄ ok←1
       :If ~×debug ⋄ Log'Running:',⍕tests ⋄ :EndIf
@@ -459,7 +456,7 @@
       ⎕EX name
      
       z←opts ⎕SE.Link.Import name folder
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
      
       ns←#⍎name
      
@@ -491,7 +488,7 @@
       opts.flatten←1
       z←opts ⎕SE.Link.Import name folder
       ns←#⍎name
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       assert'0=≢ns.⎕NL-9.1'
      
 ⍝ Import does not support custom types at this time
@@ -556,8 +553,6 @@
       opts.customExtensions←'charmat' 'charvec'
       opts.watch←'both'
       z←opts ⎕SE.Link.Create name folder
-      z ⎕SIGNAL(0=≢⎕SE.Link.Links)/11
-     
       assert'1=≢⎕SE.Link.Links'
       link←⊃⎕SE.Link.Links
       ns←#⍎name
@@ -1038,7 +1033,7 @@
       'link issue #118'assert'~∨/''failed''⍷z'
       'link issue #118'assert'9.4=⎕NC⊂''#.unlikelyname'''
       z←⎕SE.Link.Break #
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX'#.unlikelyname'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
@@ -1059,7 +1054,7 @@
       z←'{recursive:''off''}'⎕SE.Link.Break name
       assert'1=≢⎕SE.Link.Links'
       z←'{recursive:''on''}'⎕SE.Link.Break name
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX name
      
       ⍝ link issue #204
@@ -1071,7 +1066,7 @@
       'link issue #204'assert'~∨/''failed''⍷z'
       'link issue #204'assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Expunge'#.unlikelyname'
-      'link issue #204'assert'0=≢⎕SE.Link.Links'
+      'link issue #204'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
      
       ⍝ link issue #111 : ]link.break -all must work
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
@@ -1084,7 +1079,7 @@
       'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
      
       {}'{all:1}'⎕SE.Link.Break ⍬
-      'link issue #111'assert'0=≢⎕SE.Link.Links'
+      'link issue #111'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
@@ -1093,14 +1088,14 @@
       {}'{recursive:''on''}'⎕SE.Link.Break'#.unlikelyname'
       'link issue #111'assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break'⎕SE.unlikelyname'
-      'link issue #111'assert'0=≢⎕SE.Link.Links'
+      'link issue #111'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
      
      
       ⍝ link issue #117 : leave trailing slash in dir
       ⍝ superseeded by issue #146 when trailing slash was disabled altogether
       'link issue #146'assertError'⎕SE.Link.Create name(folder,''/'')' 'Trailing slash reserved'
-      'link issue #146'assert'0=≢⎕SE.Link.Links'
+      'link issue #146'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←⎕SE.Link.Create name folder
       'link issue #117'assert'1=≢⎕SE.Link.Links'
       'link issue #117'assert'~∨/''failed''⍷z'
@@ -1145,7 +1140,7 @@
       Breathe ⍝ allow notify to run before the break
       {}⎕SE.Link.Expunge name ⋄ 3 ⎕NDELETE folder
       'link issue #207'assert'0=≢⎕SE.Link.U.WARNLOG'
-      ⎕SE.Link.WARN←warn
+      ⎕SE.Link.U.WARN←warn
      
       ⍝ rebuild a namespace from scratch
       (name,'.sub')⎕NS ⍬
@@ -1196,7 +1191,7 @@
       (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       3 ⎕MKDIR folder,'/New directory (1)/'
       'link issue #183'assert'~0∊⍴''invalid name defined by file''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
-      ⎕SE.Link.WARN←warn
+      ⎕SE.Link.U.WARN←warn
       3 ⎕NDELETE folder,'/New directory (1)/'
      
       ⍝ attempt to rename a script
@@ -1292,7 +1287,7 @@
       z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
       'link issue #177'assert'⎕NEXISTS ''',folder,'/jsondict-0/list-0.apla'''
       z←⎕SE.Link.Break #
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX'#.UnlikelyName' '#.jsondict'
       3 ⎕NDELETE folder,'/jsondict-0'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
@@ -1378,11 +1373,11 @@
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
       z←(⍎name).{⎕SE.UCMD ⍵}']Link.Break ⎕THIS.⎕THIS'
       assert'∨/''Unlinked''⍷z'
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
       ⍝ test failing creations
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'dir'
       assertError'opts ⎕SE.Link.Create name folder' 'Source directory not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
@@ -1392,7 +1387,7 @@
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
      
       opts.source←'auto'
       ⍎name,'←⎕NS ⍬'  ⍝ unnamed namespace name
@@ -1425,7 +1420,7 @@
       ⍝ both don't exist
       assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existent namespace to a non-existent directory'
       assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ only dir exists
       2 ⎕MKDIR folder
@@ -1460,7 +1455,7 @@
       ⍝ both are populated
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
       assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
      
       2 ⎕MKDIR subfolder
@@ -1468,12 +1463,12 @@
       quadvars←':Namespace quadVars' '##.(⎕IO ⎕ML ⎕WX)←0 2 1' ':EndNamespace'  ⍝ link issue #206 - try unusual values
       (⊂quadvars)⎕NPUT folder,'/quadVars.apln'  ⍝ link issue #206
       :If ⎕SE.Link.U.IS181
-          foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕INFO)
+          foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕ATX)
           newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
       :Else
           foosrc←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
           newfoosrc←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢foosrc
-          :If ~AutoFormat   ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕INFO)
+          :If ~AutoFormat   ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕ATX)
               foosrc←(1 0 1/¨' '),¨foosrc  ⍝ AUTOFORMAT=0 adds a space excepted where commented
               newfoosrc←(0 0 1/¨' '),¨newfoosrc  ⍝ AUTOFORMAT=0 adds a space excepted where commented
           :EndIf
@@ -1550,7 +1545,6 @@
       assert'∧/foosrc∘≡¨NR¨name subname,¨⊂''.foo'''  ⍝ source-as-typed
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
       0 assert_create 0
-     
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ watch=dir must reflect changes from files to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
@@ -1558,10 +1552,12 @@
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       1 assert_create 1
       ⍝ watch=dir must not reflect changes from APL to files
+      ⍝  ⎕SE.Link.Fix updates files independently of watch setting
       subname'var'⎕SE.Link.Fix varsrc
       subname'foo'⎕SE.Link.Fix foosrc
       subname'ns'⎕SE.Link.Fix nssrc
-      0 assert_create 0    ⍝  ⎕SE.Link.Fix updates files independently of watch setting
+      0 assert_create 0 ⋄ Breathe   ⍝ breathe so that file watcher can kick in before we change the APL definition
+      ⍝ emulate a proper editor fix
       subname'var'EdFix newvarsrc
       subname'foo'EdFix newfoosrc
       subname'ns'EdFix newnssrc
@@ -1580,7 +1576,7 @@
       z←'{source:''dir''}'⎕SE.Link.Refresh name
       1 assert_create 1
       z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
-      assert'(0=≢⎕SE.Link.Links)∧(z≡1)'
+      assert'({6::1 ⋄ 0=≢⎕SE.Link.Links}⍬)∧(z≡1)'
      
       ⍝ now try source=dir watch=ns
       opts.source←'dir' ⋄ opts.watch←'ns' ⋄ {}opts ⎕SE.Link.Create name folder
@@ -1694,7 +1690,7 @@
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       opts.source←'auto' ⋄ opts.watch←'both'  ⍝ try source=auto
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'
       'link issue #160'assert'(,⊂''dir'')≡⎕SE.Link.Links.source'
@@ -1705,9 +1701,9 @@
       ⎕EX name ⋄ subname ⎕NS''
       2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace
       opts.source←'dir' ⋄ opts.watch←'both'  ⍝ try source=dir
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       'link issue #160'assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX subname
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'
@@ -1717,10 +1713,10 @@
       opts.source←'ns' ⋄ opts.watch←'both'  ⍝ try source=ns
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'  ⍝ TODO : should recognise that the files are correctly linked to the namespace
-      'link issue #160'assert'0=≢⎕SE.Link.Links'
-      :If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕INFO) produce ⎕NULL
+      'link issue #160'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+      :If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕ATX) produce ⎕NULL
           foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
       :EndIf
       3 ⎕NDELETE folder
@@ -1731,7 +1727,7 @@
       1 assert_create 1
       assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
       z←⎕SE.Link.Break name
-      assert'0=≢⎕SE.Link.Links'
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
       ⍝ test exporting arrays and sysvars
@@ -1794,7 +1790,7 @@
     ⍝ TODO WHY IS THIS NEEDED ???
       :If ⎕SE.Link.Watcher.(CRAWLER>DOTNET)
           :If 0≥n ⋄ :Return ⋄ :EndIf
-          {}ride.APL'⎕DQ #'
+          {}ride.APL '⎕DQ #'
           :If 1≥n ⋄ :Return ⋄ :EndIf
           {}ride.APL¨(n-1)⍴⊂'⎕DL 1.1×⎕SE.Link.Watcher.INTERVAL ⋄ ⎕DQ #'
       :EndIf
@@ -1819,7 +1815,7 @@
       :EndTrap
       (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
      
-      ⍝ride.TRACE←1   ⍝
+      ⍝ride.TRACE←1   
       ⍝ride.MULTITHREADING←1 ⋄ ride.Execute'⎕SE.Link.U.SHOWMSG←1'     ⍝ display link messages - will make QA fails because of spurious Link messages in AppendSessionOutput
      
       ⎕MKDIR Retry⊢folder
@@ -1882,9 +1878,11 @@
      ⍝ https://github.com/Dyalog/link/issues/154
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
       'link issue #154'assert'2=≢z'
+      Breathe  ⍝ allow FileSystemWatcher to kick in after the edit and before the )CLEAR
       {}ride.APL')CLEAR'
       z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']Link.Status'
       'link issue #154'assert'(1=≢z)∧(∨/''No active links''⍷∊z)'
+      'link issue #154'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       output←ride.APL']Link.Create ',(Stringify name),' ',(Stringify folder)
       assert'(⊃''Linked:''⍷output)'
      
@@ -1950,12 +1948,12 @@
       ride.Reply res  ⍝ just close the error message
       ed.saved←⍬
       res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
-      'link issue #109'assert'((⊃res)∊¯1)∧(1↓res)≡'''' (,ed) NO_ERROR'
+      'link issue #109'assert'(1↓res)≡'''' (,ed) NO_ERROR'
       'link issue #109'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
       ride.CloseWindow ed
       'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ Mantis 18412 foo has not changed within workspace because fix has failed
       'link issue #109'assert'foobad≡⊃⎕NGET(folder,''/foo.aplf'')1'  ⍝ but file correctly has new code
-      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ Mantis 18762
+      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ Mantis 18762 applies to 18.1/Linux
           ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
           'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
           'link issue #109'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
@@ -2065,6 +2063,23 @@
      
       output←ride.APL'⎕SE.Link.Break ',(Stringify name)
       assert'(∨/''Unlinked''⍷output)'
+     
+      ⍝ https://github.com/Dyalog/link/issues/225
+      3 ⎕NDELETE folder ⋄ {}ride.APL'⎕EX ',Stringify name
+      3 ⎕MKDIR folder,'/foo'
+      {}ride.APL']link.create ',name,' "',folder,'"'
+      ride.Edit(name,'.goo')('res←goo arg' 'res←arg')
+      Breathe  ⍝ can't )CLEAR if FileWatcher kicks in : Can't )CLEAR with external call on the stack - Can't )CLEAR with attachments to external threads
+      assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
+      {}ride.APL')CLEAR'
+      assert'(''1'',NL)≡ride.APL''{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'' '
+      {}ride.APL']link.create ',name,' "',folder,'/foo"'
+      assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
+      {}ride.APL'⎕SE.Link.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
+      {}'hoo←{⍺+⍵}'⎕NPUT folder,'/hoo.aplf'
+      Breathe
+      assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.U.WARNLOG'' '
+     
       CleanUp folder name
       ok←1
     ∇
@@ -2192,6 +2207,7 @@
       {}instance.APL'⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←',⍕⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL) ⍝ because ⎕SE.Link.Test.Run sets it
       {}instance.APL'⎕SE.Link.DEBUG←',⍕⎕SE.Link.DEBUG
       {}instance.APL'⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
+      {} instance.MULTITHREADING←⎕SE.Link.Watcher.(CRAWLER>DOTNET)
     ∇
     :EndSection
 
@@ -2211,13 +2227,7 @@
           :Return
       :EndIf
       :If 0≠⎕NC name
-          ⍝⎕←name,' exists. Expunge? [Y|n]'
-          ⍝:If 'yYjJ1 '∊⍨⊃⍞~' '
           ⎕EX name
-          ⍝:Else
-          ⍝    ⎕→name,' must be non-existent.'
-          ⍝    :Return
-          ⍝:EndIf
       :EndIf
       :If ~0∊⍴folder  ⍝ specific folder
           folder←∊1 ⎕NPARTS folder,(0=≢folder)/(739⌶0),'/linktest'
@@ -2504,10 +2514,8 @@
 
     ∇ (time dirs files)←{opts}bench_large folder;clear;fastload;filetype;name;opts;profile;temp;time
     ⍝ times with (ndirs nfiles nlines maxdepth)←10 10 0 3 → (dirs files)≡1110 11100
-    ⍝ v2.0:        fastLoad=1:1500 ⋄ fastLoad=0:N/A
-    ⍝ v2.1-alpha1: fastLoad=1:1800 ⋄ fastLoad=0:3500
-    ⍝ v2.1-alpha2: fastLoad=1:650  ⋄ fastLoad=0:1250
-    ⍝ v2.1-alpha3: fastLoad=1:850  ⋄ fastLoad=0:1600
+    ⍝ v2.0:        fastLoad=1:1500  ⋄ fastLoad=0:N/A
+    ⍝ v2.1-beta52: fastLoad=1:1000  ⋄ fastLoad=0:6500 
       :If 900⌶⍬ ⋄ opts←⍬ ⋄ :EndIf
       (fastload profile clear)←opts,(≢opts)↓1 0 0
       name←'#.largelink'
@@ -2740,79 +2748,8 @@
 
 
 
-    ∇ Issue225;dir;ns
-      dir←(739⌶0),'/',⎕D∩⍨⍕⎕TS
-      3 ⎕MKDIR dir,'/foo'
-      ns←'NsIssue225'⎕NS ⍬
-      ⎕SE.Link.Create ns dir
-      (⍎ns).⎕ED'goo'
-      ⍝ )Clear
-      ns←'NsIssue225b'⎕NS ⍬
-      ⎕SE.Link.Create ns dir,'/foo'
-      'Plus←{⍺+⍵}'⎕NPUT dir,'/hoo.aplf'
-      ⍝ shouldn't see a warning
-    ∇
 
 
 
-
-
-    ⍝ THIS SECTION MAKES 5177⌶⍬ fail to display {2⊃¨⍵}
-
-    ⍝ :Namespace Timer
-    ⍝     Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
-    ⍝       Start←{
-    ⍝           ⎕←'      ⎕SE.Link.Test.Timer.Stop⍬'
-    ⍝           args←('Active' 1)('Interval' 3000)('Event'('onTimer' 'Callback'))
-    ⍝           ⍝args,←##.U.IS181/⊂('FireOnce' 1)
-    ⍝           ⊢⎕THIS.TIMER←⎕NEW'Timer'args
-    ⍝       }
-    ⍝     Stop←{⎕THIS.TIMER.Active←0 ⋄ ⎕THIS.⎕EX'TIMER'}
-    ⍝     Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
-    ⍝     Time←{.001×3⊃⎕AI}
-    ⍝     Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
-
-    ⍝     ∇ Test
-    ⍝       Start&⍬
-    ⍝       Busy 10
-    ⍝     ∇
-
-    ⍝ :EndNamespace
-
-    ⍝ :Namespace FixedTimer
-    ⍝     TIMER←⎕NEW 'Timer' (('Active' 0)('Interval' 3000)('Event'('onTimer' 'Callback')))
-    ⍝     Callback←{⎕←'Timer Callback ',⍕(-4 2 2 2 2 2 3)↑¨⍕¨⎕TS}
-    ⍝       Start←{
-    ⍝           ⎕←'      ⎕SE.Link.Test.FixedTimer.Stop⍬'
-    ⍝           ⎕THIS.TIMER.Active←1
-    ⍝       }
-    ⍝     Stop←{⎕THIS.TIMER.Active←0}
-    ⍝     Wait←{⎕←'Waited: ',⍕⎕DL ⍵}
-    ⍝     Time←{.001×3⊃⎕AI}
-    ⍝     Busy←{⍺←Time⍬ ⋄ (⍺+⍵)>Time⍬:⍺∇⍵ ⋄ ⎕←'Worked: ',⍕(Time⍬)-⍺}
-
-    ⍝     ∇ Test sink
-    ⍝       Start ⍬
-    ⍝       Busy 10
-    ⍝       Stop ⍬
-    ⍝     ∇
-
-    ⍝     ⍝ There is one message queue per thread for APL events/callbacks
-
-    ⍝     ⍝ Objects will only see the message queue of the thread that created it (by calling ⎕NEW, ⎕WC, etc.)
-    ⍝     ⍝ When the thread is destroyed ;
-    ⍝     ⍝ - we don't know whether it (hands the queue to the parent thread) or (destroys the queue)
-    ⍝     ⍝ - future events will be passed to the parent thread
-
-    ⍝     ⍝The message queue is processed :
-    ⍝     ⍝ - When the thread reaches descalc (size space prompt) (there can only be one at any given time)
-    ⍝     ⍝    (unless there is a ⎕DQ on the stack, so while we are tracing)
-    ⍝     ⍝ - its thread is running ⎕DQ
-
-    ⍝     ⍝ - create timer on its own thread, and call ⎕DQ on it in the same thread
-    ⍝     ⍝ - create timer in thread 0, run QA in a new thread
-    ⍝     ⍝ - create timer at fix time, run QA in a new thread
-
-    ⍝ :EndNamespace
 
 :EndNamespace

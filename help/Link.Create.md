@@ -181,7 +181,7 @@
 
 
 - **fastLoad** (default off) Flag to reduce the load time by not inspecting source to detect name clashes
-  >   This affects only initial directory loading, but not subsequent editor or file system watcher events. Worth doing for very large projects with users that don't produce name clashes (i.e. two files defining the same APL name). 
+  >   This affects only initial directory loading, but not subsequent editor or file system watcher events. Worth doing for very large projects with users that don't produce name clashes (i.e. two files defining the same APL name).
   >
   > Side effects are (again, only at initial load time, not at subsequent events):
   >   - good: load will be significantly faster because files won't be inspected to determine their true APL name.

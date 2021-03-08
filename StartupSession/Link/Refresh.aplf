@@ -22,7 +22,7 @@
                  :If 'ns'≡source
                      ok,←⊂'Exported: ',ns,' → ',U.WinSlash link.dir
                      :If 0≠≢outFail←2⊃link U.WriteFiles(⍎link.ns)link.dir 1 ⍝  always overwrite
-                         ko,←(⊂(⍕≢outFail),' export(s) failed:',),outFail
+                         ko,←(⊂(⍕≢outFail),' export(s) failed:'),outFail
                      :EndIf
                  :ElseIf 'dir'≡source
                      ok,←⊂'Imported: ',ns,' ← ',U.WinSlash link.dir

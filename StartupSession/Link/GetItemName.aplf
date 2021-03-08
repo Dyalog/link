@@ -1,4 +1,4 @@
- items←GetItemName files;actname;container;expname;link;nc;scal;shape;where;⎕IO;⎕ML
+ items←GetItemName files;actname;container;expname;file;i;link;nc;scal;shape;where;⎕IO;⎕ML
  ⍝ Get APL names from file names
  ⍝ returns empty string for unlinked files
  ⎕IO ⎕ML←1 1
@@ -12,7 +12,7 @@
          scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
          :For i :In ⍳≢files
              :If ~0∊⍴link←U.LookupFile file←i⊃files
-                 link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents
+                 ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents - done by Link.Create
                  (where expname actname nc)←link U.DetermineAplName file
                  (i⊃items)←(~nc∊0 ¯1)/where,'.',actname
              :Else

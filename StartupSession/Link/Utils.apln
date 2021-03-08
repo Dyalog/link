@@ -344,15 +344,21 @@
     ∇
     ⍝IsRootName←{⍺←⊢ ⋄ _IsRootName ⊂⍵:1 ⋄ ~_IsAplName ⍵:0 ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
     IsRootName←{11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, ''∘⎕WG does it in current space which is not what we want
-    ∇ nc←{nsref}NameClass name;parent
+    IsSpecialNC←∊∘¯1 9.1 9.2
+    ∇ nc←{nsref}NameClass name;parent;this
     ⍝ safe name class (avoid clash with our stuff)
     ⍝ return ¯9.1 for trad ns that map to directories and not files
       :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
-      name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')name  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-      :If name≡'⎕THIS' ⋄ nc←⎕NC⊂'nsref'
+      :If this←∨/'⎕THIS'⍷name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
+          name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')name
+          this←name≡'⎕THIS'
+      :EndIf
+      :If this ⋄ nc←⎕NC⊂'nsref'
       :Else ⋄ nc←nsref.⎕NC⊂,name
       :EndIf
-      :If 9.1=nc ⍝ that includes ⎕DMX
+      :If ~IsSpecialNC nc
+          ⍝ done
+      :ElseIf 9.1=nc ⍝ that includes ⎕DMX
       :AndIf ~IsScripted nsref⍎name
           nc←¯9.1
       :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
@@ -454,18 +460,17 @@
 
 
 
-
     :Section Lookup
 
     ∇ {ok}←HasLinks;mask;links
       :Trap 0  ⍝ anything broken should mean no links available
           :If ok←×⎕NC'⎕SE.Link.Links'
-              :If ok←×≢links←⎕SE.Link.Links  ⍝ clean up "zombie" links
-                  mask←0≠⎕NC links.ns
-                  0 Break(~mask)/links ⍝ disable file watcher - do not untie because namespaces don't exist
-                  ⎕SE.Link.Links/⍨←mask
-                  ok←×≢⎕SE.Link.Links
-              :EndIf
+          :AndIf ok←×≢links←⎕SE.Link.Links
+          :AndIf 1∊mask←0=⎕NC links.ns  ⍝ clean up "zombie" links
+              0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
+              ¯1 Log'Clearing expunged links:'(⍕mask/links)
+              ⎕SE.Link.Links/⍨←~mask
+              ok←×≢⎕SE.Link.Links
           :EndIf
       :Else
           ok←0
@@ -568,8 +573,8 @@
       :If ~0∊⍴file←# CurrentFileName ns  ⍝ TODO Mantis this - ⎕SRC won't provide :Require headers if they exist
       :AndIf ~0∊⍴src←GetFileSource file  ⍝ source accessible
           :Return
-
-        :EndIf
+     
+      :EndIf
       :Trap 16 22 ⋄ src←⎕SRC ns   ⍝ scripted namespace
       :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v18.1 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
       :Else
@@ -595,8 +600,8 @@
               :EndTrap
           :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
               src←⎕NULL
-              ⍝ ⎕INFO left arguments:  ⍝ SRC_AS_TYPED    =0,     // aka ⎕SRC        ⍝ SRC_CANONICAL   =1,     // aka ⎕NR        ⍝ SRC_FILEINFO    =2,     // aka 517n ⌶        ⍝ SRC_LOCATION    =3,     // aka 517n ⌶        ⍝ VALUE_NC        =4,     // aka ⎕NC        ⍝ VALUE_NCX       =5,     // aka ⎕Nc,⊂        ⍝ VALUE_QAT_SYNTAX=6,     // aka 1⊃⎕AT        ⍝ VALUE_QAT_TIMESTAMP=7,  // aka 2⊃⎕AT        ⍝ VALUE_QAT_LOCK  =8,     // aka 3⊃⎕AT        ⍝ VALUE_USERSTAMP =9,     // aka 4⊃⎕AT        ⍝ VALUE_QAT_SIZE  =10,    // aka ⎕SIZE
-              :If IS181 ⋄ :Trap 11 ⋄ src←0 ns.⎕INFO name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕INFO returns ⎕NULL if source not available - ⎕INFO errors if name doesn't exist - Mantis 18610: ⎕INFO encloses one too many depth
+              ⍝ ⎕ATX left arguments:  ⍝ SRC_AS_TYPED    =0,     // aka ⎕SRC        ⍝ SRC_CANONICAL   =1,     // aka ⎕NR        ⍝ SRC_FILEINFO    =2,     // aka 517n ⌶        ⍝ SRC_LOCATION    =3,     // aka 517n ⌶        ⍝ VALUE_NC        =4,     // aka ⎕NC        ⍝ VALUE_NCX       =5,     // aka ⎕Nc,⊂        ⍝ VALUE_QAT_SYNTAX=6,     // aka 1⊃⎕AT        ⍝ VALUE_QAT_TIMESTAMP=7,  // aka 2⊃⎕AT        ⍝ VALUE_QAT_LOCK  =8,     // aka 3⊃⎕AT        ⍝ VALUE_USERSTAMP =9,     // aka 4⊃⎕AT        ⍝ VALUE_QAT_SIZE  =10,    // aka ⎕SIZE
+              :If IS181 ⋄ :Trap 11 ⋄ src←0 ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
               :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
           :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
           :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
@@ -776,7 +781,8 @@
 
     ∇ (ns name nc)←CurrentAplName file;fullname;info;row
       :If 0≠≢info←↑GetFileInfo file  ⍝ file actually linked by interpreter
-      :AndIf (≢info)≥row←info[;5 6]⍳0 0  ⍝ file defines a single object
+          row←{⍵⍳⌊/⍵}info[;5]  ⍝ first object defined by file
+      :AndIf (0=info[row;6])∨((+/info[row;5 6])∧.≥(+/info[;5 6]))  ⍝ nothing defined outside first object (therefore file defines a single object)
           (name ns)←info[row;1 2] ⋄ name←⍕name ⍝ first column is sometimes refs
           nc←ns NameClass name  ⍝ no need to protect fully-qualified name
           (ns name)←SplitNs(⍕ns),'.',name ⋄ ns←NormNs ns  ⍝ NormNs due to 5174⌶ sometimes reporting full path in first column
@@ -796,18 +802,19 @@
     ⍝ nc is name class of name - returns ¯1 on invalid name and 0 on invalid/missing source
     ⍝ opts cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      subfile←dir StripCaseCode flatten⊢file  ⍝ always strip case code - apl name can't have them anyways
-      (subdir subfile)←2↑⎕NPARTS subfile  ⍝ drop extension
-      :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf  ⍝ drop trailing slash for directories
+      subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
+      (subdir subfile)←2↑⎕NPARTS subfile            ⍝ drop extension
+      :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
       (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
-      :If flatten ⋄ where←⍕ns ⋄ :EndIf     ⍝ all subdirectories link to linked namespace
-      :If fastLoad ⋄ (actname nc)←expname 0  ⍝ settle with expname - do not spend time inspecting source
+      :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
+      :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
-      :Else ⋄ (actname nc)←Sniff expname file           ⍝ inspect source
+      :Else ⋄ (actname nc)←Sniff expname file       ⍝ inspect source
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
-      :ElseIf (0=≢where)∧(nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf (nc≠0)∧(¯1∊# NameClass¨where expname actname) ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
+      :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
+      :ElseIf fastLoad ⋄ :AndIf ¯1=# NameClass where,'.',actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname - can call NameClass only once
+      :ElseIf nc≠0 ⋄ :AndIf (¯1∊# NameClass¨where expname actname) ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible - don't bother if fastLoad
       :EndIf
     ∇
 
@@ -955,11 +962,14 @@
     ⍝ overwrite=1 : non-empty target - overwrite
       fixed←failed←0⍴⊂''
       :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
-      :Else ⋄ allfiles←⊃opts(0 ListFiles)source    ⍝ whole directory
+      :Else ⋄ allfiles←⊃opts(0 ListFiles)source  ⍝ whole directory
       :EndIf
      
       (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
       :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
+          mask←actncs∊¯1   ⍝ invalid names
+          failed,←mask/allfiles
+          (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
           allnames←parents('.'JoinEach)expnames  ⍝ do not infer true apl name from source
       :Else
           mask←actncs∊¯1 0    ⍝ invalid names or source
@@ -1004,10 +1014,12 @@
           ⎕EX(⊂⍕target)~⍨(⌊|actncs){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
       :EndSelect
      
+      (alldirs _ allexts)←↓⍉↑⎕NPARTS allfiles
       FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺}  ⍝ ⍺ is force, ⍵ is (target file name)
       flatten←opts.flatten
-      hasnc←~opts.fastLoad ⍝0∨.≠actnc  ⍝ fastLoad produces actnc∧.=0 - so must rely on file extension to classify order
-      (alldirs _ allexts)←↓⍉↑⎕NPARTS allfiles
+      :If ~hasnc←~opts.fastLoad  ⍝ fastLoad produces (actnc∊¯1 0) - so must rely on file extension to classify order
+          actncs+←¯9.1×(allfiles∊alldirs)∧(actncs=0)  ⍝ that's how we detect tradns/dirs - actnc=¯1 must remain so
+      :EndIf
       ⍝ fix in order: tradns, vars, fns/ops, scripted ns, interfaces, classes
       ⍝ note that ⎕*.apla is expected to remain in front because ListFiles has put them first
       ncorder←¯9.1 2.1 3.1 3.2 4.1 4.2 9.1 9.4 9.5  ⍝ sort by actual name class (default)
@@ -1029,8 +1041,7 @@
                           failed,←file  ⍝ will not attempt to fix any file in that namespace
                           :Continue
                       :EndIf
-                      fixed,←⊂ns
-                      ns←⍎ns
+                      fixed,←⊂ns ⋄ ns←⍎ns
                   :Else
                       ns←target   ⍝ all files fixed in target namespace
                   :EndIf
@@ -1040,7 +1051,7 @@
                       failed,←⊂quadfile
                   :EndIf
                   mask←0@1⊢(~file∊⊂quadfile)  ⍝ ⍝ directory and quadfile are done
-                  (file parent expname actname actnc fullname inx)/⍨←⊂mask
+                  (file parent expname actname actnc fullname ext inx)/⍨←⊂mask
               :Else
                   :If ∨/'/'=⊢/¨file ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
               :EndIf
@@ -1178,7 +1189,7 @@
               reqd←reqd Repl(b,'file://')''         ⍝ otherwise ignore the :Require statement
               :If ~errors                           ⍝ :Require must point to a valid file
                   :If 0∊⎕NEXISTS reqd               ⍝ at least one file doesn't exist
-                  :OrIf 0∨.={2⊃Sniff''(⊃⎕NGET ⍵ 1)}¨reqd  ⍝ at least one file contains invalid source
+                  :OrIf 0∨.={2⊃Sniff''(GetFile ⍵)}¨reqd  ⍝ at least one file contains invalid source
                       :Return                       ⍝ can't fix if anything went wrong
                   :EndIf
               :EndIf
@@ -1593,7 +1604,7 @@
           ⍝ must not use :With because of link issue #163
           r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
       :Else  ⍝ provide nice error message
-          r←∊'Error: ' ⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
+          r←∊'Error: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
       :EndTrap
     ∇
 
