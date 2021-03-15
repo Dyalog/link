@@ -514,7 +514,7 @@
           {(42
               )}Is,42
      
-          {'Hello',⎕UCS⍳200}Is'Hello',⎕UCS⍳200
+          {'Hello',⎕AV}Is'Hello',⎕AV
      
           {
               (1 2 3 'Hello' ⋄ 4 5 6 'World')
@@ -739,7 +739,7 @@
           {(42
               )}Is,42
      
-          {'Hello',⎕UCS⍳200}Is'Hello',⎕UCS⍳200
+          {'Hello',⎕AV}Is'Hello',⎕AV
      
           {
               (1 2 3 'Hello' ⋄ 4 5 6 'World')
