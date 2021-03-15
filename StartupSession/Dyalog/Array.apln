@@ -1,5 +1,5 @@
 :Namespace Array   ⍝ A model for a literal notation for most APL arrays
-
+    ⎕ML←1
 
     ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP ⍝ Convert Array to text
       ⎕IO←1
