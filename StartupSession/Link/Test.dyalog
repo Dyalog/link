@@ -1005,9 +1005,9 @@
       'link issue #231'assert'0=⎕NC name'
       opts←⎕NS ⍬ ⋄ opts.(caseCode forceFilenames)←1
       z←opts ⎕SE.Link.Create name folder
-      'link issue #231' assert '~''failed''⍷z'
+      'link issue #231'assert'~''failed''⍷z'
       (name,'.Sub')⎕SE.Link.Fix'res←SubFoo arg' 'res←arg arg'
-      'link issue #231' assert '(,⊂folder,''/Sub-1/SubFoo-11.aplf'')≡(0 NTREE folder)'
+      'link issue #231'assert'(,⊂folder,''/Sub-1/SubFoo-11.aplf'')≡(0 NTREE folder)'
       ⎕SE.Link.Expunge name
      
       CleanUp folder name
@@ -1307,6 +1307,18 @@
       3 ⎕NDELETE folder,'/jsondict-0'
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
+      ⍝ link issue #235
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+      ⎕EX name
+      {}(⊂':Namespace ns' ':EndNamespace')QNPUT (folder,'/ns.apln') 0
+      {}⎕SE.Link.Create name folder
+      'link issue #235'assert'9.1=⎕NC⊂''',name,'.ns'''
+      ⎕SE.Link.Expunge name,'.ns'
+      Breathe
+      'link issue #235'assert'0∊⍴⎕SE.Link.U.WARNLOG'
+      ⎕SE.Link.U.WARN←warn
+      {}⎕SE.Link.Break name
+      
       :If ⎕SE.Link.U.IS181 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
           ⎕EX name
           {}(⊂server←':Require file://Engine.apln' ':Namespace  Server' ' dup ← ##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
