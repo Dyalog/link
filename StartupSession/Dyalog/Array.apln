@@ -188,7 +188,7 @@
           SubParse←{
               ('})]'⍳⊃⌽⍵)≠('{(['⍳⊃⍵):'Bad bracketing'⎕SIGNAL 2
               (a w)←(1↓¯1∘↓)¨(⍺-1)⍵
-              '['=⊃⍵:Paren'↑1/¨',Paren ErrIfEmpty a Parse w ⍝ high-rank
+              '['=⊃⍵:Paren'{⎕ML←1⋄↑⍵}1/¨',Paren ErrIfEmpty a Parse w ⍝ high-rank
               ':'∊⍵/⍨(1=⍺)×~≠\q=⍵:a Namespace w ⍝ ns
               '('=⊃⍵:Paren{⍵,'⎕NS⍬'/⍨0=≢⍵}a Parse w ⍝ vector/empty ns
               ⍵ ⍝ dfn
