@@ -34,12 +34,13 @@
           I←⌷⍨∘⊂⍨ ⋄ R←⊢⍴⍨÷⍨∘≢,⊣ ⋄ E←⊢∘≢≥⍳⍨
           ⍵/⍨~(⍳≢⍵)∊,(+∘1 ¯1⍤¯1(⊣(⌿⍨)E)⊢)2 R((⍋I∘d)I⊢)⍸|b
       }
-      RRD←{ ⍝ Remove Redundant Diamonds
-          x←'''[^'']+'''⎕R''⊢⍵
-          x←'^ +| +$'⎕R''⊢x
-          x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
-          ' *⋄ *\) *$'⎕R')'⍣(1<≢x∩'⋄')⊢⍵
-      }
+      RRD←⊢ ⍝ Disabled wrong algorithm:
+⍝      RRD←{ ⍝ Remove Redundant Diamonds
+⍝          x←'''[^'']+'''⎕R''⊢⍵
+⍝          x←'^ +| +$'⎕R''⊢x
+⍝          x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
+⍝          ' *⋄ *\) *$'⎕R')'⍣(1<≢x∩'⋄')⊢⍵
+⍝      }
       ROP←{ ⍝ Remove Outer Parens
           x←' |''[^'']'⎕R''⊢⍵
           x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
@@ -535,223 +536,6 @@
       :Section Matrices
           {[0 1 2
               3 4 5]
-          }Is Ed 2 3⍴⍳6
-     
-          {[ ⋄ 0 1 2 3]
-          }Is Ed⍉⍪⍳4
-     
-          {[
-              0 1 2 3
-              ]
-          }Is Ed⍉⍪⍳4
-     
-          {['Three'
-              'Blind'
-              'Mice']
-          }Is Ed 3 5⍴'ThreeBlindMice '
-     
-          {[1 ⋄ ]
-          }Is Ed⍪1
-     
-          {
-              1 2[1 ⋄ ]
-          }Is 1 2(⍪1)
-      :EndSection
-      :Section Combo
-          {
-              ([0 0 1
-              1 0 1
-              0 1 1]
-     
-              [0 1 1
-              1 1 0
-              0 1 0]
-     
-              [0 1 1 1
-              1 1 1 0]
-     
-              [0 1 1 0
-              1 0 0 1
-              0 1 1 0])
-     
-          }Is Ed{
-              _←⍉⍪0 0 1
-              _⍪←1 0 1
-              _⍪←0 1 1
-              r←⊂_
-              _←⍉⍪0 1 1
-              _⍪←1 1 0
-              _⍪←0 1 0
-              r,←⊂_
-              _←⍉⍪0 1 1 1
-              _⍪←1 1 1 0
-              r,←⊂_
-              _←⍉⍪0 1 1 0
-              _⍪←1 0 0 1
-              _⍪←0 1 1 0
-              r,←⊂_
-              r
-          }⍬
-     
-          {[0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
-          }Is{
-              e←⍉⍪0 'OK'
-              e⍪←1 'WS FULL'
-              e⍪←2 'SYNTAX ERROR'
-              e⍪←3 'INDEX ERROR'
-              e⍪←4 'RANK ERROR'
-              e
-          }⍬
-          {['a'(⊂1 2)'a'
-              (⊂1 2)'a'(⊂1 2)]
-          }Is Ed 2 3⍴'a'(⊂1 2)
-      :EndSection
-     
-      :Section High Rank
-          {
-              [[3
-              1 5 9]
-              [2 7 1
-              2 8]]
-          }Is Ed 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
-      :EndSection
-     
-      :Section Empty
-          {
-              ⍬
-          }Is ⍬
-          {
-              (⍬ ⋄ )
-          }Is,⊂⍬
-          {
-              0⍴⊂⍬
-          }Is 0⍴⊂⍬
-          {
-              0⍴⊂⊂⍬
-          }Is 0⍴⊂⊂⍬
-          {
-              0⍴⊂0⍴⊂⍬
-          }Is 0⍴⊂0⍴⊂⍬
-          {[⍬ ⋄ ]
-          }Is⍉⍪⍬
-          {
-              ⍉[⍬ ⋄ ]
-          }Is⍪⍬
-          {
-              0⍴⊂[⍬ ⋄ ]
-          }Is 0⍴⊂⍉⍪⍬
-          {
-              0⍴⊂⍉[⍬ ⋄ ]
-          }Is 0⍴⊂⍪⍬
-      :EndSection
-     
-      :Section Namespace
-          {
-              ()
-          }Is'{}'
-     
-          {
-              (
-              )
-          }Is'{}'
-     
-          {
-              ()()
-          }Is'[{},{}]'
-     
-          {
-              (a:⍳n←3 ⋄ b:n*2)
-          }Is'{"a":[0,1,2],"b":9}'
-     
-          'p' 'm'{
-              (p:+
-              m:{⍺-⍵})
-          }Is¨(,'+')(,⊂' m←{⍺-⍵}')
-     
-          {
-              (v:(1 2 ⋄ 3))
-          }Is'{"v":[[1,2],3]}'
-     
-          {
-              (v:(1 2
-              3))
-          }Is'{"v":[[1,2],3]}'
-     
-          {
-              (v:(1 2 ⋄ 3)
-              )
-          }Is'{"v":[[1,2],3]}'
-     
-          {
-              (
-              ()
-              )
-          }Is'[{}]'
-     
-          {(n:())}Is'{"n":{}}'
-     
-      :EndSection
-      r←1
-    ∇
-
-
-
-
-    ∇ r←RoundtripQA stop_on_error;⎕IO;Is;⎕TRAP
-      ⎕IO←0
-      ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
-      Is←{
-          Check←'MISMATCH'⎕SIGNAL 999/⍨⍵∘≢
-          a←⍺⍺ Inline 1
-          ×⎕NC'⍺':Check a.⎕NR ⍺
-          Check{⎕JSON⍣(326∊⎕DR¨∊⍵)⊢⍵}⍣(⍵≢⎕NULL)⊢a
-      }
-     
-      :Section scalars
-          {
-              'a'
-          }Is'a'
-          {
-              42
-          }Is 42
-          {
-              ⎕NULL
-          }Is ⎕NULL
-          {
-              ⎕UCS 0
-          }Is ⎕UCS 0
-      :EndSection
-      :Section vectors
-          {(42 ⋄ )}Is,42
-     
-          {(42
-              )}Is,42
-     
-          {'Hello',⎕AV}Is'Hello',⎕AV
-     
-          {
-              (1 2 3 'Hello' ⋄ 4 5 6 'World')
-          }Is(1 2 3 'Hello')(4 5 6 'World')
-     
-          {
-              (1 2 3 'Hello'
-              4 5 6 'World')
-          }Is(1 2 3 'Hello')(4 5 6 'World')
-     
-          {
-              (0 1 ⋄ 2 3
-              4 5 ⋄ 6 7)
-          }Is↓4 2⍴⍳8
-     
-          {
-              ('Three'
-              'Blind'
-              'Mice')
-          }Is'Three' 'Blind' 'Mice'
-      :EndSection
-      :Section Matrices
-          {[0 1 2
-              3 4 5]
           }Is 2 3⍴⍳6
      
           {[ ⋄ 0 1 2 3]
@@ -770,7 +554,8 @@
           {[1 ⋄ ]
           }Is⍪1
      
-          {1 2[1 ⋄ ]
+          {
+              1 2[1 ⋄ ]
           }Is 1 2(⍪1)
       :EndSection
       :Section Combo
@@ -906,6 +691,110 @@
      
           {(n:())}Is'{"n":{}}'
      
+      :EndSection
+      r←1
+    ∇
+
+
+
+
+    ∇ r←RoundtripQA stop_on_error;⎕IO;Is;⎕TRAP
+      ⎕IO←0
+      ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
+      Is←{
+          Check←'MISMATCH'⎕SIGNAL 999/⍨≢
+          ⍝ identical nss don't match, so we compare the generated notation:
+          9∊{⊃⎕NC'⍵'}¨∊⍵:(Serialise ⍵)Check Serialise Deserialise Serialise ⍵
+          ⍵ Check Deserialise Serialise ⍵
+      }
+     
+      :Section scalars
+          Is'a'
+          Is 42
+          Is ⎕NULL
+          Is ⎕UCS 0
+      :EndSection
+      :Section vectors
+          Is,42
+          Is,42
+          Is'Hello',⎕AV
+          Is(1 2 3 'Hello')(4 5 6 'World')
+          Is(1 2 3 'Hello')(4 5 6 'World')
+          Is↓4 2⍴⍳8
+          Is'Three' 'Blind' 'Mice'
+      :EndSection
+      :Section Matrices
+          Is 2 3⍴⍳6
+          Is⍉⍪⍳4
+          Is⍉⍪⍳4
+          Is 3 5⍴'ThreeBlindMice '
+          Is⍪1
+          Is 1 2(⍪1)
+      :EndSection
+      :Section Combo
+          Is{
+              _←⍉⍪0 0 1
+              _⍪←1 0 1
+              _⍪←0 1 1
+              r←⊂_
+              _←⍉⍪0 1 1
+              _⍪←1 1 0
+              _⍪←0 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 1
+              _⍪←1 1 1 0
+              r,←⊂_
+              _←⍉⍪0 1 1 0
+              _⍪←1 0 0 1
+              _⍪←0 1 1 0
+              r,←⊂_
+              r
+          }⍬
+     
+          Is{
+              e←⍉⍪0 'OK'
+              e⍪←1 'WS FULL'
+              e⍪←2 'SYNTAX ERROR'
+              e⍪←3 'INDEX ERROR'
+              e⍪←4 'RANK ERROR'
+              e
+          }⍬
+          Is 2 3⍴'a'(⊂1 2)
+          Is 3 3⍴(,¨'1' '0' '1')
+      :EndSection
+     
+      :Section High Rank
+          Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+      :EndSection
+     
+      :Section Empty
+          Is ⍬
+          Is,⊂⍬
+          Is 0⍴⊂⍬
+          Is 0⍴⊂⊂⍬
+          Is 0⍴⊂0⍴⊂⍬
+          Is⍉⍪⍬
+          Is⍪⍬
+          Is 0⍴⊂⍉⍪⍬
+          Is 0⍴⊂⍪⍬
+      :EndSection
+     
+      :Section Namespace
+          Is ⎕JSON'{}'
+          Is ⎕JSON'{}'
+          Is ⎕JSON'[{},{}]'
+          Is ⎕JSON'{"a":[0,1,2],"b":9}'
+          Is{
+              ⍺←⎕NS ⍬
+              ⍺.p←{⍺+⍵}
+              ⍺.m←{⍺-⍵}
+              ⍺
+          }⍬
+          Is ⎕JSON'{"v":[[1,2],3]}'
+          Is ⎕JSON'{"v":[[1,2],3]}'
+          Is ⎕JSON'{"v":[[1,2],3]}'
+          Is ⎕JSON'[{}]'
+          Is ⎕JSON'{"n":{}}'
       :EndSection
       r←1
     ∇
