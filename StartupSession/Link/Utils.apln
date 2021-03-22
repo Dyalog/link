@@ -132,7 +132,7 @@
       :EndIf
       :If compsrc ⋄ ⍝ need a closer look
           :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
-          changed←filesrc≢ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+          changed←~filesrc CompareSource ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
       :EndIf
     ∇
 
@@ -711,10 +711,14 @@
               actname←expname ⋄ nameclass←⎕NC⊂'array'
           :EndTrap ⋄ :EndIf
     ∇
-    ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);cache
+
+    ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
-      :If depth ⋄ (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨↓⍉↑(where name oldname src)
+      :If depth
+          :If 0∊⍴args←↓⍉↑(where name oldname src) ⋄ (file oldfile nc)←⊂0⍴⊂''
+          :Else ⋄ (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
+          :EndIf
       :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
     ∇
@@ -839,18 +843,22 @@
     ∇ (names nc failed)←(root ListLinkedNs arrays)link;mask;nsref
       names←(root/⊂link.ns),1 ListNs link.ns
       ⍝ filter which names to export
+      ⍝ arrays←1  : list all arrays
+      ⍝ arrays←0  : list arrays specified for link
+      ⍝ arrays←¯1 : list no array
       nc←(nsref←⍎link.ns)NameClass¨names
-      :If 0∊mask←nc∊(NameClasses arrays∧link.arrays≡1)   ⍝ keep only names in allowed class
+      :If 0∊mask←nc∊(NameClasses(arrays=1)∨(arrays=0)∧(link.arrays≡1))   ⍝ keep only names in allowed class
           failed←((nc≠2.1)∧(~mask))/names  ⍝ these names won't be exported at all - ignored arrays are OK
           (names nc)/⍨←⊂mask
       :Else ⋄ failed←0⍴⊂''
-      :EndIf      
-      :If ~arrays ⋄ :Return ⋄ :EndIf  ⍝ ignore all arrays
-      :If ~0=≡link.arrays  ⍝ add some arrays too
-          nc,⍨←2.1⍴⍨≢names,⍨←link.arrays/⍨(nsref NameClass¨link.arrays)=2.1
       :EndIf
-      :If link.sysVars  ⍝ add sysvars for all unscripted namespaces
-          nc,⍨←2.1⍴⍨≢names,⍨←,((⊂link.ns),((nc=¯9.1)/names))∘.,('.',¨⎕SE.Link.U.NsSysVars)
+      :If arrays=¯1 ⋄ :Return ⋄ :EndIf  ⍝ ignore all arrays - done
+      :If (arrays=1)∨(link.sysVars)  ⍝ add sysvars for all unscripted namespaces
+          nc,⍨←2.1⍴⍨≢names,⍨←,(((~root)/⊂link.ns),((nc=¯9.1)/names))∘.,('.',¨⎕SE.Link.U.NsSysVars)  ⍝ if (~root), then link.ns is already in names
+      :EndIf
+      :If (arrays=0)∧(~0=≡link.arrays)  ⍝ add some specified arrays
+          nc,⍨←2.1⍴⍨≢names,⍨←link.arrays/⍨(nsref NameClass¨link.arrays)=2.1
+          (names nc)/⍨←⊂(⍳⍨names)=(⍳⍴names)  ⍝ remove redundant names e.g. sysvars
       :EndIf
     ∇
 
@@ -863,9 +871,9 @@
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
       written←failed←0⍴⊂'' ⋄ file←dest≢opts.dir  ⍝ single file provided
-      :If ~single←¯9.1≠NameClass src  ⍝ map unscripted namespace to directory
+      :If ~single←¯9.1≠# NameClass src  ⍝ map unscripted namespace to directory
           nsref←⍎ns←src
-          (names nc failed)←(0 ListLinkedNs 1) opts ⍝ list trad namespaces (excepted ns itself)
+          (names nc failed)←(0 ListLinkedNs 0)opts ⍝ list trad namespaces (excepted ns itself) - list requested arrays
           :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
       :Else
           names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
@@ -873,7 +881,7 @@
       :EndIf
       ⍝ Create directory for namespace
       3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
-      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles)opts.dir
+      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)opts.dir  ⍝ exclude root dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
       ⍝ Write files
@@ -927,7 +935,7 @@
       :EndIf
     ∇
 
-    ∇ (files isdir ts)←opts(ts ListFiles)dir;dirs;hidden;list;mask;order
+    ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order
       list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
      
       mask←1=list[3;]                               ⍝ mask for hidden items
@@ -938,7 +946,9 @@
       list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
      
       dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
-      dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)         ⍝ add self with a fake timestamp (dir timestamps are ignored)
+      :If root
+          dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)       ⍝ add self with a fake timestamp (dir timestamps are ignored)
+      :EndIf
       dirs[1;],←'/'                                 ⍝ add slash to name
      
       files←(2=list[2;])/list                       ⍝ second column has 2 for files; first column is filename
@@ -963,7 +973,7 @@
     ⍝ overwrite=1 : non-empty target - overwrite
       fixed←failed←0⍴⊂''
       :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
-      :Else ⋄ allfiles←⊃opts(0 ListFiles)source  ⍝ whole directory
+      :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
       :EndIf
      
       (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
@@ -1077,6 +1087,54 @@
       :EndIf
       failed,←allfiles[todo]    ⍝ mark as failed even if fixed with errors
       ⍝failed,←allnames[todo]     ⍝ give APL name rather than file name so that user can double click on it ?
+    ∇
+
+    ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
+      :If ~match←src1≡src2  ⍝ source may possibly differ
+      :AndIf ~IS181    ⍝ cannot preserve source as typed
+          ⍝ double-check that descanned versions match
+          (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
+      :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
+      :AndIf match←name1≡name2  ⍝ if names differ then sources differ
+          match←(ns1.⎕NR name1)≡(ns2.⎕NR name2)  ⍝ compare descanned versions
+      :EndIf
+    ∇
+
+    ∇ diff←Diff link;actname;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;where
+    ⍝ uses link.arrays to determine which APL arrays to compare
+    ⍝ TODO : observe link.sysVars
+      :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
+      :Else ⋄ filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
+      :EndIf
+      :If 0∊⍴nsref←(0 GetRefTo)link.ns ⋄ name←0⍴⊂'' ⋄ namesrc←0⍴⊂⍬
+      :Else ⋄ namesrc←nsref GetAplSource¨⊃(name namenc)←2↑(1 ListLinkedNs 1)link  ⍝ include root ns - list all arrays for now - ignored failed names
+      :EndIf
+      (file filesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨filesrc  ⍝ failure to get source should not happen unless race condition
+      (name namesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
+      (where expname actname filenc)←link DetermineAplName file
+      (mask/expname)←(mask←0<≢¨actname)/actname
+      expname←((0<≢¨where)∧(0<≢¨expname))/¨where('.'JoinEach)expname  ⍝ fully qualified name
+      subname←(1+≢link.ns)↓¨name
+      expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc
+      ⍝ expfile←(⎕NEXISTS expfile)/¨expfile  ⍝ not necesary since file shouldn't be listed anyways
+      (filemask namemask)←0<(nameifile fileiname)←name file{(0<≢¨⍵)×(0@((1+≢⍺)∘=)⍺⍳⍵)}¨expname expfile  ⍝ 0 for not found
+      filemask∧←filemask\(⍸filemask)=fileiname[filemask/nameifile]  ⍝ link must be both ways
+      namemask∧←namemask\(⍸namemask)=nameifile[namemask/fileiname]  ⍝ link must be both ways
+      :If ##.DEBUG ⋄ :AndIf (+/filemask)≠(+/namemask) ⋄ Error'Internal error' ⋄ :EndIf
+      :Select link.arrays
+      :Case 0 ⋄ linkmask←namenc≠2.1    ⍝ diff no apl array
+      :Case 1 ⋄ linkmask←(⍴name)⍴1      ⍝ diff all apl arrays
+      :Else ⋄ linkmask←(namenc≠2.1)∨(name∊link.arrays)  ⍝ diff declared apl arrays
+      :EndSelect
+      :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
+      ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
+      diff←0 2⍴⊂''
+      diff⍪←((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
+      diff⍪←(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
+      filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
+      mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
+      :If ##.DEBUG ⋄ :AndIf mask[(⍸namemask)⍳(filemask/nameifile)]≢~(filemask/filesrc)CompareSource¨namesrc[filemask/nameifile] ⋄ Error'Internal error' ⋄ :EndIf
+      diff⍪←(mask/namemask/name),[1.5](file[mask/namemask/fileiname])   ⍝ sources differ
     ∇
 
     :EndSection

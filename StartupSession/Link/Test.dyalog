@@ -1310,7 +1310,7 @@
       ⍝ link issue #235
       (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       ⎕EX name
-      {}(⊂':Namespace ns' ':EndNamespace')QNPUT (folder,'/ns.apln') 0
+      {}(⊂':Namespace ns' ':EndNamespace')QNPUT(folder,'/ns.apln')0
       {}⎕SE.Link.Create name folder
       'link issue #235'assert'9.1=⎕NC⊂''',name,'.ns'''
       ⎕SE.Link.Expunge name,'.ns'
@@ -1318,7 +1318,7 @@
       'link issue #235'assert'0∊⍴⎕SE.Link.U.WARNLOG'
       ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
-      
+     
       :If ⎕SE.Link.U.IS181 ⍝ link issue #155 - :Require doesn't work - ensure we have dependecies in both alphabetic orders
           ⎕EX name
           {}(⊂server←':Require file://Engine.apln' ':Namespace  Server' ' dup ← ##.Engine.dup' ':EndNamespace')QNPUT(folder,'/Server.apln')1
@@ -1793,6 +1793,55 @@
     ∇
 
 
+    ∇ ok←test_diff(folder name);exp;filemask;files;folders;garbfiles;namemask;names;namespaces;opts;varfiles;vars
+      3 ⎕MKDIR folder
+      {}'{watch:''none''}'⎕SE.Link.Create name folder
+      assert'0∊⍴⎕SE.Link.Diff name'
+      3 ⎕MKDIR¨folders←folder∘,¨'' '/.hidden' '/sub'
+      namespaces←name∘,¨'' '.sub'
+      {}(⊂⎕SE.Dyalog.Array.Serialise 1 2 3)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
+      {}(⊂'res←foo arg' 'res←arg')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/foo.aplf'
+      {}(⊂':Namespace ns' ':EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/ns.apln'
+      {}(⊂'!TOTAL!GARBAGE!;;;')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.aplf'
+      {}(⊂':Namespace garbage' ':EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.ini'
+      files←,⍉(1 0 1/folders)∘.,'/' '/var.apla' '/foo.aplf' '/ns.apln' '/garbage.aplf'
+      names←,⍉namespaces∘.,'' '.var' '.foo' '.ns'
+      garbfiles←¯2↑files ⋄ vars←2↑2↓names ⋄ varfiles←2↑2↓files
+      exp←(⊂''),[1.5]1↓files  ⍝ root namespace was created
+      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      {}'{source:''dir''}'⎕SE.Link.Refresh name
+      exp←(⊂''),[1.5]garbfiles  ⍝ these files will always differ
+      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      ⎕EX name
+      assertError'⎕SE.Link.Diff name' 'Not Linked:'
+      {}'{watch:''none''}'⎕SE.Link.Create name folder
+      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      3 ⎕NDELETE folder
+      exp←(names~vars),[1.5](⊂'')
+      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      {}'{source:''ns''}'⎕SE.Link.Refresh name
+      assert'~∨/⎕NEXISTS folders,¨⊂''/var.apla'''  ⍝ refresh doesn't update variables
+      assert'0∊⍴⎕SE.Link.Diff name'
+      opts←⎕NS ⍬ ⋄ opts.arrays←1
+      exp←vars,[1.5](⊂'')  ⍝ force diffing arrays
+      assert'({⍵[⍋⍵;]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      3 ⎕MKDIR folders  ⍝ for hidden folder too
+      {}(⊂⎕SE.Dyalog.Array.Serialise 4 5 6)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
+      {}(⊂'res←foo arg' 'res←arg arg')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/foo.aplf'
+      {}(⊂':Namespace ns ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/ns.apln'
+      {}(⊂'!TOTAL!GARBAGE!AGAIN!;;;')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.aplf'
+      {}(⊂':Namespace garbage ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.ini'
+      filemask←(~files∊varfiles,folders,¨'/')∧(~files∊garbfiles)
+      namemask←(~names∊vars,namespaces)
+      exp←((⊂''),[1.5]garbfiles)⍪((namemask/names),[1.5](filemask/files))
+      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      exp⍪←vars,[1.5]varfiles
+      opts.arrays←vars
+      assert'({⍵[⍋⍵;]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      {}⎕SE.Link.Break name
+      CleanUp folder name
+      ok←1
+    ∇
 
 
     ∇ ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
@@ -1976,7 +2025,7 @@
      ⍝ https://github.com/Dyalog/link/issues/109
       ed←ride.EditOpen name,'.foo'
       res←ed ride.EditFix foobad
-      'link issue #109'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
+      'link issue #109'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡17↑res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
       100 ride.Reply res
       res←ride.Wait ⍬ 1
       'link issue #109'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
@@ -1990,14 +2039,14 @@
       ride.CloseWindow ed
       'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ Mantis 18412 foo has not changed within workspace because fix has failed
       'link issue #109'assert'foobad≡⊃⎕NGET(folder,''/foo.aplf'')1'  ⍝ but file correctly has new code
-      :If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ Mantis 18762 applies to 18.1/Linux
-          ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
-          'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
-          'link issue #109'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
-          ride.Edit(name,'.foo')foo  ⍝ put back original foo
-          'link issue #109'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
-          'link issue #109'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
-      :EndIf
+      ⍝:If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ Mantis 18762 applies to 18.1/Linux
+      ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
+      'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+      'link issue #109'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+      ride.Edit(name,'.foo')foo  ⍝ put back original foo
+      'link issue #109'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+      'link issue #109'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+      ⍝:EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/153
       'link issue #153'assert'~⎕NEXISTS folder,''/text.apla'' '
@@ -2044,6 +2093,7 @@
      
       ⍝ https://github.com/Dyalog/link/issues/129 https://github.com/Dyalog/link/issues/148
       :If 0 ⍝ requires fix to Mantis 18408
+          ride.TRACE←1
           res←ride.APL' (+1 3 ⎕STOP ''',name,'.foo'')(+1 2⎕TRACE ''',name,'.foo'')(+2 3⎕MONITOR ''',name,'.foo'') '
           'link issues #129 #148'assert'res≡'' 1 3  1 2  2 3 '',NL'
           ride.Edit(name,'.foo')foo2
@@ -2057,29 +2107,29 @@
           res←ride.APL' (+⍬ ⎕STOP ''',name,'.foo'')(+⍬ ⎕TRACE ''',name,'.foo'')(+⍬ ⎕MONITOR ''',name,'.foo'') '
           'link issues #129 #148'assert'res≡''      '',NL'
       :EndIf
-     
-     ⍝ https://github.com/Dyalog/link/issues/143
-      :If 0 ⍝ requires fix to Mantis 18409, 18410 and 18411
-          ed←ride.EditOpen name,'.class'
-          res←ed ride.EditFix classbad
-          'link issue #143'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
-          100 ride.Reply res
-          res←ride.Wait ⍬ 1
-          'link issue #143'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
-          res←⊃3⊃res
-          'link issue #143'assert'(9=⎕NC''res'')∧(''Options''≡res.type)∧(''Can''''t Fix''≡res.text)'
-          ride.Reply res  ⍝ just close the error message
-          ed.saved←⍬
-          res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
-          'link issue #143'assert'res≡¯1 '''' (,ed) NO_ERROR'
-          'link issue #143'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
-          ride.CloseWindow ed
-          'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ Mantis 18412 class has changed within workspace even though fix has failed
-          'link issue #143'assert'classbad≡⊃⎕NGET(folder,''/class.aplc'')1'  ⍝ file correctly has new code
-          ride.Edit(name,'.class')class  ⍝ put back original class
-          'link issue #143'assert'(,(↑class),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '
-          'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
-      :EndIf
+           
+      ⍝ https://github.com/Dyalog/link/issues/143
+      ⍝ :If 0 ⍝ requires fix to Mantis 18409, 18410 and 18411
+      ed←ride.EditOpen name,'.class'
+      res←ed ride.EditFix classbad
+      'link issue #143'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡17↑res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
+      100 ride.Reply res
+      res←ride.Wait ⍬ 1
+      'link issue #143'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
+      res←⊃3⊃res
+      'link issue #143'assert'(9=⎕NC''res'')∧(''Options''≡res.type)∧(''Can''''t Fix''≡res.text)'
+      ride.Reply res  ⍝ just close the error message
+      ed.saved←⍬
+      res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
+      'link issue #143'assert'res≡¯1 '''' (,ed) NO_ERROR'
+      'link issue #143'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
+      ride.CloseWindow ed
+      'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ Mantis 18412 class has changed within workspace even though fix has failed
+      'link issue #143'assert'classbad≡⊃⎕NGET(folder,''/class.aplc'')1'  ⍝ file correctly has new code
+      ride.Edit(name,'.class')class  ⍝ put back original class
+      'link issue #143'assert'(,(↑class),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '
+      'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
+      ⍝ :EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
       ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type

@@ -373,9 +373,8 @@
           :Return
       :EndIf
       crawled←1 ⋄ nsref←⍎ns←link.ns ⋄ items[I_CHECKED;]←0
-      (apllist aplnc)←2↑(0 ##.U.ListLinkedNs 0) link  ⍝ never watch namespace arrays
-      (filelist dirs filemod)←link(1 ##.U.ListFiles)link.dir ⋄ filehash←##.U.FileHash¨filelist ⋄ filemod←EncodeTS↑filemod
-      (filelist dirs filemod filehash)/⍨←⊂~filelist∊⊂link.dir,'/'  ⍝ do not keep track of root
+      (apllist aplnc)←2↑(0 ##.U.ListLinkedNs ¯1) link  ⍝ do not list root ns - never watch namespace arrays - ignored failed names
+      (filelist dirs filemod)←link(0 ##.U.ListFiles 1)link.dir ⋄ filehash←##.U.FileHash¨filelist ⋄ filemod←EncodeTS↑filemod
       (filelist filemod filehash){⍺[⍵]}←⊂⍒dirs ⋄ dirs←(+/dirs)↑filelist ⍝ keep dirs first
       :If 1
       ⍝⍝⍝ Look for creation/deletion of files (modification may be old in case unzipped)
@@ -490,13 +489,13 @@
               aplsrc←# ##.U.GetAplSource¨aplnames ⋄ nc←# ##.U.NameClass¨aplnames ⋄ filesrc←##.U.GetFileSource¨filenames
               :If ∨/mask←{1=≡⍵}¨aplsrc ⋄ ¯1 LogCrawler'Failures to get APL source:',⍕mask/aplnames ⋄ :EndIf
               :If ∨/mask←{1=≡⍵}¨filesrc ⋄ ¯1 LogCrawler'Failures to get file source:',⍕mask/filenames ⋄ :EndIf
-              mask←aplsrc≢¨filesrc             ⍝ items that differ from file definition
+              mask←~aplsrc ##.U.CompareSource¨filesrc             ⍝ items that differ from file definition
               mask∧←nc≠2.1                     ⍝ never watch namespace arrays
               mask∧←⊃∧/~{1=≡⍵}¨¨aplsrc filesrc ⍝ ignore failures to get source on either side (probably a deletion, handled at next crawl)
           :AndIf ~0∊⍴differ←mask/notchecked
               (mask/aplnames){0 LogCrawler'Changed APL item: '⍺' → '⍵}¨(mask/filenames)
               (mask/aplsrc)##.U.Into¨(mask/filenames) ⋄ hash←##.U.FileHash¨mask/filenames ⋄ mod←EncodeTS↑3 ⎕NINFO mask/filenames
-              ⍝ update datastructure
+              ⍝ update data structure
               items[;differ]←↑(mask/filenames)(mask/aplnames)(mask/nc)((+/mask)⍴1)mod hash
           :EndIf
           SetCrawlerLink link items active warned

@@ -64,6 +64,7 @@
    > - if set to a comma-separated list of names (e.g. `-arrays=name1{,name2,...}`) then arrays with specified names are exported
    >
    > This option takes effect only when **source** is **ns**.
+   > Note that arrays will never be watched or [Refreshed](Link.Refresh.md) from namespace to file. Updating array files must be done by calling [Link.Add](Link.Add.md) or [Link.Fix](Link.Fix.md)
 
 - **sysVars** (default off) Export namespace-scoped system variables to file
   > The exhaustive list of exported variables is: `⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX`. They will be exported for all unscripted namespaces.
