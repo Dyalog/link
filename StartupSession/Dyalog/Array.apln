@@ -1,5 +1,5 @@
 :Namespace Array   ⍝ A model for a literal notation for most APL arrays
-
+    ⎕ML←1
 
     ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP ⍝ Convert Array to text
       ⎕IO←1
@@ -34,12 +34,13 @@
           I←⌷⍨∘⊂⍨ ⋄ R←⊢⍴⍨÷⍨∘≢,⊣ ⋄ E←⊢∘≢≥⍳⍨
           ⍵/⍨~(⍳≢⍵)∊,(+∘1 ¯1⍤¯1(⊣(⌿⍨)E)⊢)2 R((⍋I∘d)I⊢)⍸|b
       }
-      RRD←{ ⍝ Remove Redundant Diamonds
-          x←'''[^'']+'''⎕R''⊢⍵
-          x←'^ +| +$'⎕R''⊢x
-          x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
-          ' *⋄ *\) *$'⎕R')'⍣(1<≢x∩'⋄')⊢⍵
-      }
+      RRD←⊢ ⍝ Disabled wrong algorithm:
+⍝      RRD←{ ⍝ Remove Redundant Diamonds
+⍝          x←'''[^'']+'''⎕R''⊢⍵
+⍝          x←'^ +| +$'⎕R''⊢x
+⍝          x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
+⍝          ' *⋄ *\) *$'⎕R')'⍣(1<≢x∩'⋄')⊢⍵
+⍝      }
       ROP←{ ⍝ Remove Outer Parens
           x←' |''[^'']'⎕R''⊢⍵
           x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
@@ -188,7 +189,7 @@
           SubParse←{
               ('})]'⍳⊃⌽⍵)≠('{(['⍳⊃⍵):'Bad bracketing'⎕SIGNAL 2
               (a w)←(1↓¯1∘↓)¨(⍺-1)⍵
-              '['=⊃⍵:Paren'↑1/¨',Paren ErrIfEmpty a Parse w ⍝ high-rank
+              '['=⊃⍵:Paren'{⎕ML←1⋄↑⍵}1/¨',Paren ErrIfEmpty a Parse w ⍝ high-rank
               ':'∊⍵/⍨(1=⍺)×~≠\q=⍵:a Namespace w ⍝ ns
               '('=⊃⍵:Paren{⍵,'⎕NS⍬'/⍨0=≢⍵}a Parse w ⍝ vector/empty ns
               ⍵ ⍝ dfn
@@ -232,6 +233,11 @@
           a≡Serialise ⎕JSON ⍵:
           ∧/⍵(1∊⍷)¨⊂↑a:
           !#
+      }
+
+
+      Ed←{ ⍝ Skip ⍺⍺ QA if interpreter skips lines that look like invalid ∇ Editor directives
+          </⍋(18 1)(⊃⌽'.'⎕VFI 1⊃# ⎕WG'APLVersion'):⍺⍺ ⍵
       }
 
 
@@ -306,37 +312,31 @@
           }Is'Three' 'Blind' 'Mice'
       :EndSection
       :Section Matrices
-          {
-              [0 1 2
+          {[0 1 2
               3 4 5]
           }Is 2 3⍴⍳6
      
-          {
-              [ ⋄ 0 1 2 3]
+          {[ ⋄ 0 1 2 3]
           }Is⍉⍪⍳4
      
-          {
-              [
+          {[
               0 1 2 3
               ]
           }Is⍉⍪⍳4
      
-          {
-              ['Three'
+          {['Three'
               'Blind'
               'Mice']
           }Is 3 5⍴'ThreeBlindMice '
      
-          {
-              [
+          {[
               ('Three'
               'Blind'
               'Mice')
               ]
           }Is 1 3⍴'Three' 'Blind' 'Mice'
      
-          {
-              [1 ⋄ ]
+          {[1 ⋄ ]
           }Is⍪1
      
           {
@@ -360,7 +360,7 @@
               1 0 0 1
               0 1 1 0])
      
-          }Is{
+          }Is Ed{
               _←⍉⍪0 0 1
               _⍪←1 0 1
               _⍪←0 1 1
@@ -379,8 +379,7 @@
               r
           }⍬
      
-          {
-              [0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
+          {[0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
           }Is{
               e←⍉⍪0 'OK'
               e⍪←1 'WS FULL'
@@ -389,8 +388,7 @@
               e⍪←4 'RANK ERROR'
               e
           }⍬
-          {
-              ['a'(⊂1 2)'a'
+          {['a'(⊂1 2)'a'
               (⊂1 2)'a'(⊂1 2)]
           }Is 2 3⍴'a'(⊂1 2)
       :EndSection
@@ -401,7 +399,7 @@
               1 5 9]
               [2 7 1
               2 8]]
-          }Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+          }Is Ed 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
       :EndSection
      
       :Section Empty
@@ -420,8 +418,7 @@
           {
               0⍴⊂0⍴⊂⍬
           }Is 0⍴⊂0⍴⊂⍬
-          {
-              [⍬ ⋄ ]
+          {[⍬ ⋄ ]
           }Is⍉⍪⍬
           {
               ⍉[⍬ ⋄ ]
@@ -514,7 +511,7 @@
           {(42
               )}Is,42
      
-          {'Hello',⎕UCS⍳200}Is'Hello',⎕UCS⍳200
+          {'Hello',⎕AV}Is'Hello',⎕AV
      
           {
               (1 2 3 'Hello' ⋄ 4 5 6 'World')
@@ -537,29 +534,24 @@
           }Is'Three' 'Blind' 'Mice'
       :EndSection
       :Section Matrices
-          {
-              [0 1 2
+          {[0 1 2
               3 4 5]
           }Is 2 3⍴⍳6
      
-          {
-              [ ⋄ 0 1 2 3]
+          {[ ⋄ 0 1 2 3]
           }Is⍉⍪⍳4
      
-          {
-              [
+          {[
               0 1 2 3
               ]
           }Is⍉⍪⍳4
      
-          {
-              ['Three'
+          {['Three'
               'Blind'
               'Mice']
           }Is 3 5⍴'ThreeBlindMice '
      
-          {
-              [1 ⋄ ]
+          {[1 ⋄ ]
           }Is⍪1
      
           {
@@ -583,7 +575,7 @@
               1 0 0 1
               0 1 1 0])
      
-          }Is{
+          }Is Ed{
               _←⍉⍪0 0 1
               _⍪←1 0 1
               _⍪←0 1 1
@@ -602,8 +594,7 @@
               r
           }⍬
      
-          {
-              [0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
+          {[0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
           }Is{
               e←⍉⍪0 'OK'
               e⍪←1 'WS FULL'
@@ -612,8 +603,7 @@
               e⍪←4 'RANK ERROR'
               e
           }⍬
-          {
-              ['a'(⊂1 2)'a'
+          {['a'(⊂1 2)'a'
               (⊂1 2)'a'(⊂1 2)]
           }Is 2 3⍴'a'(⊂1 2)
       :EndSection
@@ -624,7 +614,7 @@
               1 5 9]
               [2 7 1
               2 8]]
-          }Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+          }Is Ed 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
       :EndSection
      
       :Section Empty
@@ -643,8 +633,7 @@
           {
               0⍴⊂0⍴⊂⍬
           }Is 0⍴⊂0⍴⊂⍬
-          {
-              [⍬ ⋄ ]
+          {[⍬ ⋄ ]
           }Is⍉⍪⍬
           {
               ⍉[⍬ ⋄ ]
@@ -713,102 +702,37 @@
       ⎕IO←0
       ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
       Is←{
-          Check←'MISMATCH'⎕SIGNAL 999/⍨⍵∘≢
-          a←⍺⍺ Inline 1
-          ×⎕NC'⍺':Check a.⎕NR ⍺
-          Check{⎕JSON⍣(326∊⎕DR¨∊⍵)⊢⍵}⍣(⍵≢⎕NULL)⊢a
+          Check←'MISMATCH'⎕SIGNAL 999/⍨≢
+          ⍝ identical nss don't match, so we compare the generated notation:
+          9∊{⊃⎕NC'⍵'}¨∊⍵:(Serialise ⍵)Check Serialise Deserialise Serialise ⍵
+          ⍵ Check Deserialise Serialise ⍵
       }
      
       :Section scalars
-          {
-              'a'
-          }Is'a'
-          {
-              42
-          }Is 42
-          {
-              ⎕NULL
-          }Is ⎕NULL
-          {
-              ⎕UCS 0
-          }Is ⎕UCS 0
+          Is'a'
+          Is 42
+          Is ⎕NULL
+          Is ⎕UCS 0
       :EndSection
       :Section vectors
-          {(42 ⋄ )}Is,42
-     
-          {(42
-              )}Is,42
-     
-          {'Hello',⎕UCS⍳200}Is'Hello',⎕UCS⍳200
-     
-          {
-              (1 2 3 'Hello' ⋄ 4 5 6 'World')
-          }Is(1 2 3 'Hello')(4 5 6 'World')
-     
-          {
-              (1 2 3 'Hello'
-              4 5 6 'World')
-          }Is(1 2 3 'Hello')(4 5 6 'World')
-     
-          {
-              (0 1 ⋄ 2 3
-              4 5 ⋄ 6 7)
-          }Is↓4 2⍴⍳8
-     
-          {
-              ('Three'
-              'Blind'
-              'Mice')
-          }Is'Three' 'Blind' 'Mice'
+          Is,42
+          Is,42
+          Is'Hello',⎕AV
+          Is(1 2 3 'Hello')(4 5 6 'World')
+          Is(1 2 3 'Hello')(4 5 6 'World')
+          Is↓4 2⍴⍳8
+          Is'Three' 'Blind' 'Mice'
       :EndSection
       :Section Matrices
-          {
-              [0 1 2
-              3 4 5]
-          }Is 2 3⍴⍳6
-     
-          {
-              [ ⋄ 0 1 2 3]
-          }Is⍉⍪⍳4
-     
-          {
-              [
-              0 1 2 3
-              ]
-          }Is⍉⍪⍳4
-     
-          {
-              ['Three'
-              'Blind'
-              'Mice']
-          }Is 3 5⍴'ThreeBlindMice '
-     
-          {
-              [1 ⋄ ]
-          }Is⍪1
-     
-          {
-              1 2[1 ⋄ ]
-          }Is 1 2(⍪1)
+          Is 2 3⍴⍳6
+          Is⍉⍪⍳4
+          Is⍉⍪⍳4
+          Is 3 5⍴'ThreeBlindMice '
+          Is⍪1
+          Is 1 2(⍪1)
       :EndSection
       :Section Combo
-          {
-              ([0 0 1
-              1 0 1
-              0 1 1]
-     
-              [0 1 1
-              1 1 0
-              0 1 0]
-     
-              [0 1 1 1
-              1 1 1 0]
-     
-              [0 1 1 0
-              1 0 0 1
-              0 1 1 0])
-     
-          }Is{
+          Is{
               _←⍉⍪0 0 1
               _⍪←1 0 1
               _⍪←0 1 1
@@ -827,9 +751,7 @@
               r
           }⍬
      
-          {
-              [0 'OK' ⋄ 1 'WS FULL' ⋄ 2 'SYNTAX ERROR' ⋄ 3 'INDEX ERROR' ⋄ 4 'RANK ERROR']
-          }Is{
+          Is{
               e←⍉⍪0 'OK'
               e⍪←1 'WS FULL'
               e⍪←2 'SYNTAX ERROR'
@@ -837,96 +759,42 @@
               e⍪←4 'RANK ERROR'
               e
           }⍬
-          {
-              ['a'(⊂1 2)'a'
-              (⊂1 2)'a'(⊂1 2)]
-          }Is 2 3⍴'a'(⊂1 2)
+          Is 2 3⍴'a'(⊂1 2)
+          Is 3 3⍴(,¨'1' '0' '1')
       :EndSection
      
       :Section High Rank
-          {
-              [[3
-              1 5 9]
-              [2 7 1
-              2 8]]
-          }Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+          Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
       :EndSection
      
       :Section Empty
-          {
-              ⍬
-          }Is ⍬
-          {
-              (⍬ ⋄ )
-          }Is,⊂⍬
-          {
-              0⍴⊂⍬
-          }Is 0⍴⊂⍬
-          {
-              0⍴⊂⊂⍬
-          }Is 0⍴⊂⊂⍬
-          {
-              0⍴⊂0⍴⊂⍬
-          }Is 0⍴⊂0⍴⊂⍬
-          {
-              [⍬ ⋄ ]
-          }Is⍉⍪⍬
-          {
-              ⍉[⍬ ⋄ ]
-          }Is⍪⍬
-          {
-              0⍴⊂[⍬ ⋄ ]
-          }Is 0⍴⊂⍉⍪⍬
-          {
-              0⍴⊂⍉[⍬ ⋄ ]
-          }Is 0⍴⊂⍪⍬
+          Is ⍬
+          Is,⊂⍬
+          Is 0⍴⊂⍬
+          Is 0⍴⊂⊂⍬
+          Is 0⍴⊂0⍴⊂⍬
+          Is⍉⍪⍬
+          Is⍪⍬
+          Is 0⍴⊂⍉⍪⍬
+          Is 0⍴⊂⍪⍬
       :EndSection
      
       :Section Namespace
-          {
-              ()
-          }Is'{}'
-     
-          {
-              (
-              )
-          }Is'{}'
-     
-          {
-              ()()
-          }Is'[{},{}]'
-     
-          {
-              (a:⍳n←3 ⋄ b:n*2)
-          }Is'{"a":[0,1,2],"b":9}'
-     
-          'p' 'm'{
-              (p:+
-              m:{⍺-⍵})
-          }Is¨(,'+')(,⊂' m←{⍺-⍵}')
-     
-          {
-              (v:(1 2 ⋄ 3))
-          }Is'{"v":[[1,2],3]}'
-     
-          {
-              (v:(1 2
-              3))
-          }Is'{"v":[[1,2],3]}'
-     
-          {
-              (v:(1 2 ⋄ 3)
-              )
-          }Is'{"v":[[1,2],3]}'
-     
-          {
-              (
-              ()
-              )
-          }Is'[{}]'
-     
-          {(n:())}Is'{"n":{}}'
-     
+          Is ⎕JSON'{}'
+          Is ⎕JSON'{}'
+          Is ⎕JSON'[{},{}]'
+          Is ⎕JSON'{"a":[0,1,2],"b":9}'
+          Is{
+              ⍺←⎕NS ⍬
+              ⍺.p←{⍺+⍵}
+              ⍺.m←{⍺-⍵}
+              ⍺
+          }⍬
+          Is ⎕JSON'{"v":[[1,2],3]}'
+          Is ⎕JSON'{"v":[[1,2],3]}'
+          Is ⎕JSON'{"v":[[1,2],3]}'
+          Is ⎕JSON'[{}]'
+          Is ⎕JSON'{"n":{}}'
       :EndSection
       r←1
     ∇
