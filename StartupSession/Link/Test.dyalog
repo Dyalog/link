@@ -2004,8 +2004,6 @@
       'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
       'link issue #30'assert'(''0'',NL)≡ride.APL'' ⎕NC⊂''''foo2'''' '' '
      
-      ride.INFO←1
-      
      ⍝ https://github.com/Dyalog/link/issues/35
       ride.Edit(name,'.foo')goo   ⍝ change name in editor
       'link issue #35'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
@@ -2095,7 +2093,7 @@
       {}ride.APL' ⎕EX''#.FIXCOUNT'' '
      
       ⍝ https://github.com/Dyalog/link/issues/129 https://github.com/Dyalog/link/issues/148
-      :If 0 ⍝ requires fix to Mantis 18408
+      :If ⎕SE.Link.U.IS181 ⍝ requires fix to Mantis 18408
           res←ride.APL' (+1 3 ⎕STOP ''',name,'.foo'')(+1 2⎕TRACE ''',name,'.foo'')(+2 3⎕MONITOR ''',name,'.foo'') '
           'link issues #129 #148'assert'res≡'' 1 3  1 2  2 3 '',NL'
           ride.Edit(name,'.foo')foo2
