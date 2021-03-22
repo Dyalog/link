@@ -756,8 +756,8 @@
               file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
           :EndIf
           file,←typeExtensions Tail nc               ⍝ Add extension
-      :EndIf
-      file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
+          file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
+        :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (subdir file ext)←⎕NPARTS path←file
       :If forceExtensions∨0=≢ext

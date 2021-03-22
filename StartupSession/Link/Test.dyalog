@@ -1181,9 +1181,9 @@
       (⊂⍕var)⎕NPUT folder,'/var.apla'
       (⊂⍕var)⎕NPUT folder,'/sub/var.apla'
       z←opts ⎕SE.Link.Import name folder
-      'link issue #244' assert '~∨/''failed''⍷z' 
+      'link issue #244'assert'~∨/''failed''⍷z'
       ⍝'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
-      ⍝'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'' '     
+      ⍝'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'' '
       'link issue #68'assert'RDFILES ≡ folder∘,¨''/''    ''/foo.aplf'' ''/script.apln'' ''/sub/'' ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
       'link issue #68'assert'RDNAMES ≡ name∘,¨''''   ''.foo''  ''.script'' ''.sub'' ''.sub.foo'' ''.sub.script'' ''.sub.var'' ''.var'' '
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
@@ -1667,6 +1667,7 @@
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       1 assert_create 1
+      Breathe ⍝ ensure completion of previous fixes
       subname'var'EdFix varsrc
       subname'foo'EdFix foosrc
       subname'ns'EdFix nssrc
@@ -2003,6 +2004,8 @@
       'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
       'link issue #30'assert'(''0'',NL)≡ride.APL'' ⎕NC⊂''''foo2'''' '' '
      
+      ride.INFO←1
+      
      ⍝ https://github.com/Dyalog/link/issues/35
       ride.Edit(name,'.foo')goo   ⍝ change name in editor
       'link issue #35'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
@@ -2093,7 +2096,6 @@
      
       ⍝ https://github.com/Dyalog/link/issues/129 https://github.com/Dyalog/link/issues/148
       :If 0 ⍝ requires fix to Mantis 18408
-          ride.TRACE←1
           res←ride.APL' (+1 3 ⎕STOP ''',name,'.foo'')(+1 2⎕TRACE ''',name,'.foo'')(+2 3⎕MONITOR ''',name,'.foo'') '
           'link issues #129 #148'assert'res≡'' 1 3  1 2  2 3 '',NL'
           ride.Edit(name,'.foo')foo2
@@ -2166,6 +2168,16 @@
       {}'hoo←{⍺+⍵}'⎕NPUT folder,'/hoo.aplf'
       Breathe
       assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.U.WARNLOG'' '
+     
+     
+      ⍝ https://github.com/Dyalog/link/issues/246
+      3 ⎕NDELETE folder ⋄ {}ride.APL'⎕EX ',Stringify name
+      3 ⎕MKDIR folder
+      (⊂'res←Func1 arg' 'res←arg')⎕NPUT folder,'/Func1-1.aplf'
+      {}ride.APL']link.create ',name,' ',folder,' -casecode -source=dir -watch=both'
+      ride.Edit(name,'.Func1')('res←Func1 arg' 'res←arg arg')
+      'link issue #246'assert'(,⊂folder,''/Func1-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
+      {}ride.APL']link.expunge ',name
      
       CleanUp folder name
       ok←1
