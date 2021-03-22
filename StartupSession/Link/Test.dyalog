@@ -1161,7 +1161,7 @@
       (name,'.sub')⎕NS ⍬
       :For sub :In name∘,¨'' '.sub'
           ⍎sub,'.var←',⍕var←1 2 3 4
-          (⍎sub).⎕FX nr←' r←foo r' ' r←r'
+          (⍎sub).⎕FX nr←' r←foo r ⍝' ' r←r'  ⍝ link issue #244 : trailing '⍝'
           (⍎sub).⎕FIX src←,¨':Namespace script' '∇ res←function arg' 'res←arg' '∇' '∇ goo' '∇' 'var←123' ':EndNamespace'
       :EndFor
      
@@ -1180,10 +1180,10 @@
      
       (⊂⍕var)⎕NPUT folder,'/var.apla'
       (⊂⍕var)⎕NPUT folder,'/sub/var.apla'
-      {}opts ⎕SE.Link.Import name folder
+      z←opts ⎕SE.Link.Import name folder
+      'link issue #244' assert '~∨/''failed''⍷z' 
       ⍝'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
-      ⍝'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'' '
-     
+      ⍝'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'' '     
       'link issue #68'assert'RDFILES ≡ folder∘,¨''/''    ''/foo.aplf'' ''/script.apln'' ''/sub/'' ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
       'link issue #68'assert'RDNAMES ≡ name∘,¨''''   ''.foo''  ''.script'' ''.sub'' ''.sub.foo'' ''.sub.script'' ''.sub.var'' ''.var'' '
       'link issue #68'assert'0∊⍴WRFILES,WRNAMES'
@@ -1500,10 +1500,10 @@
       quadvars←':Namespace quadVars' '##.(⎕IO ⎕ML ⎕WX)←0 2 1' ':EndNamespace'  ⍝ link issue #206 - try unusual values
       (⊂quadvars)⎕NPUT folder,'/quadVars.apln'  ⍝ link issue #206
       :If ⎕SE.Link.U.IS181
-          foosrc←'  r ← foo  x ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕ATX)
+          foosrc←'  r ← foo  x  ⍝  header  comment ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕ATX)
           newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
       :Else
-          foosrc←' r←foo x' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
+          foosrc←' r←foo x  ⍝  header  comment' '   ⍝  comment' ' r←''foo''x'  ⍝ de-tokenised form (⎕NR)
           newfoosrc←('  ⍝  new  comment' ' r←''newfoo''x')@2 3⊢foosrc
           :If ~AutoFormat   ⍝ link issue #215 - QA's must not depend on AUTOFORMAT (v18.0 and earlier only because they don't have ⎕ATX)
               foosrc←(1 0 1/¨' '),¨foosrc  ⍝ AUTOFORMAT=0 adds a space excepted where commented
@@ -2107,29 +2107,29 @@
           res←ride.APL' (+⍬ ⎕STOP ''',name,'.foo'')(+⍬ ⎕TRACE ''',name,'.foo'')(+⍬ ⎕MONITOR ''',name,'.foo'') '
           'link issues #129 #148'assert'res≡''      '',NL'
       :EndIf
-           
+     
       ⍝ https://github.com/Dyalog/link/issues/143
-      ⍝ :If 0 ⍝ requires fix to Mantis 18409, 18410 and 18411
-      ed←ride.EditOpen name,'.class'
-      res←ed ride.EditFix classbad
-      'link issue #143'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡17↑res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
-      100 ride.Reply res
-      res←ride.Wait ⍬ 1
-      'link issue #143'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
-      res←⊃3⊃res
-      'link issue #143'assert'(9=⎕NC''res'')∧(''Options''≡res.type)∧(''Can''''t Fix''≡res.text)'
-      ride.Reply res  ⍝ just close the error message
-      ed.saved←⍬
-      res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
-      'link issue #143'assert'res≡¯1 '''' (,ed) NO_ERROR'
-      'link issue #143'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
-      ride.CloseWindow ed
-      'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ Mantis 18412 class has changed within workspace even though fix has failed
-      'link issue #143'assert'classbad≡⊃⎕NGET(folder,''/class.aplc'')1'  ⍝ file correctly has new code
-      ride.Edit(name,'.class')class  ⍝ put back original class
-      'link issue #143'assert'(,(↑class),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '
-      'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
-      ⍝ :EndIf
+      :If ⎕SE.Link.U.IS181≥⎕SE.Link.U.ISWIN ⍝ requires fix to Mantis 18945 (18.0+Win), and also 18409, 18410 and 18411
+          ed←ride.EditOpen name,'.class'
+          res←ed ride.EditFix classbad
+          'link issue #143'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡17↑res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
+          100 ride.Reply res
+          res←ride.Wait ⍬ 1
+          'link issue #143'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
+          res←⊃3⊃res
+          'link issue #143'assert'(9=⎕NC''res'')∧(''Options''≡res.type)∧(''Can''''t Fix''≡res.text)'
+          ride.Reply res  ⍝ just close the error message
+          ed.saved←⍬
+          res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
+          'link issue #143'assert'res≡¯1 '''' (,ed) NO_ERROR'
+          'link issue #143'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
+          ride.CloseWindow ed
+          'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ Mantis 18412 class has changed within workspace even though fix has failed
+          'link issue #143'assert'classbad≡⊃⎕NGET(folder,''/class.aplc'')1'  ⍝ file correctly has new code
+          ride.Edit(name,'.class')class  ⍝ put back original class
+          'link issue #143'assert'(,(↑class),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '
+          'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
+      :EndIf
      
       ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
       ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
