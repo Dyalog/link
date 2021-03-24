@@ -1,7 +1,7 @@
 :Namespace Array   ⍝ A model for a literal notation for most APL arrays
     ⎕ML←1
 
-    ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP ⍝ Convert Array to text
+    ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP;repr ⍝ Convert Array to text
       ⎕IO←1
       :If 900⌶⍬ ⋄ inner←0 ⋄ :EndIf  ⍝ flag for outer call of Serialise
       q←''''
@@ -68,6 +68,13 @@
                               text,←⊂⎕FMT(name,':')(1 Serialise array⍎name)
                           :CaseList 3.2 4.2 ⍝ dfn/dop
                               text,←⊂↑('^ *(',name,') *←')⎕R'\1:'@1 array.⎕NR name
+                          :CaseList 3.3 4.3 ⍝ tacit
+                              :If 1=≢⎕FMT array.⎕CR name ⍝ no multi-line components
+                                  repr←0 1 ⎕SE.Dyalog.Utils.expr,⊂array.{⍵(183⌶⍵)(⎕NR ⍵)}name
+                                  text,←⊂name,':',,repr
+                              :Else
+                                 11⎕SIGNAL⍨'Unsupported array (multi-line tacit function: ',name,')'
+                              :EndIf
                           :CaseList 9+0.1×⍳9
                               text,←⊂(name,':')(1 Serialise array⍎name)
                           :Else
@@ -451,8 +458,10 @@
      
           {
               (p:{⍺+⍵}
-              m:{⍺-⍵})
-          }Is'p:{⍺+⍵}' 'm:{⍺-⍵}'
+              m:{⍺-⍵}
+              s:,∘(,',')((,',')∘,)
+              o:⍣2)
+          }Is'p:{⍺+⍵}' 'm:{⍺-⍵}' 's:(,∘(,'',''))((,'','')∘,)' 'o:⍣2'
      
           {
               (v:(1 2 ⋄ 3))
