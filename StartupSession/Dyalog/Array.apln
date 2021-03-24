@@ -5,13 +5,13 @@
       ⎕IO←1
       :If 900⌶⍬ ⋄ inner←0 ⋄ :EndIf  ⍝ flag for outer call of Serialise
       q←''''
-      DblQuot←{'('q,(q ⎕R'&&'⍕⍵),q')'}
+      DblQuot←{q,(q ⎕R'&&'⍕⍵),q}
       MkEsc←{
-          stop←~⍵.Lengths[3]
-          nums←⍕⎕UCS ⍵.Match↓⍨-~stop
-          ''',',stop↓'(⎕UCS ',nums,stop↓'),''',⊃⌽⍵.Match
+          cont←⍵.Lengths[3]
+          nums←⍕⎕UCS ⍵.Match↓⍨-cont
+          ''',',(cont⍴'('),'⎕UCS ',nums,cont/'),''',⊃⌽⍵.Match
       }
-      Esc←'([\x00-\x1F\x80-\xA0]+)(.?)'⎕R MkEsc⍠'Mode' 'D'
+      Esc←'([\x00-\x1F\x80-\xA0\x{2028}\x{2029}\x{FEFF}]+)(.?)'⎕R MkEsc⍠'Mode' 'D'
       DelQQ←'^(\()'''',' ',''''(\))$'⎕R'\1'
       RSP←{ ⍝ Remove String Parens
           '⎕'∊'''[^'']*'''⎕R''⊢⍵:⍵
@@ -27,35 +27,22 @@
       }
       Brack←{(⎕FMT'['Encl⍤2)⍣⍺⍺⊢⍵}
       SubMat←{(¯2+≢⍴⍵)Brack ⍺⍺ ⍵}
-      RRP←{ ⍝ Remove Redundant Parens
-          x←'''[^'']+'''⎕R{''↑⍨≢⍵.Match}⍵
-          b←-⌿'()'∘.=x
-          d←(+\+0∘>)b
-          I←⌷⍨∘⊂⍨ ⋄ R←⊢⍴⍨÷⍨∘≢,⊣ ⋄ E←⊢∘≢≥⍳⍨
-          ⍵/⍨~(⍳≢⍵)∊,(+∘1 ¯1⍤¯1(⊣(⌿⍨)E)⊢)2 R((⍋I∘d)I⊢)⍸|b
-      }
-      RRD←⊢ ⍝ Disabled wrong algorithm:
-⍝      RRD←{ ⍝ Remove Redundant Diamonds
-⍝          x←'''[^'']+'''⎕R''⊢⍵
-⍝          x←'^ +| +$'⎕R''⊢x
-⍝          x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
-⍝          ' *⋄ *\) *$'⎕R')'⍣(1<≢x∩'⋄')⊢⍵
-⍝      }
       ROP←{ ⍝ Remove Outer Parens
-          x←' |''[^'']'⎕R''⊢⍵
+          w←'''[^'']+''' '\((''[^'']*'')\)'⎕R'&' '\1'⊢⍵
+          x←' |''[^'']'⎕R''⊢w
           x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
-          '()'≢'^(.)[^)⋄(]+(.)$'⎕R'\1\2'⊢x:⍵
-          '^( *)\((.+)\)'⎕R'\1\2'⊢⍵
+          '()'≢'^(.)[^)⋄(]+(.)$'⎕R'\1\2'⊢x:w
+          '^( *)\((.+)\)'⎕R'\1\2'⊢w
       }
-      Dia←{RRP 1⌽')(',' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
+      Dia←{' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
       :Trap (~inner)/0   ⍝ trap only outer call
           :If 0=≡array ⍝ simple scalar
               :Select 10|⎕DR array
               :CaseList 0 2  ⍝ char
-                  :If (⎕UCS array)∊0,(⍳31),127+⍳33
+                  :If (⎕UCS array)∊0,(⍳31),(127+⍳33),8232 8233 65279
                       text←1⌽')(⎕UCS ',⍕⎕UCS array
                   :Else
-                      text←q,array,q
+                      text←DblQuot array
                   :EndIf
               :CaseList 6    ⍝ ref
                   :If ⎕NULL≡array
@@ -73,7 +60,7 @@
                                   repr←0 1 ⎕SE.Dyalog.Utils.expr,⊂array.{⍵(183⌶⍵)(⎕NR ⍵)}name
                                   text,←⊂name,':',,repr
                               :Else
-                                 11⎕SIGNAL⍨'Unsupported array (multi-line tacit function: ',name,')'
+                                  11 ⎕SIGNAL⍨'Unsupported array (multi-line tacit function: ',name,')'
                               :EndIf
                           :CaseList 9+0.1×⍳9
                               text,←⊂(name,':')(1 Serialise array⍎name)
@@ -155,7 +142,7 @@
           :EndIf
           :If ~inner
               text←,{(+/∨\' '≠⌽⍵)↑¨↓⍵}text ⍝ outer result is vector of strings
-              text←RRD∘ROP¨text
+              text←ROP¨text
           :EndIf
       :Else
           ⎕SIGNAL⊂⎕DMX.(('EN'EN)('Message'Message))
@@ -218,7 +205,7 @@
      
           w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ mat?
           w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ vtv?
-          w←'''[^'']+''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
+          w←'''[^'']*''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
      
           pl←ParenLev w
           ∨/0>pl:'Unmatched brackets'⎕SIGNAL 2
@@ -286,8 +273,23 @@
      
       :Section scalars
           {
+              ⎕NULL
+          }Is ⎕NULL
+          {
               'a'
           }Is'a'
+          {
+              ''''
+          }Is''''
+          {
+              (⎕UCS 0)
+          }Is ⎕UCS 0
+          {
+              (⎕UCS 13)
+          }Is ⎕UCS 13
+          {
+              (⎕UCS 10)
+          }Is ⎕UCS 10
           {
               42
           }Is 42
@@ -722,6 +724,7 @@
           Is 42
           Is ⎕NULL
           Is ⎕UCS 0
+          Is ⎕UCS 13
       :EndSection
       :Section vectors
           Is,42
@@ -770,6 +773,10 @@
           }⍬
           Is 2 3⍴'a'(⊂1 2)
           Is 3 3⍴(,¨'1' '0' '1')
+          Is'Hello'('' '⍝World:')
+          Is'AB''C',⊂'DE'
+          Is'ABC'(,⊂⊂'')
+          Is'A'(,⊂⊂'')
       :EndSection
      
       :Section High Rank
