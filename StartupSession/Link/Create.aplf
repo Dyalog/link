@@ -77,7 +77,7 @@
                  opts.source←'ns'
              :EndIf
          :EndIf
-         :If ~0∊⍴warnmsg ⋄ ¯1 U.Warn warmsg ⋄ :EndIf
+         :If ~0∊⍴warnmsg ⋄ ¯1 U.Warn warnmsg ⋄ :EndIf
 
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs ns
