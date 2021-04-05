@@ -1818,7 +1818,7 @@
     ∇
 
 
-    ∇ ok←test_diff(folder name);exp;filemask;files;folders;garbfiles;namemask;names;namespaces;opts;varfiles;vars
+    ∇ ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z
       3 ⎕MKDIR folder
       {}'{watch:''none''}'⎕SE.Link.Create name folder
       assert'0∊⍴⎕SE.Link.Diff name'
@@ -1864,6 +1864,18 @@
       opts.arrays←vars
       assert'({⍵[⍋⍵;]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}⎕SE.Link.Break name
+     
+      ⎕EX name
+      (ns←⎕NS ⍬)NSMOVE #
+      z←⎕SE.UCMD']link.create # ',folder
+      diff←#.{⎕SE.Link.Diff ⍵}⍬
+      exp←(⊂''),[1.5]folder∘,¨'/garbage.aplf' '/sub/garbage.aplf'
+      ⍝ The following line is due to Mantis 18970
+      exp⍪←'#.ns' '#.sub.ns' '' '',[1.5]'' '',folder∘,¨'/ns.apln' '/sub/ns.apln'
+      assert'({⍵[⍋⍵;]}diff)≡({⍵[⍋⍵;]}exp)'
+      {}⎕SE.Link.Break # ⋄ #.⎕EX #.⎕NL -⍳10
+      # NSMOVE ns
+     
       CleanUp folder name
       ok←1
     ∇
