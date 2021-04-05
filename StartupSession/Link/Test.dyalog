@@ -1766,7 +1766,7 @@
       z←opts ⎕SE.Link.Create name folder
       'link issue #230'assert'~∨/''failed''⍷z'
       'link issue #230'assert'1=≢⎕SE.Link.Links'
-      {}⎕SE.Link.Break name      
+      {}⎕SE.Link.Break name
       'link issue #160'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       ⍝:If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕ATX) produce ⎕NULL
       ⍝    foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
@@ -1938,7 +1938,7 @@
       :While (~0∊⍴start)∧(end>time←3⊃⎕AI) ⋄ ⎕DL 0.01 ⋄ :EndWhile
     ∇
 
-    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;newdfn;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z;start
+    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
@@ -2217,16 +2217,21 @@
       Breathe
       assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.U.WARNLOG'' '
      
-     
-      ⍝ https://github.com/Dyalog/link/issues/246
+      ⍝ https://github.com/Dyalog/link/issues/246 ⍝ https://github.com/Dyalog/link/issues/247
       3 ⎕NDELETE folder ⋄ {}ride.APL'⎕EX ',Stringify name
       3 ⎕MKDIR folder
       (⊂'res←Func1 arg' 'res←arg')⎕NPUT folder,'/Func1-1.aplf'
       {}ride.APL']link.create ',name,' ',folder,' -casecode -source=dir -watch=both'
-      ride.Edit(name,'.Func1')('res←Func1 arg' 'res←arg arg')
+      ride.Edit(name,'.Func1')(func1←'res←Func1 arg' 'res←arg arg')
       'link issue #246'assert'(,⊂folder,''/Func1-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
-      {}ride.APL']link.expunge ',name
-     
+      'link issue #246'assert'func1≡⊃⎕NGET (folder,''/Func1-1.aplf'') 1'
+      {}ride.APL']link.break ',name
+      {}ride.APL' 3 ⎕NDELETE',Stringify folder
+      {}ride.APL']link.create ',name,' ',folder,' -casecode -source=ns -watch=ns'
+      ride.Edit(name,'.Func1')(func2←'res←Func2 arg' 'res←arg arg arg')
+      'link issue #247'assert'(folder∘,¨''/Func1-1.aplf'' ''/Func2-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
+      'link issue #247'assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1'
+           
       CleanUp folder name
       ok←1
     ∇

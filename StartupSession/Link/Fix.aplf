@@ -58,7 +58,7 @@ NOHOLD:
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
              delete←0  ⍝ old file must be preserved
-         :ElseIf callback∧(0=≢oldfile)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
+         :ElseIf callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              :If 0 ⋄ :AndIf 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array (never happens)
              :Else ⋄ src←⊃U.LASTFIX  ⍝ source as typed
