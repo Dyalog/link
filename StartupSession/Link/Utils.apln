@@ -343,7 +343,7 @@
       :EndIf
     ∇
     ⍝IsRootName←{⍺←⊢ ⋄ _IsRootName ⊂⍵:1 ⋄ ~_IsAplName ⍵:0 ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
-    IsRootName←{11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, ''∘⎕WG does it in current space which is not what we want
+    IsRootName←{6 11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, and fail with VALUE ERROR on non-existing names, ''∘⎕WG does it in current space which is not what we want
     IsSpecialNC←∊∘¯1 9.1 9.2
     ∇ nc←{nsref}NameClass name;parent;this
     ⍝ safe name class (avoid clash with our stuff)
@@ -679,7 +679,7 @@
       :EndIf
       :Trap 0
           name where.{⍎⍺,'←⍵'}⎕SE.Dyalog.Array.Deserialise src  ⍝ array
-          nc←where.⎕NC⊂,name
+          nc←where NameClass name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
@@ -817,8 +817,8 @@
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf fastLoad ⋄ :AndIf ¯1=# NameClass where,'.',actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname - can call NameClass only once
-      :ElseIf nc≠0 ⋄ :AndIf (¯1∊# NameClass¨where expname actname) ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible - don't bother if fastLoad
+      :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨ where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname 
+      :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible 
       :EndIf
     ∇
 

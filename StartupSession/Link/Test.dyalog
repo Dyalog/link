@@ -1789,6 +1789,19 @@
       {}⎕SE.Link.Break name
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
+      ⍝ link issue #249
+      ref←⍎(name,'.SubNs1')⎕NS ⍬
+      ref.⎕FX'res←foo arg' 'res←arg'
+      ref.⎕FIX':Namespace ns' ':EndNamespace'
+      ref.var←○⍳3 4
+      '{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
+      ⎕SE.Link.Expunge name
+      z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
+      'link issue #249'assert'~∨/''failed''⍷z'
+      ⎕SE.Link.Expunge name
+      z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'⎕SE.Link.Create name folder
+      'link issue #249'assert'~∨/''failed''⍷z'
+     
       CleanUp folder name
       ok←1
     ∇
