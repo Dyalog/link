@@ -95,6 +95,13 @@ NOHOLD:
          fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
          ¯1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
 
+         :If fix
+             :If update∧tie ⋄ src←file ⋄ :EndIf
+             :If ¯1 0∊⍨2⊃ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
+                 U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
+             :EndIf
+         :EndIf
+
          :If update  ⍝ file system must reflect changes - FileWatcher may pick it up after this high-priority callback, and should notice no change in source, therefore not fix it  - TODO it means it will re-hash the file
              :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src
                  U.Error'Source code cannot have newlines'
@@ -114,12 +121,10 @@ NOHOLD:
              :EndIf
          :EndIf
 
-         :If fix
-             :If update∧tie ⋄ src←file ⋄ :EndIf
-             :If ¯1 0∊⍨2⊃ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
-                 U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
-             :EndIf
+         :If callback
+             linked←fix  ⍝ editor must know if we didn't fix
          :EndIf
+
      :EndHold ⍝ Links
  :Else
      U.Resignal 1
