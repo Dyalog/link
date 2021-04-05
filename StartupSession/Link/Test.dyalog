@@ -1805,14 +1805,11 @@
       ⎕SE.Link.Expunge name
      
       ⍝ link issue #251
-      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       {}(⊂'res←foo arg' 'res←arg arg')QNPUT folder,'/SubNs1-11/foo.dyalog'  ⍝ clashes with SubNs1.foo
-      z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
-      'link issue #251'assert'~∨/''failed''⍷z'
-      'link issue #251'assert'~∨/''Name clashes''⍷∊⎕SE.Link.U.WARNLOG'
+      opts←⎕NS ⍬ ⋄ opts.caseCode←1 ⋄ opts.source←'dir' ⋄ opts.fastLoad←1      
+      'link issue #251'assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
       ⎕SE.Link.Expunge name
-      ⎕SE.Link.U.WARN←warn
-     
+      
       CleanUp folder name
       ok←1
     ∇
