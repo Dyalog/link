@@ -20,7 +20,7 @@
          :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works
              opts.watch←'ns' ⍝ default to watch='ns' and warn about it
              :If U.IS180 ⋄ warnmsg←'.NET or .NetCore not available - watch defaults to ''ns'''
-             :ELse ⋄ warnmsg←'Dyalog v18.0 is required to watch directories with .NET or .NetCore - watch defaults to ''ns'''
+             :Else ⋄ warnmsg←'Dyalog v18.0 is required to watch directories with .NET or .NetCore - watch defaults to ''ns'''
              :EndIf
          :EndIf  ⍝ otherwise watch defaults to 'both'
          opts←U.DefaultOpts opts
@@ -38,6 +38,12 @@
                  emptyns←emptyns U.EmptyNamespace nsref dir
              :EndIf
          :Else ⋄ emptyns←1
+         :EndIf
+
+         :If emptydir⍱emptyns  ⍝ link issue #230
+             opts.(ns dir)←(ns dir)
+         :AndIf 0∊⍴⎕SE.Link.U.Diff opts
+             emptydir←emptyns←1  ⍝ allow link creation
          :EndIf
 
          :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir' ⋄ :AndIf ⎕SE.Link.Test≢⊃⎕RSI  ⍝ ⎕SE.Link.Test is allowed to toy with file watching/crawling

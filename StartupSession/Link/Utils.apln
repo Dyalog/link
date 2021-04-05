@@ -1107,7 +1107,6 @@
 
     ∇ diff←Diff link;actname;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;where
     ⍝ uses link.arrays to determine which APL arrays to compare
-    ⍝ TODO : observe link.sysVars
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
       :Else ⋄ filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
       :EndIf
