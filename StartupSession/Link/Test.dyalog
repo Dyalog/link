@@ -1387,7 +1387,7 @@
       ⎕SE.Link.OnAfterFix(obj evt src ns oldname name file)  ⍝ calls ⎕SE.Link.Fix with the watch setting
     ∇
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z;mantis18626
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;mantis18626;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;warn;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1794,13 +1794,24 @@
       ref.⎕FX'res←foo arg' 'res←arg'
       ref.⎕FIX':Namespace ns' ':EndNamespace'
       ref.var←○⍳3 4
-      '{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
+      z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
+      'link issue #249'assert'~∨/''failed''⍷z'
       ⎕SE.Link.Expunge name
       z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
       'link issue #249'assert'~∨/''failed''⍷z'
       ⎕SE.Link.Expunge name
       z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'⎕SE.Link.Create name folder
       'link issue #249'assert'~∨/''failed''⍷z'
+      ⎕SE.Link.Expunge name
+     
+      ⍝ link issue #251
+      (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+      {}(⊂'res←foo arg' 'res←arg arg')QNPUT folder,'/SubNs1-11/foo.dyalog'  ⍝ clashes with SubNs1.foo
+      z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
+      'link issue #251'assert'~∨/''failed''⍷z'
+      'link issue #251'assert'~∨/''Name clashes''⍷∊⎕SE.Link.U.WARNLOG'
+      ⎕SE.Link.Expunge name
+      ⎕SE.Link.U.WARN←warn
      
       CleanUp folder name
       ok←1

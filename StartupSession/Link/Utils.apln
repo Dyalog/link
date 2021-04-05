@@ -757,7 +757,7 @@
           :EndIf
           file,←typeExtensions Tail nc               ⍝ Add extension
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
-        :EndIf
+      :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (subdir file ext)←⎕NPARTS path←file
       :If forceExtensions∨0=≢ext
@@ -817,8 +817,8 @@
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨ where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname 
-      :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible 
+      :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname
+      :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇
 
@@ -966,12 +966,12 @@
       :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
     ∇
 
-    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
+    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
-      fixed←failed←0⍴⊂''
+      fixed←fixedfiles←failed←0⍴⊂''
       :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
       :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
       :EndIf
@@ -1052,7 +1052,7 @@
                           failed,←file  ⍝ will not attempt to fix any file in that namespace
                           :Continue
                       :EndIf
-                      fixed,←⊂ns ⋄ ns←⍎ns
+                      fixed,←⊂ns ⋄ fixedfiles,←⊂file ⋄ ns←⍎ns
                   :Else
                       ns←target   ⍝ all files fixed in target namespace
                   :EndIf
@@ -1060,7 +1060,7 @@
                   :If ⎕NEXISTS quadfile←dir,'quadVars.apln'
                   :AndIf ~1 FixFile ns quadfile'quadVars'
                       failed,←⊂quadfile
-                  :EndIf
+                  :EndIf  ⍝ successful fix is silent
                   mask←0@1⊢(~file∊⊂quadfile)  ⍝ ⍝ directory and quadfile are done
                   (file parent expname actname actnc fullname ext inx)/⍨←⊂mask
               :Else
@@ -1075,7 +1075,7 @@
               :Else ⋄ order←⍋extorder⍳ext
               :EndIf
               mask←0 FixFile¨(⊂order)⌷↓ns,file,[1.5]actname  ⍝ do not fix with error because Classes could become uninstanciatable
-              fixed,←fullname[mask/order]     ⍝ those fixed OK
+              fixed,←fullname[mask/order] ⋄ fixedfiles,←file[mask/order]    ⍝ those fixed OK
               todo,←inx[(~mask)/order]        ⍝ those failed to fix - try again at next :Repeat
           :EndFor
       :Until (≢∊todo)∊0(≢∊lasttodo)   ⍝ all fixed or number of failures hasn't changed
@@ -1087,6 +1087,9 @@
       :EndIf
       failed,←allfiles[todo]    ⍝ mark as failed even if fixed with errors
       ⍝failed,←allnames[todo]     ⍝ give APL name rather than file name so that user can double click on it ?
+      :If ∨/mask←inx∊(inx≠⍳≢fixed)/inx←⍳⍨fixed  ⍝ should happen only if ~opts.fastLoad
+         ¯1 Warn 1↓FmtLines(⊂'Files produce clashing APL names:'),,/(mask/fixedfiles),(⊂' → '),[1.5](mask/fixed)
+      :EndIf
     ∇
 
     ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
