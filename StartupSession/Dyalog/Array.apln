@@ -208,8 +208,27 @@
           w←'''[^'']*''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
      
           pl←ParenLev w
-          ∨/0>pl:'Unmatched brackets'⎕SIGNAL 2
+          (0≠⊢/pl)∨(∨/0>pl):'Unpaired brackets'⎕SIGNAL 2
           ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
+     
+          Execute←{ ⍝ overcome LIMIT ERROR on more than 1e4 parenthesised expressions
+              Fallback←{
+                  t←1 ¯1 0['()'⍳⍵] ⍝ parenthesis type
+                  l←(t=¯1)++\t     ⍝ and level
+     
+                  ' '∨.≠(l=0)/⍵:⍺⍎⍵ ⍝ something outside level-1 parentheses ─ must fall back to ⍎
+     
+                  c←(l>0)×+\(t=1)∧(l=1) ⍝ level-1 parentheses
+                  x←1↓¨¯1↓¨c⊆⍵ ⍝ cut expression
+                  1=≢x:⍺ ∇⊃x                       ⍝ single expression: don't enclose with ¨
+
+                  10::⍺ ∇¨x
+                  ⍺⍎¨x
+              }
+              10::⍺ Fallback ⍵
+              ⍺⍎⍵
+          }
+     
           (⊃⎕RSI)⍎⍣⍺⊢pl Parse w    ⍝ materialise namespace as child of calling namespace
       }
 
