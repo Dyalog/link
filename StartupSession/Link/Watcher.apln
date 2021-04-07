@@ -276,9 +276,9 @@
           LINKS,←link NO_ITEMS 1 0
           Crawl link  ⍝ set up
           :If ~TIMER.Active
+              ¯1 LogCrawler'Starting timer'
               TIMER.Interval←⌈1000×INTERVAL  ⍝ for ⎕SE.Link.Test to change it
-              TIMER.Active←1 ⋄ TIMER.FireOnce←1
-              ¯1 LogCrawler'Started timer'
+              TIMER.FireOnce←1 ⋄ TIMER.Active←1
           :EndIf
       :EndHold
     ∇
@@ -305,7 +305,7 @@
           ¯1 LogCrawler(⊂'Removing link: '),links,(⊂' - Remaining links: '),(LINKS[L_LINK;])
           :If 0∊⍴LINKS
               TIMER.Active←0
-              ¯1 LogCrawler'Stopping timer'
+              ¯1 LogCrawler'Stopped timer'
           :EndIf
       :EndHold
     ∇
@@ -395,7 +395,7 @@
                   newnc←# ##.U.NameClass¨newnames
               :Else
                   (where expname actname newnc)←link ##.U.DetermineAplName newfiles
-                  newnames←where('.'##.U.JoinEach)actname
+                  newnames←where ##.U.JoinNames actname
               :EndIf
               (newfiles newnames newnc newmod newhash)/⍨←⊂~(newnc∊0 ¯1)∨(0=≢¨newnames)  ⍝ ignore unidentifiable files
               delmask∨←(items[I_NAME;]∊newnames~⊂'') ⍝ remove previous entries on those names

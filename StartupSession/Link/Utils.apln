@@ -326,6 +326,7 @@
         RootOf←{⍵.##}⍣≡
     IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
     SplitNs←{0≠⎕NC'⍺':∇(⍕⍺),'.',⍵ ⋄ t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots - ⍺ may be a namespace where ⍵ should be taken
+    JoinNames←{mask←⍺≡¨⍵ ⋄ (mask/⍵)@{mask}⍺('.'JoinEach)⍵}  ⍝ ⍺,¨'.',¨⍵, excepted when ⍺≡¨⍵ (e.g. DetermineAplName returns #.#)
     IsParent←{p←⍵.## ⋄ ⍺∊p ⍵:1 ⋄ ⍵=p:0 ⋄ ⍺∇p }  ⍝ is ⍺ parent of ⍵
 
     Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}             ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
@@ -343,7 +344,7 @@
       :EndIf
     ∇
     ⍝IsRootName←{⍺←⊢ ⋄ _IsRootName ⊂⍵:1 ⋄ ~_IsAplName ⍵:0 ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
-    IsRootName←{11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, ''∘⎕WG does it in current space which is not what we want
+    IsRootName←{6 11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, and fail with VALUE ERROR on non-existing names, ''∘⎕WG does it in current space which is not what we want
     IsSpecialNC←∊∘¯1 9.1 9.2
     ∇ nc←{nsref}NameClass name;parent;this
     ⍝ safe name class (avoid clash with our stuff)
@@ -416,9 +417,10 @@
 
     NormNs←{⍺←⊢ ⋄ ⍕⍺(0 GetRefTo)⍵}    ⍝ normalise a namespace name - can swallow a ref too
       NormName←{⍺←⊢
+          ~'.'∊⍵:⍵  ⍝ nothing to do
           (ns name)←⍺ SplitNs ⍵
           0∊⍴ns←⍺ NormNs ns:''
-          ns,'.',name
+          ns,(name≢ns)/'.',name  ⍝ #.# need to resolve to # - (e.g. DetermineAplName returns #.#)
       }
     IsNamedNs←{⍵≡NormNs⍵}     ⍝ requirement to be linkable
     IsNamedRef←{0::0 ⋄ ⍵≡Execute⍕⍵}  ⍝ requirement to be linkable
@@ -642,9 +644,9 @@
           ⍝ Link             0|1     (default 1)   ⍝ maintain the link to the file - link issue #155
           FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors'force)('Link'(~0∊⍴file))
       :EndIf
-      :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
-      :Else ⋄ stops←trace←monitor←⍬
-      :EndIf
+      ⍝:If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
+      ⍝:Else ⋄ stops←trace←monitor←⍬
+      ⍝:EndIf
       ⍝ attempt to fix as named script because this is the most commly expected format
       :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
       :Else ⋄ names←0⍴⊂''
@@ -653,9 +655,9 @@
           :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
           :EndIf
-          :If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
-              stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
-          :EndIf
+          ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
+          ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
+          ⍝:EndIf
           :Return  ⍝ named script fixed
       :EndIf
       ⍝required←11 116≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because cannot read :Required file
@@ -679,7 +681,7 @@
       :EndIf
       :Trap 0
           name where.{⍎⍺,'←⍵'}⎕SE.Dyalog.Array.Deserialise src  ⍝ array
-          nc←where.⎕NC⊂,name
+          nc←where NameClass name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
@@ -757,7 +759,7 @@
           :EndIf
           file,←typeExtensions Tail nc               ⍝ Add extension
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
-        :EndIf
+      :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
       (subdir file ext)←⎕NPARTS path←file
       :If forceExtensions∨0=≢ext
@@ -817,8 +819,8 @@
       :EndIf
       :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
       :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf fastLoad ⋄ :AndIf ¯1=# NameClass where,'.',actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname - can call NameClass only once
-      :ElseIf nc≠0 ⋄ :AndIf (¯1∊# NameClass¨where expname actname) ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible - don't bother if fastLoad
+      :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname
+      :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
       :EndIf
     ∇
 
@@ -966,12 +968,12 @@
       :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
     ∇
 
-    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
+    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
-      fixed←failed←0⍴⊂''
+      fixed←fixedfiles←failed←0⍴⊂''
       :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
       :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
       :EndIf
@@ -981,12 +983,12 @@
           mask←actncs∊¯1   ⍝ invalid names
           failed,←mask/allfiles
           (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
-          allnames←parents('.'JoinEach)expnames  ⍝ do not infer true apl name from source
+          allnames←parents JoinNames expnames  ⍝ do not infer true apl name from source
       :Else
           mask←actncs∊¯1 0    ⍝ invalid names or source
           failed,←mask/allfiles
           (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
-          allnames←parents('.'JoinEach)actnames  ⍝ fully qualified names
+          allnames←parents JoinNames actnames  ⍝ fully qualified names
           :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
               Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
           :EndIf
@@ -1052,7 +1054,7 @@
                           failed,←file  ⍝ will not attempt to fix any file in that namespace
                           :Continue
                       :EndIf
-                      fixed,←⊂ns ⋄ ns←⍎ns
+                      fixed,←⊂ns ⋄ fixedfiles,←⊂file ⋄ ns←⍎ns
                   :Else
                       ns←target   ⍝ all files fixed in target namespace
                   :EndIf
@@ -1060,7 +1062,7 @@
                   :If ⎕NEXISTS quadfile←dir,'quadVars.apln'
                   :AndIf ~1 FixFile ns quadfile'quadVars'
                       failed,←⊂quadfile
-                  :EndIf
+                  :EndIf  ⍝ successful fix is silent
                   mask←0@1⊢(~file∊⊂quadfile)  ⍝ ⍝ directory and quadfile are done
                   (file parent expname actname actnc fullname ext inx)/⍨←⊂mask
               :Else
@@ -1075,7 +1077,7 @@
               :Else ⋄ order←⍋extorder⍳ext
               :EndIf
               mask←0 FixFile¨(⊂order)⌷↓ns,file,[1.5]actname  ⍝ do not fix with error because Classes could become uninstanciatable
-              fixed,←fullname[mask/order]     ⍝ those fixed OK
+              fixed,←fullname[mask/order] ⋄ fixedfiles,←file[mask/order]    ⍝ those fixed OK
               todo,←inx[(~mask)/order]        ⍝ those failed to fix - try again at next :Repeat
           :EndFor
       :Until (≢∊todo)∊0(≢∊lasttodo)   ⍝ all fixed or number of failures hasn't changed
@@ -1083,10 +1085,13 @@
           :If ~flatten ⋄ ns←⍎¨parents[todo]     ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
           :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
           :EndIf
-          {}1 FixFile¨↓ns,allfiles[todo],[1.5]actnames[todo]  ⍝ attempt to fix with error - will be considered failed whether it succeeds or not
+          mask←1 FixFile¨↓ns,allfiles[todo],[1.5]actnames[todo]  ⍝ attempt to fix with error - will be considered failed whether it succeeds or not
       :EndIf
       failed,←allfiles[todo]    ⍝ mark as failed even if fixed with errors
       ⍝failed,←allnames[todo]     ⍝ give APL name rather than file name so that user can double click on it ?
+      :If ∨/mask←inx∊(inx≠⍳≢fixed)/inx←⍳⍨fixed  ⍝ should happen only if opts.fastLoad - otherwise clashes should be detected before actual fixes
+          Error 1↓FmtLines(⊂'Files produce clashing APL names:'),,/(mask/fixedfiles),(⊂' → '),[1.5](mask/fixed)
+      :EndIf
     ∇
 
     ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
@@ -1102,7 +1107,6 @@
 
     ∇ diff←Diff link;actname;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;where
     ⍝ uses link.arrays to determine which APL arrays to compare
-    ⍝ TODO : observe link.sysVars
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
       :Else ⋄ filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
       :EndIf
@@ -1113,7 +1117,8 @@
       (name namesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
       (where expname actname filenc)←link DetermineAplName file
       (mask/expname)←(mask←0<≢¨actname)/actname
-      expname←((0<≢¨where)∧(0<≢¨expname))/¨where('.'JoinEach)expname  ⍝ fully qualified name
+      expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
+      (mask/expname)←(mask←where≡¨actname)/where  ⍝ roots have where≡expname≡actname
       subname←(1+≢link.ns)↓¨name
       expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc
       ⍝ expfile←(⎕NEXISTS expfile)/¨expfile  ⍝ not necesary since file shouldn't be listed anyways
@@ -1159,7 +1164,8 @@
       mat←↑names(⎕NC names)
     ∇
 
-    ∇ (actname nameclass)←{errors}SniffScript(expname src);Decase;Find;Key;NS;Repl;ReplD;S;Srarg;UCP;Where;after;b;base;before;close;com;delc;deldfn;delfn1;delfn2;delop;dfnc;dfno;e;fn;fullname;hd;largS;largs;lb;line;locals;lp;mask;name;namechars;names;names23;ns;oldsrc;op;open;openclose;part;patt;pattd;patti;pattsc;pattso;pnames;pos;qname;qvar;rb;req;reqd;res;rp;s;sc;so;srarg;str;tradfn1;tradfn2;tradop;where
+
+    ∇ (actname nameclass)←{errors}SniffScript(expname src);Decase;Find;Key;NS;Repl;S;Srarg;UCP;Where;after;b;base;before;close;com;delc;deldfn;delfn1;delfn2;delop;dfnc;dfno;e;fn;fullname;hd;largS;largs;lb;line;locals;lp;mask;name;namechars;names;names23;ns;oldsrc;op;open;openclose;part;patt;pattd;patti;pattsc;pattso;pnames;pos;qname;qvar;rb;req;reqd;res;rp;s;sc;so;srarg;str;tradfn1;tradfn2;tradop;where
     ⍝ Sniff source for a single name defined, and find out its name class.
     ⍝ False negatives are bad because we won't fix the script.
     ⍝ False positives are not too bad since the fix will fail anyway.
@@ -1169,7 +1175,6 @@
       Decase←{,'[',']',⍨(0(819⌶)⍵),[1.5](1(819⌶)⍵)} ⍝ case-insensitive word
       UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII
       Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺
-      ReplD←{(fm to)←⍵ ⋄ fm ⎕R to⍠'Mode' 'D'UCP ⍺}  ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺ as a whole document
       Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}                  ⍝ find at which position on which line is which pattern
       Find←{⍺ ⎕S'&'UCP ⍵}                           ⍝ extract matches
       b←'^' ⋄ e←'$'                   ⍝ beginning/end of line
@@ -1214,7 +1219,7 @@
       sc←Key¨'End'∘,¨'Namespace' 'Class' 'Interface'    ⍝ script closing keywords
       ⍝ actually do stuff
       src Repl←str''''''    ⍝ replace strings with empty strings
-      src Repl←com''  ⍝ strip comments (and whitespace before them)
+      src Repl←com''        ⍝ strip comments
       :If ~0∊⍴where←tradfn1 tradfn2 tradop Where hd←⊃src   ⍝ tradfn/tradop header on line[0]
           (pos line patti)←⊃where ⍝ there can be only one match since tradfn and tradop match start and end of line
           hd Repl←(b,s,res)''     ⍝ remove leading result if any

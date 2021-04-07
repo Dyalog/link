@@ -307,9 +307,6 @@
       ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
      
-      z←⎕SE.UCMD']Link.Create ',name,' ',folder
-      'link issue #217'assert'∨/''⎕SE.Link.Create: Cannot link a non-empty namespace to a non-empty directory''⍷z'
-     
       3 ⎕NDELETE folder
       name⍎'⎕USING←'''''
       :Trap 0 ⋄ {}name⍎'System.Environment' ⋄ :EndTrap  ⍝ external objects appear in name list only if accessed
@@ -1336,8 +1333,6 @@
           {}⎕SE.Link.Break name
       :EndIf
      
-     
-     
       CleanUp folder name
       ok←1
     ∇
@@ -1387,7 +1382,7 @@
       ⎕SE.Link.OnAfterFix(obj evt src ns oldname name file)  ⍝ calls ⎕SE.Link.Fix with the watch setting
     ∇
 
-    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;z;mantis18626
+    ∇ ok←test_create(folder name);badsrc1;badsrc2;dl;failed;files;foosrc;mantis18626;newfoosrc;newnssrc;newvar;newvarsrc;ns2;nssrc;nstree;opts;quadvars;ref;reqfile;reqsrc;root;subfolder;subname;var;varsrc;warn;z
       opts←⎕NS ⍬
       subfolder←folder,'/sub' ⋄ subname←name,'.sub'
      
@@ -1408,10 +1403,18 @@
       3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'dir'
       assertError'opts ⎕SE.Link.Create name folder' 'Source directory not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #230'assert'~∨/''failed''⍷z'
+      {}⎕SE.Link.Break name
+      subname⍎'foo←{⍺+⍵}'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
       3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'ns'
       assertError'opts ⎕SE.Link.Create name folder' 'Source namespace not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #230'assert'~∨/''failed''⍷z'
+      {}⎕SE.Link.Break name
+      3 ⎕MKDIR subfolder,'/subsub'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
       ⎕EX name ⋄ 3 ⎕NDELETE folder
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
@@ -1491,9 +1494,17 @@
       {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ both are populated
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #230'assert'~∨/''failed''⍷z'
+      {}⎕SE.Link.Break name
+      subname⍎'foo←{⍺+⍵}'
       assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
+      ⎕EX subname,'.foo'
+      2 ⎕MKDIR subfolder,'/subsub'
+      assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
+      3 ⎕NDELETE subfolder,'/subsub'
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
-      {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+      3 ⎕NDELETE folder ⋄ ⎕EX name
      
       2 ⎕MKDIR subfolder
       ⍝ actual contents
@@ -1752,15 +1763,21 @@
       2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
-      assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'  ⍝ TODO : should recognise that the files are correctly linked to the namespace
+      z←opts ⎕SE.Link.Create name folder
+      'link issue #230'assert'~∨/''failed''⍷z'
+      'link issue #230'assert'1=≢⎕SE.Link.Links'
+      {}⎕SE.Link.Break name
       'link issue #160'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
-      :If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕ATX) produce ⎕NULL
-          foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
-      :EndIf
+      ⍝:If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕ATX) produce ⎕NULL
+      ⍝    foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
+      ⍝:EndIf
       3 ⎕NDELETE folder
       z←opts ⎕SE.Link.Create name folder
       'link issue #160'assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Add name subname,¨⊂'.var'
+      z←⎕SE.Link.Break name
+      assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+      z←⎕SE.Link.Create name folder  ⍝ Link issue #230
      
       1 assert_create 1
       assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
@@ -1789,12 +1806,33 @@
       {}⎕SE.Link.Break name
       ⎕EX name ⋄ 3 ⎕NDELETE folder
      
+      ⍝ link issue #249
+      ref←⍎(name,'.SubNs1')⎕NS ⍬
+      ref.⎕FX'res←foo arg' 'res←arg'
+      ref.⎕FIX':Namespace ns' ':EndNamespace'
+      ref.var←○⍳3 4
+      z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
+      'link issue #249'assert'~∨/''failed''⍷z'
+      ⎕SE.Link.Expunge name
+      z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
+      'link issue #249'assert'~∨/''failed''⍷z'
+      ⎕SE.Link.Expunge name
+      z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'⎕SE.Link.Create name folder
+      'link issue #249'assert'~∨/''failed''⍷z'
+      ⎕SE.Link.Expunge name
+     
+      ⍝ link issue #251
+      {}(⊂'res←foo arg' 'res←arg arg')QNPUT folder,'/SubNs1-11/foo.dyalog'  ⍝ clashes with SubNs1.foo
+      opts←⎕NS ⍬ ⋄ opts.caseCode←1 ⋄ opts.source←'dir' ⋄ opts.fastLoad←1
+      'link issue #251'assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
+      ⎕SE.Link.Expunge name
+     
       CleanUp folder name
       ok←1
     ∇
 
 
-    ∇ ok←test_diff(folder name);exp;filemask;files;folders;garbfiles;namemask;names;namespaces;opts;varfiles;vars
+    ∇ ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z
       3 ⎕MKDIR folder
       {}'{watch:''none''}'⎕SE.Link.Create name folder
       assert'0∊⍴⎕SE.Link.Diff name'
@@ -1840,6 +1878,18 @@
       opts.arrays←vars
       assert'({⍵[⍋⍵;]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}⎕SE.Link.Break name
+     
+      ⎕EX name
+      (ns←⎕NS ⍬)NSMOVE #
+      z←⎕SE.UCMD']link.create # ',folder
+      diff←#.{⎕SE.Link.Diff ⍵}⍬
+      exp←(⊂''),[1.5]folder∘,¨'/garbage.aplf' '/sub/garbage.aplf'
+      ⍝ The following line is due to Mantis 18970
+      exp⍪←(2×~⎕SE.Link.U.IS181)↓'#.ns' '#.sub.ns' '' '',[1.5]'' '',folder∘,¨'/ns.apln' '/sub/ns.apln'
+      assert'({⍵[⍋⍵;]}diff)≡({⍵[⍋⍵;]}exp)'
+      {}⎕SE.Link.Break # ⋄ #.⎕EX #.⎕NL-⍳10
+      # NSMOVE ns
+     
       CleanUp folder name
       ok←1
     ∇
@@ -1888,7 +1938,7 @@
       :While (~0∊⍴start)∧(end>time←3⊃⎕AI) ⋄ ⎕DL 0.01 ⋄ :EndWhile
     ∇
 
-    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;goo;mat;new;newdfn;ns;output;prompt;res;ride;tracer;ts;var;varsrc;windows;z;start
+    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
@@ -2167,16 +2217,21 @@
       Breathe
       assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.U.WARNLOG'' '
      
-     
-      ⍝ https://github.com/Dyalog/link/issues/246
+      ⍝ https://github.com/Dyalog/link/issues/246 ⍝ https://github.com/Dyalog/link/issues/247
       3 ⎕NDELETE folder ⋄ {}ride.APL'⎕EX ',Stringify name
       3 ⎕MKDIR folder
       (⊂'res←Func1 arg' 'res←arg')⎕NPUT folder,'/Func1-1.aplf'
       {}ride.APL']link.create ',name,' ',folder,' -casecode -source=dir -watch=both'
-      ride.Edit(name,'.Func1')('res←Func1 arg' 'res←arg arg')
+      ride.Edit(name,'.Func1')(func1←'res←Func1 arg' 'res←arg arg')
       'link issue #246'assert'(,⊂folder,''/Func1-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
-      {}ride.APL']link.expunge ',name
-     
+      'link issue #246'assert'func1≡⊃⎕NGET (folder,''/Func1-1.aplf'') 1'
+      {}ride.APL']link.break ',name
+      {}ride.APL' 3 ⎕NDELETE',Stringify folder
+      {}ride.APL']link.create ',name,' ',folder,' -casecode -source=ns -watch=ns'
+      ride.Edit(name,'.Func1')(func2←'res←Func2 arg' 'res←arg arg arg')
+      'link issue #247'assert'(folder∘,¨''/Func1-1.aplf'' ''/Func2-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
+      'link issue #247'assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1'
+           
       CleanUp folder name
       ok←1
     ∇

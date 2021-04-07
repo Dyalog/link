@@ -186,7 +186,7 @@
   >
   > Side effects are (again, only at initial load time, not at subsequent events):
   >   - good: load will be significantly faster because files won't be inspected to determine their true APL name.
-  >   - bad: clashing names won't be detected: files may silently overwrite each other's APL definition if they define the same APL name.
+  >   - bad: clashing names won't be detected until after the files have been loaded into the workspace
   >   - bad: **forceFileNames**/**forceExtensions** won't be observed
   >   - bad: **beforeRead** may report incorrect name class
   >

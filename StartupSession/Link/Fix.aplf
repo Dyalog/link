@@ -1,4 +1,4 @@
- {linked}←where Fix src;RSI;XSI;callback;delete;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
+ {linked}←where Fix src;RSI;XSI;callback;delete;error;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -58,7 +58,7 @@ NOHOLD:
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
              delete←0  ⍝ old file must be preserved
-         :ElseIf callback∧(0=≢oldfile)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
+         :ElseIf callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              :If 0 ⋄ :AndIf 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array (never happens)
              :Else ⋄ src←⊃U.LASTFIX  ⍝ source as typed
@@ -91,14 +91,16 @@ NOHOLD:
              :EndIf
          :EndIf
 
+         :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src
+             U.Error'Source code cannot have newlines'
+         :EndIf
+
          fix←~nosrc ⍝ no need to update if source was read from APL
          fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
          ¯1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
 
+         error←''
          :If update  ⍝ file system must reflect changes - FileWatcher may pick it up after this high-priority callback, and should notice no change in source, therefore not fix it  - TODO it means it will re-hash the file
-             :If nc≠¯9.1 ⋄ :AndIf U.HasNewlines∊src
-                 U.Error'Source code cannot have newlines'
-             :EndIf
              :Trap 0
                  :If nc=¯9.1  ⍝ tradns → folder
                      3 ⎕MKDIR file
@@ -106,8 +108,8 @@ NOHOLD:
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                      src U.Into file
                  :EndIf
-             :Else
-                 U.Error'Unable to write ',nsname,'.',name,' to file: ',file
+             :Else  ⍝ do not error yet - we still want to attempt to fix the source in the workspace
+                 error←'Unable to write ',nsname,'.',name,' to file: ',file
              :EndTrap
              :If delete  ⍝ old file must be removed
                  ⎕NDELETE oldfile
@@ -115,11 +117,19 @@ NOHOLD:
          :EndIf
 
          :If fix
-             :If update∧tie ⋄ src←file ⋄ :EndIf
+             :If (0∊⍴error)∧(update∧tie) ⋄ src←file ⋄ :EndIf  ⍝ unless there was an error updating the file
              :If ¯1 0∊⍨2⊃ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
                  U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
              :EndIf
          :EndIf
+
+         :If ~0∊⍴error
+             U.Error error
+         :EndIf
+         :If callback
+             linked←fix  ⍝ editor must know if we didn't fix
+         :EndIf
+
      :EndHold ⍝ Links
  :Else
      U.Resignal 1
