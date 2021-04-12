@@ -1,4 +1,4 @@
- items←GetItemName files;actname;container;expname;file;i;link;nc;scal;shape;where;⎕IO;⎕ML
+ items←GetItemName files;actname;container;expname;file;i;link;links;nc;scal;shape;where;⎕IO;⎕ML
  ⍝ Get APL names from file names
  ⍝ returns empty string for unlinked files
  ⎕IO ⎕ML←1 1
@@ -8,10 +8,10 @@
  :Trap DEBUG↓0
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
-         :If ~U.HasLinks ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf
+         :If 0∊⍴links←U.GetLinks ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf
          scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
          :For i :In ⍳≢files
-             :If ~0∊⍴link←U.LookupFile file←i⊃files
+             :If ~0∊⍴link←links U.LookupFile file←i⊃files
                  ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents - done by Link.Create
                  (where expname actname nc)←link U.DetermineAplName file
                  :If nc∊0 ¯1 ⋄ (i⊃items)←''  ⍝ invalid filename or file contents - cannot work

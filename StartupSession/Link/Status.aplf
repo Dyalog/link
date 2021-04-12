@@ -1,19 +1,16 @@
- status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;there;⎕IO;⎕ML
+ status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
-         :If ~U.HasLinks ⋄ status←'No active links' ⋄ :Return ⋄ :EndIf
-         links←⎕SE.Link.Links
+         :If 0∊⍴links←U.GetLinks ⋄ status←'No active links' ⋄ :Return ⋄ :EndIf
+
          :If ×≢ns
-             there←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
-             ref←9∊⎕NC'ns'
-         :AndIf ref∨×there.⎕NC⍕ns
-             ns←⍕there⍎⍣(~ref)⊢ns
-             nss←⍕¨links.ns
-             links/⍨←ns∘(⊃⍷)¨nss
+             where←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
+         :AndIf ~0∊⍴ref←where(0 U.GetRefTo)ns
+             links←links U.LookupLinks ref  ⍝ links that are children of ns
          :EndIf
          :If 0=≢links
              status←'No active links in ',⍕ns
@@ -23,7 +20,7 @@
          ⍝ items+←¯1+≢¨dirs←U.ListNamespaces¨⍎¨nss  ⍝ directories (excluding self)
          ⍝ status,←items
          status←↑links.(ns dir)
-         status,←≢¨⊃¨links (0 U.ListFiles 0)¨status[;2]  ⍝ exclude root
+         status,←≢¨⊃¨links(0 U.ListFiles 0)¨status[;2]  ⍝ exclude root
          status⍪⍨←'Namespace' 'Directory' 'Files'
 
          (defopts←⎕NS ⍬).(extended)←0

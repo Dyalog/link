@@ -1,13 +1,15 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
-         {}U.HasLinks                ⍝ Clean up links if necessary
          :If 0=⎕NC'⎕SE.Link.Links'   ⍝ init links if necessary
-             ⎕SE.Link.Links←⍬
+             U.SetLinks ⍬
+         :EndIf
+         :If ~0∊⍴nsrefs←links←U.GetLinks                ⍝ Clean up links if necessary
+             nsrefs←⍎¨links.ns
          :EndIf
 
          msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
@@ -68,8 +70,8 @@
              U.Error'Not a properly named namespace: ',ns
          :ElseIf U.IsScripted nsref
              U.Error'Cannot link to scripted namespaces: ',ns
-         :ElseIf ×≢⎕SE.Link.Links ⋄ :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
-             U.Error'Already linked: ',U.Arrow ⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+         :ElseIf nsref∊nsrefs
+             U.Error'Already linked: ',U.Arrow links⊃⍨nsrefs⍳nsref
          :ElseIf ~hasdir ⋄ :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
              U.Error'Directory not found: ',dir
          :ElseIf U.Slash⊃⌽dir
@@ -106,7 +108,7 @@
          opts.fastLoad←0  ⍝ fastLoad is observed only at load (FixFiles) time - affects U.DetermineAplName
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
-         ⎕SE.Link.Links,←opts
+         U.SetLinks links,opts
          Watcher.Watch opts  ⍝ first crawler may call Notify
          ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
      :EndHold

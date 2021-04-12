@@ -1241,10 +1241,12 @@
       :EndTrap
       'link issue #151'assert'foo≡⎕NR ''',name,'.foo'''
      
-      ⍝ link issue #205 - check round-trip of arrays
-      name⍎'limit_error←⍉(9⍴3)⊤⍳3*9'
-      'link issue #205'assertError('⎕SE.Link.Add ''',name,'.limit_error'' ')'Cannot round-trip serialisation of array'
-     
+      ⍝ link issue #205 - check round-trip of arrays - unfortunately the limit error was fixed with issue #255
+      ⍝name⍎'limit_error←⍉(9⍴3)⊤⍳3*9'
+      ⍝'link issue #205'assertError('⎕SE.Link.Add ''',name,'.limit_error'' ')'Cannot round-trip serialisation of array'
+      name⍎'domain_error←,⎕NEW⊂''Timer'''
+      'link issue #205'assertError('⎕SE.Link.Add ''',name,'.domain_error'' ')'Array cannot be serialised'
+           
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
       'link issue #132 and #133'assert'⊃''Imported:''⍷z'
@@ -2359,7 +2361,7 @@
       {}instance.APL'⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←',⍕⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL) ⍝ because ⎕SE.Link.Test.Run sets it
       {}instance.APL'⎕SE.Link.DEBUG←',⍕⎕SE.Link.DEBUG
       {}instance.APL'⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
-      {}instance.MULTITHREADING←⎕SE.Link.Watcher.(CRAWLER>DOTNET)
+      {}instance.MULTITHREADING←⎕SE.Link.U.IS181∨⎕SE.Link.Watcher.(CRAWLER>DOTNET) ⍝ seems unavoidable since v18.1
     ∇
     :EndSection
 
@@ -2705,7 +2707,7 @@
       :If 0=⎕NC'debug' ⋄ debug←0⊣×⎕SE.Link.U.debug ⋄ :EndIf
       ⍝:If (0≠⎕NC name)∨(⎕NEXISTS folder)∨(0≠≢⎕SE.Link.Links) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
      
-      assert'~⎕SE.Link.U.HasLinks'
+      assert'0∊⍴⎕SE.Link.U.GetLinks'
       (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
       ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
       ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
@@ -2830,7 +2832,7 @@
           3 ⎕MKDIR folder
           fns←Function¨names←Name¨old⍴10 ⋄ files←FileName¨names
           fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
-          assert'~⎕SE.Link.U.HasLinks'
+          assert'0∊⍴⎕SE.Link.U.GetLinks'
           {}opts ⎕SE.Link.Create name folder
           ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer
           assert'1=≢⎕SE.Link.Links'

@@ -11,7 +11,8 @@
  :Trap DEBUG↓0
 
      :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
-         :If ~U.HasLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         :If 0∊⍴links←U.GetLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         linked←⍎¨links.ns
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
@@ -25,8 +26,6 @@
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
          refs←there(0 U.GetRefTo)U.OnEach nss  ⍝ turn into references
          missing,←(0=≢¨refs)/nss ⋄ refs←(0⍴#),(0<≢¨refs)/refs  ⍝ ⍬ for reference not found - ensure prototype is ref
-
-         linked←⍎¨⎕SE.Link.Links.ns ⋄ links←⎕SE.Link.Links
 
          :If opts.all
              tobreak←refs←linked
@@ -50,7 +49,7 @@
              :Hold '⎕SE.Link.Notify'  ⍝ about to change file ties
                  ⍝ because we're :Hold-ing '⎕SE.Link.Notify' '⎕SE.Link.Links', the Notify events will happen after we're done breaking the link
                  1 U.Break∪(mask←linked∊tobreak)/links  ⍝ will ⎕DL slightly - unti because we know they exist
-                 ⎕SE.Link.Links/⍨←~mask
+                 U.SetLinks(~mask)/links
              :EndHold
          :EndIf
          ⍝:Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table given by 5176⌶⍬

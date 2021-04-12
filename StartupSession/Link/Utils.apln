@@ -6,6 +6,7 @@
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
+    HAS5170←{11::0 ⋄ 1⊣5170⌶0}⍬  ⍝ secret workspace pocket for link
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -463,21 +464,30 @@
 
 
 
-    :Section Lookup
 
-    ∇ {ok}←HasLinks;mask;links
-      :Trap 0  ⍝ anything broken should mean no links available
-          :If ok←×⎕NC'⎕SE.Link.Links'
-          :AndIf ok←×≢links←⎕SE.Link.Links
-          :AndIf 1∊mask←0=⎕NC links.ns  ⍝ clean up "zombie" links
+    
+    :Section Lookup        
+
+    ∇ links←GetLinks;mask;links
+      :Trap 0/0  ⍝ anything broken should mean no links available
+          links←⍬
+          :If ×⎕NC'⎕SE.Link.Links'
+          :AndIf ~0∊⍴links,←⎕SE.Link.Links
+          :AndIf 1∊mask←¯9.1≠# NameClass¨links.ns  ⍝ clean up "zombie" links
               0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
               ¯1 Log'Clearing expunged links:'(⍕mask/links)
-              ⎕SE.Link.Links/⍨←~mask
-              ok←×≢⎕SE.Link.Links
+              SetLinks links←(~mask)/links
           :EndIf
-      :Else
-          ok←0
+      :Else ⋄ links←⍬
       :EndTrap
+    ∇
+    ∇ SetLinks links;mask
+      :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
+      ⎕SE.Link.Links←links
+      :If HAS5170 ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
+      :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
+          {}{⍵(5170⌶)0}#.⎕NS¨links   ⍝ avoid cross-ref between # and ⎕SE
+      :EndIf
     ∇
 
     ∇ {n}←untie Break links
@@ -489,10 +499,11 @@
           :EndIf
       :EndIf
     ∇
-    ∇ linkns←LookupFile file;dirs;inx;links;mask
+    ∇ linkns←{links}LookupFile file;dirs;inx;links;mask
     ⍝ look up which linked directory has file
-      :If HasLinks
-          dirs←(links←⎕SE.Link.Links).dir
+      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+      :If ~0∊⍴links
+          dirs←(links←GetLinks).dir
       :AndIf ∨/mask←dirs Begins¨⊂file
           inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
           linkns←inx⊃links
@@ -500,17 +511,12 @@
           linkns←⍬
       :EndIf
     ∇
-    ∇ linkns←{links}LookupRef nsref;linked;links;nss
+    ∇ linkns←{links}LookupRef nsref;linked;links;mask;nss
     ⍝ lookup which linked namespace has nsref
       linkns←⍬
-      :If 900⌶⍬
-          :If HasLinks
-              links←⎕SE.Link.Links
-          :Else
-              :Return
-          :EndIf
-      :EndIf
-      nss←⍎¨links.ns
+      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+      :If 0∊⍴links ⋄ :Return ⋄ :EndIf
+      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
       :While ~linked←nsref∊nss
       :AndIf ~IsRoot nsref
           nsref←nsref.##
@@ -518,6 +524,19 @@
       :If linked
           linkns←(nss⍳nsref)⊃links
       :EndIf
+    ∇
+    ∇ links←{links}LookupLinks nsref;linked;links;mask;nss
+    ⍝ lookup which linked namespaces are children of nsref
+      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+      :If 0∊⍴links ⋄ :Return ⋄ :EndIf
+      mask←(⍴links)⍴0
+      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
+      :Repeat
+          mask∨←nss=nsref
+          :If 0∊⍴nss←(~IsRoot nss)/nss ⋄ :Leave ⋄ :EndIf
+          nss←nss.##
+      :EndRepeat
+      links←mask/links
     ∇
     ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;arrays;mask;modifiers;nl;ok;watch
     ⍝ Get default modifiers for link options namespace
