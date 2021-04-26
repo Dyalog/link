@@ -1,6 +1,6 @@
 # Link.Expunge
 
-    ]LINK.Expunge <item>
+    ]LINK.Expunge <items>
 
     {available} ←  ⎕SE.Link.Expunge items
 

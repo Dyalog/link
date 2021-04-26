@@ -990,6 +990,8 @@
       assert'1 1≡z'
       assert'0 0≡⎕NEXISTS varfile fnfile'
       assert'0∧.=⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
+      z←⎕SE.UCMD']Link.Expunge ',⍕name∘,¨'.HeLLo' '.OhMyOhMy'
+      'link issue #256'assert'0 0≡z'         
      
       {}⎕SE.Link.Break name
       ⎕EX name ⋄ 3 ⎕NDELETE folder
@@ -1880,7 +1882,7 @@
       opts.arrays←vars
       assert'({⍵[⍋⍵;]}2↑[2]opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}⎕SE.Link.Break name
-
+     
       ⎕EX name
       (ns←⎕NS ⍬)NSMOVE #
       z←⎕SE.UCMD']link.create # ',folder
