@@ -7,7 +7,7 @@
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
     Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
-    HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬  
+    HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -466,8 +466,8 @@
 
 
 
-    
-    :Section Lookup        
+
+    :Section Lookup
 
     ∇ links←GetLinks;mask;links
       :Trap 0/0  ⍝ anything broken should mean no links available
@@ -1153,13 +1153,13 @@
       :EndSelect
       :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
       ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
-      diff←0 2⍴⊂''
-      diff⍪←((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
-      diff⍪←(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
+      diff←0 3⍴⊂''
+      diff⍪←('→'),⍨((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
+      diff⍪←('←'),⍨(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
       filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
       mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
       :If ##.DEBUG ⋄ :AndIf mask[(⍸namemask)⍳(filemask/nameifile)]≢~(filemask/filesrc)CompareSource¨namesrc[filemask/nameifile] ⋄ Error'Internal error' ⋄ :EndIf
-      diff⍪←(mask/namemask/name),[1.5](file[mask/namemask/fileiname])   ⍝ sources differ
+      diff⍪←('?'),⍨(mask/namemask/name),[1.5](file[mask/namemask/fileiname])   ⍝ sources differ
     ∇
 
     :EndSection
@@ -1588,7 +1588,8 @@
       r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -flatten -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
       r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
-      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Synchronise namespace-directory content"},'
+      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
+      r,←'{"Name":"Resync",      "args":"ns1",     "Parse":"1  -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'

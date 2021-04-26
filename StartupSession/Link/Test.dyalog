@@ -1849,23 +1849,23 @@
       names←,⍉namespaces∘.,'' '.var' '.foo' '.ns'
       garbfiles←¯2↑files ⋄ vars←2↑2↓names ⋄ varfiles←2↑2↓files
       exp←(⊂''),[1.5]1↓files  ⍝ root namespace was created
-      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''dir''}'⎕SE.Link.Refresh name
       exp←(⊂''),[1.5]garbfiles  ⍝ these files will always differ
-      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       ⎕EX name
       assertError'⎕SE.Link.Diff name' 'Not Linked:'
       {}'{watch:''none''}'⎕SE.Link.Create name folder
-      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       3 ⎕NDELETE folder
       exp←(names~vars),[1.5](⊂'')
-      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''ns''}'⎕SE.Link.Refresh name
       assert'~∨/⎕NEXISTS folders,¨⊂''/var.apla'''  ⍝ refresh doesn't update variables
       assert'0∊⍴⎕SE.Link.Diff name'
       opts←⎕NS ⍬ ⋄ opts.arrays←1
       exp←vars,[1.5](⊂'')  ⍝ force diffing arrays
-      assert'({⍵[⍋⍵;]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       3 ⎕MKDIR folders  ⍝ for hidden folder too
       {}(⊂⎕SE.Dyalog.Array.Serialise 4 5 6)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
       {}(⊂'res←foo arg' 'res←arg arg')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/foo.aplf'
@@ -1875,16 +1875,16 @@
       filemask←(~files∊varfiles,folders,¨'/')∧(~files∊garbfiles)
       namemask←(~names∊vars,namespaces)
       exp←((⊂''),[1.5]garbfiles)⍪((namemask/names),[1.5](filemask/files))
-      assert'({⍵[⍋⍵;]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       exp⍪←vars,[1.5]varfiles
       opts.arrays←vars
-      assert'({⍵[⍋⍵;]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}2↑[2]opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}⎕SE.Link.Break name
-     
+
       ⎕EX name
       (ns←⎕NS ⍬)NSMOVE #
       z←⎕SE.UCMD']link.create # ',folder
-      diff←#.{⎕SE.Link.Diff ⍵}⍬
+      diff←2↑[2]#.{⎕SE.Link.Diff ⍵}⍬
       exp←(⊂''),[1.5]folder∘,¨'/garbage.aplf' '/sub/garbage.aplf'
       ⍝ The following line is due to Mantis 18970
       exp⍪←(2×~⎕SE.Link.U.IS181)↓'#.ns' '#.sub.ns' '' '',[1.5]'' '',folder∘,¨'/ns.apln' '/sub/ns.apln'

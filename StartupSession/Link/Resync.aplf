@@ -1,0 +1,24 @@
+ msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML
+ ⎕IO ⎕ML←1 1
+ :If U.debug=2
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     :If 900⌶⍬ ⋄ opts←⊢ ⋄ :EndIf
+     diff←opts Diff ns  ⍝ will error if ns is not a linked namespace
+     :If 0∊⍴diff   ⍝ nothing to do
+         msg←'Already up-to-date: ',⍕ns
+     :ElseIf ∧/2≥type←'←→'⍳diff[;3]  ⍝ reflect changes automatically
+         :If ∨/mask←type=1  ⍝ some APL objects to update from file
+             {Notify'changed'⍵}¨diff[⍸mask;2]
+         :EndIf
+         :If ∨/mask←type=2  ⍝ some files to update from APL source
+             ns∘{⍺ ⍵ Fix ''}¨diff[⍸mask;1]
+         :EndIf
+         msg←'Updated:',U.FmtLines diff
+     :Else  ⍝ cannot reflect changes automatically
+         U.Error'Some differences require manual resolution:',U.FmtLines↓⍕(~mask)⌿diff
+     :EndIf
+ :Else
+     U.Resignal 1
+ :EndTrap
