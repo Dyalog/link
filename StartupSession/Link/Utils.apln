@@ -7,7 +7,7 @@
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
     Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
-    HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
+        HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -39,9 +39,15 @@
 
 
     :Section Strings
+    ∇ hascase←_InitCase
+      :If hascase←{2::0 ⋄ 1⊣1 ⎕C'A'}⍬
+          CaseText←{(¯1+2×⍺)⎕C ⍵}           ⍝ Upper/Lower case
+      :Else
+          CaseText←{⍺(819⌶)⍵}               ⍝ Upper/Lower case
+      :EndIf
+    ∇
+    HASCASE←_InitCase
     Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}                ⍝ Shortest string in list
-    Case←{⍺(819⌶)¨⍵}                        ⍝ Upper/Lower case
-    LCase←{819⌶⍵}                           ⍝ Lower case
     ⍝Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join ⍺ and ⍵ using ⍺⍺
     JoinList←{⊃,/1↓,(⊂⍺⍺),[1.5],⍵}          ⍝ Join list of items with ⍺⍺
     JoinEach←{,/⍺,⍺⍺,[1.5]⍵}                ⍝ Join¨
@@ -234,7 +240,7 @@
     ⍝ case-code a string
       ⎕IO←0
       →0 If 0=≢name  ⍝ empty name doesn't get case coded
-      bin←name≠819⌶name
+      bin←name≠0 CaseText name
       len←⌈3÷⍨≢bin
       digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
       digits↓⍨←+/∧\0=digits
@@ -251,7 +257,7 @@
       →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
       mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
       →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
-      name←((≢name)↑mask)Case name
+      name←((≢name)↑mask)CaseText¨name
     ∇
     ∇ name←(dir CaseCode flatten)name;ext;file;parts;path
     ⍝ case-code a file located under linked dir
@@ -919,7 +925,7 @@
           :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
           :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
           :EndIf
-          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files)
+          :If ∨/mask←(inx←⍳⍨0 CaseText files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
               Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names[,(mask/inx),[1.5]⍸mask]
           :EndIf
@@ -1019,7 +1025,7 @@
           expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs
           expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
           :If ∨/mask←expfiles≢¨allfiles
-              :If (≢expfiles)≠(≢∪819⌶expfiles)
+              :If (≢expfiles)≠(≢∪0 CaseText expfiles)
                   Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
               :Else
                   ⍝ because APL names don't clash, we now expfiles won't clash either
@@ -1192,7 +1198,7 @@
       :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
       src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
       ⍝ define useful regular expressions
-      Decase←{,'[',']',⍨(0(819⌶)⍵),[1.5](1(819⌶)⍵)} ⍝ case-insensitive word
+      Decase←{,'[',']',⍨(0 CaseText ⍵),[1.5](1 CaseText ⍵)} ⍝ case-insensitive word
       UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII
       Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺
       Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}                  ⍝ find at which position on which line is which pattern
@@ -1349,7 +1355,7 @@
       :EndIf
     ∇
 
-    ∇ {ok}←Sniff_QA stop;Case;Comment;Fluff;Name;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
+    ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;RandCase;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
       ⍝ All possible traditional function/operator headers
       complex_names←1
       h←'f1' 'f1 a1' 'f1(a d)' 'la f1 a1' 'la f1(a d)'
@@ -1399,7 +1405,7 @@
       Space←{⎕UCS 9 32[?(¯1+???5)⍴2]} ⍝ random whitespace
       c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' '⍝∇' ⍝ evil comments
       Comment←{⍵.Match,⍨c⊃⍨?3}
-      Case←{(⎕IO=?2⍴⍨≢⍵)(819⌶)¨⍵}  ⍝ random case
+      RandCase←{(⎕IO=?2⍴⍨≢⍵)CaseText¨⍵}  ⍝ random case
       w←'[^:/⍺⍵',valid2,']'  ⍝ for :Namespace, file:///tmp/file {⍺⍺}{⍵⍵}
       h,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢h   ⍝ randomise code
       ⍝ create some namespace scripts - empty for now
@@ -1674,7 +1680,7 @@
           'opts'⎕NS ⍬
           names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch'
           :For name :In names
-              lc←819⌶name
+              lc←0 CaseText name
               :If ×args.⎕NC lc
               :AndIf 0≢val←args⍎lc  ⍝ UCMD interface defaults unset modifiers to 0 - so don't execute them
                   :Select name

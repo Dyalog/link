@@ -30,9 +30,8 @@
          props←('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'
          :If (opts.extended)
              :If ×≢links
-                 L←819⌶
                  :For prop :In props
-                     status,←(⊂↑prop),links⍎¨⊂L@1∊prop
+                     status,←(⊂↑prop),links⍎¨⊂0 U.CaseText@1∊prop
                  :EndFor
              :Else
                  status,←,[0.5]↑¨props

@@ -235,14 +235,14 @@
       'link issue #162'assertError'''{BADMOD:1 2 3}''⎕SE.Link.Create name folder' 'Unknown modifier'
       :For mod :In 'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename'
           :Select mod
-          :CaseList 'source' 'watch' ⋄ err←1 ⋄ erru←819⌶errf←'Invalid value'
+          :CaseList 'source' 'watch' ⋄ err←1 ⋄ erru←0 ⎕SE.Link.U.CaseText errf←'Invalid value'
           :CaseList 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' ⋄ err←1 ⋄ erru←'no value allowed' ⋄ errf←'Invalid value'
           :CaseList 'beforeWrite' 'beforeRead' 'getFilename' ⋄ err←0 ⋄ erru←errf←'must be the name of an APL function'
           :EndSelect
           :If err  ⍝ UCMD expected to error (misusage of the UCMD syntax)
-              'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(819⌶mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
+              'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(0 ⎕SE.Link.U.CaseText mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
           :Else ⍝ Error in link - UCMD must not error and return a shorter message (link issue #217)
-              z←⎕SE.UCMD']link.create -',(819⌶mod),'=BADVAL ',name,' "',folder,'"'
+              z←⎕SE.UCMD']link.create -',(0 ⎕SE.Link.U.CaseText mod),'=BADVAL ',name,' "',folder,'"'
               'link issue #162'assert'∨/erru⍷z'
           :EndIf
           'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
