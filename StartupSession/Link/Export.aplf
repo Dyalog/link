@@ -39,8 +39,8 @@
 
          :If ~single
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
-             :If ×≢failed ⋄ msg,←(⊂(⍕≢failed),' failed:'),failed ⋄ :EndIf
-         :ElseIf ×≢failed ⋄ msg←⊂'Export failed: ',⊃failed
+             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' export(s) failed:'),failed ⋄ :EndIf
+         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Export failed: ',⊃failed
          :Else ⋄ msg←⊂'Exported: ',src,' → ',U.WinSlash fixed
          :EndIf
          msg←1↓U.FmtLines msg

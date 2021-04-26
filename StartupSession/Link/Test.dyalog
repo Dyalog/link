@@ -254,7 +254,7 @@
       ⎕NDELETE folder,'/lostclass.aplc'
       (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       z←opts ⎕SE.Link.Create name folder
-      'Mantis 18638'assert'(∨/''failed''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
+      'Mantis 18638'assert'(∨/''ERRORS ENCOUNTERED''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
       (⍎name).⎕EX'lostclass'
       'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
       ⎕SE.Link.U.WARN←warn
@@ -283,7 +283,7 @@
       {}(⊂'koo arg' '⎕←''koo'' arg')QNPUT(folder,'/koo.tmp')1
       (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
       z←⎕SE.Link.Create name folder
-      assert'~∨/''failed''⍷z'
+      assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       names←'#.linktest.foo' '#.linktest.sub' '#.linktest.sub.goo'
       'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
      
@@ -311,7 +311,7 @@
       name⍎'⎕USING←'''''
       :Trap 0 ⋄ {}name⍎'System.Environment' ⋄ :EndTrap  ⍝ external objects appear in name list only if accessed
       z←⎕SE.Link.Create name folder
-      'link issue #220'assert'~∨/''failed''⍷z'
+      'link issue #220'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       {}⎕SE.Link.Break name
      
       ⎕EX name
@@ -337,12 +337,12 @@
       subref.(var1 var2 var3 var4)←'VAR1' 'VAR2' 'VAR3' 'VAR4'
      
       z←⎕SE.Link.Export name folder
-      assert'~∨/''failed''⍷z'
+      assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       assert'⎕NEXISTS ''',folder,''''
       3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
       (⊂'This is total garbage !!!!!;;;;')⎕NPUT folder,'/garbage.ini'
       z←⎕SE.Link.Export name folder
-      'link issue #175'assert'~∨/''failed''⍷z'
+      'link issue #175'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
       assert'nssrc≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
       assert'1=1⎕NINFO ''',folder,'/sub'''
@@ -353,43 +353,43 @@
       'link issue #175'assertError'z←⎕SE.Link.Export name folder' 'Files already exist'
       opts←⎕NS ⍬ ⋄ opts.overwrite←1
       z←opts ⎕SE.Link.Export name folder
-      'link issue #175'assert'~∨/''failed''⍷z'
+      'link issue #175'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       assert'foosrc2≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
       assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
       assert'~⎕NEXISTS ''',folder,'/var.apla'''
      
       3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
       z←⎕SE.Link.Export(name,'.foo')folder
-      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
       z←⎕SE.Link.Export(name,'.foo')(folder,'/foo')  ⍝ check that destination is always interpreted as directory
-      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo/foo.aplf'' 1'
       z←⎕SE.Link.Export(name,'.foo')(folder,'/foo2.aplf')
-      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
       2 ref.⎕FIX foosrc2
       assertError'⎕SE.Link.Export(name,''.foo'')(folder,''/foo2.aplf'')'(⎕SE.Link.U.WinSlash folder,'/foo2.aplf')
       opts.overwrite←1
       z←opts ⎕SE.Link.Export(name,'.foo')(folder,'/foo2.aplf')
-      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #79'assert'foosrc2≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
      
       3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
       ExportCmd←{'Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-arrays' ⋄ '-arrays=',∊⍵,[1.5]','}
       z←ref.{⎕SE.UCMD ⍵}0 ExportCmd 0
-      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #37'assert'0 0 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'''
       cmd←0 ExportCmd arrays←(name,'.sub.var1')('sub.var2')('⎕THIS.sub.##.sub.var3')('NOT_FOUND')('sub.⎕IO')('sub.##.sub.⎕THIS.⎕ML')
       ⍝assertError'z←ref.{⎕SE.UCMD ⍵}cmd' 'Files already exist' 0      ⍝ UCMD may throw nearly any error number
       z←ref.{⎕SE.UCMD ⍵}cmd  ⍝ link issue #217 - UCMD must not error
       assert'∨/''⎕SE.Link.Export: Files already exist:''⍷z'
       z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
-      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
       3 ⎕NDELETE folder
       z←ref.{⎕SE.UCMD ⍵}0 ExportCmd arrays
-      'link issue #37'assert'~∨/''failed''⍷z'
+      'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
       3 ⎕NDELETE folder
       ⎕EX name
@@ -440,7 +440,7 @@
       'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.sub')
       opts.overwrite←1
       z←opts ⎕SE.Link.Import name folder
-      'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''failed''⍷z)'
+      'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''ERRORS ENCOUNTERED''⍷z)'
       'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
       'link issue #174'assert'foo≡',name,'.⎕NR ''foo'''
       'link issue #174'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.sub.sub2.one2'
@@ -448,7 +448,7 @@
       ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
       opts.overwrite←0
       z←opts ⎕SE.Link.Import name folder
-      'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''failed''⍷z)'
+      'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''ERRORS ENCOUNTERED''⍷z)'
       'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
       ⎕EX name
      
@@ -503,11 +503,11 @@
       assertError'z←⎕SE.Link.Import name(folder,''/not_there.dyalog'')' 'Source not found'
      
       z←⎕SE.Link.Import name(folder,'/foo.dyalog')
-      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #79'assert'3.1=⎕NC⊂''',name,'.foo'''
       ⎕EX name,'.foo'
       z←⎕SE.Link.Import name(folder,'/foo')  ⍝ automatic file extension
-      'link issue #81'assert'~∨/''failed''⍷z'
+      'link issue #81'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #81'assert'3.1=⎕NC⊂''',name,'.foo'''
       (⊂'foo')⎕NPUT(folder,'/foo.aplf')1  ⍝ two files with extensions
       'link issue #81'assertError'z←⎕SE.Link.Import name(folder,''/foo'')' 'More than one source'
@@ -516,12 +516,12 @@
       assertError'⎕SE.Link.Import name(folder,''/sub/sub2/one2.apla'')'(name,'.one2')
       opts.overwrite←1
       z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2.apla')
-      'link issue #79'assert'~∨/''failed''⍷z'
+      'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #79'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
       name⍎'one2←1 2'
       (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.ini')1  ⍝ must be ignored, leaving one2.apla as sole candidate for one2.*
       z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2')
-      'link issue #81'assert'~∨/''failed''⍷z'
+      'link issue #81'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #81'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
       (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.dyalog')1  ⍝ will clash
       'link issue #81'assertError'z←opts ⎕SE.Link.Import name(folder,''/sub/sub2/one2'')' 'More than one source'
@@ -1004,7 +1004,7 @@
       'link issue #231'assert'0=⎕NC name'
       opts←⎕NS ⍬ ⋄ opts.(caseCode forceFilenames)←1
       z←opts ⎕SE.Link.Create name folder
-      'link issue #231'assert'~''failed''⍷z'
+      'link issue #231'assert'~''ERRORS ENCOUNTERED''⍷z'
       (name,'.Sub')⎕SE.Link.Fix'res←SubFoo arg' 'res←arg arg'
       'link issue #231'assert'(,⊂folder,''/Sub-1/SubFoo-11.aplf'')≡(0 NTREE folder)'
       ⎕SE.Link.Expunge name
@@ -1030,7 +1030,7 @@
      
       ⍝ link issue #112 : cannot break an empty link
       z←⎕SE.Link.Create name folder
-      'link issue #112'assert'~∨/''failed''⍷z'
+      'link issue #112'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       z←⎕SE.Link.Break name ⋄ ⎕EX name
       'link issue #112'assert'(∨/''Unlinked''⍷z)'
      
@@ -1044,7 +1044,7 @@
       :EndIf
       'link issue #118 or #161'assert'1=≢⎕SE.Link.Links'
       'link issue #161'assert'~∨/''not empty''⍷z'
-      'link issue #118'assert'~∨/''failed''⍷z'
+      'link issue #118'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #118'assert'9.4=⎕NC⊂''#.unlikelyname'''
       z←⎕SE.Link.Break #
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
@@ -1052,10 +1052,10 @@
       # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
      
       z←⎕SE.Link.Create(name,'.⎕THIS')folder
-      'link issue #145'assert'~∨/''failed''⍷z'
+      'link issue #145'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #145'assert'1=≢⎕SE.Link.Links'
       z←⎕SE.Link.Create('⎕THIS.',name,'.sub')folder
-      'link issue #145'assert'~∨/''failed''⍷z'
+      'link issue #145'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #145'assert'2=≢⎕SE.Link.Links'
       :Trap ⎕SE.Link.U.ERRNO
           {}⎕SE.Link.Break name  ⍝ must error because of linked children
@@ -1073,11 +1073,11 @@
      
       ⍝ link issue #204
       z←⎕SE.Link.Create name folder
-      'link issue #204'assert'~∨/''failed''⍷z'
+      'link issue #204'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #204'assert'1=≢⎕SE.Link.Links'
       ⎕EX name
       z←⎕SE.Link.Create'#.unlikelyname'folder
-      'link issue #204'assert'~∨/''failed''⍷z'
+      'link issue #204'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #204'assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Expunge'#.unlikelyname'
       'link issue #204'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
@@ -1112,13 +1112,13 @@
       'link issue #146'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←⎕SE.Link.Create name folder
       'link issue #117'assert'1=≢⎕SE.Link.Links'
-      'link issue #117'assert'~∨/''failed''⍷z'
+      'link issue #117'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      ⍝ link issue #116 : ⎕SE.Link.Refresh should not error when given a dir
       z←⎕SE.Link.Refresh folder
       'link issue #117'assert'∨/''Not linked''⍷z'
       z←⎕SE.Link.Refresh name
       assert'⊃''Imported:''⍷z'
-      assert'~∨/''failed''⍷z'
+      assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      
       ⍝ link issue #109 : fixing invalid function makes it disappear
       unlikelyname←name,'.unlikelyname' ⋄ newbody←'unlikelyname x;' '⎕←x'
@@ -1136,7 +1136,7 @@
       opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
       (⊂newbody)⎕NPUT unlikelyfile 1  ⍝ make it invalid source
       z←opts ⎕SE.Link.Create name folder
-      assert'∧/∨/¨''failed'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
+      assert'∧/∨/¨''ERRORS ENCOUNTERED'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
       name⍎'var←1 2 3'
       {}⎕SE.Link.Add name,'.var'
       'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'
@@ -1180,7 +1180,7 @@
       (⊂⍕var)⎕NPUT folder,'/var.apla'
       (⊂⍕var)⎕NPUT folder,'/sub/var.apla'
       z←opts ⎕SE.Link.Import name folder
-      'link issue #244'assert'~∨/''failed''⍷z'
+      'link issue #244'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       ⍝'link issue #68'assert'RDFILES ≡ folder∘,¨''/''  ''/sub/''  ''/foo.aplf''  ''/script.apln''  ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
       ⍝'link issue #68'assert'RDNAMES ≡ name∘,¨''''  ''.sub''  ''.foo''  ''.script''  ''.sub.foo''  ''.sub.script'' ''.sub.var'' ''.var'' '
       'link issue #68'assert'RDFILES ≡ folder∘,¨''/''    ''/foo.aplf'' ''/script.apln'' ''/sub/'' ''/sub/foo.aplf''  ''/sub/script.apln'' ''/sub/var.apla'' ''/var.apla'' '
@@ -1283,7 +1283,7 @@
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
       {}⎕SE.UCMD'z←]link.export ',name,' ',folder
-      'link issue #151'assert'∧/∨/¨''failed:'' ''',name,'.failed''⍷¨⊂z'
+      'link issue #151'assert'∧/∨/¨''ERRORS ENCOUNTERED:'' ''',name,'.failed''⍷¨⊂z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
       ⍝ link issue #159 - using casecode from namespace
@@ -1292,7 +1292,7 @@
       #.⎕FX'UnlikelyName' '⎕←''UnlikelyName'''
       {}⎕SE.UCMD'z←]link.create -casecode # "',folder,'"'
       'link issue #159'assert'1=≢⎕SE.Link.Links'
-      'link issue #159'assert'~∨/''failed''⍷z'
+      'link issue #159'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
       'link issue #177'assert'~⎕NEXISTS ''',folder,'/jsondict/list.apla'''
       #.jsondict←#.⎕JSON'{"var":42,"list":[1,2,3]}'
@@ -1328,7 +1328,7 @@
           {}(⊂slave←':Namespace  Slave' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Slave.apln')1
           z←⎕SE.Link.Create name folder
           'link issue #155'assert'1=≢⎕SE.Link.Links'
-          'link issue #155'assert'~∨/''failed''⍷z'
+          'link issue #155'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           'link issue #155'assert' ''Engine'' ''Master''  ''Server'' ''Slave'' ''UnlikelyName'' ≡ (⍎name).⎕NL -⍳10'
           'link issue #155'assert'(1↓server)≡⎕SRC ',name,'.Server'    ⍝ :Require statement missing from ⎕SRC but shown in editor
           'link issue #155'assert'(1↓master)≡⎕SRC ',name,'.Master'    ⍝ :Require statement missing from ⎕SRC but shown in editor
@@ -1408,7 +1408,7 @@
       assertError'opts ⎕SE.Link.Create name folder' 'Source directory not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
       z←opts ⎕SE.Link.Create name folder
-      'link issue #230'assert'~∨/''failed''⍷z'
+      'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       {}⎕SE.Link.Break name
       subname⍎'foo←{⍺+⍵}'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
@@ -1416,7 +1416,7 @@
       assertError'opts ⎕SE.Link.Create name folder' 'Source namespace not found'
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
       z←opts ⎕SE.Link.Create name folder
-      'link issue #230'assert'~∨/''failed''⍷z'
+      'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       {}⎕SE.Link.Break name
       3 ⎕MKDIR subfolder,'/subsub'
       assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
@@ -1499,7 +1499,7 @@
       ⍝ both are populated
       2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
       z←opts ⎕SE.Link.Create name folder
-      'link issue #230'assert'~∨/''failed''⍷z'
+      'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       {}⎕SE.Link.Break name
       subname⍎'foo←{⍺+⍵}'
       assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
@@ -1569,7 +1569,7 @@
       opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
       opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
       'link issue #206'assert'0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
-      :If 0 ⍝ :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''failed''⍷z'       ⍝ badns are reported as failed to fix since Link v2.1.0-beta42
+      :If 0 ⍝ :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''ERRORS ENCOUNTERED''⍷z'       ⍝ badns are reported as failed to fix since Link v2.1.0-beta42
       :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
       :EndIf
       nstree←(name,'.')∘,¨'ns2' 'foo' 'ns' 'required' 'sub' 'var' 'sub.foo' 'sub.ns' 'sub.require' 'sub.required' 'sub.var'
@@ -1768,7 +1768,7 @@
       2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
       assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
       z←opts ⎕SE.Link.Create name folder
-      'link issue #230'assert'~∨/''failed''⍷z'
+      'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #230'assert'1=≢⎕SE.Link.Links'
       {}⎕SE.Link.Break name
       'link issue #160'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
@@ -1798,14 +1798,14 @@
       ⍝(opts←⎕NS'').source←'ns'
       ⍝z←opts ⎕SE.Link.Create name folder
       ⎕SE.UCMD'z←]link.create -source=ns ',name,' ',folder
-      'link issue #187'assert'~∨/''failed''⍷z'
+      'link issue #187'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #187'assert'0∧.=⎕NEXISTS files'
       {}⎕SE.Link.Break name
       3 ⎕NDELETE folder
       ⍝opts.(arrays sysVars)←1
       ⍝z←opts ⎕SE.Link.Create name folder
       ⎕SE.UCMD'z←]link.create -source=ns -arrays=1 -sysvars ',name,' ',folder  ⍝ link issue #194
-      'link issue #187'assert'~∨/''failed''⍷z'
+      'link issue #187'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #187'assert'1∧.=⎕NEXISTS files'
       {}⎕SE.Link.Break name
       ⎕EX name ⋄ 3 ⎕NDELETE folder
@@ -1816,13 +1816,13 @@
       ref.⎕FIX':Namespace ns' ':EndNamespace'
       ref.var←○⍳3 4
       z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
-      'link issue #249'assert'~∨/''failed''⍷z'
+      'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       ⎕SE.Link.Expunge name
       z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
-      'link issue #249'assert'~∨/''failed''⍷z'
+      'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       ⎕SE.Link.Expunge name
       z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'⎕SE.Link.Create name folder
-      'link issue #249'assert'~∨/''failed''⍷z'
+      'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       ⎕SE.Link.Expunge name
      
       ⍝ link issue #251
@@ -2268,9 +2268,9 @@
       (⊂':Class main:base,api' ':Field Public Shared main←1' ':EndClass')⎕NPUT folder,'/main.aplc'
       :While 0≤loops←loops-1
           z←⎕SE.Link.Create name folder
-          assert'~∨/''failed''⍷z'
+          assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           z←⎕SE.Link.Refresh name
-          assert'~∨/''failed''⍷z'
+          assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           ⎕MKDIR folder,'/sub'
           assert'9=⎕NC',Stringify sub←name,'.sub'
           (⍎sub).newvar←⎕TS
@@ -2281,7 +2281,7 @@
           z←sub ⎕SE.Link.Fix':Namespace ns' 'ns←1' ':EndNamespace'
           assert'z∧⎕NEXISTS',Stringify folder,'/sub/ns.apln'
           z←⎕SE.Link.Refresh name
-          assert'~∨/''failed''⍷z'
+          assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           z←⎕SE.Link.Expunge sub
           assert'z'
           assert'~⎕NEXISTS',Stringify folder,'/sub/'

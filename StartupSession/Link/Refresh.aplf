@@ -35,7 +35,7 @@
              :EndIf
          :EndFor
      :EndHold
-     msg←1↓U.FmtLines ok,ko
+     msg←1↓U.FmtLines ok,((×≢ko)/⊂'ERRORS ENCOUNTERED:'),ko
  :Else
      U.Resignal 1
  :EndTrap

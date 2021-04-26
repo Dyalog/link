@@ -55,16 +55,10 @@
          ⍝:Trap 517 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ Flush association table given by 5176⌶⍬
 
          msg←''
-         :If ×≢tobreak
-             msg,←⊂'Unlinked:',U.List∪tobreak
-         :EndIf
-         :If ×≢missing
-             msg,←⊂'Not found:',U.List∪missing
-         :EndIf
-         :If ×≢unlinked
-             msg,←⊂'Not linked:',U.List∪unlinked
-         :EndIf
-         :If ~0∊⍴msg ⋄ ¯1 U.Log msg←'; 'U.JoinList msg ⋄ :EndIf
+         :If ×≢tobreak ⋄ msg,←⊂'Unlinked:',U.List∪tobreak ⋄ :EndIf
+         :If ×≢missing ⋄ msg,←⊂'Not found:',U.List∪missing ⋄ :EndIf
+         :If ×≢unlinked ⋄ msg,←⊂'Not linked:',U.List∪unlinked ⋄ :EndIf
+         msg←1↓U.FmtLines msg
      :EndHold
  :Else
      U.Resignal 1
