@@ -3,8 +3,8 @@
  :Trap 0  ⍝ can't afford to error
      :Hold '⎕SE.Link.Links'
 
-         ⍝ retrieve saved workspace links before the GetLinks which may overwrite 5170⌶0
-         :If U.HAS5170 ⋄ :AndIf ⎕NULL≢wslinks←5170⌶0
+         ⍝ retrieve saved workspace links before the GetLinks which may overwrite Store 0
+         :If U.HASSTORE ⋄ :AndIf ⎕NULL≢wslinks←U.Store 0
          :Else ⋄ wslinks←⍬
          :EndIf
 
@@ -22,12 +22,11 @@
          :If ~0∊⍴wslinks
              links,←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
              msg←⊂'Some links were saved with the workspace, please break them:'
-             msg,←(6⍴' '),']Link.Break',⍕wslinks.ns
+             msg,←⊂∊(6⍴' ') ']Link.Break',' ',¨⍕¨wslinks.ns
              ¯1 U.Warn 1↓U.FormatMessage msg
          :EndIf
 
          U.SetLinks links
-
      :EndHold
  :Else
      ⎕←'Link.WSLoaded: Unable to clear links (',⎕DMX.(Message{⍵,⍺,⍨': '/⍨×≢⍺}EM),')'

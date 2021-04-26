@@ -1246,7 +1246,7 @@
       ⍝'link issue #205'assertError('⎕SE.Link.Add ''',name,'.limit_error'' ')'Cannot round-trip serialisation of array'
       name⍎'domain_error←,⎕NEW⊂''Timer'''
       'link issue #205'assertError('⎕SE.Link.Add ''',name,'.domain_error'' ')'Array cannot be serialised'
-           
+     
       ⍝ attempt to refresh
       ⎕SE.UCMD'z←]link.refresh ',name
       'link issue #132 and #133'assert'⊃''Imported:''⍷z'
@@ -1940,7 +1940,7 @@
       :While (~0∊⍴start)∧(end>time←3⊃⎕AI) ⋄ ⎕DL 0.01 ⋄ :EndWhile
     ∇
 
-    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
+    ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;ns1;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
       :If 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
@@ -2214,7 +2214,7 @@
       assert'(''1'',NL)≡ride.APL''{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'' '
       {}ride.APL']link.create ',name,' "',folder,'/foo"'
       assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
-      {}ride.APL'⎕SE.Link.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
+      {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
       {}'hoo←{⍺+⍵}'⎕NPUT folder,'/hoo.aplf'
       Breathe
       assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.U.WARNLOG'' '
@@ -2224,16 +2224,34 @@
       3 ⎕MKDIR folder
       (⊂'res←Func1 arg' 'res←arg')⎕NPUT folder,'/Func1-1.aplf'
       {}ride.APL']link.create ',name,' ',folder,' -casecode -source=dir -watch=both'
-      ride.Edit(name,'.Func1')(func1←'res←Func1 arg' 'res←arg arg')
+      ride.Edit(name,'.Func1')(func1←' res←Func1 arg' ' res←arg arg')
       'link issue #246'assert'(,⊂folder,''/Func1-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
       'link issue #246'assert'func1≡⊃⎕NGET (folder,''/Func1-1.aplf'') 1'
       {}ride.APL']link.break ',name
       {}ride.APL' 3 ⎕NDELETE',Stringify folder
       {}ride.APL']link.create ',name,' ',folder,' -casecode -source=ns -watch=ns'
-      ride.Edit(name,'.Func1')(func2←'res←Func2 arg' 'res←arg arg arg')
+      assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.Diff ',name,''' '  ⍝ ensure ⎕SE.Link.Diff harmless when watch=ns
+      ride.Edit(name,'.Func1')(func2←' res←Func2 arg' ' res←arg arg arg')
       'link issue #247'assert'(folder∘,¨''/Func1-1.aplf'' ''/Func2-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
+      'link issue #247'assert'func1≡⊃⎕NGET (folder,''/Func1-1.aplf'') 1'
       'link issue #247'assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1'
-           
+      'link issue #247'assert'(,(↑func1),NL)≡ride.APL''↑⎕NR ''''',name,'.Func1'''' ''  '
+      assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.Diff ',name,''' '  ⍝ ensure ⎕SE.Link.Diff harmless when watch=ns
+     
+      {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
+      {}ride.APL')SAVE "',folder,'/linked_workspace.dws"'
+      res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
+      ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
+      assert'(''1'',NL)≡ride.APL''1∊''''      ]Link.Break ',name,'''''⍷↑⎕SE.Link.U.WARNLOG'' '
+      res←ride.APL']link.break ',name
+      assert'res≡''Unlinked: '',name,NL'
+      res←ride.APL']link.create ',name,' ',folder,' -casecode'
+      assert'∨/''Linked:''⍷res'
+      {}(⊂ns1←'   :Namespace   ns1   ' '   :EndNamespace   ')QNPUT folder,'/ns1.aplf'
+      ride.Edit(name,'.Func2')(func2←¯2↓¨'  res  ←  Func2  arg2 ' '  res  ←  arg2  ')  ⍝ editor does not support trailing whitespace
+      assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
+      assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
+     
       CleanUp folder name
       ok←1
     ∇
