@@ -1,6 +1,12 @@
- {res}←OnFix(obj evt src ns oldname name file);error
+ {res}←OnFix(obj evt src ns oldname name file);error;nsref
  ⍝ Thin cover for editor onFix event
  :Trap 0 ⍝ can't afford any error
+     res←1
+     :If 0∊⍴nsref←#(0 U.GetRefTo)ns
+     :OrIf 0∊⍴U.LookupRef nsref  ⍝ issue # 257: not a linked namespace
+         :Return
+     :EndIf
+
      ⍝ link issue #152: keep track of last fix to recover source as typed
      error←''
      :If (name≢oldname)∧(~0∊⍴name)   ⍝ when name is empty, it means that we create a new object that doesn't yet have a source
@@ -12,7 +18,6 @@
          :EndIf
      :EndIf
      U.LASTFIX←src(⍕ns)oldname  ⍝ format nsref to avoid cross-references between # and ⎕SE
-     res←1
 
      :If ~0∊⍴error ⋄ ⎕←'OnFix: ',error ⋄ :EndIf  ⍝ error AFTER setting U.LASTFIX
  :Else
