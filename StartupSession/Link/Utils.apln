@@ -6,6 +6,8 @@
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
+    Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
+        HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
     ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
       :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
@@ -37,9 +39,15 @@
 
 
     :Section Strings
+    ∇ hascase←_InitCase
+      :If hascase←{2::0 ⋄ 1⊣1 ⎕C'A'}⍬
+          CaseText←{(¯1+2×⍺)⎕C ⍵}           ⍝ Upper/Lower case
+      :Else
+          CaseText←{⍺(819⌶)⍵}               ⍝ Upper/Lower case
+      :EndIf
+    ∇
+    HASCASE←_InitCase
     Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}                ⍝ Shortest string in list
-    Case←{⍺(819⌶)¨⍵}                        ⍝ Upper/Lower case
-    LCase←{819⌶⍵}                           ⍝ Lower case
     ⍝Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join ⍺ and ⍵ using ⍺⍺
     JoinList←{⊃,/1↓,(⊂⍺⍺),[1.5],⍵}          ⍝ Join list of items with ⍺⍺
     JoinEach←{,/⍺,⍺⍺,[1.5]⍵}                ⍝ Join¨
@@ -232,7 +240,7 @@
     ⍝ case-code a string
       ⎕IO←0
       →0 If 0=≢name  ⍝ empty name doesn't get case coded
-      bin←name≠819⌶name
+      bin←name≠0 CaseText name
       len←⌈3÷⍨≢bin
       digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
       digits↓⍨←+/∧\0=digits
@@ -249,7 +257,7 @@
       →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
       mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
       →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
-      name←((≢name)↑mask)Case name
+      name←((≢name)↑mask)CaseText¨name
     ∇
     ∇ name←(dir CaseCode flatten)name;ext;file;parts;path
     ⍝ case-code a file located under linked dir
@@ -463,21 +471,30 @@
 
 
 
+
+
     :Section Lookup
 
-    ∇ {ok}←HasLinks;mask;links
-      :Trap 0  ⍝ anything broken should mean no links available
-          :If ok←×⎕NC'⎕SE.Link.Links'
-          :AndIf ok←×≢links←⎕SE.Link.Links
-          :AndIf 1∊mask←0=⎕NC links.ns  ⍝ clean up "zombie" links
+    ∇ links←GetLinks;mask;links
+      :Trap 0/0  ⍝ anything broken should mean no links available
+          links←⍬
+          :If ×⎕NC'⎕SE.Link.Links'
+          :AndIf ~0∊⍴links,←⎕SE.Link.Links
+          :AndIf 1∊mask←¯9.1≠# NameClass¨links.ns  ⍝ clean up "zombie" links
               0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
               ¯1 Log'Clearing expunged links:'(⍕mask/links)
-              ⎕SE.Link.Links/⍨←~mask
-              ok←×≢⎕SE.Link.Links
+              SetLinks links←(~mask)/links
           :EndIf
-      :Else
-          ok←0
+      :Else ⋄ links←⍬
       :EndTrap
+    ∇
+    ∇ SetLinks links;mask
+      :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
+      ⎕SE.Link.Links←links
+      :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
+      :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
+          {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
+      :EndIf
     ∇
 
     ∇ {n}←untie Break links
@@ -489,10 +506,11 @@
           :EndIf
       :EndIf
     ∇
-    ∇ linkns←LookupFile file;dirs;inx;links;mask
+    ∇ linkns←{links}LookupFile file;dirs;inx;links;mask
     ⍝ look up which linked directory has file
-      :If HasLinks
-          dirs←(links←⎕SE.Link.Links).dir
+      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+      :If ~0∊⍴links
+          dirs←(links←GetLinks).dir
       :AndIf ∨/mask←dirs Begins¨⊂file
           inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
           linkns←inx⊃links
@@ -500,17 +518,12 @@
           linkns←⍬
       :EndIf
     ∇
-    ∇ linkns←{links}LookupRef nsref;linked;links;nss
+    ∇ linkns←{links}LookupRef nsref;linked;links;mask;nss
     ⍝ lookup which linked namespace has nsref
       linkns←⍬
-      :If 900⌶⍬
-          :If HasLinks
-              links←⎕SE.Link.Links
-          :Else
-              :Return
-          :EndIf
-      :EndIf
-      nss←⍎¨links.ns
+      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+      :If 0∊⍴links ⋄ :Return ⋄ :EndIf
+      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
       :While ~linked←nsref∊nss
       :AndIf ~IsRoot nsref
           nsref←nsref.##
@@ -518,6 +531,19 @@
       :If linked
           linkns←(nss⍳nsref)⊃links
       :EndIf
+    ∇
+    ∇ links←{links}LookupLinks nsref;linked;links;mask;nss
+    ⍝ lookup which linked namespaces are children of nsref
+      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+      :If 0∊⍴links ⋄ :Return ⋄ :EndIf
+      mask←(⍴links)⍴0
+      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
+      :Repeat
+          mask∨←nss=nsref
+          :If 0∊⍴nss←(~IsRoot nss)/nss ⋄ :Leave ⋄ :EndIf
+          nss←nss.##
+      :EndRepeat
+      links←mask/links
     ∇
     ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;arrays;mask;modifiers;nl;ok;watch
     ⍝ Get default modifiers for link options namespace
@@ -899,7 +925,7 @@
           :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
           :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
           :EndIf
-          :If ∨/mask←(inx←⍳⍨819⌶¨files)≠(⍳≢files)
+          :If ∨/mask←(inx←⍳⍨0 CaseText files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
               Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names[,(mask/inx),[1.5]⍸mask]
           :EndIf
@@ -999,7 +1025,7 @@
           expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs
           expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
           :If ∨/mask←expfiles≢¨allfiles
-              :If (≢expfiles)≠(≢∪819⌶expfiles)
+              :If (≢expfiles)≠(≢∪0 CaseText expfiles)
                   Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
               :Else
                   ⍝ because APL names don't clash, we now expfiles won't clash either
@@ -1133,13 +1159,13 @@
       :EndSelect
       :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
       ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
-      diff←0 2⍴⊂''
-      diff⍪←((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
-      diff⍪←(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
+      diff←0 3⍴⊂''
+      diff⍪←('→'),⍨((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
+      diff⍪←('←'),⍨(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
       filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
       mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
       :If ##.DEBUG ⋄ :AndIf mask[(⍸namemask)⍳(filemask/nameifile)]≢~(filemask/filesrc)CompareSource¨namesrc[filemask/nameifile] ⋄ Error'Internal error' ⋄ :EndIf
-      diff⍪←(mask/namemask/name),[1.5](file[mask/namemask/fileiname])   ⍝ sources differ
+      diff⍪←('?'),⍨(mask/namemask/name),[1.5](file[mask/namemask/fileiname])   ⍝ sources differ
     ∇
 
     :EndSection
@@ -1172,7 +1198,7 @@
       :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
       src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
       ⍝ define useful regular expressions
-      Decase←{,'[',']',⍨(0(819⌶)⍵),[1.5](1(819⌶)⍵)} ⍝ case-insensitive word
+      Decase←{,'[',']',⍨(0 CaseText ⍵),[1.5](1 CaseText ⍵)} ⍝ case-insensitive word
       UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII
       Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺
       Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}                  ⍝ find at which position on which line is which pattern
@@ -1329,7 +1355,7 @@
       :EndIf
     ∇
 
-    ∇ {ok}←Sniff_QA stop;Case;Comment;Fluff;Name;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
+    ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;RandCase;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
       ⍝ All possible traditional function/operator headers
       complex_names←1
       h←'f1' 'f1 a1' 'f1(a d)' 'la f1 a1' 'la f1(a d)'
@@ -1379,7 +1405,7 @@
       Space←{⎕UCS 9 32[?(¯1+???5)⍴2]} ⍝ random whitespace
       c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' '⍝∇' ⍝ evil comments
       Comment←{⍵.Match,⍨c⊃⍨?3}
-      Case←{(⎕IO=?2⍴⍨≢⍵)(819⌶)¨⍵}  ⍝ random case
+      RandCase←{(⎕IO=?2⍴⍨≢⍵)CaseText¨⍵}  ⍝ random case
       w←'[^:/⍺⍵',valid2,']'  ⍝ for :Namespace, file:///tmp/file {⍺⍺}{⍵⍵}
       h,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢h   ⍝ randomise code
       ⍝ create some namespace scripts - empty for now
@@ -1558,17 +1584,18 @@
       ⍝ Name, group, short description and parsing rules
       r←'['
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
-      r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"1S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
+      r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
       r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"1-2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -sysvars -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
-      r,←'{"Name":"Expunge",     "args":"item",    "Parse":"1",  "Desc":"Erase item and associated file"},'
+      r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
       r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -flatten -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
-      r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
+      ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
       r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
-      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Synchronise namespace-directory content"},'
+      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
+      r,←'{"Name":"Resync",      "args":"ns1",     "Parse":"1  -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'
@@ -1653,7 +1680,7 @@
           'opts'⎕NS ⍬
           names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch'
           :For name :In names
-              lc←819⌶name
+              lc←0 CaseText name
               :If ×args.⎕NC lc
               :AndIf 0≢val←args⍎lc  ⍝ UCMD interface defaults unset modifiers to 0 - so don't execute them
                   :Select name

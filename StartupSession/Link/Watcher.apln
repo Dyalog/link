@@ -60,7 +60,7 @@
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
       {}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
       ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
-      nargs←⊂##.U.LCase⍕args.ChangeType
+      nargs←⊂0 ##.U.CaseText⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath

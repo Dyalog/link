@@ -1,4 +1,4 @@
- {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
@@ -25,7 +25,7 @@
          :EndIf
 
          :If 0∊⍴link←U.LookupFile path  ⍝ not linked - should not happen
-             :If 900⌶⍬ ⋄ :OrIf 0∊⍴⎕SE.Link.Links ⋄ :OrIf obj∊⎕SE.Link.Links.fsw
+             :If 900⌶⍬ ⋄ :OrIf 0∊⍴links←U.GetLinks ⋄ :OrIf obj∊links.fsw
                  warn←1  ⍝ link issue #225
              :EndIf ⍝ otherwise not Link's fault (Mantis 18903)
              →END⊣msg,←⊂'path not in a linked directory'
@@ -206,7 +206,7 @@
          :Case ¯1 ⋄ warn←1 ⋄ msg,←⊂'- failed to fix file'
          :EndSelect
 
-END:
+         END:
          :If warn ⋄ 1 U.Warn msg
          :Else ⋄ 1 U.Log msg
          :EndIf

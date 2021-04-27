@@ -1,4 +1,4 @@
- {linked}←where Fix src;RSI;XSI;callback;delete;error;file;fix;link;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
+ {linked}←where Fix src;RSI;XSI;callback;delete;error;file;fix;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
 ⍝ Fix a function/operator or script, preserving any existing source files
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -10,7 +10,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If ~U.HasLinks ⋄ linked←0 ⋄ :Return ⋄ :EndIf
+     :If 0∊⍴links←U.GetLinks ⋄ linked←0 ⋄ :Return ⋄ :EndIf
 
      XSI←⎕XSI ⋄ RSI←⎕RSI
      :If 900⌶⍬ ⋄ where←'' ⋄ :EndIf  ⍝ fix into calling space by default
@@ -30,7 +30,7 @@ NOHOLD:
          nsname←⍕nsref←this(0 U.GetRefTo)ns
 
          :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
-         :If ~linked←~0∊⍴link←U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
+         :If ~linked←~0∊⍴link←links U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
          :If ~U.IsNamedRef nsref ⋄ U.Error'Not a properly named namespace: ',ns ⋄ :EndIf
 
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src
@@ -50,6 +50,7 @@ NOHOLD:
          :EndIf
          tie←U.FixTie link  ⍝ should we tie files when fixing
 
+         delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename - won't happen if oldname is undefined (link issue #190) because oldfile must then be empty
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
@@ -57,15 +58,20 @@ NOHOLD:
              :If 0>ns U.QFix oldfile oldname tie 1 ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
-             delete←0  ⍝ old file must be preserved
+         :ElseIf callback∧(~tie)∧(0=≢oldfile)∧(oldname≢name)   ⍝ untied rename
+         :AndIf (ns.⎕NC oldname)∊3 4 ⍝ workaround Mantis 18992
+             :If oldname≢⊃ns U.Fix oldname(ns.⎕NR oldname)1  ⍝ repair damage done by editor - 0 ⎕ATX may hold an incorrect version, compared to ⎕NR
+                 U.Error'Could not fix ',(⍕ns),'.',oldname
+             :EndIf
          :ElseIf callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              :If 0 ⋄ :AndIf 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array (never happens)
+             ⍝:ElseIf ~tie ⋄ :AndIf (ns.⎕NC name)∊3 4 ⍝ functions not tied to file cannot preserve whitespace - Link.Diff would otherwise report a diff between file and namespace
+             ⍝    src←ns.⎕NR name    ⍝ use ⎕NR so that workspace matches file
              :Else ⋄ src←⊃U.LASTFIX  ⍝ source as typed
              :EndIf
-             nosrc←0 ⋄ delete←0
+             nosrc←0
          :Else
-             delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
          :EndIf
 
          :If callback   ⍝ called back from editor
@@ -97,7 +103,7 @@ NOHOLD:
 
          fix←~nosrc ⍝ no need to update if source was read from APL
          fix∧←~callback ⍝ no need to refix if change was done through editor (in which case src was empty anyways)
-         ¯1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)
+         ¯1 U.Log'name='nsname'.'name' file="'file'" fix='(⍕fix)' update='(⍕update)' tie='(⍕tie)' oldname='oldname' delete='(⍕delete)' oldfile="'oldfile'"'
 
          error←''
          :If update  ⍝ file system must reflect changes - FileWatcher may pick it up after this high-priority callback, and should notice no change in source, therefore not fix it  - TODO it means it will re-hash the file
@@ -123,12 +129,8 @@ NOHOLD:
              :EndIf
          :EndIf
 
-         :If ~0∊⍴error
-             U.Error error
-         :EndIf
-         :If callback
-             linked←fix  ⍝ editor must know if we didn't fix
-         :EndIf
+         :If ~0∊⍴error ⋄ U.Error error ⋄ :EndIf
+         ⍝:If callback ⋄ linked←fix ⋄ :EndIf    ⍝ editor must know if we didn't fix
 
      :EndHold ⍝ Links
  :Else

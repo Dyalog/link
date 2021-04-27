@@ -1,4 +1,4 @@
-﻿ {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
+﻿ {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant
  ⎕IO ⎕ML←1 1
  :If U.debug=2
@@ -7,7 +7,7 @@
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
          container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
-         :If ~U.HasLinks ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
+         :If 0∊⍴links←U.GetLinks ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
          scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
          :For i :In ⍳≢names
              nc←container U.NameClass name←(⍕container),'.',i⊃names
@@ -15,13 +15,13 @@
                  r[i]←0 ⋄ :Continue
              :EndIf
              :If ¯9.1=nc  ⍝ trad ns
-             :AndIf (⊂U.NormNs name)∊⎕SE.Link.Links.ns  ⍝ is a link root
+             :AndIf (⊂U.NormNs name)∊links.ns  ⍝ is a link root
                  {}Break name  ⍝ github issue #119: tell user about problems
                  r[i]←⎕EX name
              :Else
                  :Hold '⎕SE.Link.Notify'
                      (parent name)←U.SplitNs name
-                     :If ~0∊⍴link←U.LookupRef parent←⍎parent
+                     :If ~0∊⍴link←links U.LookupRef parent←⍎parent
                          (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
                          r[i]←parent.⎕EX name  ⍝ do it before the watcher kicks in
                          :If 0<≢oldfile  ⍝ tied to file

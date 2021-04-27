@@ -38,8 +38,8 @@
 
          :If ~single
              msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
-             :If ×≢failed ⋄ msg,←(⊂(⍕≢failed),' failed:'),U.WinSlash¨failed ⋄ :EndIf
-         :ElseIf ×≢failed ⋄ msg←⊂'Import failed: ',⊃U.WinSlash failed
+             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' import(s) failed:'),U.WinSlash¨failed ⋄ :EndIf
+         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Import failed: ',⊃U.WinSlash failed
          :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.WinSlash src
          :EndIf
          msg←1↓U.FmtLines msg

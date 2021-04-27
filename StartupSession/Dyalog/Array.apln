@@ -1,5 +1,6 @@
 :Namespace Array   ⍝ A model for a literal notation for most APL arrays
     ⎕ML←1
+    DEBUG←1
 
     ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP;repr ⍝ Convert Array to text
       ⎕IO←1
@@ -150,6 +151,7 @@
     ∇
 
 
+
       Deserialise←{ ⍝ Convert text to array
           ⍺←1 ⍝ 1=execute expression; 0=return expression
           q←''''
@@ -203,33 +205,30 @@
               ∊'({'(assns,¨'⋄')'⎕NS'('(, '∘,¨q,¨names,¨⊂q')')'}⍬)'
           }
      
+          Execute←{   ⍝ overcome LIMIT ERROR on more than 4096 parenthesised expressions
+              ExecuteEach←{         ⍝ split at level-1 parentheses and execute each
+                  l←(t=¯1)++\t←1 ¯1 0['()'⍳⍵]           ⍝ parenthesis type and level
+                  (h x t l)←(1 0 0 0=⊂∧\l=0)/¨⍵ ⍵ t l   ⍝ extract header before first opening parenthesis
+                  ⍺{0::0 ⋄ r←⍺⍎⍵ ⋄ ~(⊃⎕NC'r')∊3 4}h:⍺⍎⍵ ⍝ header must be an functional expression
+                  H←⍺{⍺⍺⍎⍵⍵,'⍵'}h                       ⍝ function to apply header to array
+                  ' '∨.≠(l=0)/x:⍺⍎⍵                     ⍝ something outside level-1 parentheses - must fall back to ⍎
+                  x←(((l>0)∧(l≠1)∨(t=0))×+\(t=1)∧(l=1))⊆x   ⍝ cut expression within level-1 parentheses
+                  1=≢x:H ⍺ ∇⊃x                          ⍝ single expression : don't enclose with ¨
+                  DEBUG∧1<⌈/l:H ⍺ ∇¨x                    ⍝ force going through the hard code
+                  10::H ⍺ ∇¨x ⋄ H ⍺⍎¨x                  ⍝ attempt to ⍎¨ with a single guard - otherwise dig each
+              }
+              DEBUG:⍺ ExecuteEach ⍵           ⍝ force going through the hard code
+              10::⍺ ExecuteEach ⍵ ⋄ ⍺⍎⍵       ⍝ attempt simple ⍎ and catch LIMIT ERROR
+          }
+     
           w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ mat?
           w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ vtv?
           w←'''[^'']*''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
      
           pl←ParenLev w
-          (0≠⊢/pl)∨(∨/0>pl):'Unpaired brackets'⎕SIGNAL 2
+          (0≠⊢/pl)∨(∨/0>pl):'Unmatched brackets'⎕SIGNAL 2
           ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
-     
-          Execute←{ ⍝ overcome LIMIT ERROR on more than 1e4 parenthesised expressions
-              Fallback←{
-                  t←1 ¯1 0['()'⍳⍵] ⍝ parenthesis type
-                  l←(t=¯1)++\t     ⍝ and level
-     
-                  ' '∨.≠(l=0)/⍵:⍺⍎⍵ ⍝ something outside level-1 parentheses ─ must fall back to ⍎
-     
-                  c←(l>0)×+\(t=1)∧(l=1) ⍝ level-1 parentheses
-                  x←1↓¨¯1↓¨c⊆⍵ ⍝ cut expression
-                  1=≢x:⍺ ∇⊃x                       ⍝ single expression: don't enclose with ¨
-
-                  10::⍺ ∇¨x
-                  ⍺⍎¨x
-              }
-              10::⍺ Fallback ⍵
-              ⍺⍎⍵
-          }
-     
-          (⊃⎕RSI)⍎⍣⍺⊢pl Parse w    ⍝ materialise namespace as child of calling namespace
+          (⊃⎕RSI)Execute⍣⍺⊢pl Parse w    ⍝ materialise namespace as child of calling namespace
       }
 
 
@@ -799,7 +798,15 @@
       :EndSection
      
       :Section High Rank
-          Is 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+          Is 1 1 2 3⍴⍳6     ⍝ issue #254
+          Is 3 2 1 1⍴⍳6     ⍝ issue #254
+          Is 2 3 4 5⍴⍳120   ⍝ issue #254
+          Is⊂[3 4 5]⎕A[?1 2 3 1 5 6⍴26]      ⍝ issue #254
+      :EndSection
+     
+      :Section Large Arrays                  ⍝ (more than 4096 constants) - issue #255
+          Is⊂[2 3]?50 100 2 3⍴100            ⍝ Numeric is straightforward
+          Is⊂[3 4 5]⎕A[?50 10 10 1 2 3⍴26]   ⍝ Text gets functional headers produced by Parse
       :EndSection
      
       :Section Empty

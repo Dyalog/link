@@ -1,15 +1,32 @@
- WSLoaded;i;keep
+ WSLoaded;i;keep;links;msg;wslinks
 ⍝ Action to be taken upon )LOAD or )CLEAR
  :Trap 0  ⍝ can't afford to error
      :Hold '⎕SE.Link.Links'
-         :If U.HasLinks
-         :AndIf 0∊keep←⎕SE=U.RootOf⍎¨⎕SE.Link.Links.ns
-             ¯1 U.Log'Clearing # links:'(⍕(~keep)/⎕SE.Link.Links)
-             Watcher.Break(~keep)/⎕SE.Link.Links
-             ⎕SE.Link.Links/⍨←keep
+
+         ⍝ retrieve saved workspace links before the GetLinks which may overwrite Store 0
+         :If U.HASSTORE ⋄ :AndIf ⎕NULL≢wslinks←U.Store 0
+         :Else ⋄ wslinks←⍬
+         :EndIf
+
+         ⍝ preserve old links to ⎕SE - drop the rest
+         :If ~0∊⍴links←U.GetLinks
+         :AndIf 0∊keep←⎕SE=U.RootOf⍎¨links.ns
+             ¯1 U.Log'Clearing # links:'(⍕(~keep)/links)
+             Watcher.Break(~keep)/links
+             links←keep/links
          :Else
              ¯1 U.Log'Nothing to clear'
          :EndIf
+
+         ⍝ restore saved workspace links
+         :If ~0∊⍴wslinks
+             links,←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
+             msg←⊂'Some links were saved with the workspace, please break them:'
+             msg,←⊂∊(6⍴' ') ']Link.Break',' ',¨⍕¨wslinks.ns
+             ¯1 U.Warn 1↓U.FormatMessage msg
+         :EndIf
+
+         U.SetLinks links
      :EndHold
  :Else
      ⎕←'Link.WSLoaded: Unable to clear links (',⎕DMX.(Message{⍵,⍺,⍨': '/⍨×≢⍺}EM),')'

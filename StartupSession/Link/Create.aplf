@@ -1,13 +1,15 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
-         {}U.HasLinks                ⍝ Clean up links if necessary
          :If 0=⎕NC'⎕SE.Link.Links'   ⍝ init links if necessary
-             ⎕SE.Link.Links←⍬
+             U.SetLinks ⍬
+         :EndIf
+         :If ~0∊⍴nsrefs←links←U.GetLinks                ⍝ Clean up links if necessary
+             nsrefs←⍎¨links.ns
          :EndIf
 
          msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
@@ -68,8 +70,8 @@
              U.Error'Not a properly named namespace: ',ns
          :ElseIf U.IsScripted nsref
              U.Error'Cannot link to scripted namespaces: ',ns
-         :ElseIf ×≢⎕SE.Link.Links ⋄ :AndIf nsref∊nsrefs←⍎¨⎕SE.Link.Links.ns
-             U.Error'Already linked: ',U.Arrow ⎕SE.Link.Links⊃⍨nsrefs⍳nsref
+         :ElseIf nsref∊nsrefs
+             U.Error'Already linked: ',U.Arrow links⊃⍨nsrefs⍳nsref
          :ElseIf ~hasdir ⋄ :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
              U.Error'Directory not found: ',dir
          :ElseIf U.Slash⊃⌽dir
@@ -94,21 +96,21 @@
              :If 0≢opts.flatten ⋄ U.Error'flatten modifier requires source≡''dir''' ⋄ :EndIf
              :If 0≢opts.fastLoad ⋄ U.Warn'fastLoad modifier ignored when source≡''ns''' ⋄ :EndIf
              fail←2⊃opts U.WriteFiles ns dir 1 ⍝ we already checked the overwrite condition
-             :If 0≠≢fail ⋄ msg,←(⊂(⍕≢fail),' export(s) failed:'),fail ⋄ :EndIf
+             :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' export(s) failed:'),fail ⋄ :EndIf
          :Case 'dir'
              :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
-             :If 0≠≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
+             :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
          :Else
              U.Error'Unknown source setting:'opts.source
          :EndSelect
          opts.fastLoad←0  ⍝ fastLoad is observed only at load (FixFiles) time - affects U.DetermineAplName
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
-         ⎕SE.Link.Links,←opts
+         U.SetLinks links,opts
          Watcher.Watch opts  ⍝ first crawler may call Notify
-         ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),msg
+         ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
      :EndHold
  :Else
      U.Resignal 1

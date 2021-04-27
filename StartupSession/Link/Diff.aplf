@@ -1,16 +1,16 @@
- diff←{opts}Diff ns;container;link;nsref;⎕IO;⎕ML
+ diff←{opts}Diff ns;container;link;links;nsref;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
-         :If ~U.HasLinks ⋄ U.Error 'Not Linked: ',⍕ns ⋄ :EndIf
+         :If 0∊⍴links←U.GetLinks ⋄ U.Error 'Not Linked: ',⍕ns ⋄ :EndIf
          opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
          (container ns)←(⎕RSI ⎕XSI) U.ContainerNs ns
          :if ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
          :If ~0∊⍴nsref←(0 U.GetRefTo)ns
-         :AndIf ~0∊⍴link←⎕SE.Link.Links U.LookupRef nsref
+         :AndIf ~0∊⍴link←links U.LookupRef nsref
              0 Watcher.Pause link  ⍝ FSW cannot kick in because of the :Hold
              link←⎕NS link ⋄ link.arrays←opts.arrays
              diff←U.Diff link
