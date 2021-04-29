@@ -106,7 +106,8 @@
               Scal ⍵:ec,∇⊃⍵
          
               Self←⊂nl,⍨∇
-         
+              
+              (Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
               Table ⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ Ser¨⍵
               HiRank ⍵:Self⍤¯1 _Sub_ os cs⊢⍵
               Nested ⍵:Self¨_Sub_ or cr⊢⍵
