@@ -2,155 +2,138 @@
     ⎕ML←1
     DEBUG←1
 
-    ∇ text←{inner}Serialise array;a;Quot;Brack;Encl;name;⎕IO;zero;trailshape;content;SubMat;Dia;Esc;DblQuot;MkEsc;DelQQ;q;drs;items;RSP;RRD;RRP;ROP;repr ⍝ Convert Array to text
-      ⎕IO←1
-      :If 900⌶⍬ ⋄ inner←0 ⋄ :EndIf  ⍝ flag for outer call of Serialise
-      q←''''
-      DblQuot←{q,(q ⎕R'&&'⍕⍵),q}
-      MkEsc←{
-          cont←⍵.Lengths[3]
-          nums←⍕⎕UCS ⍵.Match↓⍨-cont
-          ''',',(cont⍴'('),'⎕UCS ',nums,cont/'),''',⊃⌽⍵.Match
-      }
-      Esc←'([\x00-\x1F\x80-\xA0\x{2028}\x{2029}\x{FEFF}]+)(.?)'⎕R MkEsc⍠'Mode' 'D'
-      DelQQ←'^(\()'''',' ',''''(\))$'⎕R'\1'
-      RSP←{ ⍝ Remove String Parens
-          '⎕'∊'''[^'']*'''⎕R''⊢⍵:⍵
-          '^\((''.*'')\)$'⎕R'\1'⊢⍵
-      }
-      Quot←RSP∘DelQQ∘Esc∘DblQuot∘⍕⍤1
-      Encl←{
-          r←')]'['(['⍳⍺⍺]
-          w←⎕FMT ⍵
-          c←≢w
-          2≤≢⍵:(c↑⍺⍺),w,r↑⍨-c
-          (l↑⍺⍺),(¯1⊖l↑w),r↑⍨-l←2+c
-      }
-      Brack←{(⎕FMT'['Encl⍤2)⍣⍺⍺⊢⍵}
-      SubMat←{(¯2+≢⍴⍵)Brack ⍺⍺ ⍵}
-      ROP←{ ⍝ Remove Outer Parens
-          w←'''[^'']+''' '\((''[^'']*'')\)'⎕R'&' '\1'⊢⍵
-          x←' |''[^'']'⎕R''⊢w
-          x←'(.)\([^()]+\)(.)'⎕R'\1\2'⍣≡x
-          '()'≢'^(.)[^)⋄(]+(.)$'⎕R'\1\2'⊢x:w
-          '^( *)\((.+)\)'⎕R'\1\2'⊢w
-      }
-      Dia←{' *⋄ *$' ' *⋄ *(⋄ *)?' '([[(]) *⋄ *'⎕R'' ' ⋄ ' '\1'⍣≡∊↓'⋄',⍨⍵}⍣(2≥⊃⌽⍴array)
-      :Trap (~inner)/0   ⍝ trap only outer call
-          :If 0=≡array ⍝ simple scalar
-              :Select 10|⎕DR array
-              :CaseList 0 2  ⍝ char
-                  :If (⎕UCS array)∊0,(⍳31),(127+⍳33),8232 8233 65279
-                      text←1⌽')(⎕UCS ',⍕⎕UCS array
+    :Namespace serialise
+        :Section UTIL
+        (sp qu os cs or cr oc cc ec di nl)←' ''[](){}⊂⋄',⎕UCS 13
+          Clean←{
+              t←'^'''',' ',''''$'⎕R''⊢⍵
+              one←2=+/'()'∊⍨'''[^'']+'''⎕R''⊢t
+              strip←one∧'()'≡(⊃,⊢/)t
+              (strip↓⌽)⍣2⊢t
+          }
+          Esc←{
+              Sub←{
+                  cont←⍵.Lengths[3]
+                  nums←⍕⎕UCS ⍵.Match↓⍨-cont
+                  ''',',(cont⍴'('),'⎕UCS ',nums,cont/'),''',⊃⌽⍵.Match
+              }
+              '([\x00-\x1F\x80-\xA0\x{2028}\x{2029}\x{FEFF}]+)(.?)'⎕R Sub⍠'Mode' 'D'⊢⍵
+          }
+        Unempty←⊢↑⍨1⌈≢
+          Empty←{
+              ⍵,⍨'0⌿'/⍨Lead0 ⍺
+          }
+          _Sub_←{
+              (o c)←⍵⍵
+              inner←∊⍺⍺ Unempty ⍵
+              ⍵ Empty o,nl,inner,c
+          }
+        Join←{⍺←nl ⋄ ¯1↓∊⍵,¨⍺}
+          _Paren_←{
+              res←⍵⍵ ⍵
+              ⍺⍺ res:or,res,cr
+              res
+          }
+        :EndSection
+        :Section REPR
+          Repr←{
+              ⍬≡⍵:'⍬'
+              Char ⍵:Clean Esc qu,(qu ⎕R qu qu⊢⍵),qu
+              Num ⍵:⍕⍵⊣(⎕FR ⎕PP)←1287 34
+              ⎕NULL∧.=⍵:'⎕NULL'⍴⍨5×≢⍵
+              ~Scal ⍵:⎕SIGNAL 999
+              Ns ⍵
+          }
+        ∇ repr←Ns ref;name;names;code;ser;ind
+          :Trap 0
+              repr←or,(Join ⎕SRC ref),cr
+          :Else
+              repr←or nl
+         
+              names←'⎕'(=⊂⊢)'⎕CT⎕DIV⎕IO⎕ML⎕PP⎕RL⎕RTL⎕WX⎕USING⎕AVU⎕DCT⎕FR'
+              names/⍨←≢⌿ref ref.##∘.⍎names
+              names,←ref.⎕NL-⍳9
+         
+              :For name :In names
+                  code←Join ref.⎕NR name
+         
+                  :Select ref.⎕NC⊂name
+                  :CaseList 3.1 4.1
+                      repr,←name,':(∇',code,nl,'∇)'
+                  :CaseList 3.2 4.2
+                      repr,←1↓':'@(<\'←'=⊢)code
+                  :CaseList 3.3 4.3
+                      repr,←name,':',1↓¯1↓(183 ref.⌶Tacit ref.⎕NR)name
                   :Else
-                      text←DblQuot array
-                  :EndIf
-              :CaseList 6    ⍝ ref
-                  :If ⎕NULL≡array
-                      text←'⎕NULL'
-                  :Else
-                      text←'('
-                      :For name :In array.⎕NL-⍳9
-                          :Select |array.⎕NC⊂name
-                          :CaseList 2.1 2.2 2.3 2.6 ⍝ var
-                              text,←⊂⎕FMT(name,':')(1 Serialise array⍎name)
-                          :CaseList 3.2 4.2 ⍝ dfn/dop
-                              text,←⊂↑('^ *(',name,') *←')⎕R'\1:'@1 array.⎕NR name
-                          :CaseList 3.3 4.3 ⍝ tacit
-                              :If 1=≢⎕FMT array.⎕CR name ⍝ no multi-line components
-                                  repr←0 1 ⎕SE.Dyalog.Utils.expr,⊂array.{⍵(183⌶⍵)(⎕NR ⍵)}name
-                                  text,←⊂name,':',,repr
-                              :Else
-                                  11 ⎕SIGNAL⍨'Unsupported array (multi-line tacit function: ',name,')'
-                              :EndIf
-                          :CaseList 9+0.1×⍳9
-                              text,←⊂(name,':')(1 Serialise array⍎name)
-                          :Else
-                              'Unsupported array'⎕SIGNAL 11
-                          :EndSelect
-                      :EndFor
-                      text←⎕FMT⍪text,')'
-                  :EndIf
-              :Else ⍝ num
-                  text←⍕array
-              :EndSelect
-          :ElseIf ⍬≡⍴array ⍝ enclosure
-              'Unsupported array'⎕SIGNAL 11/⍨1=≡array ⍝ ⎕OR
-              text←⎕FMT'⊂'(1 Serialise⊃array)
-          :ElseIf 0=≢array ⍝ no major cells
-              :Select array
-              :Case ⍬
-                  text←'⍬'
-              :Case ''
-                  text←q q
-              :Else
-                  text←(⍕⍴array),'⍴⊂',Dia 1 Serialise⊃array
-              :EndSelect
-          :ElseIf 1=≢⍴array ⍝ non-empty vec
-              :If 326=⎕DR array ⍝ heterovec
-                  text←'('Encl⍪Dia∘(1∘Serialise)¨array
-              :Else ⍝ simple vec
-                  :If 2|⎕DR array ⍝ numvec
-                      text←⍕array
-                  :Else ⍝ charvec
-                      text←Quot array
-                  :EndIf
-                  :If 1=≢array
-                      text←'('text,'⋄)'
-                  :EndIf
-              :EndIf
-              text←⎕FMT⍣(1≡≢array)⊢text
-          :ElseIf 0∊¯1↓⍴array ⍝ early 0 length
-              zero←¯1+0⍳⍨⍴array
-              trailshape←zero↓⍴array
-              content←(⍕trailshape),'⍴⊂',Dia 1 Serialise⊃array
-              text←zero Brack(1,⍨zero↑⍴array)⍴⊂content
-          ⍝ Special-case "tables"
-          :ElseIf 2=≢⍴array ⍝ matrix
-          :AndIf (⊂≢⊆)array ⍝ nested
-          ⍝:AndIf 2≤≢array   ⍝ 2-row
-          :AndIf 2∧.≤⍴array  ⍝ 2-row, 2-col
-          :AndIf ~326∊drs←⎕DR¨array  ⍝ simple, non-ref'y items
-          :AndIf ∧/,1≥≢∘⍴¨array ⍝ scal/vec items
-          :AndIf ~∨/(⎕UCS∊(,~2|drs)/,array)∊127 133 0,⍳31 ⍝ ctrl chars
-              items←{
-                  ⍬≡⍵:'⍬'
-                  r←⍕⍵
-                  r{⍵:⍺ ⋄ 1⌽q q,''''⎕R'&&'⊢⍺}←⍬≡0⍴⍵  ⍝ quote?
-                  r,←'⋄'/⍨1∊⍴⍵                       ⍝ 1-element vec
-                  r{⍵:1⌽')(',⍺ ⋄ ⍺}←(1∊⍴⍵)∨(⍬≡⍴⍵)<⍬≡0⍴⍵ ⍝ parens?
-                  r
-              }¨array
-              text←⍕items
-              text←'[]'@(1 1)(⍴text)⊢text
-          :Else ⍝ high-rank
-              :Select 10|⎕DR array
-              :CaseList 0 2 ⍝ charmat
-                  text←Quot SubMat array
-              :Case 6  ⍝ heteromat
-                  text←⍪Dia∘(1∘Serialise)¨⊂⍤¯1⊢array
-              :Else ⍝ nummat
-                  :If ⍬≡array
-                  :ElseIf (1↑⍨-≢⍴array)≡0=⍴array
-                      text←('⍬'⍴⍨1,⍨¯1↓⍴)SubMat array
-                  :ElseIf 2=≢⍴array
-                      text←⎕FMT array
-                  :Else
-                      text←(1∘Serialise)⍤1 SubMat array
-                  :EndIf
-              :EndSelect
-              text←'['Encl text
-          :EndIf
-          :If ~inner
-              text←,{(+/∨\' '≠⌽⍵)↑¨↓⍵}text ⍝ outer result is vector of strings
-              text←ROP¨text
-          :EndIf
-      :Else
-          ⎕SIGNAL⊂⎕DMX.(('EN'EN)('Message'Message))
-      :EndTrap
-    ∇
-
-
+                      repr,←name,':',Ser ref⍎name
+                  :EndSelect
+                  repr,←nl
+              :EndFor
+         
+              repr,←cr
+          :EndTrap
+        ∇
+          Tacit←{
+              2 9∊⍨⊂⍺:Ser ⍵        ⍝ array
+              0≠≡⍺:∊or,(⍺ ∇¨⍵),cr  ⍝ derv
+              ⍬≡⍴⍵:⍵               ⍝ primitive
+              code←Join ⍵
+              '}'=⊃⌽⊃⌽⍵:code       ⍝ dfn
+              '(∇',code,nl,'∇)'    ⍝ tradfn
+          }
+        :EndSection
+        :Section TYPE
+        Char←0 2∊⍨10|⎕DR
+        Num←~0 2 6∊⍨10|⎕DR
+        Null←⎕NULL∧.=⊢
+        Ptr←6=10|⎕DR
+        Basic←Char∨Num∨Null
+        :EndSection
+        :Section PROP
+        Simple←{1=≡,⍵}
+        Scal←⍬≡⍴
+        Nested←{1<|≡⍵}
+        Vec1←{(,1)≡⍴⍵}
+        HiRank←{1<≢⍴⍵}
+        Vec←{1=≢⍴⍵}
+        Mat←{2=≢⍴⍵}
+        String←Simple∧Char∧Vec
+        Table←Mat>0∊(String∨Simple∧Scal∧Num∨Null)¨
+        Lead0←0∊⍴
+        :EndSection
+          Ser←{
+              (Simple∧Scal)⍵:Repr ⍵
+              Scal ⍵:ec,∇⊃⍵
+         
+              Self←⊂nl,⍨∇
+              
+              (Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
+              Table ⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ Ser¨⍵
+              HiRank ⍵:Self⍤¯1 _Sub_ os cs⊢⍵
+              Nested ⍵:Self¨_Sub_ or cr⊢⍵
+         
+              Vec1 ⍵:or,(∇⊃⍵),di cr
+         
+              (Basic∨Scal)⍵:Repr ⍵
+              ∧/Basic¨⍵:sp Join(6≤≢)_Paren_ Repr¨⍵
+         
+              Self¨_Sub_ or cr⊢⍵ ⍝ hetero
+          }
+    :EndNamespace
+      Serialise←{
+          ⍺←0
+          code←serialise.Ser ⍵
+          split←{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT code
+     
+          1=⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
+     
+          spaces←⌊|⍺+2×0=⍺
+          fmt←⎕FMT'''[^'']+''' '\[[^][]+\]' '\([^)(]+\)'⎕R''⍣≡code
+          delta←¯1⌽+/fmt∊'(['
+          delta-←+/fmt∊')]'
+          ind←spaces×+\delta
+          ind{⍵,⍨⍺⍴''}¨split
+      }
 
       Deserialise←{ ⍝ Convert text to array
           ⍺←1 ⍝ 1=execute expression; 0=return expression
@@ -427,6 +410,45 @@
               [2 7 1
               2 8]]
           }Is Ed 2 2 3⍴3 0 0 1 5 9 2 7 1 2 8 0
+          {
+              [
+              [
+              [
+              1 2 3
+              4 5 6
+              ]
+              ]
+              ]
+          }Is Ed 1 1 2 3⍴1 2 3 4 5 6
+          {
+              [
+              [
+              [
+              1
+              ]
+              [
+              2
+              ]
+              ]
+              [
+              [
+              3
+              ]
+              [
+              4
+              ]
+              ]
+              [
+              [
+              5
+              ]
+              [
+              6
+              ]
+              ]
+              ]
+          }Is Ed 3 2 1 1⍴1 2 3 4 5 6
+     
       :EndSection
      
       :Section Empty
@@ -481,7 +503,7 @@
               m:{⍺-⍵}
               s:,∘(,',')((,',')∘,)
               o:⍣2)
-          }Is'p:{⍺+⍵}' 'm:{⍺-⍵}' 's:(,∘(,'',''))((,'','')∘,)' 'o:⍣2'
+          }Is'p:{⍺+⍵}' 'm:{⍺-⍵}' 's:(,∘(' '))((' ')∘,)' 'o:⍣2'
      
           {
               (v:(1 2 ⋄ 3))

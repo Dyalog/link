@@ -18,7 +18,7 @@
 
  ### `Serialise`
 
- This takes an array and returns a character vector of matrix representing the argument in array notation.
+ This takes an array and returns a vector of character vectors representing the argument in array notation.
 
  ```apl
  Serialise 2 2⍴⍳4
@@ -26,7 +26,7 @@
  Serialise '(1 2 3)(4 5)'
  ```
 
- An optional left argument of `1` may be specified to force return of a vector by using `⋄` to fuse lines.
+An optional left argument of `1` may be specified to force return of a vector by using `⋄` to fuse lines. Alternatively, a negative number may be given as left argument to specify how many spaces to indent the content of multi-line parenthesis/brackets (default is 2).
 
  ### `∆NS`
 
