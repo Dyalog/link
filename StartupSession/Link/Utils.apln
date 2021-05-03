@@ -1160,8 +1160,8 @@
       :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
       ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
       diff←0 3⍴⊂''
-      diff⍪←('→'),⍨((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
-      diff⍪←('←'),⍨(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
+      diff⍪←('?'),⍨((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
+      diff⍪←('?'),⍨(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
       filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
       mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
       :If ##.DEBUG ⋄ :AndIf mask[(⍸namemask)⍳(filemask/nameifile)]≢~(filemask/filesrc)CompareSource¨namesrc[filemask/nameifile] ⋄ Error'Internal error' ⋄ :EndIf
