@@ -1695,7 +1695,7 @@
           ⍝ must not use :With because of link issue #163
           r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
       :Else  ⍝ provide nice error message
-          r←∊'Error: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
+          r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
       :EndTrap
     ∇
 
