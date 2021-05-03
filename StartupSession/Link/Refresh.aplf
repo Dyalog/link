@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
-         :If 0∊⍴links←U.GetLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         :If 0∊⍴links←U.ErrorIfRestored U.GetLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
          opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
          ok←ko←⍬

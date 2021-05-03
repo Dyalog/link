@@ -1,4 +1,4 @@
- status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML
+ status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML;mask
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -39,6 +39,10 @@
              status,←(⊂'Paused'),Watcher.Paused¨links
          :EndIf
      :EndHold
+     :If 0≠≢links
+     :AndIf ∨/mask←{0=⍵.⎕NC'restored':0 ⋄ ⍵.restored}¨links
+          status,⍨←(⊂'Comments'),'' 'Link.Resync required'[1+mask]
+     :EndIf
  :Else
      U.Resignal 1
  :EndTrap

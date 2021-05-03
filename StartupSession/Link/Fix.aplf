@@ -33,6 +33,8 @@ NOHOLD:
          :If ~linked←~0∊⍴link←links U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
          :If ~U.IsNamedRef nsref ⋄ U.Error'Not a properly named namespace: ',ns ⋄ :EndIf
 
+         U.ErrorIfRestored links  ⍝ now that we know we're dealing with a linked namespace, allow error
+
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src
 
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
