@@ -44,7 +44,7 @@
               ~Scal ⍵:⎕SIGNAL 999
               Ns ⍵
           }
-        ∇ repr←Ns ref;name;names;code;ser;ind
+        ∇ repr←Ns ref;name;names;code;ser;ind;xr;nr
           :Trap 0
               repr←or,(Join ⎕SRC ref),cr
           :Else
@@ -63,7 +63,9 @@
                   :CaseList 3.2 4.2
                       repr,←1↓':'@(<\'←'=⊢)code
                   :CaseList 3.3 4.3
-                      repr,←name,':',1↓¯1↓(183 ref.⌶Tacit ref.⎕NR)name
+                      xr←183 ref.⌶name
+                      nr←ref.⎕NR name
+                      repr,←name,':',{1↓¯1↓⍵}⍣(⍬≢⍴xr)⊢xr Tacit nr
                   :Else
                       repr,←name,':',Ser ref⍎name
                   :EndSelect
@@ -75,9 +77,10 @@
         ∇
           Tacit←{
               2 9∊⍨⊂⍺:Ser ⍵        ⍝ array
-              0≠≡⍺:∊or,(⍺ ∇¨⍵),cr  ⍝ derv
-              ⍬≡⍴⍵:⍵               ⍝ primitive
-              code←Join ⍵
+              ⍬≢⍴⍺:∊or,(⍺ ∇¨⍵),(']'/⍨'['≡2⊃⍵),cr  ⍝ derv
+              (3 1)(4 1)∊⍨⊂⍺,≢⍵:⍵  ⍝ primitive
+              0=≢⍵:11 ⎕SIGNAL⍨'Cannot represent external or locked functions'
+              code←Join⊆⍵
               '}'=⊃⌽⊃⌽⍵:code       ⍝ dfn
               '(∇',code,nl,'∇)'    ⍝ tradfn
           }
@@ -106,7 +109,7 @@
               Scal ⍵:ec,∇⊃⍵
          
               Self←⊂nl,⍨∇
-              
+         
               (Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
               Table ⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ Ser¨⍵
               HiRank ⍵:Self⍤¯1 _Sub_ os cs⊢⍵
