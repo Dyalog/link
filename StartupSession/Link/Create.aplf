@@ -106,6 +106,7 @@
              U.Error'Unknown source setting:'opts.source
          :EndSelect
          opts.fastLoad←0  ⍝ fastLoad is observed only at load (FixFiles) time - affects U.DetermineAplName
+         opts.restored←0  ⍝ set by WSLoaded
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
          Watcher.Watch opts  ⍝ first crawler may call Notify

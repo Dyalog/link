@@ -2256,10 +2256,9 @@
           res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
           ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
           assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
-          res←ride.APL'⎕SE.Link.Resync ',name
-          assert'res≡''Unlinked: '',name,NL'
-          res←ride.APL']link.create ',name,' ',folder,' -casecode'
-          assert'∨/''Linked:''⍷res'
+          res←ride.APL'''{proceed:1}''⎕SE.Link.Resync ',name
+          assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
+          assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
           {}(⊂ns1←'   :Namespace   ns1   ' '   :EndNamespace   ')QNPUT folder,'/ns1.aplf'
           ride.Edit(name,'.Func2')(func2←¯2↓¨'  res  ←  Func2  arg2 ' '  res  ←  arg2  ')  ⍝ editor does not support trailing whitespace
           assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
