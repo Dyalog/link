@@ -1851,23 +1851,23 @@
       names←,⍉namespaces∘.,'' '.var' '.foo' '.ns'
       garbfiles←¯2↑files ⋄ vars←2↑2↓names ⋄ varfiles←2↑2↓files
       exp←(⊂''),[1.5]1↓files  ⍝ root namespace was created
-      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''dir''}'⎕SE.Link.Refresh name
       exp←(⊂''),[1.5]garbfiles  ⍝ these files will always differ
-      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       ⎕EX name
       assertError'⎕SE.Link.Diff name' 'Not Linked:'
       {}'{watch:''none''}'⎕SE.Link.Create name folder
-      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       3 ⎕NDELETE folder
       exp←(names~vars),[1.5](⊂'')
-      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''ns''}'⎕SE.Link.Refresh name
       assert'~∨/⎕NEXISTS folders,¨⊂''/var.apla'''  ⍝ refresh doesn't update variables
       assert'0∊⍴⎕SE.Link.Diff name'
       opts←⎕NS ⍬ ⋄ opts.arrays←1
       exp←vars,[1.5](⊂'')  ⍝ force diffing arrays
-      assert'({⍵[⍋⍵;]}2↑[2]opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       3 ⎕MKDIR folders  ⍝ for hidden folder too
       {}(⊂⎕SE.Dyalog.Array.Serialise 4 5 6)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
       {}(⊂'res←foo arg' 'res←arg arg')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/foo.aplf'
@@ -1877,16 +1877,16 @@
       filemask←(~files∊varfiles,folders,¨'/')∧(~files∊garbfiles)
       namemask←(~names∊vars,namespaces)
       exp←((⊂''),[1.5]garbfiles)⍪((namemask/names),[1.5](filemask/files))
-      assert'({⍵[⍋⍵;]}2↑[2]⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       exp⍪←vars,[1.5]varfiles
       opts.arrays←vars
-      assert'({⍵[⍋⍵;]}2↑[2]opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}⎕SE.Link.Break name
      
       ⎕EX name
       (ns←⎕NS ⍬)NSMOVE #
       z←⎕SE.UCMD']link.create # ',folder
-      diff←2↑[2]#.{⎕SE.Link.Diff ⍵}⍬
+      diff←{⍵[;2 3]}#.{⎕SE.Link.Diff ⍵}⍬
       exp←(⊂''),[1.5]folder∘,¨'/garbage.aplf' '/sub/garbage.aplf'
       ⍝ The following line is due to Mantis 18970
       exp⍪←(2×~⎕SE.Link.U.IS181)↓'#.ns' '#.sub.ns' '' '',[1.5]'' '',folder∘,¨'/ns.apln' '/sub/ns.apln'
@@ -2240,26 +2240,28 @@
       'link issue #247'assert'(,(↑func1),NL)≡ride.APL''↑⎕NR ''''',name,'.Func1'''' ''  '
       assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.Diff ',name,''' '  ⍝ ensure ⎕SE.Link.Diff harmless when watch=ns
      
-      {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
-      {}ride.APL')SAVE "',folder,'/linked_workspace.dws"'
-      res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
-      ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
-      assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
-      res←ride.APL'⎕SE.Link.Resync ',name
-      assert'res≡''Unlinked: '',name,NL'
-      res←ride.APL']link.create ',name,' ',folder,' -casecode'
-      assert'∨/''Linked:''⍷res'
-      {}(⊂ns1←'   :Namespace   ns1   ' '   :EndNamespace   ')QNPUT folder,'/ns1.aplf'
-      ride.Edit(name,'.Func2')(func2←¯2↓¨'  res  ←  Func2  arg2 ' '  res  ←  arg2  ')  ⍝ editor does not support trailing whitespace
-      assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
-      assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
+      :If ⎕SE.Link.U.HASSTORE
+          {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
+          {}ride.APL')SAVE "',folder,'/linked_workspace.dws"'
+          res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
+          ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
+          assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
+          res←ride.APL'⎕SE.Link.Resync ',name
+          assert'res≡''Unlinked: '',name,NL'
+          res←ride.APL']link.create ',name,' ',folder,' -casecode'
+          assert'∨/''Linked:''⍷res'
+          {}(⊂ns1←'   :Namespace   ns1   ' '   :EndNamespace   ')QNPUT folder,'/ns1.aplf'
+          ride.Edit(name,'.Func2')(func2←¯2↓¨'  res  ←  Func2  arg2 ' '  res  ←  arg2  ')  ⍝ editor does not support trailing whitespace
+          assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
+          assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
+      :EndIf
      
       ⍝ link issue #259
-      ∘∘∘
-      {}ride.APL')CLEAR'     
+      {}ride.APL')CLEAR'
       {}ride.APL']Link.Create # ',folder
       {}ride.APL']Link.Create ',name,' ',folder
-      res←ride.APL')CLEAR'     
+      res←ride.APL')CLEAR'
+      'link issue #259'assert'res≡''clear ws'',NL'
       CleanUp folder name
       ok←1
     ∇
