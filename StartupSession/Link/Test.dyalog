@@ -712,11 +712,11 @@
       assert'0=ns.⎕NC ''nil'''
       _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
-      
+     
       '()'⎕NPUT folder,'/array.apla'
       'link issue #260'assert name,'≡',name,'.array.##'
-
-      'link issue #263'assert '''No link to break''≡⎕SE.Link.Break ⍬'
+     
+      'link issue #263'assert'''No link to break''≡⎕SE.Link.Break ⍬'
      
       CleanUp folder name
       ok←1
@@ -1836,17 +1836,17 @@
       'link issue #251'assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
       ⎕NDELETE folder,'/SubNs1-11/foo.dyalog'
       ⎕SE.Link.Expunge name
-      
+     
       ⍝ link issue #261
-      {}⎕SE.Link.Create name folder      
-      'link issue #261' assertError '⎕SE.Link.Status 42' 'Not a linked namespace'
+      {}⎕SE.Link.Create name folder
+      'link issue #261'assertError'⎕SE.Link.Status 42' 'Not a linked namespace'
      
       CleanUp folder name
       ok←1
     ∇
 
 
-    ∇ ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z
+    ∇ ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z;newvars;aplvars
       3 ⎕MKDIR folder
       {}'{watch:''none''}'⎕SE.Link.Create name folder
       assert'0∊⍴⎕SE.Link.Diff name'
@@ -1869,27 +1869,35 @@
       assertError'⎕SE.Link.Diff name' 'Not Linked:'
       {}'{watch:''none''}'⎕SE.Link.Create name folder
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
-      3 ⎕NDELETE folder
+      3 ⎕NDELETE folder  
+     (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
       exp←(names~vars),[1.5](⊂'')
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''ns''}'⎕SE.Link.Refresh name
       assert'~∨/⎕NEXISTS folders,¨⊂''/var.apla'''  ⍝ refresh doesn't update variables
       assert'0∊⍴⎕SE.Link.Diff name'
       opts←⎕NS ⍬ ⋄ opts.arrays←1
-      exp←vars,[1.5](⊂'')  ⍝ force diffing arrays
+      exp←(vars,aplvars),[1.5](⊂'')  ⍝ force diffing arrays
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      opts.arrays←0
+      3 ⎕MKDIR folders
+      {}(⊂⎕SE.Dyalog.Array.Serialise 4 5 6)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
+      {}(⊂⎕SE.Dyalog.Array.Serialise 7 8 9)∘{⍺ QNPUT ⍵ 1}¨newvars←folders,¨⊂'/newvar.apla'
+      exp←(vars,'' ''),[1.5](varfiles,1 0 1/newvars)  ⍝ arrays with files must always be diffed
+      assert'({⍵[⍋⍵;]}{⍵[;2 3]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
+      ⎕NDELETE newvars
       3 ⎕MKDIR folders  ⍝ for hidden folder too
       {}(⊂⎕SE.Dyalog.Array.Serialise 4 5 6)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
       {}(⊂'res←foo arg' 'res←arg arg')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/foo.aplf'
       {}(⊂':Namespace ns ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/ns.apln'
       {}(⊂'!TOTAL!GARBAGE!AGAIN!;;;')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.aplf'
       {}(⊂':Namespace garbage ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.ini'
-      filemask←(~files∊varfiles,folders,¨'/')∧(~files∊garbfiles)
-      namemask←(~names∊vars,namespaces)
+      filemask←(~files∊folders,¨'/')∧(~files∊garbfiles)
+      namemask←(~names∊namespaces)
       exp←((⊂''),[1.5]garbfiles)⍪((namemask/names),[1.5](filemask/files))
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
-      exp⍪←vars,[1.5]varfiles
-      opts.arrays←vars
+      exp⍪←aplvars,[1.5]⊂''
+      opts.arrays←aplvars
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}⎕SE.Link.Break name
      

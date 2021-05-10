@@ -1,6 +1,7 @@
 # Link Release Notes
 
  ## Version 2.1
+  - Dyalog APL v18.0 or newer is required
   - When specifying a directory, a trailing slash is reserved for future extension
   - Public functions now throw errors rather than return an error message when they fail.
   - [Link.Pause](Link.Pause.md) has been added
