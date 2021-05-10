@@ -130,17 +130,18 @@
       :EndIf
     ∇
 
-    ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts
+    ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts;nc2;aplsrc
       compsrc←0 ⋄ changed←0
-      (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
-      :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
-      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly (arrays only)
+      (name2 parent nc2 file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
+      :If 0=nc←ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
+      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly
       :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
       :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
       :EndIf
       :If compsrc ⋄ ⍝ need a closer look
           :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
-          changed←~filesrc CompareSource ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+          aplsrc←ns GetAplSource name
+          changed←~CompareSource aplsrc filesrc nc nc2  ⍝ compare source to be sure - will return 1 where whitespace not preserved
       :EndIf
     ∇
 
@@ -1133,14 +1134,19 @@
       :EndIf
     ∇
 
-    ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
+    ∇ match←CompareSource(src1 src2 nc1 nc2);name1;name2;ns;ns1;ns2
       :If ~match←src1≡src2  ⍝ source may possibly differ
-      :AndIf ~IS181    ⍝ cannot preserve source as typed
-          ⍝ double-check that descanned versions match
-          (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
-      :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
-      :AndIf match←name1≡name2  ⍝ if names differ then sources differ
-          match←(ns1.⎕NR name1)≡(ns2.⎕NR name2)  ⍝ compare descanned versions
+          :If ~IS181    ⍝ cannot preserve source as typed
+          :AndIf ∨/3.1 3.2 4.1 4.2∊nc1,nc2  ⍝ attempting to compare functions
+               ⍝ double-check that descanned versions match
+              (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
+          :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
+          :AndIf match←name1≡name2  ⍝ if names differ then sources differ
+              match←≡/(ns1 ns2).⎕NR name1 name2  ⍝ compare descanned versions
+          :EndIf
+          :If 2.1∊nc1,nc2  ⍝ attempting to compare arrays
+              match←≡/⎕SE.Dyalog.Array.(Serialise∘Deserialise)¨src1 src2 ⍝ compare "canonical" representation
+          :EndIf
       :EndIf
     ∇
 
@@ -1189,7 +1195,7 @@
           namemask∧←arrays∨mask\tocheck  ⍝ arrays, unscripted namespaces and directories remain to be compared by source
       :EndIf ⍝
       ⍝ remaining files are not associated - compare source directly
-      mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
+      mask←~CompareSource¨↓⍉↑(namemask/namesrc)(filesrc[namemask/fileiname])(namemask/namenc)(filenc[namemask/fileiname])
       diff⍪←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'Sources differ'
     ∇
 
