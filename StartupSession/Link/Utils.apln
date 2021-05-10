@@ -408,6 +408,7 @@
     ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
           :If 9=⎕NC'ns' ⋄ r←ns ⋄ :Return ⋄ :EndIf ⍝ already a ref
           r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
+          ns←,⍕ns   ⍝ issue #261
           ns←('⎕THIS\.' '\.⎕THIS'⎕R'' '')ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
           :If ns≡'⎕THIS'
               :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing

@@ -9,8 +9,11 @@
 
          :If ×≢ns
              where←1⊃⎕RSI ⎕XSI U.ContainerNs ⍬         ⍝ ref to container
-         :AndIf ~0∊⍴ref←where(0 U.GetRefTo)ns
-             links←links U.LookupLinks ref  ⍝ links that are children of ns
+             :If ~0∊⍴ref←where(0 U.GetRefTo)ns
+                 links←links U.LookupLinks ref  ⍝ links that are children of ns
+             :Else
+                 U.Error'Not a linked namespace: ',,⍕ns
+             :EndIf
          :EndIf
          :If 0=≢links
              status←'No active links in ',⍕ns
@@ -41,7 +44,7 @@
      :EndHold
      :If 0≠≢links
      :AndIf ∨/mask←{0=⍵.⎕NC'restored':0 ⋄ ⍵.restored}¨links
-          status,⍨←(⊂'Comments'),'' 'Link.Resync required'[1+mask]
+         status,⍨←(⊂'Comments'),'' 'Link.Resync required'[1+mask]
      :EndIf
  :Else
      U.Resignal 1

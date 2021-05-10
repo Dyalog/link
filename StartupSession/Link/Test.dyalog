@@ -1832,7 +1832,12 @@
       {}(⊂'res←foo arg' 'res←arg arg')QNPUT folder,'/SubNs1-11/foo.dyalog'  ⍝ clashes with SubNs1.foo
       opts←⎕NS ⍬ ⋄ opts.caseCode←1 ⋄ opts.source←'dir' ⋄ opts.fastLoad←1
       'link issue #251'assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
+      ⎕NDELETE folder,'/SubNs1-11/foo.dyalog'
       ⎕SE.Link.Expunge name
+      
+      ⍝ link issue #261
+      {}⎕SE.Link.Create name folder      
+      'link issue #261' assertError '⎕SE.Link.Status 42' 'Not a linked namespace'
      
       CleanUp folder name
       ok←1
