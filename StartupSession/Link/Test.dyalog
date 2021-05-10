@@ -715,6 +715,8 @@
       
       '()'⎕NPUT folder,'/array.apla'
       'link issue #260'assert name,'≡',name,'.array.##'
+
+      'link issue #263'assert '''No link to break''≡⎕SE.Link.Break ⍬'
      
       CleanUp folder name
       ok←1
