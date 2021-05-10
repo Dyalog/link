@@ -712,6 +712,9 @@
       assert'0=ns.⎕NC ''nil'''
       _←QNDELETE folder,'/foo.dyalog'
       assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
+      
+      '()'⎕NPUT folder,'/array.apla'
+      'link issue #260'assert name,'≡',name,'.array.##'
      
       CleanUp folder name
       ok←1

@@ -717,7 +717,7 @@
               :Return  ⍝ trad ns created
           :EndIf
           :Trap 0
-              name where.{⍎⍺,'←⍵'}⎕SE.Dyalog.Array.Deserialise src  ⍝ array
+              name where.{⍎⍺,'←⎕SE.Dyalog.Array.Deserialise ⍵'} src  ⍝ array materialised in its namespace
               nc←where NameClass name
           :Else
               name←'' ⋄ nc←0  ⍝ unknown
