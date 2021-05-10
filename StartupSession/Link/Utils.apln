@@ -1,906 +1,909 @@
 ﻿:Namespace U ⍝ Utilities
     ⎕IO ⎕ML←1 1
-
+    
     :Section Constants
-    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
-    DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
-    IS180←18.0≤DYALOGVERSION
-    IS181←18.1≤DYALOGVERSION
-    Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
+        ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
+        DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
+        IS180←18.0≤DYALOGVERSION
+        IS181←18.1≤DYALOGVERSION
+        Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
         HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
-    ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
-      :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
-      :Else ⋄ d←##.DEBUG
-      :EndIf
-    ∇
-    LASTFIX←⍬  ⍝ remember last onFix event
+        ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
+          :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
+          :Else ⋄ d←##.DEBUG
+          :EndIf
+        ∇
+        LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
-
-
+    
+    
     :Section APL covers
-      OnEach←{ ⍝ ¨ without prototype call on empty
-          0∊⍴⍵:⍵   ⍝ if empty return empty
-          ⍺←⊢      ⍝ ambivalent
-          1:_←⍺ ⍺⍺¨⍵   ⍝ shy call
-      }
+        OnEach←{ ⍝ ¨ without prototype call on empty
+            0∊⍴⍵:⍵   ⍝ if empty return empty
+            ⍺←⊢      ⍝ ambivalent
+            1:_←⍺ ⍺⍺¨⍵   ⍝ shy call
+        }
     :EndSection
-
-
+    
+    
     :Section Stack Frames      ⍝ Tacit necessary to avoid them
-    Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('EM' EM)('Message'(Message,⍺)))}
+        Resignal←⎕SIGNAL{⍺←'' ⋄ ⍵/⊂⎕DMX.(('EN'(EN+11×EN=0))('EM' EM)('Message'(Message,⍺)))}
         Check←{⍺←0⋄⍺}⍴⍨¯1∊∘⎕NC⊢⊆⍨'/'≠⊢ ⍝ leave early if any bad name
-    If←⍴⍨
-    ERRNO←501              ⍝ official API error number
+        If←⍴⍨
+        ERRNO←501              ⍝ official API error number
 ⍝    LinkCall←{((≢⎕XSI)⌊1++/∧\## IsParent¨⎕RSI)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link or any subnamespace
-    LinkCall←{((≢⎕XSI)⌊1++/∧\⎕RSI∊⎕SE.Link ⎕SE.Link.U ⎕SE.Link.Watcher)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link or any subnamespace
+        LinkCall←{((≢⎕XSI)⌊1++/∧\⎕RSI∊⎕SE.Link ⎕SE.Link.U ⎕SE.Link.Watcher)⊃⎕XSI}  ⍝ outer call into ⎕SE.Link or any subnamespace
     :EndSection
-
-
-
+    
+    
+    
     :Section Strings
-    ∇ hascase←_InitCase
-      :If hascase←{2::0 ⋄ 1⊣1 ⎕C'A'}⍬
-          CaseText←{(¯1+2×⍺)⎕C ⍵}           ⍝ Upper/Lower case
-      :Else
-          CaseText←{⍺(819⌶)⍵}               ⍝ Upper/Lower case
-      :EndIf
-    ∇
-    HASCASE←_InitCase
-    Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}                ⍝ Shortest string in list
+        ∇ hascase←_InitCase
+          :If hascase←{2::0 ⋄ 1⊣1 ⎕C'A'}⍬
+              CaseText←{(¯1+2×⍺)⎕C ⍵}           ⍝ Upper/Lower case
+          :Else
+              CaseText←{⍺(819⌶)⍵}               ⍝ Upper/Lower case
+          :EndIf
+        ∇
+        HASCASE←_InitCase
+        Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}                ⍝ Shortest string in list
     ⍝Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join ⍺ and ⍵ using ⍺⍺
-    JoinList←{⊃,/1↓,(⊂⍺⍺),[1.5],⍵}          ⍝ Join list of items with ⍺⍺
-    JoinEach←{,/⍺,⍺⍺,[1.5]⍵}                ⍝ Join¨
-    Slash←∊∘'/\'                            ⍝ Mark slashes
-    Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
-    TilLast←{⍵↓⍨-⍺⍳⍨⌽⍵}
-    Path←'/'∘TilLast                        ⍝ Until last slash
-    Parent←'.'∘TilLast                      ⍝ Until last dot
-    PadThis←{⍵,'⎕THIS'/⍨0=≢⍵}               ⍝ Default path to here
-    NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
-    Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
-    WinSlash←'\'@Slash⍣ISWIN                ⍝ force windows slashes only on windows machines
-    DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
+        JoinList←{⊃,/1↓,(⊂⍺⍺),[1.5],⍵}          ⍝ Join list of items with ⍺⍺
+        JoinEach←{,/⍺,⍺⍺,[1.5]⍵}                ⍝ Join¨
+        Slash←∊∘'/\'                            ⍝ Mark slashes
+        Parts←{⍵⊆⍨~Slash ⍵}                     ⍝ Path parts
+        TilLast←{⍵↓⍨-⍺⍳⍨⌽⍵}
+        Path←'/'∘TilLast                        ⍝ Until last slash
+        Parent←'.'∘TilLast                      ⍝ Until last dot
+        PadThis←{⍵,'⎕THIS'/⍨0=≢⍵}               ⍝ Default path to here
+        NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
+        Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
+        WinSlash←'\'@Slash⍣ISWIN                ⍝ force windows slashes only on windows machines
+        DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
         Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
-    List←{∊{' ',⍕⍵}¨⍵}
-      Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
-          lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
-          ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
-      }
-    HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
-    FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
-    FmtLines←(⎕UCS 13)∘{∊⍺,∘⍕¨⍵}             ⍝ join with newlines (including a leading one)
-
+        List←{∊{' ',⍕⍵}¨⍵}
+        Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
+            lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
+            ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
+        }
+        HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
+        FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
+        FmtLines←(⎕UCS 13)∘{∊⍺,∘⍕¨⍵}             ⍝ join with newlines (including a leading one)
+        
     :EndSection
-
-
+    
+    
     :Section Covers for I-beams and other built-ins
-    CurrentFileName←{4⊃⍺.(5179⌶)⍵}   ⍝ Return current file name tied to apl name ⍵ in namespace ⍺
-    CurrentHash←{7⊃⍺.(5179⌶)⍵}       ⍝ Return current hash of tied file
-    Where←{⍵⌿⍺}                      ⍝ Filter as function
-    GetFileInfo←{5174⌶⍵}             ⍝ Return links to file
-      GetFile←{
-          11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
-          ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
-      }
-    ∇ {ok}←ns Untie name;nc;src
-      :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
-          Error src
-      :EndIf
-      {}ns.(5178⌶)name   ⍝ mants 18606 : ⎕FIX∘⎕SRC may leave ghost ties
-      nc←2⊃ns Fix name src 1
-      ok←~nc∊0 ¯1
-    ∇
-
-    ∇ res←(Fn EachUnique)arg;inx;mask;unq
-      unq←(mask←(inx←⍳⍨arg)=(⍳⍴arg))/arg
-      res←(Fn¨unq)[(+\mask)[inx]]
-    ∇
-    ∇ (names parents scriptitems)←GetFileTiesIn rootns;all;allrefs;mask;parents;r;t;urefs
+        CurrentFileName←{4⊃⍺.(5179⌶)⍵}   ⍝ Return current file name tied to apl name ⍵ in namespace ⍺
+        CurrentHash←{7⊃⍺.(5179⌶)⍵}       ⍝ Return current hash of tied file
+        Where←{⍵⌿⍺}                      ⍝ Filter as function
+        GetFileInfo←{5174⌶⍵}             ⍝ Return links to file
+        GetFile←{
+            11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
+            ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
+        }
+        ∇ {ok}←ns Untie name;nc;src
+          :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
+              Error src
+          :EndIf
+          {}ns.(5178⌶)name   ⍝ mants 18606 : ⎕FIX∘⎕SRC may leave ghost ties
+          nc←2⊃ns Fix name src 1
+          ok←~nc∊0 ¯1
+        ∇
+        
+        ∇ res←(Fn EachUnique)arg;inx;mask;unq
+          unq←(mask←(inx←⍳⍨arg)=(⍳⍴arg))/arg
+          res←(Fn¨unq)[(+\mask)[inx]]
+        ∇
+        ∇ (names parents scriptitems)←GetFileTiesIn rootns;all;allrefs;mask;parents;r;t;urefs
      ⍝ Find all file system links to objects below rootns
-      allrefs←2⊃¨all←5177⌶⍬
-      t←urefs←∪allrefs
-      mask←(≢urefs)⍴0
-      :If 0≠≢t ⋄ :Repeat
-              mask∨←(⍕¨t)∊(⊂⍕rootns) ⍝ Have we reached rootns?  - ⍕ because of mantis 18147
-              :If t≡t.## ⋄ :Leave ⋄ :EndIf  ⍝ continue until everything is root
-              t←t.##         ⍝ Move all pointers up to parent
-          :EndRepeat ⋄ :EndIf
-      :If 0=≢r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
-          names←0⍴⊂'' ⋄ parents←0⍴# ⋄ scriptitems←⍬
-      :Else
-          names←⍕¨1⊃¨r
-          parents←⍎¨⍕¨2⊃¨r ⍝ need ⍎¨⍕¨ because of mantis 18147
-          scriptitems←IsScripted EachUnique parents  ⍝ parent is scripted → item is a script item
-      :EndIf
-    ∇
-    ∇ r←RemoveFileTiesIn rootns;names;parents;scriptitems
+          allrefs←2⊃¨all←5177⌶⍬
+          t←urefs←∪allrefs
+          mask←(≢urefs)⍴0
+          :If 0≠≢t ⋄ :Repeat
+                  mask∨←(⍕¨t)∊(⊂⍕rootns) ⍝ Have we reached rootns?  - ⍕ because of mantis 18147
+                  :If t≡t.## ⋄ :Leave ⋄ :EndIf  ⍝ continue until everything is root
+                  t←t.##         ⍝ Move all pointers up to parent
+              :EndRepeat ⋄ :EndIf
+          :If 0=≢r←(allrefs∊mask/urefs)/all ⍝ selection of 5177⌶⍬
+              names←0⍴⊂'' ⋄ parents←0⍴# ⋄ scriptitems←⍬
+          :Else
+              names←⍕¨1⊃¨r
+              parents←⍎¨⍕¨2⊃¨r ⍝ need ⍎¨⍕¨ because of mantis 18147
+              scriptitems←IsScripted EachUnique parents  ⍝ parent is scripted → item is a script item
+          :EndIf
+        ∇
+        ∇ r←RemoveFileTiesIn rootns;names;parents;scriptitems
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
      ⍝ Return number of links broken
-      (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
+          (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
       ⍝ there might be some orphaned script items - interpreter must forget about them
       ⍝ do it first because of mantis 18606
-      :If 1∊scriptitems ⍝ script items are simply untied
-          {}(scriptitems/parents){⍺.(5178⌶)⍵}¨(scriptitems/names)
-      :EndIf
-      :If 0∊scriptitems  ⍝ scripts are more complicated because of Mantis 18148
-          r←+/((~scriptitems)/parents)Untie¨((~scriptitems)/names)
-      :Else
-          r←0
-      :EndIf
-    ∇
-
-    ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts
-      compsrc←0 ⋄ changed←0
-      (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
-      :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
-      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly (arrays only)
-      :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
-      :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
-      :EndIf
-      :If compsrc ⋄ ⍝ need a closer look
-          :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
-          changed←~filesrc CompareSource ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
-      :EndIf
-    ∇
-
-    ∇ r←ViewMetaData mode
+          :If 1∊scriptitems ⍝ script items are simply untied
+              {}(scriptitems/parents){⍺.(5178⌶)⍵}¨(scriptitems/names)
+          :EndIf
+          :If 0∊scriptitems  ⍝ scripts are more complicated because of Mantis 18148
+              r←+/((~scriptitems)/parents)Untie¨((~scriptitems)/names)
+          :Else
+              r←0
+          :EndIf
+        ∇
+        
+        ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts
+          compsrc←0 ⋄ changed←0
+          (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
+          :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
+          :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly (arrays only)
+          :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
+          :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
+          :EndIf
+          :If compsrc ⋄ ⍝ need a closer look
+              :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
+              changed←~filesrc CompareSource ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+          :EndIf
+        ∇
+        
+        ∇ r←ViewMetaData mode
     ⍝ Experiemental function to inspect Link meta data.
     ⍝ For debugging only.
     ⍝ !!! DO NOT USE THIS function in application code!!!
-      r←5177⌶⍬
-      r←(~(8↑¨⍕¨2⊃¨r)∊⊂'⎕SE.Link')/r
-      r←r[⍋⍕⌽↑2↑¨r]
-     
-      :Select mode
-      :Case 'raw' ⋄ →0
-      :Case 'count' ⋄ r←(⍕¨2⊃¨r){⍺(≢⍵)}⌸1⊃¨r
-      :Case 'group' ⋄ r←(⍕¨2⊃¨r){⍺ ⍵}⌸1⊃¨r
-      :CaseList '' 'report'
-          r←↑4↑¨r
-          r[;1]←(⍕¨r[;2]),¨'.',¨r[;1]
-          r←r[;1 3 4]
-      :Else
-          'mode must be one of: raw count group report'⎕SIGNAL 11
-      :EndSelect
-    ∇
-
+          r←5177⌶⍬
+          r←(~(8↑¨⍕¨2⊃¨r)∊⊂'⎕SE.Link')/r
+          r←r[⍋⍕⌽↑2↑¨r]
+          
+          :Select mode
+          :Case 'raw' ⋄ →0
+          :Case 'count' ⋄ r←(⍕¨2⊃¨r){⍺(≢⍵)}⌸1⊃¨r
+          :Case 'group' ⋄ r←(⍕¨2⊃¨r){⍺ ⍵}⌸1⊃¨r
+          :CaseList '' 'report'
+              r←↑4↑¨r
+              r[;1]←(⍕¨r[;2]),¨'.',¨r[;1]
+              r←r[;1 3 4]
+          :Else
+              'mode must be one of: raw count group report'⎕SIGNAL 11
+          :EndSelect
+        ∇
+        
     :EndSection
-
-
-
+    
+    
+    
     :Section Files
-
-    ∇ path←Enslash path
-      path,←'/'/⍨~'/\'∊⍨⊃⌽path ⍝ append trailing slash if missing
-    ∇
-    ∇ path←Deslash path
-      path↓⍨←-+/∧\⌽path∊'/\'  ⍝ remove trailing slash
-    ∇
-    NormFile←{⍺<0=≢⍵:⍵ ⋄ ∊1⎕NPARTS ⍵}  ⍝ ⍺=1 : '' means current directory
-    ∇ dir←trail NormDir dir
-      dir←∊1 ⎕NPARTS dir            ⍝ normalise - '' means current dir
-      :If trail ⋄ dir←Enslash dir
-      :Else ⋄ dir←Deslash dir
-      :EndIf
-    ∇
-    ∇ mask←opts HasExtn files;act;exp;regex
-    ⍝ mask of files that have valid extensions
-      exp←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all interesting extensions
-      act←{1↓⊃⌽⎕NPARTS ⍵}¨,⊆files    ⍝ actual extensions
-      ⍝ regex special characters : .$^{[(|)*+?\
-      regex←'^' '$' '[\^\$]' '\*' '\?'⎕R'^' '$' '\\\0' '.*' '.'⊢exp ⍝ convert glob to regex
-      mask←1@(⎕IO+regex ⎕S 2⊢act)⊢(⍴act)⍴0
-      :If (1=≡,files)∨(0=⍴⍴files) ⋄ mask←⊃mask ⋄ :EndIf
-    ∇
-
-    ∇ files←opts FindFile file;files
-    ⍝ find a single file, allowing dotted extensions
-      :If ⎕NEXISTS file ⋄ files←,⊂,file ⋄ :Return ⋄ :EndIf  ⍝ file exists : fine
-      :Trap 0   ⍝ directory where file is may not exist at all
-          files←⊃0 ⎕NINFO⍠1⊢file,'.*'    ⍝ files with this name and an extension
-          files/⍨←opts HasExtn files     ⍝ files with valid extensions
-      :Else
-          files←0⍴⊂''
-      :EndTrap
-    ∇
-
-      Tail←{ ⍝ ⍺:typeExtensions; ⍵:nc
-          ¯9.1=⍵:'/'    ⍝ unscripted namespace are given name class ¯9.1
-          (types exts)←↓⍉⍺
-          exts,←⊂'dyalog'
-          exts,¨⍨←'.'
-          exts⊃⍨⌊/types⍳⍵,⌊⍵
-      }
-
-      ApplyOldExtn←{ ⍝ Correct new extension to .dyalog if old source exists
-          (dir name ext)←⎕NPARTS ⍵
-          ext≡'.dyalog':⍵
-          alt←dir,name,'.dyalog'
-          (⎕NEXISTS alt)>(⎕NEXISTS ⍵):alt
-          ⍵
-      }
-
-    SplitDir←{(~Slash ⍵)⊆⍵}
-    Ancestry←{,\(1@1⊢Slash ⍵)⊂⍵}    ⍝ {((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}   ⍝ ⍪⎕SE.Link.U.Ancestry¨ 'C:' '.' '',¨⊂'/a/bb/ccc'
-
-    FileHash←{2 ⎕NQ #'GetBuildID' ⍵}  ⍝ returns '00000000' if file doesn't exist
-
-    IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
-
-      Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
-          22::_←0                  ⍝ no file access
-          ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR ⍵  ⍝ writing traditional ns : just create directory
-          _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
-          11::_←1⊣(⊂⍺)⎕NPUT⊢⍵ 1        ⍝ overwrite - Dyalog v17.0 Unicode
-          1:_←1⊣(⊂⍺)⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1        ⍝ overwrite - Dyalog v17.1+ Classic
-      }
-
-    ∇ name←CaseCodePart name;bin;digits;len;⎕IO
-    ⍝ case-code a string
-      ⎕IO←0
-      →0 If 0=≢name  ⍝ empty name doesn't get case coded
-      bin←name≠0 CaseText name
-      len←⌈3÷⍨≢bin
-      digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
-      digits↓⍨←+/∧\0=digits
-      name,←'-',⎕D[digits,0/⍨⍬≡digits]
-    ∇
-    ∇ name←StripCaseCodePart name;code;length;mask;⎕IO
-    ⍝ strip case code from a string
-      ⎕IO←0
-      length←(⌽name)⍳'-'
-      →0 If length∊0,≢name   ⍝ case code must be after hyphen
-      code←⎕D⍳(-length)↑name
-      name←((-length+1)↓name)
-      →0 If code∨.>7         ⍝ case code must be octal digits
-      →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
-      mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
-      →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
-      name←((≢name)↑mask)CaseText¨name
-    ∇
-    ∇ name←(dir CaseCode flatten)name;ext;file;parts;path
-    ⍝ case-code a file located under linked dir
-      :If name≡dir ⋄ :Return ⋄ :EndIf  ⍝ would wrongfully cut name because of missing trailing slash
-      (path file ext)←1 ⎕NPARTS name
-      :If flatten  ⍝ case code file name only
-          file←CaseCodePart file
-          name←∊path file ext
-      :Else  ⍝ case code sub-directories too
-          path←(≢dir)↓path       ⍝ do not case-code linked directory
-          parts←(Parts path),⊂file
-          parts←CaseCodePart¨parts      ⍝ case-code each part of path independently
-          name←'/'JoinList(⊂dir),parts
-          name,←ext
-      :EndIf
-    ∇
-    ∇ name←(dir StripCaseCode flatten)name;ext;file;parts;path
-    ⍝ strip case code from a file name located under linked dir
-      :If ~'-'∊(≢dir)↓name  ⍝ no casecode
-      :OrIf name≡dir  ⍝ would wrongfully cut name because of missing trailing slash
-          :Return
-      :EndIf
-      (path file ext)←1 ⎕NPARTS name
-      :If flatten   ⍝ only file name is case coded
-          file←StripCaseCodePart file
-          name←∊path file ext
-      :Else  ⍝ sub-directories are case-coded
-          path←(≢dir)↓path       ⍝ do not case-code linked directory
-          parts←(Parts path),⊂file
-          parts←StripCaseCodePart¨parts      ⍝ case-code each part of path independently
-          name←'/'JoinList(⊂dir),parts
-          name,←ext
-      :EndIf
-    ∇
-
-    ∇ {r}←to Relocate from;i;nextfrom;nextto
-    ⍝ move list of files, updating file names as we go through the list
-      r←⍬
-      :While ~0∊⍴to
-          (nextto nextfrom)←⊃¨(to from) ⋄ (to from)↓⍨←1
-          :If nextto≢nextfrom
-              r,←nextto ⎕NMOVE nextfrom
-              from←(nextfrom ⎕R nextto)from  ⍝ update directories in particular
-          :Else ⋄ r,←1   ⍝ no need to copy
+        
+        ∇ path←Enslash path
+          path,←'/'/⍨~'/\'∊⍨⊃⌽path ⍝ append trailing slash if missing
+        ∇
+        ∇ path←Deslash path
+          path↓⍨←-+/∧\⌽path∊'/\'  ⍝ remove trailing slash
+        ∇
+        NormFile←{⍺<0=≢⍵:⍵ ⋄ ∊1⎕NPARTS ⍵}  ⍝ ⍺=1 : '' means current directory
+        ∇ dir←trail NormDir dir
+          dir←∊1 ⎕NPARTS dir            ⍝ normalise - '' means current dir
+          :If trail ⋄ dir←Enslash dir
+          :Else ⋄ dir←Deslash dir
           :EndIf
-      :EndWhile
-    ∇
-
+        ∇
+        ∇ mask←opts HasExtn files;act;exp;regex
+    ⍝ mask of files that have valid extensions
+          exp←opts.(codeExtensions,customExtensions,⊢/typeExtensions) ⍝ all interesting extensions
+          act←{1↓⊃⌽⎕NPARTS ⍵}¨,⊆files    ⍝ actual extensions
+      ⍝ regex special characters : .$^{[(|)*+?\
+          regex←'^' '$' '[\^\$]' '\*' '\?'⎕R'^' '$' '\\\0' '.*' '.'⊢exp ⍝ convert glob to regex
+          mask←1@(⎕IO+regex ⎕S 2⊢act)⊢(⍴act)⍴0
+          :If (1=≡,files)∨(0=⍴⍴files) ⋄ mask←⊃mask ⋄ :EndIf
+        ∇
+        
+        ∇ files←opts FindFile file;files
+    ⍝ find a single file, allowing dotted extensions
+          :If ⎕NEXISTS file ⋄ files←,⊂,file ⋄ :Return ⋄ :EndIf  ⍝ file exists : fine
+          :Trap 0   ⍝ directory where file is may not exist at all
+              files←⊃0 ⎕NINFO⍠1⊢file,'.*'    ⍝ files with this name and an extension
+              files/⍨←opts HasExtn files     ⍝ files with valid extensions
+          :Else
+              files←0⍴⊂''
+          :EndTrap
+        ∇
+        
+        Tail←{ ⍝ ⍺:typeExtensions; ⍵:nc
+            ¯9.1=⍵:'/'    ⍝ unscripted namespace are given name class ¯9.1
+            (types exts)←↓⍉⍺
+            exts,←⊂'dyalog'
+            exts,¨⍨←'.'
+            exts⊃⍨⌊/types⍳⍵,⌊⍵
+        }
+        
+        ApplyOldExtn←{ ⍝ Correct new extension to .dyalog if old source exists
+            (dir name ext)←⎕NPARTS ⍵
+            ext≡'.dyalog':⍵
+            alt←dir,name,'.dyalog'
+            (⎕NEXISTS alt)>(⎕NEXISTS ⍵):alt
+            ⍵
+        }
+        
+        SplitDir←{(~Slash ⍵)⊆⍵}
+        Ancestry←{,\(1@1⊢Slash ⍵)⊂⍵}    ⍝ {((¯1+⍵⍳'/')↑⍵)∘,¨,\('/'=⍵)⊂⍵}   ⍝ ⍪⎕SE.Link.U.Ancestry¨ 'C:' '.' '',¨⊂'/a/bb/ccc'
+        
+        FileHash←{2 ⎕NQ #'GetBuildID' ⍵}  ⍝ returns '00000000' if file doesn't exist
+        
+        IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
+        
+        Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
+            22::_←0                  ⍝ no file access
+            ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR ⍵  ⍝ writing traditional ns : just create directory
+            _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
+            11::_←1⊣(⊂⍺)⎕NPUT⊢⍵ 1        ⍝ overwrite - Dyalog v17.0 Unicode
+            1:_←1⊣(⊂⍺)⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1        ⍝ overwrite - Dyalog v17.1+ Classic
+        }
+        
+        ∇ name←CaseCodePart name;bin;digits;len;⎕IO
+    ⍝ case-code a string
+          ⎕IO←0
+          →0 If 0=≢name  ⍝ empty name doesn't get case coded
+          bin←name≠0 CaseText name
+          len←⌈3÷⍨≢bin
+          digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
+          digits↓⍨←+/∧\0=digits
+          name,←'-',⎕D[digits,0/⍨⍬≡digits]
+        ∇
+        ∇ name←StripCaseCodePart name;code;length;mask;⎕IO
+    ⍝ strip case code from a string
+          ⎕IO←0
+          length←(⌽name)⍳'-'
+          →0 If length∊0,≢name   ⍝ case code must be after hyphen
+          code←⎕D⍳(-length)↑name
+          name←((-length+1)↓name)
+          →0 If code∨.>7         ⍝ case code must be octal digits
+          →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
+          mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
+          →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
+          name←((≢name)↑mask)CaseText¨name
+        ∇
+        ∇ name←(dir CaseCode flatten)name;ext;file;parts;path
+    ⍝ case-code a file located under linked dir
+          :If name≡dir ⋄ :Return ⋄ :EndIf  ⍝ would wrongfully cut name because of missing trailing slash
+          (path file ext)←1 ⎕NPARTS name
+          :If flatten  ⍝ case code file name only
+              file←CaseCodePart file
+              name←∊path file ext
+          :Else  ⍝ case code sub-directories too
+              path←(≢dir)↓path       ⍝ do not case-code linked directory
+              parts←(Parts path),⊂file
+              parts←CaseCodePart¨parts      ⍝ case-code each part of path independently
+              name←'/'JoinList(⊂dir),parts
+              name,←ext
+          :EndIf
+        ∇
+        ∇ name←(dir StripCaseCode flatten)name;ext;file;parts;path
+    ⍝ strip case code from a file name located under linked dir
+          :If ~'-'∊(≢dir)↓name  ⍝ no casecode
+          :OrIf name≡dir  ⍝ would wrongfully cut name because of missing trailing slash
+              :Return
+          :EndIf
+          (path file ext)←1 ⎕NPARTS name
+          :If flatten   ⍝ only file name is case coded
+              file←StripCaseCodePart file
+              name←∊path file ext
+          :Else  ⍝ sub-directories are case-coded
+              path←(≢dir)↓path       ⍝ do not case-code linked directory
+              parts←(Parts path),⊂file
+              parts←StripCaseCodePart¨parts      ⍝ case-code each part of path independently
+              name←'/'JoinList(⊂dir),parts
+              name,←ext
+          :EndIf
+        ∇
+        
+        ∇ {r}←to Relocate from;i;nextfrom;nextto
+    ⍝ move list of files, updating file names as we go through the list
+          r←⍬
+          :While ~0∊⍴to
+              (nextto nextfrom)←⊃¨(to from) ⋄ (to from)↓⍨←1
+              :If nextto≢nextfrom
+                  r,←nextto ⎕NMOVE nextfrom
+                  from←(nextfrom ⎕R nextto)from  ⍝ update directories in particular
+              :Else ⋄ r,←1   ⍝ no need to copy
+              :EndIf
+          :EndWhile
+        ∇
+        
     :EndSection
-
-
-
-
-
+    
+    
+    
+    
+    
     :Section Namespaces
-
+        
     ⍝ Supported name classes
-    _NameClasses←2.1              ⍝ array
-    _NameClasses,←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
-    _NameClasses,←¯9.1 9.1 9.4 9.5   ⍝ ns/class/interface
-    NameClasses←{(~⍵)↓_NameClasses}  ⍝ 0=exclude arrays ⋄ 1=include arrays
-    NsSysVars← '⎕AVU'  '⎕CT'  '⎕DCT'  '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
-      ListNames←{⍺←1
-          ⎕CT←1E¯14  ⍝ to allow (0.6=1|9.6)
-          nc←⍵.⎕NC nl←⍵.⎕NL-⍳10
-          ((0≤nc)∧(~0.6 0.7∊⍨1|nc))/nl  ⍝ ignore OO attributes (in particular exposed Root properties - link issue #161) and ignore external objects (link issue #220)
-      }
-
-      IsScripted←{
-          0<≢# CurrentFileName ⍵:1          ⍝ tied namespaces are always scripted !!! tied scripted namespace where file is lost produce a pop up at ⎕SRC time !!!
-          16::0
-          1⊣⎕SRC ⍵
-      }
+        _NameClasses←2.1              ⍝ array
+        _NameClasses,←3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop
+        _NameClasses,←¯9.1 9.1 9.4 9.5   ⍝ ns/class/interface
+        NameClasses←{(~⍵)↓_NameClasses}  ⍝ 0=exclude arrays ⋄ 1=include arrays
+        NsSysVars← '⎕AVU'  '⎕CT'  '⎕DCT'  '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
+        ListNames←{⍺←1
+            ⎕CT←1E¯14  ⍝ to allow (0.6=1|9.6)
+            nc←⍵.⎕NC nl←⍵.⎕NL-⍳10
+            ((0≤nc)∧(~0.6 0.7∊⍨1|nc))/nl  ⍝ ignore OO attributes (in particular exposed Root properties - link issue #161) and ignore external objects (link issue #220)
+        }
+        
+        IsScripted←{
+            0<≢# CurrentFileName ⍵:1          ⍝ tied namespaces are always scripted !!! tied scripted namespace where file is lost produce a pop up at ⎕SRC time !!!
+            16::0
+            1⊣⎕SRC ⍵
+        }
         RootOf←{⍵.##}⍣≡
-    IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
-    SplitNs←{0≠⎕NC'⍺':∇(⍕⍺),'.',⍵ ⋄ t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots - ⍺ may be a namespace where ⍵ should be taken
-    JoinNames←{mask←⍺≡¨⍵ ⋄ (mask/⍵)@{mask}⍺('.'JoinEach)⍵}  ⍝ ⍺,¨'.',¨⍵, excepted when ⍺≡¨⍵ (e.g. DetermineAplName returns #.#)
-    IsParent←{p←⍵.## ⋄ ⍺∊p ⍵:1 ⋄ ⍵=p:0 ⋄ ⍺∇p }  ⍝ is ⍺ parent of ⍵
-
-    Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}             ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
-    _IsRootName←∊∘('#') (,'#') ('⎕SE')('⎕DMX')
+        IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
+        SplitNs←{0≠⎕NC'⍺':∇(⍕⍺),'.',⍵ ⋄ t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots - ⍺ may be a namespace where ⍵ should be taken
+        JoinNames←{mask←⍺≡¨⍵ ⋄ (mask/⍵)@{mask}⍺('.'JoinEach)⍵}  ⍝ ⍺,¨'.',¨⍵, excepted when ⍺≡¨⍵ (e.g. DetermineAplName returns #.#)
+        IsParent←{p←⍵.## ⋄ ⍺∊p ⍵:1 ⋄ ⍵=p:0 ⋄ ⍺∇p }  ⍝ is ⍺ parent of ⍵
+        
+        Execute←{⍺←⎕DMX.⎕NS⍬ ⋄ ⍺⍎⍵}             ⍝ safe execute (avoid clash with our stuff) ⋄ missing ⍺ requires fully qualified name
+        _IsRootName←∊∘('#') (,'#') ('⎕SE')('⎕DMX')
     ⍝_NAMECHAR←'#.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüþ∆⍙'
     ⍝_NAMECHAR,←⎕UCS (82≠⎕DR'')/(9397+⍳26)  ⍝ underscored alphabet for unicode
-    _NAMECHAR←35 46 48 49 50 51 52 53 54 55 56 57 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 95 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 216 217 218 219 220 221 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 250 251 252 254 9398 9399 9400 9401 9402 9403 9404 9405 9406 9407 9408 9409 9410 9411 9412 9413 9414 9415 9416 9417 9418 9419 9420 9421 9422 9423 8710 9049  ⍝ full list of legal name members
-    _NAMECHAR←⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢_NAMECHAR  ⍝ classic interpreter must pick from ⎕AVU
-    _IsNameChar←∊∘_NAMECHAR
-    ∇ ok←_IsAplName name;mask
+        _NAMECHAR←35 46 48 49 50 51 52 53 54 55 56 57 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 95 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 216 217 218 219 220 221 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 250 251 252 254 9398 9399 9400 9401 9402 9403 9404 9405 9406 9407 9408 9409 9410 9411 9412 9413 9414 9415 9416 9417 9418 9419 9420 9421 9422 9423 8710 9049  ⍝ full list of legal name members
+        _NAMECHAR←⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢_NAMECHAR  ⍝ classic interpreter must pick from ⎕AVU
+        _IsNameChar←∊∘_NAMECHAR
+        ∇ ok←_IsAplName name;mask
     ⍝ avoid executing any string when trying to reference a namespace with ⍎
-      :If ~ok←∧/mask←_IsNameChar name
+          :If ~ok←∧/mask←_IsNameChar name
           ⍝ allow ⎕SE and ⎕DMX in it
-          ok←∧/mask←mask∨('⎕SE.'⍷name)∨('⎕DMX.'⍷name)
-      :EndIf
-    ∇
+              ok←∧/mask←mask∨('⎕SE.'⍷name)∨('⎕DMX.'⍷name)
+          :EndIf
+        ∇
     ⍝IsRootName←{⍺←⊢ ⋄ _IsRootName ⊂⍵:1 ⋄ ~_IsAplName ⍵:0 ⋄ 0::0 ⋄ IsRoot ⍺ Execute ⍵}    ⍝ is name of a root
-    IsRootName←{6 11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, and fail with VALUE ERROR on non-existing names, ''∘⎕WG does it in current space which is not what we want
-    IsSpecialNC←∊∘¯1 9.1 9.2
-    ∇ nc←{nsref}NameClass name;parent;this
+        IsRootName←{6 11::0 ⋄ 0∊⍴⍵:0 ⋄ (⊂⍵ ⍺.⎕WG'Type')∊'Root' 'Session'}  ⍝ ⍵ is a name, ⍺ is a namespace - ⎕WG will fail with DOMAIN ERROR on '⎕DMX' and invalid names, and fail with VALUE ERROR on non-existing names, ''∘⎕WG does it in current space which is not what we want
+        IsSpecialNC←∊∘¯1 9.1 9.2
+        ∇ nc←{nsref}NameClass name;parent;this
     ⍝ safe name class (avoid clash with our stuff)
     ⍝ return ¯9.1 for trad ns that map to directories and not files
-      :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
-      :If this←∨/'⎕THIS'⍷name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-          name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')name
-          this←name≡'⎕THIS'
-      :EndIf
-      :If this ⋄ nc←⎕NC⊂'nsref'
-      :Else ⋄ nc←nsref.⎕NC⊂,name
-      :EndIf
-      :If ~IsSpecialNC nc
-          ⍝ done
-      :ElseIf 9.1=nc ⍝ that includes ⎕DMX
-      :AndIf ~IsScripted nsref⍎name
-          nc←¯9.1
-      :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
-      :AndIf nsref IsRootName name
-          nc←¯9.1
-      :ElseIf nc=¯1
-      :AndIf '⎕'∊name
-          (parent name)←SplitNs name
-      :AndIf (⊂name)∊NsSysVars           ⍝ name is a namespace system variable
-      :AndIf (0∊⍴parent)∨(9=⌊|nsref NameClass parent)  ⍝ parent is a valid namespace
-          nc←2.1  ⍝ namespace system variables are treated like arrays
-      :EndIf
-    ∇
-
-    ∇ n←UcmdStacks xsi
-      n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
-    ∇
-    ∇ (container ns)←rsi_xsi ContainerNs ns;n;xsi;rsi
-    ⍝ container is a reference, and namespace is fully qualified namespace name
-      (rsi xsi)←rsi_xsi
-      :If 9=⎕NC'ns'
-          (container ns)←#(⍕ns)
-      :Else
-          container←⊃(UcmdStacks xsi)↓rsi
-          ⍝ can't use NormNs because ns may not exist
-          :If 0∊⍴ns
-              ns←⍕container
-          :ElseIf (⊂ns)∊(,'#')'⎕SE'
-          :OrIf ∨/'#.' '⎕SE.'Begins¨⊂ns
-              ns←ns  ⍝ ns already fully specified
-          :Else
-              ns←(⍕container),'.',ns
+          :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
+          :If this←∨/'⎕THIS'⍷name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
+              name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')name
+              this←name≡'⎕THIS'
           :EndIf
-      :EndIf
-    ∇
-
-    ∇ r←{where}(create GetRefTo)ns;name;nc;parent
+          :If this ⋄ nc←⎕NC⊂'nsref'
+          :Else ⋄ nc←nsref.⎕NC⊂,name
+          :EndIf
+          :If ~IsSpecialNC nc
+          ⍝ done
+          :ElseIf 9.1=nc ⍝ that includes ⎕DMX
+          :AndIf ~IsScripted nsref⍎name
+              nc←¯9.1
+          :ElseIf nc∊¯1 9.2  ⍝ roots may report ¯1 (⎕NC⊂,'#') or 9.2 (foo←# ⋄ ⎕NC⊂,'foo')
+          :AndIf nsref IsRootName name
+              nc←¯9.1
+          :ElseIf nc=¯1
+          :AndIf '⎕'∊name
+              (parent name)←SplitNs name
+          :AndIf (⊂name)∊NsSysVars           ⍝ name is a namespace system variable
+          :AndIf (0∊⍴parent)∨(9=⌊|nsref NameClass parent)  ⍝ parent is a valid namespace
+              nc←2.1  ⍝ namespace system variables are treated like arrays
+          :EndIf
+        ∇
+        
+        ∇ n←UcmdStacks xsi
+          n←xsi{(⍵∊⍺)×¯1+⍺⍳⍵}⊂'⎕SE.UCMD' ⍝ Drop UCMD stack if present
+        ∇
+        ∇ (container ns)←rsi_xsi ContainerNs ns;n;xsi;rsi
+    ⍝ container is a reference, and namespace is fully qualified namespace name
+          (rsi xsi)←rsi_xsi
+          :If 9=⎕NC'ns'
+              (container ns)←#(⍕ns)
+          :Else
+              container←⊃(UcmdStacks xsi)↓rsi
+          ⍝ can't use NormNs because ns may not exist
+              :If 0∊⍴ns
+                  ns←⍕container
+              :ElseIf (⊂ns)∊(,'#')'⎕SE'
+              :OrIf ∨/'#.' '⎕SE.'Begins¨⊂ns
+                  ns←ns  ⍝ ns already fully specified
+              :Else
+                  ns←(⍕container),'.',ns
+              :EndIf
+          :EndIf
+        ∇
+        
+        ∇ r←{where}(create GetRefTo)ns;name;nc;parent
     ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
-      :If 9=⎕NC'ns' ⋄ r←ns ⋄ :Return ⋄ :EndIf ⍝ already a ref
-      r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
-      ns←('⎕THIS\.' '\.⎕THIS'⎕R'' '')ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-      :If ns≡'⎕THIS'
-          :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing
-          :Return
-      :EndIf
-      :If 9=⌊|nc←where NameClass ns      ⍝ is a fully qualified name
-          r←where⍎ns
-      :ElseIf 0≠nc ⍝ Invalid or used name, not worth trying
-      :ElseIf create  ⍝ doesn't exist yet - attempt to create it
-          :Trap 0 ⋄ r←⍎ns where.⎕NS''  ⍝ create it
-          :Else ⋄ r←⍬    ⍝ can't be created
-          :EndTrap
-      :EndIf
-    ∇
-
-    NormNs←{⍺←⊢ ⋄ ⍕⍺(0 GetRefTo)⍵}    ⍝ normalise a namespace name - can swallow a ref too
-      NormName←{⍺←⊢
-          ~'.'∊⍵:⍵  ⍝ nothing to do
-          (ns name)←⍺ SplitNs ⍵
-          0∊⍴ns←⍺ NormNs ns:''
-          ns,(name≢ns)/'.',name  ⍝ #.# need to resolve to # - (e.g. DetermineAplName returns #.#)
-      }
-    IsNamedNs←{⍵≡NormNs⍵}     ⍝ requirement to be linkable
-    IsNamedRef←{0::0 ⋄ ⍵≡Execute⍕⍵}  ⍝ requirement to be linkable
-
-    ∇ refs←ListNamespaces ref;newrefs;next;prev
+          :If 9=⎕NC'ns' ⋄ r←ns ⋄ :Return ⋄ :EndIf ⍝ already a ref
+          r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
+          ns←('⎕THIS\.' '\.⎕THIS'⎕R'' '')ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
+          :If ns≡'⎕THIS'
+              :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing
+              :Return
+          :EndIf
+          :If 9=⌊|nc←where NameClass ns      ⍝ is a fully qualified name
+              r←where⍎ns
+          :ElseIf 0≠nc ⍝ Invalid or used name, not worth trying
+          :ElseIf create  ⍝ doesn't exist yet - attempt to create it
+              :Trap 0 ⋄ r←⍎ns where.⎕NS''  ⍝ create it
+              :Else ⋄ r←⍬    ⍝ can't be created
+              :EndTrap
+          :EndIf
+        ∇
+        
+        NormNs←{⍺←⊢ ⋄ ⍕⍺(0 GetRefTo)⍵}    ⍝ normalise a namespace name - can swallow a ref too
+        NormName←{⍺←⊢
+            ~'.'∊⍵:⍵  ⍝ nothing to do
+            (ns name)←⍺ SplitNs ⍵
+            0∊⍴ns←⍺ NormNs ns:''
+            ns,(name≢ns)/'.',name  ⍝ #.# need to resolve to # - (e.g. DetermineAplName returns #.#)
+        }
+        IsNamedNs←{⍵≡NormNs⍵}     ⍝ requirement to be linkable
+        IsNamedRef←{0::0 ⋄ ⍵≡Execute⍕⍵}  ⍝ requirement to be linkable
+        
+        ∇ refs←ListNamespaces ref;newrefs;next;prev
     ⍝ List unscripted namespaces under ref
-      refs←prev←,ref
-      :While ~0∊⍴next←{0∊⍴⍵:⍵ ⋄ (~IsScripted OnEach ⍵)/⍵}∊prev.{0∊⍴nl←⎕NL ⍵:0⍴# ⋄ ⍎¨nl}¯9  ⍝ unscripted children
-          refs,←next ⋄ prev←next
-      :EndWhile
-    ∇
-
-    ∇ emptyns←{emptyns}EmptyNamespace(nsref dir);files;mask;names;parents;scriptitems
+          refs←prev←,ref
+          :While ~0∊⍴next←{0∊⍴⍵:⍵ ⋄ (~IsScripted OnEach ⍵)/⍵}∊prev.{0∊⍴nl←⎕NL ⍵:0⍴# ⋄ ⍎¨nl}¯9  ⍝ unscripted children
+              refs,←next ⋄ prev←next
+          :EndWhile
+        ∇
+        
+        ∇ emptyns←{emptyns}EmptyNamespace(nsref dir);files;mask;names;parents;scriptitems
     ⍝ is namespace really empty, ignoring APL items that match files in dir
     ⍝ TODO: should provide a way to undo the ⎕EX's if the subsequent link.create fails
     ⍝ TODO: should really compare all items found in the namespace with the ones in the dir
     ⍝ TODO: should also return whether dir is empty or not
     ⍝ for now it only looks for APL items tied (2∘⎕FIX'file://...') to files in dir
     ⍝ to solve link issue #160 when Dyalog is started with load=dir/boot.aplf which starts by linking # to dir
-      :If 900⌶⍬ ⋄ emptyns←0∊⍴ListNames nsref ⋄ :EndIf
-      :If emptyns ⋄ :Return ⋄ :EndIf  ⍝ no more to say
-      (names parents scriptitems)←GetFileTiesIn nsref
-      (names parents)/⍨←⊂~scriptitems  ⍝ not interested in script items
-      :If ~0∊⍴names  ⍝ some names are tied
-          files←parents CurrentFileName¨names
-      :AndIf ∧/dir∘≡¨(≢dir)↑¨files  ⍝ all tied to a file in linked directory
-      :AndIf ~∨/FileHasChanged¨↓⍉↑parents names files((⍴names)⍴⊂'')  ⍝ APL definition is still valid - no code can be lost
-          parents{⍺.⎕EX ⍵}¨names  ⍝ expunge APL names
-          parents~←nsref  ⍝ do not expunge root namespace
-          :While ~0∊⍴parents
-          :AndIf ∨/mask←0=⊃∘⍴¨ListNames¨parents  ⍝ recursively expunge parents with no more children
-              ⎕EX⍕¨mask/parents ⋄ parents←(~mask)/parents
-          :EndWhile
-          emptyns←0∊⍴ListNames nsref  ⍝ see if anyone survived
-      :EndIf
-    ∇
-
+          :If 900⌶⍬ ⋄ emptyns←0∊⍴ListNames nsref ⋄ :EndIf
+          :If emptyns ⋄ :Return ⋄ :EndIf  ⍝ no more to say
+          (names parents scriptitems)←GetFileTiesIn nsref
+          (names parents)/⍨←⊂~scriptitems  ⍝ not interested in script items
+          :If ~0∊⍴names  ⍝ some names are tied
+              files←parents CurrentFileName¨names
+          :AndIf ∧/dir∘≡¨(≢dir)↑¨files  ⍝ all tied to a file in linked directory
+          :AndIf ~∨/FileHasChanged¨↓⍉↑parents names files((⍴names)⍴⊂'')  ⍝ APL definition is still valid - no code can be lost
+              parents{⍺.⎕EX ⍵}¨names  ⍝ expunge APL names
+              parents~←nsref  ⍝ do not expunge root namespace
+              :While ~0∊⍴parents
+              :AndIf ∨/mask←0=⊃∘⍴¨ListNames¨parents  ⍝ recursively expunge parents with no more children
+                  ⎕EX⍕¨mask/parents ⋄ parents←(~mask)/parents
+              :EndWhile
+              emptyns←0∊⍴ListNames nsref  ⍝ see if anyone survived
+          :EndIf
+        ∇
+        
     :EndSection
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
     :Section Lookup
-
-    ∇ links←GetLinks;mask;links
-      :Trap 0  ⍝ anything broken should mean no links available
-          links←⍬
-          :If ×⎕NC'⎕SE.Link.Links'
-          :AndIf ~0∊⍴links,←⎕SE.Link.Links
-          :AndIf 1∊mask←¯9.1≠# NameClass¨links.ns  ⍝ clean up "zombie" links
-              0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
-              ¯1 Log'Clearing expunged links:'(⍕mask/links)
-              SetLinks links←(~mask)/links
-          :EndIf
-      :Else ⋄ links←⍬
-      :EndTrap
-    ∇
-    ∇ {links}←ErrorIfRestored links
+        
+        ∇ links←GetLinks;mask;links
+          :Trap 0  ⍝ anything broken should mean no links available
+              links←⍬
+              :If ×⎕NC'⎕SE.Link.Links'
+              :AndIf ~0∊⍴links,←⎕SE.Link.Links
+              :AndIf 1∊mask←¯9.1≠# NameClass¨links.ns  ⍝ clean up "zombie" links
+                  0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
+                  ¯1 Log'Clearing expunged links:'(⍕mask/links)
+                  SetLinks links←(~mask)/links
+              :EndIf
+          :Else ⋄ links←⍬
+          :EndTrap
+        ∇
+        ∇ {links}←ErrorIfRestored links
     ⍝ chicken out if ANY link is restored
-      :If (0≠≢links)
-      :AndIf ∨/{0=⍵.⎕NC'restored':0 ⋄ ⍵.restored}¨links
-          'Link.Resync is required to access other functions than Link.Status and Link.Diff'⎕SIGNAL ERRNO
-      :EndIf
-    ∇
-
-    ∇ SetLinks links;mask
-      :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
-      ⎕SE.Link.Links←links
-      :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
-      :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
-          {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
-      :EndIf
-    ∇
-
-    ∇ {n}←untie Break links
-      n←0
-      :If ~0∊⍴links
-          ##.Watcher.Break links  ⍝ will ⎕DL slightly
-          :If untie
-              n←+/RemoveFileTiesIn¨⍎¨links.ns  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
+          :If (0≠≢links)
+          :AndIf ∨/{0=⍵.⎕NC'restored':0 ⋄ ⍵.restored}¨links
+              'Link.Resync is required to access other functions than Link.Status and Link.Diff'⎕SIGNAL ERRNO
           :EndIf
-      :EndIf
-    ∇
-    ∇ linkns←{links}LookupFile file;dirs;inx;links;mask
+        ∇
+        
+        ∇ SetLinks links;fsw;mask
+          :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
+          ⎕SE.Link.Links←links
+          :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
+          :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
+              fsw←links.fsw ⍝ nasty bug with ⎕NS and fsw 
+              links.⎕EX⊂'fsw'
+              {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
+              links.fsw←fsw
+          :EndIf
+        ∇
+        
+        ∇ {n}←untie Break links
+          n←0
+          :If ~0∊⍴links
+              ##.Watcher.Break links  ⍝ will ⎕DL slightly
+              :If untie
+                  n←+/RemoveFileTiesIn¨⍎¨links.ns  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
+              :EndIf
+          :EndIf
+        ∇
+        ∇ linkns←{links}LookupFile file;dirs;inx;links;mask
     ⍝ look up which linked directory has file
-      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
-      :If ~0∊⍴links
-          dirs←(links←GetLinks).dir
-      :AndIf ∨/mask←dirs Begins¨⊂file
-          inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
-          linkns←inx⊃links
-      :Else
-          linkns←⍬
-      :EndIf
-    ∇
-    ∇ linkns←{links}LookupRef nsref;linked;links;mask;nss
+          :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+          :If ~0∊⍴links
+              dirs←(links←GetLinks).dir
+          :AndIf ∨/mask←dirs Begins¨⊂file
+              inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
+              linkns←inx⊃links
+          :Else
+              linkns←⍬
+          :EndIf
+        ∇
+        ∇ linkns←{links}LookupRef nsref;linked;links;mask;nss
     ⍝ lookup which linked namespace has nsref
-      linkns←⍬
-      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
-      :If 0∊⍴links ⋄ :Return ⋄ :EndIf
-      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
-      :While ~linked←nsref∊nss
-      :AndIf ~IsRoot nsref
-          nsref←nsref.##
-      :EndWhile
-      :If linked
-          linkns←(nss⍳nsref)⊃links
-      :EndIf
-    ∇
-    ∇ links←{links}LookupLinks nsref;linked;links;mask;nss
+          linkns←⍬
+          :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+          :If 0∊⍴links ⋄ :Return ⋄ :EndIf
+          nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
+          :While ~linked←nsref∊nss
+          :AndIf ~IsRoot nsref
+              nsref←nsref.##
+          :EndWhile
+          :If linked
+              linkns←(nss⍳nsref)⊃links
+          :EndIf
+        ∇
+        ∇ links←{links}LookupLinks nsref;linked;links;mask;nss
     ⍝ lookup which linked namespaces are children of nsref
-      :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
-      :If 0∊⍴links ⋄ :Return ⋄ :EndIf
-      mask←(⍴links)⍴0
-      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
-      :Repeat
-          mask∨←nss=nsref
-          :If 0∊⍴nss←(~IsRoot nss)/nss ⋄ :Leave ⋄ :EndIf
-          nss←nss.##
-      :EndRepeat
-      links←mask/links
-    ∇
-    ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;arrays;mask;modifiers;nl;ok;watch
+          :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
+          :If 0∊⍴links ⋄ :Return ⋄ :EndIf
+          mask←(⍴links)⍴0
+          nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
+          :Repeat
+              mask∨←nss=nsref
+              :If 0∊⍴nss←(~IsRoot nss)/nss ⋄ :Leave ⋄ :EndIf
+              nss←nss.##
+          :EndRepeat
+          links←mask/links
+        ∇
+        ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;arrays;mask;modifiers;nl;ok;watch
     ⍝ Get default modifiers for link options namespace
-      :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
-      :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
-      :EndIf
-      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed'
-      :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
-      :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
-          Error'Unknown modifiers: ',FmtEach mask/nl
-      :EndIf
-      Default←opts.{(⊆⍺){0=⎕NC⊂⍺:⍎⍺,'←⍵'}¨⊆⍵}
-      :If ~900⌶⍬ ⋄ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2 ⍝ custom defaults go first
-          nl Default¨defopts⍎¨nl
-      :EndIf
-      Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
-      'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
-      'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars'Default 0
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars'Check¨⊂0 1
-      Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
-      'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
-      Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
-      'customExtensions'Default''
-      'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
-      opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
-      Check¨'customExtensions' 'codeExtensions'
-      Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier "',⍵,'" must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
-          (2≠≢⍴v)∨(2≠⊃⌽⍴v):⍺⍺ error ⋄ (⍬≢0⍴v[;1])∨(∨/{''≢0⍴⍵}¨v[;2]):⍺⍺ error ⋄ 1:_←1}opts
-      'typeExtensions'Default 0 2⍴0 ''
-      opts.typeExtensions{_←⍺⍪⍵ ⋄ _[∪⍳⍨⊣/_;]}←↑(2 'apla')(3 'aplf')(4 'aplo')(9.1 'apln')(9.4 'aplc')(9.5 'apli')
-      Check'typeExtensions'
-      'arrays'Default 0
-      :If ~(⊂arrays←opts.arrays)∊0 1
-          arrays←,⊆,arrays
-          :If ok←(1=≢⍴arrays)∧(2=|≡arrays)∧(0=2|⎕DR∊arrays)∧(1∧.=≢¨⍴¨arrays)
-              arrays←','(≠⊆⊢)∊arrays,[1.5]','  ⍝ allow list of comma-separated names
-              ok←0∊''∘≢¨0⍴¨arrays
+          :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
+          :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
           :EndIf
-          :If ~ok ⋄ Error'Invalid value ',(⍕opts.arrays),' for modifier "arrays" - must be 0, 1 or a list of comma-separated names' ⋄ :EndIf
-          opts.arrays←arrays
-      :EndIf
-    ∇
-    ∇ tie←FixTie link
-      tie←'both'≡link.watch  ⍝ tie to file when fixing if watching both ways
-    ∇
-
+          modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed'
+          :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
+          :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
+              Error'Unknown modifiers: ',FmtEach mask/nl
+          :EndIf
+          Default←opts.{(⊆⍺){0=⎕NC⊂⍺:⍎⍺,'←⍵'}¨⊆⍵}
+          :If ~900⌶⍬ ⋄ :AndIf ~0∊⍴nl←defopts.⎕NL ¯2 ⍝ custom defaults go first
+              nl Default¨defopts⍎¨nl
+          :EndIf
+          Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
+          'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
+          'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
+          'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars'Default 0
+          'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars'Check¨⊂0 1
+          Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
+          'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
+          Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
+          'customExtensions'Default''
+          'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
+          opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
+          Check¨'customExtensions' 'codeExtensions'
+          Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier "',⍵,'" must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
+              (2≠≢⍴v)∨(2≠⊃⌽⍴v):⍺⍺ error ⋄ (⍬≢0⍴v[;1])∨(∨/{''≢0⍴⍵}¨v[;2]):⍺⍺ error ⋄ 1:_←1}opts
+          'typeExtensions'Default 0 2⍴0 ''
+          opts.typeExtensions{_←⍺⍪⍵ ⋄ _[∪⍳⍨⊣/_;]}←↑(2 'apla')(3 'aplf')(4 'aplo')(9.1 'apln')(9.4 'aplc')(9.5 'apli')
+          Check'typeExtensions'
+          'arrays'Default 0
+          :If ~(⊂arrays←opts.arrays)∊0 1
+              arrays←,⊆,arrays
+              :If ok←(1=≢⍴arrays)∧(2=|≡arrays)∧(0=2|⎕DR∊arrays)∧(1∧.=≢¨⍴¨arrays)
+                  arrays←','(≠⊆⊢)∊arrays,[1.5]','  ⍝ allow list of comma-separated names
+                  ok←0∊''∘≢¨0⍴¨arrays
+              :EndIf
+              :If ~ok ⋄ Error'Invalid value ',(⍕opts.arrays),' for modifier "arrays" - must be 0, 1 or a list of comma-separated names' ⋄ :EndIf
+              opts.arrays←arrays
+          :EndIf
+        ∇
+        ∇ tie←FixTie link
+          tie←'both'≡link.watch  ⍝ tie to file when fixing if watching both ways
+        ∇
+        
     :EndSection
-
-
-
-
+    
+    
+    
+    
     :Section Link Private function    ⍝ to avoid clobber auto-complete in ⎕SE.Link
-
-    ∇ src←GetRefSource ns;file
-      :If ~0∊⍴file←# CurrentFileName ns  ⍝ TODO Mantis this - ⎕SRC won't provide :Require headers if they exist
-      :AndIf ~0∊⍴src←GetFileSource file  ⍝ source accessible
-          :Return
-     
-      :EndIf
-      :Trap 16 22 ⋄ src←⎕SRC ns   ⍝ scripted namespace
-      :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v18.1 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
-      :Else
-          :If ~0∊⍴file←# CurrentFileName ns ⍝ source not available anymore - cannot be an unscripted namespace (⎕SRC should really set ⎕DMX.ENX)
-              src←'Cannot get source of ',(⍕ns),': File not found: ',file
-          :Else ⋄ src←⎕NULL                 ⍝ unscripted namespace
+        
+        ∇ src←GetRefSource ns;file
+          :If ~0∊⍴file←# CurrentFileName ns  ⍝ TODO Mantis this - ⎕SRC won't provide :Require headers if they exist
+          :AndIf ~0∊⍴src←GetFileSource file  ⍝ source accessible
+              :Return
+              
           :EndIf
-      :EndTrap
-    ∇
-    ∇ src←{ns}GetAplSource name;nc
+          :Trap 16 22 ⋄ src←⎕SRC ns   ⍝ scripted namespace
+          :Case 22 ⋄ src←'Cannot get source of ',(⍕ns),': File not found: ',# CurrentFileName ns ⍝ v18.1 throws a FILE NAME ERROR if file not found - whereas v18.0 throws a NONCE ERROR
+          :Else
+              :If ~0∊⍴file←# CurrentFileName ns ⍝ source not available anymore - cannot be an unscripted namespace (⎕SRC should really set ⎕DMX.ENX)
+                  src←'Cannot get source of ',(⍕ns),': File not found: ',file
+              :Else ⋄ src←⎕NULL                 ⍝ unscripted namespace
+              :EndIf
+          :EndTrap
+        ∇
+        ∇ src←{ns}GetAplSource name;nc
     ⍝ if OK src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
     ⍝ if failed, src is a text vector holding the error message
     ⍝ name may be empty to get the source of ns
-      :If 0∊⍴name
-          src←GetRefSource ns
-      :Else
-          :If 900⌶⍬ ⋄ ns←⎕NS ⍬ ⋄ :EndIf
-          nc←|ns NameClass name
-          :Select nc
-          :Case 2.1 ⍝ variable
-              :Trap 11 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
-              :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
-              :EndTrap
-          :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
-              src←⎕NULL
+          :If 0∊⍴name
+              src←GetRefSource ns
+          :Else
+              :If 900⌶⍬ ⋄ ns←⎕NS ⍬ ⋄ :EndIf
+              nc←|ns NameClass name
+              :Select nc
+              :Case 2.1 ⍝ variable
+                  :Trap 11 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
+                  :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
+                  :EndTrap
+              :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
+                  src←⎕NULL
               ⍝ ⎕ATX left arguments:  ⍝ SRC_AS_TYPED    =0,     // aka ⎕SRC        ⍝ SRC_CANONICAL   =1,     // aka ⎕NR        ⍝ SRC_FILEINFO    =2,     // aka 517n ⌶        ⍝ SRC_LOCATION    =3,     // aka 517n ⌶        ⍝ VALUE_NC        =4,     // aka ⎕NC        ⍝ VALUE_NCX       =5,     // aka ⎕Nc,⊂        ⍝ VALUE_QAT_SYNTAX=6,     // aka 1⊃⎕AT        ⍝ VALUE_QAT_TIMESTAMP=7,  // aka 2⊃⎕AT        ⍝ VALUE_QAT_LOCK  =8,     // aka 3⊃⎕AT        ⍝ VALUE_USERSTAMP =9,     // aka 4⊃⎕AT        ⍝ VALUE_QAT_SIZE  =10,    // aka ⎕SIZE
-              :If IS181 ⋄ :Trap 11 ⋄ src←0 ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
-              :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
-          :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
-          :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
-          :EndSelect
-      :EndIf
-      :If 0∊⍴src ⋄ src←'Cannot get source of ',(⍕ns),'.',name ⋄ :EndIf
-    ∇
-    ∇ src←GetFileSource file;type
-      src←⍬  ⍝ ⍬ means failure to read file - empty file produces 0⍴⊂''
-      :Trap 0
-          :If 1=type←1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
-          :ElseIf 2=type ⋄ src←GetFile file     ⍝ file
+                  :If IS181 ⋄ :Trap 11 ⋄ src←0 ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
+                  :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
+              :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
+              :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
+              :EndSelect
           :EndIf
-      :EndTrap
-    ∇
-
-    ∇ has←HasRequire src;line;patt;req
+          :If 0∊⍴src ⋄ src←'Cannot get source of ',(⍕ns),'.',name ⋄ :EndIf
+        ∇
+        ∇ src←GetFileSource file;type
+          src←⍬  ⍝ ⍬ means failure to read file - empty file produces 0⍴⊂''
+          :Trap 0
+              :If 1=type←1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
+              :ElseIf 2=type ⋄ src←GetFile file     ⍝ file
+              :EndIf
+          :EndTrap
+        ∇
+        
+        ∇ has←HasRequire src;line;patt;req
     ⍝ does script have :Require statements ?
-      :If has←src≢⎕NULL
-      :AndIf has←~0∊⍴req←⎕IO+'^\s*:require\s+' '^\s*(⍝.*)?$'⎕S 2 3⍠'IC' 1⊢src  ⍝ lines startting with ':Require ' and empty lines
-      :AndIf has←1∊2⊃(line patt)←↓⍉↑req   ⍝ just because ↓⍉↑ won't work on empty ⎕S, which yields ⊂⍬
-          has←1∊((⍳⍴line)=line[⍋line])/patt  ⍝ found at top of script (consecutive row of empty lines and :Require's
-      :EndIf
-    ∇
-
-    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed
+          :If has←src≢⎕NULL
+          :AndIf has←~0∊⍴req←⎕IO+'^\s*:require\s+' '^\s*(⍝.*)?$'⎕S 2 3⍠'IC' 1⊢src  ⍝ lines startting with ':Require ' and empty lines
+          :AndIf has←1∊2⊃(line patt)←↓⍉↑req   ⍝ just because ↓⍉↑ won't work on empty ⎕S, which yields ⊂⍬
+              has←1∊((⍳⍴line)=line[⍋line])/patt  ⍝ found at top of script (consecutive row of empty lines and :Require's
+          :EndIf
+        ∇
+        
+        ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
-      :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
-      :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
-      :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf ⍝ file name given instead of source
-      :If ~IS181 ⋄ FIX←where.⎕FIX ⋄ :Else
+          :If 900⌶⍬ ⋄ where←⎕DMX.(⎕NS ⍬) ⋄ :EndIf  ⍝ fix in dummy namespace that cannot break anything (e.g. ':Namespace' '##.⎕IO←0' ':EndNamespace')
+          :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+          :If 1=≡src ⋄ src←'file://',file←src ⋄ :Else ⋄ file←'' ⋄ :EndIf ⍝ file name given instead of source
+          :If ~IS181 ⋄ FIX←where.⎕FIX ⋄ :Else
           ⍝ Quiet            0|1     (default 0)   ⍝ do not output status messages - link issue #149
           ⍝ AllowLateBinding 0|1     (default 1)   ⍝ allow missing dependencies
           ⍝ FixWithErrors    0|1|2   (default 0,2=prompt)  ⍝ allow errors in script - link issue #144
           ⍝ Link             0|1     (default 1)   ⍝ maintain the link to the file - link issue #155
-          FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors'force)('Link'(~0∊⍴file))
-      :EndIf
+              FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors'force)('Link'(~0∊⍴file))
+          :EndIf
       ⍝:If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
       ⍝:Else ⋄ stops←trace←monitor←⍬
       ⍝:EndIf
       ⍝ attempt to fix as named script because this is the most commly expected format
-      :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
-      :Else ⋄ names←0⍴⊂''
-      :EndTrap
-      :If ~0∊⍴names  ⍝ fix succeeded - this is the only case where actual apl name may be different from what was expected
-          :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
-          :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
-          :EndIf
+          :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
+          :Else ⋄ names←0⍴⊂''
+          :EndTrap
+          :If ~0∊⍴names  ⍝ fix succeeded - this is the only case where actual apl name may be different from what was expected
+              :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
+              :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
+              :EndIf
           ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
           ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
           ⍝:EndIf
-          :Return  ⍝ named script fixed
-      :EndIf
+              :Return  ⍝ named script fixed
+          :EndIf
       ⍝required←11 116≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because cannot read :Required file
-      unnamed←11 121≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because script was unnamed
+          unnamed←11 121≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because script was unnamed
       ⍝noaccess←19 12≡⎕DMX.(EN ENX)   ⍝ 2 ⎕FIX 'file://' on directory
       ⍝nofile←22 12≡⎕DMX.(EN ENX)   ⍝ 2 ⎕FIX 'file://' on missing file
       ⍝nointerface←11 31≡⎕DMX.(EN ENX)  ⍝ fixing class with missing interface
       ⍝ name must be valid because we define it in the following code
-      :If ¯1=where NameClass name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
-      :If unnamed  ⍝ unnamed script
-          name{⍎⍺,'←⍵'}FIX src  ⍝ can work from file
-          nc←where.⎕NC⊂,name
-          :Return  ⍝ unnamed script fixed
-      :EndIf
+          :If ¯1=where NameClass name ⋄ nc←¯1 ⋄ :Return ⋄ :EndIf
+          :If unnamed  ⍝ unnamed script
+              name{⍎⍺,'←⍵'}FIX src  ⍝ can work from file
+              nc←where.⎕NC⊂,name
+              :Return  ⍝ unnamed script fixed
+          :EndIf
       ⍝ remaining possibilities are array or trad ns
-      :If ~0∊⍴file ⋄ src←GetFileSource file ⋄ :EndIf ⍝ they both require source, not filename
-      :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
-      :If src≡⎕NULL  ⍝ trad namespace - was not tested before because the 1=1⎕NINFO would have been costy
-          name where.⎕NS'' ⋄ nc←¯9.1
-          :Return  ⍝ trad ns created
-      :EndIf
-      :Trap 0
-          name where.{⍎⍺,'←⍵'}⎕SE.Dyalog.Array.Deserialise src  ⍝ array
-          nc←where NameClass name
-      :Else
-          name←'' ⋄ nc←0  ⍝ unknown
-      :EndTrap
-    ∇
-    ∇ fixed←target QFix(file name tie force);changed;nc;src;tie
+          :If ~0∊⍴file ⋄ src←GetFileSource file ⋄ :EndIf ⍝ they both require source, not filename
+          :If src≡⍬ ⋄ name←'' ⋄ nc←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+          :If src≡⎕NULL  ⍝ trad namespace - was not tested before because the 1=1⎕NINFO would have been costy
+              name where.⎕NS'' ⋄ nc←¯9.1
+              :Return  ⍝ trad ns created
+          :EndIf
+          :Trap 0
+              name where.{⍎⍺,'←⍵'}⎕SE.Dyalog.Array.Deserialise src  ⍝ array
+              nc←where NameClass name
+          :Else
+              name←'' ⋄ nc←0  ⍝ unknown
+          :EndTrap
+        ∇
+        ∇ fixed←target QFix(file name tie force);changed;nc;src;tie
     ⍝ fixed=1: fixed source
     ⍝ fixed=0: source already up to date - not fixed
     ⍝ fixed=¯1: failed to fix source
-      :If tie ⋄ src←file   ⍝ tie to file - see FixTie
-      :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
-          :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both' ⋄ :EndIf
-      :EndIf
-      :If src≡⍬ ⋄ fixed←¯1 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
-      :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
-      :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
-      :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
-          (name nc)←target Fix(name src force)
-          fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
-      :Else ⋄ fixed←0 ⋄ :EndIf
-    ∇
-    ∇ (actname nameclass)←{errors}Sniff(expname src);array
-      :If 900⌶⍬ ⋄ errors←⊢ ⋄ :EndIf
-      :If (src≢⎕NULL)∧(1=≡,src) ⋄ src←GetFileSource src ⋄ :EndIf
-      :If src≡⍬ ⋄ actname←'' ⋄ nameclass←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
-      :If src≡⎕NULL ⋄ actname←expname ⋄ nameclass←¯9.1 ⋄ :Return ⋄ :EndIf  ⍝ trad ns
-      (actname nameclass)←errors SniffScript(expname src)  ⍝ unfixable yields ('' 0)
-      :If 0=nameclass ⋄ :Trap 0
-              array←⎕SE.Dyalog.Array.Deserialise src
-              actname←expname ⋄ nameclass←⎕NC⊂'array'
-          :EndTrap ⋄ :EndIf
-    ∇
-
-    ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
-    ⍝ opts cached for performance on ns lookup
-      cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
-      :If depth
-          :If 0∊⍴args←↓⍉↑(where name oldname src)
-              (file oldfile nc)←⊂0⍴⊂''
-          :Else
-              (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
+          :If tie ⋄ src←file   ⍝ tie to file - see FixTie
+          :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
+              :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both' ⋄ :EndIf
           :EndIf
-      :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
-      :EndIf
-    ∇
-    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
+          :If src≡⍬ ⋄ fixed←¯1 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+          :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
+          :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
+          :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+              (name nc)←target Fix(name src force)
+              fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
+          :Else ⋄ fixed←0 ⋄ :EndIf
+        ∇
+        ∇ (actname nameclass)←{errors}Sniff(expname src);array
+          :If 900⌶⍬ ⋄ errors←⊢ ⋄ :EndIf
+          :If (src≢⎕NULL)∧(1=≡,src) ⋄ src←GetFileSource src ⋄ :EndIf
+          :If src≡⍬ ⋄ actname←'' ⋄ nameclass←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+          :If src≡⎕NULL ⋄ actname←expname ⋄ nameclass←¯9.1 ⋄ :Return ⋄ :EndIf  ⍝ trad ns
+          (actname nameclass)←errors SniffScript(expname src)  ⍝ unfixable yields ('' 0)
+          :If 0=nameclass ⋄ :Trap 0
+                  array←⎕SE.Dyalog.Array.Deserialise src
+                  actname←expname ⋄ nameclass←⎕NC⊂'array'
+              :EndTrap ⋄ :EndIf
+        ∇
+        
+        ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
+    ⍝ opts cached for performance on ns lookup
+          cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
+          :If depth
+              :If 0∊⍴args←↓⍉↑(where name oldname src)
+                  (file oldfile nc)←⊂0⍴⊂''
+              :Else
+                  (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
+              :EndIf
+          :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
+          :EndIf
+        ∇
+        ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through NormNs
       ⍝ values cached for performance on ns lookup
-      (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
-      :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
-      :EndIf
-      file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
-      :If 0∊⍴src  ⍝ no information about item - item must exist
-          nc←ref NameClass name  ⍝ no source : item must exist
+          (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
+          :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
+          :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+          :EndIf
+          file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
+          :If 0∊⍴src  ⍝ no information about item - item must exist
+              nc←ref NameClass name  ⍝ no source : item must exist
           ⍝:If 0=nc ⋄ ¯1 Warn'Source of name 'where'.'name' doesn''t exist' ⋄ :EndIf
-      :ElseIf 0=≡src ⋄ nc←src ⍝ name class is given
+          :ElseIf 0=≡src ⋄ nc←src ⍝ name class is given
       ⍝:ElseIf opts.fastLoad ⋄ nc←0  ⍝ nope - fastLoad is used only by FixFiles which then shouldn't call DetermineFileName
-      :Else ⋄ (name nc)←Sniff name src  ⍝ infer name class from (non-empty) source
-      :EndIf
-      :If nc∊0 ¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid source or name
+          :Else ⋄ (name nc)←Sniff name src  ⍝ infer name class from (non-empty) source
+          :EndIf
+          :If nc∊0 ¯1 ⋄ file←'' ⋄ :Return ⋄ :EndIf  ⍝ invalid source or name
       ⍝ trad namespace are given name class ¯9.1
-      :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
-      :If 0=≢file           ⍝ no existing file name for it
-      :OrIf forceFilenames  ⍝ force using the default
-          :If isroot                ⍝ if we're asking for opts.ns then the answer is opts.dir
-              file←dir
-          :Else
-              :If ~flatten          ⍝ flatten prevents subdirectory hierarchy
-                  file←'/'@(=∘'.')⊢(≢ns)↓where       ⍝ Add sub.namespace structure, replacing dots with slashes
-              :Else                 ⍝ when flattening, use the same dir as the old file (if any)
-                  file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
+          :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
+          :If 0=≢file           ⍝ no existing file name for it
+          :OrIf forceFilenames  ⍝ force using the default
+              :If isroot                ⍝ if we're asking for opts.ns then the answer is opts.dir
+                  file←dir
+              :Else
+                  :If ~flatten          ⍝ flatten prevents subdirectory hierarchy
+                      file←'/'@(=∘'.')⊢(≢ns)↓where       ⍝ Add sub.namespace structure, replacing dots with slashes
+                  :Else                 ⍝ when flattening, use the same dir as the old file (if any)
+                      file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
+                  :EndIf
+                  file←dir,file                          ⍝ Add link directory
+                  file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
               :EndIf
-              file←dir,file                          ⍝ Add link directory
-              file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
+              file,←typeExtensions Tail nc               ⍝ Add extension
+              file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
           :EndIf
-          file,←typeExtensions Tail nc               ⍝ Add extension
-          file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
-      :EndIf
-      :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
-      (subdir file ext)←⎕NPARTS path←file
-      :If forceExtensions∨0=≢ext
-          ext←typeExtensions Tail nc
-      :EndIf
-      file←subdir,file,ext
-      file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
+          :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
+          (subdir file ext)←⎕NPARTS path←file
+          :If forceExtensions∨0=≢ext
+              ext←typeExtensions Tail nc
+          :EndIf
+          file←subdir,file,ext
+          file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
-      :If 3=(⍎ns).⎕NC getFilename
-      :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(ns,'.',name)(|nc)(ns,'.',oldname)
-          file←userfile
-      :EndIf
-    ∇
-    ∇ expname←expname(forcefile MergeFileName forceext)actname;actdir;actext;actfile;expdir;expext;expfile
-    ⍝ enforce forceFilenames/forceExtensions on actual file name, based on expected file name
-      :If (forcefile∨forceext)∧(actname≢expname)
-          :If Slash⊃⌽actname  ⍝ directory - ⎕NPARTS won't work
-              expname←(1+forcefile)⊃actname expname
-          :Else
-              ((expdir expfile expext)(actdir actfile actext))←⎕NPARTS¨expname actname
-              expname←actdir,((1+forcefile)⊃actfile expfile),((1+forceext)⊃actext expext)
+          :If 3=(⍎ns).⎕NC getFilename
+          :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(ns,'.',name)(|nc)(ns,'.',oldname)
+              file←userfile
           :EndIf
-      :EndIf
-    ∇
-
-    ∇ (ns name nc)←CurrentAplName file;fullname;info;row
-      :If 0≠≢info←↑GetFileInfo file  ⍝ file actually linked by interpreter
-          row←{⍵⍳⌊/⍵}info[;5]  ⍝ first object defined by file
-      :AndIf (0=info[row;6])∨((+/info[row;5 6])∧.≥(+/info[;5 6]))  ⍝ nothing defined outside first object (therefore file defines a single object)
-          (name ns)←info[row;1 2] ⋄ name←⍕name ⍝ first column is sometimes refs
-          nc←ns NameClass name  ⍝ no need to protect fully-qualified name
-          (ns name)←SplitNs(⍕ns),'.',name ⋄ ns←NormNs ns  ⍝ NormNs due to 5174⌶ sometimes reporting full path in first column
-      :Else
-          ns←name←'' ⋄ nc←¯1
-      :EndIf
-    ∇
-    ∇ (where expname actname nc)←opts DetermineAplName files;cache
+        ∇
+        ∇ expname←expname(forcefile MergeFileName forceext)actname;actdir;actext;actfile;expdir;expext;expfile
+    ⍝ enforce forceFilenames/forceExtensions on actual file name, based on expected file name
+          :If (forcefile∨forceext)∧(actname≢expname)
+              :If Slash⊃⌽actname  ⍝ directory - ⎕NPARTS won't work
+                  expname←(1+forcefile)⊃actname expname
+              :Else
+                  ((expdir expfile expext)(actdir actfile actext))←⎕NPARTS¨expname actname
+                  expname←actdir,((1+forcefile)⊃actfile expfile),((1+forceext)⊃actext expext)
+              :EndIf
+          :EndIf
+        ∇
+        
+        ∇ (ns name nc)←CurrentAplName file;fullname;info;row
+          :If 0≠≢info←↑GetFileInfo file  ⍝ file actually linked by interpreter
+              row←{⍵⍳⌊/⍵}info[;5]  ⍝ first object defined by file
+          :AndIf (0=info[row;6])∨((+/info[row;5 6])∧.≥(+/info[;5 6]))  ⍝ nothing defined outside first object (therefore file defines a single object)
+              (name ns)←info[row;1 2] ⋄ name←⍕name ⍝ first column is sometimes refs
+              nc←ns NameClass name  ⍝ no need to protect fully-qualified name
+              (ns name)←SplitNs(⍕ns),'.',name ⋄ ns←NormNs ns  ⍝ NormNs due to 5174⌶ sometimes reporting full path in first column
+          :Else
+              ns←name←'' ⋄ nc←¯1
+          :EndIf
+        ∇
+        ∇ (where expname actname nc)←opts DetermineAplName files;cache
     ⍝ opts cached for performance on ns lookup
-      cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
-      (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
-    ∇
-    ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions
+          cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
+          (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
+        ∇
+        ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
     ⍝ nc is name class of name - returns ¯1 on invalid name and 0 on invalid/missing source
     ⍝ opts cached for performance on ns lookup
-      (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
-      (subdir subfile)←2↑⎕NPARTS subfile            ⍝ drop extension
-      :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
-      (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
-      :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
-      :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
+          (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
+          subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
+          (subdir subfile)←2↑⎕NPARTS subfile            ⍝ drop extension
+          :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
+          (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
+          :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
+          :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
-      :Else ⋄ (actname nc)←Sniff expname file       ⍝ inspect source
-      :EndIf
-      :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
-      :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
-      :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname
-      :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
-      :EndIf
-    ∇
-
-    ∇ names←{allrefs}(trad ListNs)ns;mask;pre;ref;refs;subns;tradns
+          :Else ⋄ (actname nc)←Sniff expname file       ⍝ inspect source
+          :EndIf
+          :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
+          :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
+          :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname
+          :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
+          :EndIf
+        ∇
+        
+        ∇ names←{allrefs}(trad ListNs)ns;mask;pre;ref;refs;subns;tradns
     ⍝ Note that duplicate refs are ignored (otherwise endless loop, generally yielding a LIMIT ERROR because of the number of '.' in the name)
-      :If 900⌶⍬ ⋄ allrefs←0⍴⎕NULL ⋄ :EndIf  ⍝ to avoid re-visiting a parent namespace
-      ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
-      allrefs∪←ref
-      names←pre∘,¨ListNames ref    ⍝ all names
-      :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
-          refs←ref⍎¨subns
-      :AndIf 1∊mask←~refs∊allrefs
-          (refs subns)/⍨←⊂mask
-      :AndIf 1∊mask←~IsScripted¨refs  ⍝ trad ns
-          allrefs,←mask/refs
-          tradns←pre∘,¨mask/subns
-          :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
-          names,←⊃,/allrefs∘(trad ListNs)¨tradns  ⍝ list trad namespaces before their children names
-      :EndIf
-    ∇
-
-    ∇ (names nc failed)←(root ListLinkedNs arrays)link;mask;nsref
-      names←(root/⊂link.ns),1 ListNs link.ns
+          :If 900⌶⍬ ⋄ allrefs←0⍴⎕NULL ⋄ :EndIf  ⍝ to avoid re-visiting a parent namespace
+          ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
+          allrefs∪←ref
+          names←pre∘,¨ListNames ref    ⍝ all names
+          :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
+              refs←ref⍎¨subns
+          :AndIf 1∊mask←~refs∊allrefs
+              (refs subns)/⍨←⊂mask
+          :AndIf 1∊mask←~IsScripted¨refs  ⍝ trad ns
+              allrefs,←mask/refs
+              tradns←pre∘,¨mask/subns
+              :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
+              names,←⊃,/allrefs∘(trad ListNs)¨tradns  ⍝ list trad namespaces before their children names
+          :EndIf
+        ∇
+        
+        ∇ (names nc failed)←(root ListLinkedNs arrays)link;mask;nsref
+          names←(root/⊂link.ns),1 ListNs link.ns
       ⍝ filter which names to export
       ⍝ arrays←1  : list all arrays
       ⍝ arrays←0  : list arrays specified for link
       ⍝ arrays←¯1 : list no array
-      nc←(nsref←⍎link.ns)NameClass¨names
-      :If 0∊mask←nc∊(NameClasses(arrays=1)∨(arrays=0)∧(link.arrays≡1))   ⍝ keep only names in allowed class
-          failed←((nc≠2.1)∧(~mask))/names  ⍝ these names won't be exported at all - ignored arrays are OK
-          (names nc)/⍨←⊂mask
-      :Else ⋄ failed←0⍴⊂''
-      :EndIf
-      :If arrays=¯1 ⋄ :Return ⋄ :EndIf  ⍝ ignore all arrays - done
-      :If (arrays=1)∨(link.sysVars)  ⍝ add sysvars for all unscripted namespaces
-          nc,⍨←2.1⍴⍨≢names,⍨←,(((~root)/⊂link.ns),((nc=¯9.1)/names))∘.,('.',¨⎕SE.Link.U.NsSysVars)  ⍝ if (~root), then link.ns is already in names
-      :EndIf
-      :If (arrays=0)∧(~0=≡link.arrays)  ⍝ add some specified arrays
-          nc,⍨←2.1⍴⍨≢names,⍨←link.arrays/⍨(nsref NameClass¨link.arrays)=2.1
-          (names nc)/⍨←⊂(⍳⍨names)=(⍳⍴names)  ⍝ remove redundant names e.g. sysvars
-      :EndIf
-    ∇
-
-    ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
+          nc←(nsref←⍎link.ns)NameClass¨names
+          :If 0∊mask←nc∊(NameClasses(arrays=1)∨(arrays=0)∧(link.arrays≡1))   ⍝ keep only names in allowed class
+              failed←((nc≠2.1)∧(~mask))/names  ⍝ these names won't be exported at all - ignored arrays are OK
+              (names nc)/⍨←⊂mask
+          :Else ⋄ failed←0⍴⊂''
+          :EndIf
+          :If arrays=¯1 ⋄ :Return ⋄ :EndIf  ⍝ ignore all arrays - done
+          :If (arrays=1)∨(link.sysVars)  ⍝ add sysvars for all unscripted namespaces
+              nc,⍨←2.1⍴⍨≢names,⍨←,(((~root)/⊂link.ns),((nc=¯9.1)/names))∘.,('.',¨⎕SE.Link.U.NsSysVars)  ⍝ if (~root), then link.ns is already in names
+          :EndIf
+          :If (arrays=0)∧(~0=≡link.arrays)  ⍝ add some specified arrays
+              nc,⍨←2.1⍴⍨≢names,⍨←link.arrays/⍨(nsref NameClass¨link.arrays)=2.1
+              (names nc)/⍨←⊂(⍳⍨names)=(⍳⍴names)  ⍝ remove redundant names e.g. sysvars
+          :EndIf
+        ∇
+        
+        ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
     ⍝ Write items to file in folders
     ⍝ ns must be a fully specified unscripted namespace
     ⍝ arrays: boolean to include/exclude arrays, or list of normalised APL names to include
@@ -908,862 +911,862 @@
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
-      written←failed←0⍴⊂'' ⋄ file←dest≢opts.dir  ⍝ single file provided
-      :If ~single←¯9.1≠# NameClass src  ⍝ map unscripted namespace to directory
-          nsref←⍎ns←src
-          (names nc failed)←(0 ListLinkedNs 0)opts ⍝ list trad namespaces (excepted ns itself) - list requested arrays
-          :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
-      :Else
-          names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
-          nc←nsref NameClass¨names
-      :EndIf
+          written←failed←0⍴⊂'' ⋄ file←dest≢opts.dir  ⍝ single file provided
+          :If ~single←¯9.1≠# NameClass src  ⍝ map unscripted namespace to directory
+              nsref←⍎ns←src
+              (names nc failed)←(0 ListLinkedNs 0)opts ⍝ list trad namespaces (excepted ns itself) - list requested arrays
+              :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
+          :Else
+              names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
+              nc←nsref NameClass¨names
+          :EndIf
       ⍝ Create directory for namespace
-      3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
-      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)opts.dir  ⍝ exclude root dir
-          Error'Destination not empty: "',(WinSlash⍕dir),'"'
-      :EndIf
+          3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
+          :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)opts.dir  ⍝ exclude root dir
+              Error'Destination not empty: "',(WinSlash⍕dir),'"'
+          :EndIf
       ⍝ Write files
-      :If 0≠≢names←∪names
-          src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
-          :If 1∊mask←{1=≡⍵}¨src     ⍝ can't get source
-              Warn¨mask/src
-              failed,←(ns,'.')∘,¨mask/names
-              (names src)←(~mask)∘/¨(names src)
-          :EndIf
-      :AndIf 0<count←≢names
+          :If 0≠≢names←∪names
+              src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
+              :If 1∊mask←{1=≡⍵}¨src     ⍝ can't get source
+                  Warn¨mask/src
+                  failed,←(ns,'.')∘,¨mask/names
+                  (names src)←(~mask)∘/¨(names src)
+              :EndIf
+          :AndIf 0<count←≢names
           ⍝ determine file names and check for clashes
-          :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
-          :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
-          :EndIf
-          :If ∨/mask←(inx←⍳⍨0 CaseText files)≠(⍳≢files)
+              :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
+              :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+              :EndIf
+              :If ∨/mask←(inx←⍳⍨0 CaseText files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
-              Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names[,(mask/inx),[1.5]⍸mask]
-          :EndIf
-          :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS files
-              Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/files
-          :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE files
-          :EndIf
-     
-          :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write
-              mask←(≢files)⍴1
-              :For i :In ⍳⍴files
-                  mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)(i⊃src)
-              :EndFor
-              (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
-          :EndIf
-     
-          mask←src∊⎕NULL  ⍝ unscripted namespaces
-          (tradnames tradfiles)←mask∘/¨(names files)
-          (files oldfiles names src)/⍨←⊂(~mask)
-          :If 0≠≢tradfiles
-              3 ⎕MKDIR¨tradfiles ⋄ mask←⎕NEXISTS tradfiles
-              written,←mask/tradfiles ⋄ failed,←(ns,'.')∘,¨(~mask)/tradnames
-          :EndIf
-          :If 0≠≢files
-              :If 0∊mask←~HasNewlines¨∊¨src  ⍝ cannot write newlines
-                  failed,←(ns,'.')∘,¨(~mask)/names
-                  (files oldfiles names src)/⍨←⊂mask
+                  Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names[,(mask/inx),[1.5]⍸mask]
               :EndIf
-              mask←src Into¨files  ⍝ failed to write
-              written,←mask/files ⋄ failed,←(ns,'.')∘,¨(~mask)/names
-              :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
-                  ⎕NDELETE¨mask/oldfiles
+              :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS files
+                  Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/files
+              :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE files
+              :EndIf
+              
+              :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write
+                  mask←(≢files)⍴1
+                  :For i :In ⍳⍴files
+                      mask[i]←(⍎opts.beforeWrite)'beforeWrite'opts(i⊃files)(ns,'.',i⊃names)(nsref NameClass i⊃names)(ns,'.',i⊃names)(i⊃src)
+                  :EndFor
+                  (files oldfiles names src)/⍨←⊂mask  ⍝ keep what was not processed by user
+              :EndIf
+              
+              mask←src∊⎕NULL  ⍝ unscripted namespaces
+              (tradnames tradfiles)←mask∘/¨(names files)
+              (files oldfiles names src)/⍨←⊂(~mask)
+              :If 0≠≢tradfiles
+                  3 ⎕MKDIR¨tradfiles ⋄ mask←⎕NEXISTS tradfiles
+                  written,←mask/tradfiles ⋄ failed,←(ns,'.')∘,¨(~mask)/tradnames
+              :EndIf
+              :If 0≠≢files
+                  :If 0∊mask←~HasNewlines¨∊¨src  ⍝ cannot write newlines
+                      failed,←(ns,'.')∘,¨(~mask)/names
+                      (files oldfiles names src)/⍨←⊂mask
+                  :EndIf
+                  mask←src Into¨files  ⍝ failed to write
+                  written,←mask/files ⋄ failed,←(ns,'.')∘,¨(~mask)/names
+                  :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
+                      ⎕NDELETE¨mask/oldfiles
+                  :EndIf
               :EndIf
           :EndIf
-      :EndIf
-    ∇
-
-    ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order
-      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
-     
-      mask←1=list[3;]                               ⍝ mask for hidden items
-      hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
-      hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
-      hidden←hidden,¨'/'                            ⍝ protect against similarly named files
-      hidden,←('.'=⊃¨∊¨1↓¨⎕NPARTS¨list[1;])/list[1;]⍝ files and directories that start with a '.' are considered hidden too
-      list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
-     
-      dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
-      :If root
-          dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)       ⍝ add self with a fake timestamp (dir timestamps are ignored)
-      :EndIf
-      dirs[1;],←'/'                                 ⍝ add slash to name
-     
-      files←(2=list[2;])/list                       ⍝ second column has 2 for files; first column is filename
-      files/⍨←opts HasExtn files[1;]                ⍝ must be of correct extension
-     
-      list←files,dirs
+        ∇
+        
+        ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order
+          list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+          
+          mask←1=list[3;]                               ⍝ mask for hidden items
+          hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
+          hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
+          hidden←hidden,¨'/'                            ⍝ protect against similarly named files
+          hidden,←('.'=⊃¨∊¨1↓¨⎕NPARTS¨list[1;])/list[1;]⍝ files and directories that start with a '.' are considered hidden too
+          list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
+          
+          dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
+          :If root
+              dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)       ⍝ add self with a fake timestamp (dir timestamps are ignored)
+          :EndIf
+          dirs[1;],←'/'                                 ⍝ add slash to name
+          
+          files←(2=list[2;])/list                       ⍝ second column has 2 for files; first column is filename
+          files/⍨←opts HasExtn files[1;]                ⍝ must be of correct extension
+          
+          list←files,dirs
       ⍝ slashes after all chars and quads before all
       ⍝ in "descending" order into folders:
       ⍝ must process parent folders and all its files (including sysvars) first
       ⍝ we do ↑1+⎕UCS so that fill item (0) is not the same as have (⎕UCS 0) in filename (and comes before it)
-      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨list[1;]
-      list←list[;order]
-     
-      files←list[1;] ⋄ isdir←1=list[2;]
-      :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
-    ∇
-
-    ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
+          order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨list[1;]
+          list←list[;order]
+          
+          files←list[1;] ⋄ isdir←1=list[2;]
+          :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
+        ∇
+        
+        ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
     ⍝ overwrite=1 : non-empty target - overwrite
-      fixed←fixedfiles←failed←0⍴⊂''
-      :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
-      :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
-      :EndIf
-     
-      (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
-      :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
-          mask←actncs∊¯1   ⍝ invalid names
-          failed,←mask/allfiles
-          (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
-          allnames←parents JoinNames expnames  ⍝ do not infer true apl name from source
-      :Else
-          mask←actncs∊¯1 0    ⍝ invalid names or source
-          failed,←mask/allfiles
-          (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
-          allnames←parents JoinNames actnames  ⍝ fully qualified names
-          :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
-              Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
+          fixed←fixedfiles←failed←0⍴⊂''
+          :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
+          :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
           :EndIf
-      :EndIf
-     
+          
+          (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+          :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
+              mask←actncs∊¯1   ⍝ invalid names
+              failed,←mask/allfiles
+              (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
+              allnames←parents JoinNames expnames  ⍝ do not infer true apl name from source
+          :Else
+              mask←actncs∊¯1 0    ⍝ invalid names or source
+              failed,←mask/allfiles
+              (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
+              allnames←parents JoinNames actnames  ⍝ fully qualified names
+              :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
+                  Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
+              :EndIf
+          :EndIf
+          
       ⍝ rename files if incorrectly named - cannot work with opts.fastLoad
-      :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
-          expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs
-          expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
-          :If ∨/mask←expfiles≢¨allfiles
-              :If (≢expfiles)≠(≢∪0 CaseText expfiles)
-                  Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
-              :Else
+          :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
+              expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs
+              expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
+              :If ∨/mask←expfiles≢¨allfiles
+                  :If (≢expfiles)≠(≢∪0 CaseText expfiles)
+                      Error'Forcing file names would produce clashing file names: use forceFilenames=0 or caseCode=1'
+                  :Else
                   ⍝ because APL names don't clash, we now expfiles won't clash either
                   ⍝ however expfiles may overlap allfiles, producing an error at intermediate steps (⎕NMOVE should fail, because ⍠'IfExists' 'Error')
-                  (mask/expfiles)Relocate(mask/allfiles)
-                  allfiles←expfiles
+                      (mask/expfiles)Relocate(mask/allfiles)
+                      allfiles←expfiles
+                  :EndIf
               :EndIf
           :EndIf
-      :EndIf
-     
-      :If 3=⎕NC opts.beforeRead ⍝ user handler defined?
-          mask←(⍴allfiles)⍴1
-          :For i :In ⍳⍴allfiles
-              mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actncs) ⍝ return 1 to continue else 0
-          :EndFor
-          (allfiles parents expnames actnames actncs allnames)/⍨←⊂mask    ⍝ keep what was not processed by user
-      :EndIf
-     
-      :Select overwrite
-      :Case ¯1 ⋄ :If ~EmptyNamespace target source   ⍝ target must be empty (or already linked to the matching file)
-              Error'Destination namespace not empty: ',(⍕target) ⋄ :EndIf
-      :Case 0 ⋄ :If ∨/mask←0<⎕NC allnames~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
-              Error'Names already exist: use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
-      :Else ⋄ ⍝ otherwise silently overwrite - excepted root namespace
-          ⎕EX(⊂⍕target)~⍨(⌊|actncs){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
-      :EndSelect
-     
-      (alldirs _ allexts)←↓⍉↑⎕NPARTS allfiles
-      FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺}  ⍝ ⍺ is force, ⍵ is (target file name)
-      flatten←opts.flatten
-      :If ~hasnc←~opts.fastLoad  ⍝ fastLoad produces (actnc∊¯1 0) - so must rely on file extension to classify order
-          actncs+←¯9.1×(allfiles∊alldirs)∧(actncs=0)  ⍝ that's how we detect tradns/dirs - actnc=¯1 must remain so
-      :EndIf
+          
+          :If 3=⎕NC opts.beforeRead ⍝ user handler defined?
+              mask←(⍴allfiles)⍴1
+              :For i :In ⍳⍴allfiles
+                  mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actncs) ⍝ return 1 to continue else 0
+              :EndFor
+              (allfiles parents expnames actnames actncs allnames)/⍨←⊂mask    ⍝ keep what was not processed by user
+          :EndIf
+          
+          :Select overwrite
+          :Case ¯1 ⋄ :If ~EmptyNamespace target source   ⍝ target must be empty (or already linked to the matching file)
+                  Error'Destination namespace not empty: ',(⍕target) ⋄ :EndIf
+          :Case 0 ⋄ :If ∨/mask←0<⎕NC allnames~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
+                  Error'Names already exist: use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
+          :Else ⋄ ⍝ otherwise silently overwrite - excepted root namespace
+              ⎕EX(⊂⍕target)~⍨(⌊|actncs){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
+          :EndSelect
+          
+          (alldirs _ allexts)←↓⍉↑⎕NPARTS allfiles
+          FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺}  ⍝ ⍺ is force, ⍵ is (target file name)
+          flatten←opts.flatten
+          :If ~hasnc←~opts.fastLoad  ⍝ fastLoad produces (actnc∊¯1 0) - so must rely on file extension to classify order
+              actncs+←¯9.1×(allfiles∊alldirs)∧(actncs=0)  ⍝ that's how we detect tradns/dirs - actnc=¯1 must remain so
+          :EndIf
       ⍝ fix in order: tradns, vars, fns/ops, scripted ns, interfaces, classes
       ⍝ note that ⎕*.apla is expected to remain in front because ListFiles has put them first
-      ncorder←¯9.1 2.1 3.1 3.2 4.1 4.2 9.1 9.4 9.5  ⍝ sort by actual name class (default)
-      extorder←opts.typeExtensions∘Tail¨ncorder     ⍝ sort by file extension (fastLoad)
-     
+          ncorder←¯9.1 2.1 3.1 3.2 4.1 4.2 9.1 9.4 9.5  ⍝ sort by actual name class (default)
+          extorder←opts.typeExtensions∘Tail¨ncorder     ⍝ sort by file extension (fastLoad)
+          
       ⍝ process one directory and all its files at once - process parent before children
-      todo←{⊂⍵}⌸alldirs  ⍝ no need to sort because ListFiles lists parents before children
-      :Repeat   ⍝ keep fixing as long as at least one succeeds - we might have :Class inheristance/interfaces, :Includes, etc.
-          lasttodo←todo ⋄ todo←⍬ ⍝ first todo is a list of lists, to fix by directory, but then all remaining files are fixed in one block
-          :For inx :In ⊆lasttodo
-              (file parent expname actname actnc fullname ext)←inx∘{⍵[⍺]}¨(allfiles parents expnames actnames actncs allnames allexts)
+          todo←{⊂⍵}⌸alldirs  ⍝ no need to sort because ListFiles lists parents before children
+          :Repeat   ⍝ keep fixing as long as at least one succeeds - we might have :Class inheristance/interfaces, :Includes, etc.
+              lasttodo←todo ⋄ todo←⍬ ⍝ first todo is a list of lists, to fix by directory, but then all remaining files are fixed in one block
+              :For inx :In ⊆lasttodo
+                  (file parent expname actname actnc fullname ext)←inx∘{⍵[⍺]}¨(allfiles parents expnames actnames actncs allnames allexts)
               ⍝ create namespace for directory and load quadVars.apln
-              :If ¯9.1∊actnc
-                  :If 1≠≢∪('/'=⊢/¨file)(actnc=¯9.1)((≢inx)↑1) ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
-                  dir←⊃file ⋄ ns←⊃fullname
-                  :If ~flatten            ⍝ if not flattening, create nss
-                      ns←ns ⎕NS ⍬       ⍝ preserve root namespace in case it has non-imported stuff
-                      :If 0=≢ns       ⍝ could not create namespace
-                          failed,←file  ⍝ will not attempt to fix any file in that namespace
-                          :Continue
+                  :If ¯9.1∊actnc
+                      :If 1≠≢∪('/'=⊢/¨file)(actnc=¯9.1)((≢inx)↑1) ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
+                      dir←⊃file ⋄ ns←⊃fullname
+                      :If ~flatten            ⍝ if not flattening, create nss
+                          ns←ns ⎕NS ⍬       ⍝ preserve root namespace in case it has non-imported stuff
+                          :If 0=≢ns       ⍝ could not create namespace
+                              failed,←file  ⍝ will not attempt to fix any file in that namespace
+                              :Continue
+                          :EndIf
+                          fixed,←⊂ns ⋄ fixedfiles,←⊂file ⋄ ns←⍎ns
+                      :Else
+                          ns←target   ⍝ all files fixed in target namespace
                       :EndIf
-                      fixed,←⊂ns ⋄ fixedfiles,←⊂file ⋄ ns←⍎ns
-                  :Else
-                      ns←target   ⍝ all files fixed in target namespace
-                  :EndIf
                   ⍝ set sysvars before anything else - these files are produced by Acre and must be supported
-                  :If ⎕NEXISTS quadfile←dir,'quadVars.apln'
-                  :AndIf ~1 FixFile ns quadfile'quadVars'
-                      failed,←⊂quadfile
-                  :EndIf  ⍝ successful fix is silent
-                  mask←0@1⊢(~file∊⊂quadfile)  ⍝ ⍝ directory and quadfile are done
-                  (file parent expname actname actnc fullname ext inx)/⍨←⊂mask
-              :Else
-                  :If ∨/'/'=⊢/¨file ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
-              :EndIf
+                      :If ⎕NEXISTS quadfile←dir,'quadVars.apln'
+                      :AndIf ~1 FixFile ns quadfile'quadVars'
+                          failed,←⊂quadfile
+                      :EndIf  ⍝ successful fix is silent
+                      mask←0@1⊢(~file∊⊂quadfile)  ⍝ ⍝ directory and quadfile are done
+                      (file parent expname actname actnc fullname ext inx)/⍨←⊂mask
+                  :Else
+                      :If ∨/'/'=⊢/¨file ⋄ Error'Internal error: mismatch between unscripted namespaces and directories' ⋄ :EndIf
+                  :EndIf
               ⍝ fix individual files
-              :If 0∊⍴inx ⋄ :Continue ⋄ :EndIf       ⍝ no file to fix
-              :If ~flatten ⋄ ns←⍎¨parent   ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
+                  :If 0∊⍴inx ⋄ :Continue ⋄ :EndIf       ⍝ no file to fix
+                  :If ~flatten ⋄ ns←⍎¨parent   ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
+                  :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
+                  :EndIf
+                  :If hasnc ⋄ order←⍋ncorder⍳actnc
+                  :Else ⋄ order←⍋extorder⍳ext
+                  :EndIf
+                  mask←0 FixFile¨(⊂order)⌷↓ns,file,[1.5]actname  ⍝ do not fix with error because Classes could become uninstanciatable
+                  fixed,←fullname[mask/order] ⋄ fixedfiles,←file[mask/order]    ⍝ those fixed OK
+                  todo,←inx[(~mask)/order]        ⍝ those failed to fix - try again at next :Repeat
+              :EndFor
+          :Until (≢∊todo)∊0(≢∊lasttodo)   ⍝ all fixed or number of failures hasn't changed
+          :If IS181 ⋄ :AndIf ~0∊⍴todo←∊todo  ⍝ last attempt to fix those that failed - v18.0 cannot fix with errors
+              :If ~flatten ⋄ ns←⍎¨parents[todo]     ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
               :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
               :EndIf
-              :If hasnc ⋄ order←⍋ncorder⍳actnc
-              :Else ⋄ order←⍋extorder⍳ext
-              :EndIf
-              mask←0 FixFile¨(⊂order)⌷↓ns,file,[1.5]actname  ⍝ do not fix with error because Classes could become uninstanciatable
-              fixed,←fullname[mask/order] ⋄ fixedfiles,←file[mask/order]    ⍝ those fixed OK
-              todo,←inx[(~mask)/order]        ⍝ those failed to fix - try again at next :Repeat
-          :EndFor
-      :Until (≢∊todo)∊0(≢∊lasttodo)   ⍝ all fixed or number of failures hasn't changed
-      :If IS181 ⋄ :AndIf ~0∊⍴todo←∊todo  ⍝ last attempt to fix those that failed - v18.0 cannot fix with errors
-          :If ~flatten ⋄ ns←⍎¨parents[todo]     ⍝ not flattening: use parent namespaces (not doable before the ⎕NS above)
-          :Else ⋄ ns←target                     ⍝ all files fixed in target namespace
+              mask←1 FixFile¨↓ns,allfiles[todo],[1.5]actnames[todo]  ⍝ attempt to fix with error - will be considered failed whether it succeeds or not
           :EndIf
-          mask←1 FixFile¨↓ns,allfiles[todo],[1.5]actnames[todo]  ⍝ attempt to fix with error - will be considered failed whether it succeeds or not
-      :EndIf
-      failed,←allfiles[todo]    ⍝ mark as failed even if fixed with errors
+          failed,←allfiles[todo]    ⍝ mark as failed even if fixed with errors
       ⍝failed,←allnames[todo]     ⍝ give APL name rather than file name so that user can double click on it ?
-      :If ∨/mask←inx∊(inx≠⍳≢fixed)/inx←⍳⍨fixed  ⍝ should happen only if opts.fastLoad - otherwise clashes should be detected before actual fixes
-          Error 1↓FmtLines(⊂'Files produce clashing APL names:'),,/(mask/fixedfiles),(⊂' → '),[1.5](mask/fixed)
-      :EndIf
-    ∇
-
-    ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
-      :If ~match←src1≡src2  ⍝ source may possibly differ
-      :AndIf ~IS181    ⍝ cannot preserve source as typed
-          ⍝ double-check that descanned versions match
-          (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
-      :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
-      :AndIf match←name1≡name2  ⍝ if names differ then sources differ
-          match←(ns1.⎕NR name1)≡(ns2.⎕NR name2)  ⍝ compare descanned versions
-      :EndIf
-    ∇
-
-    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where
-    ⍝ uses link.arrays to determine which APL arrays to compare
-      :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
-      :Else
-          filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
-      :EndIf
-      :If 0∊⍴nsref←(0 GetRefTo)link.ns ⋄ name←0⍴⊂'' ⋄ namesrc←0⍴⊂⍬
-      :Else
-          (name namenc)←2↑(1 ListLinkedNs 1)link  ⍝ include root ns - list all arrays for now - ignored failed names
-          :If FLAG←0 ⍝ code not needed ?
-              (name namenc)←(~name∊,¨'⎕SE' '#')∘/¨name namenc
+          :If ∨/mask←inx∊(inx≠⍳≢fixed)/inx←⍳⍨fixed  ⍝ should happen only if opts.fastLoad - otherwise clashes should be detected before actual fixes
+              Error 1↓FmtLines(⊂'Files produce clashing APL names:'),,/(mask/fixedfiles),(⊂' → '),[1.5](mask/fixed)
           :EndIf
-          namesrc←nsref GetAplSource¨name
-      :EndIf
-      (file filesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨filesrc  ⍝ failure to get source should not happen unless race condition
-      (name namesrc namenc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
-      (where expname actname filenc)←link DetermineAplName file
-      (mask/expname)←(mask←0<≢¨actname)/actname
-      expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
-      (mask/expname)←(mask←where≡¨actname)/where  ⍝ roots have where≡expname≡actname
-      subname←(1+≢link.ns)↓¨name
-      expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc
+        ∇
+        
+        ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
+          :If ~match←src1≡src2  ⍝ source may possibly differ
+          :AndIf ~IS181    ⍝ cannot preserve source as typed
+          ⍝ double-check that descanned versions match
+              (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
+          :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
+          :AndIf match←name1≡name2  ⍝ if names differ then sources differ
+              match←(ns1.⎕NR name1)≡(ns2.⎕NR name2)  ⍝ compare descanned versions
+          :EndIf
+        ∇
+        
+        ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where
+    ⍝ uses link.arrays to determine which APL arrays to compare
+          :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
+          :Else
+              filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
+          :EndIf
+          :If 0∊⍴nsref←(0 GetRefTo)link.ns ⋄ name←0⍴⊂'' ⋄ namesrc←0⍴⊂⍬
+          :Else
+              (name namenc)←2↑(1 ListLinkedNs 1)link  ⍝ include root ns - list all arrays for now - ignored failed names
+              :If FLAG←0 ⍝ code not needed ?
+                  (name namenc)←(~name∊,¨'⎕SE' '#')∘/¨name namenc
+              :EndIf
+              namesrc←nsref GetAplSource¨name
+          :EndIf
+          (file filesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨filesrc  ⍝ failure to get source should not happen unless race condition
+          (name namesrc namenc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
+          (where expname actname filenc)←link DetermineAplName file
+          (mask/expname)←(mask←0<≢¨actname)/actname
+          expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
+          (mask/expname)←(mask←where≡¨actname)/where  ⍝ roots have where≡expname≡actname
+          subname←(1+≢link.ns)↓¨name
+          expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc
       ⍝ expfile←(⎕NEXISTS expfile)/¨expfile  ⍝ not necesary since file shouldn't be listed anyways
-      (filemask namemask)←0<(nameifile fileiname)←name file{(0<≢¨⍵)×(0@((1+≢⍺)∘=)⍺⍳⍵)}¨expname expfile  ⍝ 0 for not found
-      filemask∧←filemask\(⍸filemask)=fileiname[filemask/nameifile]  ⍝ link must be both ways
-      namemask∧←namemask\(⍸namemask)=nameifile[namemask/fileiname]  ⍝ link must be both ways
-      :If ##.DEBUG ⋄ :AndIf (+/filemask)≠(+/namemask) ⋄ Error'Internal error' ⋄ :EndIf
-      :If FLAG  ⍝ code not needed ?
-          filemask∨←file∊⊂link.dir,'/' ⍝ root folder always OK
-      :EndIf
-      :Select link.arrays
-      :Case 0 ⋄ linkmask←namenc≠2.1    ⍝ diff no apl array
-      :Case 1 ⋄ linkmask←(⍴name)⍴1      ⍝ diff all apl arrays
-      :Else ⋄ linkmask←(namenc≠2.1)∨(name∊link.arrays)  ⍝ diff declared apl arrays
-      :EndSelect
-      :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
+          (filemask namemask)←0<(nameifile fileiname)←name file{(0<≢¨⍵)×(0@((1+≢⍺)∘=)⍺⍳⍵)}¨expname expfile  ⍝ 0 for not found
+          filemask∧←filemask\(⍸filemask)=fileiname[filemask/nameifile]  ⍝ link must be both ways
+          namemask∧←namemask\(⍸namemask)=nameifile[namemask/fileiname]  ⍝ link must be both ways
+          :If ##.DEBUG ⋄ :AndIf (+/filemask)≠(+/namemask) ⋄ Error'Internal error' ⋄ :EndIf
+          :If FLAG  ⍝ code not needed ?
+              filemask∨←file∊⊂link.dir,'/' ⍝ root folder always OK
+          :EndIf
+          :Select link.arrays
+          :Case 0 ⋄ linkmask←namenc≠2.1    ⍝ diff no apl array
+          :Case 1 ⋄ linkmask←(⍴name)⍴1      ⍝ diff all apl arrays
+          :Else ⋄ linkmask←(namenc≠2.1)∨(name∊link.arrays)  ⍝ diff declared apl arrays
+          :EndSelect
+          :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
       ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
-      diff←0 4⍴⊂''
-      difflist←(linkmask∧~namemask)/name ⍝ names not linked to file - ignore undeclared apl arrays
-      diff⍪←'?',difflist,⍤0 1⊢'' 'WS item has no corresponding file'      ⍝ cannot distinguish creation from deletion
-      difflist←(~filemask)/file  ⍝ files not linked to names - do not ignore arrays
-      diff⍪←'?',(⊂''),(difflist),[1.5]⊂'File has no corresponding WS item'  ⍝ cannot distinguish creation from deletion
-      filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
-      :If FixTie link  ⍝ functions and scripts are associated to files - cannot compare source
-          mask←namemask∧(~arrays←namenc∊2.1 ¯9.1)  ⍝ avoid arrays and unscripted namespaces
-          (tsdiff tocheck)←(mask/name)TSDiff file[mask/fileiname]
-          diff⍪←tsdiff
-          namemask∧←arrays∨mask\tocheck  ⍝ arrays, unscripted namespaces and directories remain to be compared by source
-      :EndIf ⍝
+          diff←0 4⍴⊂''
+          difflist←(linkmask∧~namemask)/name ⍝ names not linked to file - ignore undeclared apl arrays
+          diff⍪←'?',difflist,⍤0 1⊢'' 'WS item has no corresponding file'      ⍝ cannot distinguish creation from deletion
+          difflist←(~filemask)/file  ⍝ files not linked to names - do not ignore arrays
+          diff⍪←'?',(⊂''),(difflist),[1.5]⊂'File has no corresponding WS item'  ⍝ cannot distinguish creation from deletion
+          filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
+          :If FixTie link  ⍝ functions and scripts are associated to files - cannot compare source
+              mask←namemask∧(~arrays←namenc∊2.1 ¯9.1)  ⍝ avoid arrays and unscripted namespaces
+              (tsdiff tocheck)←(mask/name)TSDiff file[mask/fileiname]
+              diff⍪←tsdiff
+              namemask∧←arrays∨mask\tocheck  ⍝ arrays, unscripted namespaces and directories remain to be compared by source
+          :EndIf ⍝
       ⍝ remaining files are not associated - compare source directly
-      mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
-      diff⍪←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'WS and file sources disagree' ⍝ sources differ
-    ∇
-
-    ∇ (diff tocheck)←names TSDiff files;aplfiles;aplnames;aplparents;aplts;changed;filets;filetype;mask;txt
+          mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
+          diff⍪←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'WS and file sources disagree' ⍝ sources differ
+        ∇
+        
+        ∇ (diff tocheck)←names TSDiff files;aplfiles;aplnames;aplparents;aplts;changed;filets;filetype;mask;txt
      ⍝ Return lists of names and files where 5177⌶ and ⎕NINFO timestamps do not match
      ⍝ In those cases, the file must have been updated without APL being notified
-      (filetype filets)←↓⍉↑1 3 ⎕NINFO files
-      tocheck←filetype≠2  ⍝ exclude directories; source files only
-      (files names filets)←(~tocheck)∘/¨files names filets
-      (aplnames aplparents aplfiles aplts)←1 1 0 1 0 0 0 1/↓⍉↑5179⌶¨names
-      tocheck←tocheck\~mask←aplfiles≡¨files  ⍝ files must be correctly associated
-      changed←(mask/filets)≢¨(mask/aplts)  ⍝ file has changed
-      txt←'updated '∘,¨TSFmtNice 1 ⎕DT changed/aplts
-      txt←txt,⍨¨'Source file dated '∘,¨(TSFmtNice 1 ⎕DT changed/filets),¨⊂' when loaded, '
-      diff←'←',(changed/names),(changed/files),⍪txt
-    ∇
-
-    ∇ r←TSFmtNice ts;now;yday;today;z;i;m;idn;s;tomorrow;later;ix;w
+          (filetype filets)←↓⍉↑1 3 ⎕NINFO files
+          tocheck←filetype≠2  ⍝ exclude directories; source files only
+          (files names filets)←(~tocheck)∘/¨files names filets
+          (aplnames aplparents aplfiles aplts)←1 1 0 1 0 0 0 1/↓⍉↑5179⌶¨names
+          tocheck←tocheck\~mask←aplfiles≡¨files  ⍝ files must be correctly associated
+          changed←(mask/filets)≢¨(mask/aplts)  ⍝ file has changed
+          txt←'updated '∘,¨TSFmtNice 1 ⎕DT changed/aplts
+          txt←txt,⍨¨'Source file dated '∘,¨(TSFmtNice 1 ⎕DT changed/filets),¨⊂' when loaded, '
+          diff←'←',(changed/names),(changed/files),⍪txt
+        ∇
+        
+        ∇ r←TSFmtNice ts;now;yday;today;z;i;m;idn;s;tomorrow;later;ix;w
      ⍝ Format a vector of 1 ⎕DT's nicely
-      s←⍴ts
-      later←1+tomorrow←2+yday←¯1+today←⌊now←1 ⎕DT'J'
-      r←16↑⍤1⊢↑'DD Mmm hh:mm'(1200⌶)ts←,ts ⍝ Make matrix
-      :If 0≠≢i←⍸m←1 2 3∊⍨ix←+/ts∘.≥yday,today,tomorrow,later
-          r[i;]←r[i;7+⍳5],' ',(3 10⍴'yesterday today     tomorrow  ')[ix[i];]
-      :EndIf
-      r[i;7+⍳5]←↑5↑¨'YYYY'(1200⌶)ts[i←⍸~m] ⍝ Replace time by year if longer ago
-      :If 0≠⍴i←((z>0)∧100>z←⌊(now-ts)×24×60)/⍳⍴ts
-          r[i;]←16↑[2]↑(⍕¨⌊z[i]),¨(' minutes ago' ' minute ago')[1+1=z[i]]
-      :EndIf
-      :If 0≠⍴i←(1>|z)/⍳⍴ts
-          r[i;]←((⍴i),16)⍴16↑'Now'
-      :EndIf
-      r←s⍴(+/∨\' '≠⌽r)↑¨↓r
-    ∇
-
+          s←⍴ts
+          later←1+tomorrow←2+yday←¯1+today←⌊now←1 ⎕DT'J'
+          r←16↑⍤1⊢↑'DD Mmm hh:mm'(1200⌶)ts←,ts ⍝ Make matrix
+          :If 0≠≢i←⍸m←1 2 3∊⍨ix←+/ts∘.≥yday,today,tomorrow,later
+              r[i;]←r[i;7+⍳5],' ',(3 10⍴'yesterday today     tomorrow  ')[ix[i];]
+          :EndIf
+          r[i;7+⍳5]←↑5↑¨'YYYY'(1200⌶)ts[i←⍸~m] ⍝ Replace time by year if longer ago
+          :If 0≠⍴i←((z>0)∧100>z←⌊(now-ts)×24×60)/⍳⍴ts
+              r[i;]←16↑[2]↑(⍕¨⌊z[i]),¨(' minutes ago' ' minute ago')[1+1=z[i]]
+          :EndIf
+          :If 0≠⍴i←(1>|z)/⍳⍴ts
+              r[i;]←((⍴i),16)⍴16↑'Now'
+          :EndIf
+          r←s⍴(+/∨\' '≠⌽r)↑¨↓r
+        ∇
+        
     :EndSection
-
-
-
+    
+    
+    
     :Section File sniffing
-
-    ∇ names←{recur}NsTree ns;pre;ref;refs;subns
-      ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
-      names←pre∘,¨ref.⎕NL-⍳10    ⍝ all names
-      :If ~0∊⍴subns←ref.(⎕NL ¯9)   ⍝ sub-namespaces
-          names,←⊃,/1 NsTree¨pre∘,¨subns
-      :EndIf
-      :If 900⌶⍬ ⋄ :OrIf ~recur ⋄ names,⍨←⊂ns ⋄ :EndIf
-    ∇
-    ∇ mat←{errors}FixTree src;FIX;mask;names;nc
-      :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
-      :If errors ⋄ FIX←⎕FIX⍠'FixWithErrors' 1 ⋄ :Else ⋄ FIX←⎕FIX ⋄ :EndIf
-      mask←9=⌊|nc←⎕NC names←('.',⍨⍕⎕THIS)∘,¨2 FIX,,¨⊆,src
-      :If 1∊mask ⋄ names←((~mask)/names),⊃,/NsTree¨(mask/names) ⋄ :EndIf
-      mat←↑names(⎕NC names)
-    ∇
-
-
-    ∇ (actname nameclass)←{errors}SniffScript(expname src);Decase;Find;Key;NS;Repl;S;Srarg;UCP;Where;after;b;base;before;close;com;delc;deldfn;delfn1;delfn2;delop;dfnc;dfno;e;fn;fullname;hd;largS;largs;lb;line;locals;lp;mask;name;namechars;names;names23;ns;oldsrc;op;open;openclose;part;patt;pattd;patti;pattsc;pattso;pnames;pos;qname;qvar;rb;req;reqd;res;rp;s;sc;so;srarg;str;tradfn1;tradfn2;tradop;where
+        
+        ∇ names←{recur}NsTree ns;pre;ref;refs;subns
+          ref←⍎ns ⋄ pre←ns,'.'  ⍝ reference to namespce ⋄ prefix to names
+          names←pre∘,¨ref.⎕NL-⍳10    ⍝ all names
+          :If ~0∊⍴subns←ref.(⎕NL ¯9)   ⍝ sub-namespaces
+              names,←⊃,/1 NsTree¨pre∘,¨subns
+          :EndIf
+          :If 900⌶⍬ ⋄ :OrIf ~recur ⋄ names,⍨←⊂ns ⋄ :EndIf
+        ∇
+        ∇ mat←{errors}FixTree src;FIX;mask;names;nc
+          :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
+          :If errors ⋄ FIX←⎕FIX⍠'FixWithErrors' 1 ⋄ :Else ⋄ FIX←⎕FIX ⋄ :EndIf
+          mask←9=⌊|nc←⎕NC names←('.',⍨⍕⎕THIS)∘,¨2 FIX,,¨⊆,src
+          :If 1∊mask ⋄ names←((~mask)/names),⊃,/NsTree¨(mask/names) ⋄ :EndIf
+          mat←↑names(⎕NC names)
+        ∇
+        
+        
+        ∇ (actname nameclass)←{errors}SniffScript(expname src);Decase;Find;Key;NS;Repl;S;Srarg;UCP;Where;after;b;base;before;close;com;delc;deldfn;delfn1;delfn2;delop;dfnc;dfno;e;fn;fullname;hd;largS;largs;lb;line;locals;lp;mask;name;namechars;names;names23;ns;oldsrc;op;open;openclose;part;patt;pattd;patti;pattsc;pattso;pnames;pos;qname;qvar;rb;req;reqd;res;rp;s;sc;so;srarg;str;tradfn1;tradfn2;tradop;where
     ⍝ Sniff source for a single name defined, and find out its name class.
     ⍝ False negatives are bad because we won't fix the script.
     ⍝ False positives are not too bad since the fix will fail anyway.
-      :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
-      src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
+          :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
+          src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
       ⍝ define useful regular expressions
-      Decase←{,'[',']',⍨(0 CaseText ⍵),[1.5](1 CaseText ⍵)} ⍝ case-insensitive word
-      UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII
-      Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺
-      Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}                  ⍝ find at which position on which line is which pattern
-      Find←{⍺ ⎕S'&'UCP ⍵}                           ⍝ extract matches
-      b←'^' ⋄ e←'$'                   ⍝ beginning/end of line
-      S←'\s+' ⋄ s←'\s*'               ⍝ necessary/optional whitespaces
-      NS←'\S+' ⋄ ns←'\S*'             ⍝ necessary/optional non-whitespace
-      com←'⍝.*',e                     ⍝ comment
-      (lb rb lp rp)←'\',¨'{}()'       ⍝ enclosing chars
-      str←'''([^'']|'''')*'''         ⍝ strings
-      namechars←65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 95 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 216 217 218 219 220 221 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 250 251 252 254 48 49 50 51 52 53 54 55 56 57 8710 9049 9398 9399 9400 9401 9402 9403 9404 9405 9406 9407 9408 9409 9410 9411 9412 9413 9414 9415 9416 9417 9418 9419 9420 9421 9422 9423
-      :If 82=⎕DR'' ⋄ namechars∩←⎕AVU ⋄ :EndIf
-      namechars←⎕D~⍨⎕UCS namechars               ⍝ characters that can make a name, excepted digits
-      name←'[',namechars,'][',⎕D,namechars,']*'  ⍝ single APL name - digits may appear from second character on
-      fullname←'((',name,')|#|##|⎕SE)(\.(',name,')|#|##|⎕SE)*'  ⍝ fully-qualified APL name (for base classes and interface - ⎕THIS not allowed)
-      qname←'⎕[A-Za-z]+'                         ⍝ quad-name
-      qvar←'PATH' 'LX' 'AVU' 'PW' 'SM' 'CT' 'TRAP' 'DCT' 'WSID' 'DIV' 'FR' 'IO' 'ML' 'PP' 'RL' 'RTL' 'USING' 'WX'
-      qvar←{'⎕(',')',⍨¯1↓∊⍵,[1.5]'|'}Decase¨qvar    ⍝ quad-vars
-      names←name,'(',S,name,')*'                 ⍝ space-separated APL names
-      names23←name,'(',S,name,'){1,2}'           ⍝ two or three space-separated APL names
-      pnames←'(',name,'|\(',s,names,s,'\))'      ⍝ name or parenthesised list of names
-      res←'(',pnames,'|\{',s,pnames,s,'\})'      ⍝ result is pnames, optionally wrapped in braces
-      res←'(',res,s,'←)'                         ⍝ result must be followed by an assignment
-      largs←'(',name,s,'|\{',s,name,s,'\}',s,')' ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
-      largS←'(',name,S,'|\{',s,name,s,'\}',s,')' ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
-      fn←name                                    ⍝ function is a single name
-      op←'\(',s,names23,s,'\)'                   ⍝ operator is parenthesised list of 2 to 3 names
-      srarg←'(',s,name,'|',s,'\(',s,names,s,'\))'⍝ right arg is name or list of names - but single name needs a space before
-      Srarg←'(',S,name,'|',s,'\(',s,names,s,'\))'⍝ right arg is name or list of names - but single name needs a space before
-      locals←'(',s,';',s,'(',name,'|',qvar,'))*' ⍝ trad locals
+          Decase←{,'[',']',⍨(0 CaseText ⍵),[1.5](1 CaseText ⍵)} ⍝ case-insensitive word
+          UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII
+          Repl←{(fm to)←⍵ ⋄ fm ⎕R to UCP ⍺}             ⍝ replace (1⊃⍵) with (2⊃⍵) in ⍺
+          Where←{⎕IO+⍺ ⎕S 0 2 3 UCP ⍵}                  ⍝ find at which position on which line is which pattern
+          Find←{⍺ ⎕S'&'UCP ⍵}                           ⍝ extract matches
+          b←'^' ⋄ e←'$'                   ⍝ beginning/end of line
+          S←'\s+' ⋄ s←'\s*'               ⍝ necessary/optional whitespaces
+          NS←'\S+' ⋄ ns←'\S*'             ⍝ necessary/optional non-whitespace
+          com←'⍝.*',e                     ⍝ comment
+          (lb rb lp rp)←'\',¨'{}()'       ⍝ enclosing chars
+          str←'''([^'']|'''')*'''         ⍝ strings
+          namechars←65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 95 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 216 217 218 219 220 221 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 250 251 252 254 48 49 50 51 52 53 54 55 56 57 8710 9049 9398 9399 9400 9401 9402 9403 9404 9405 9406 9407 9408 9409 9410 9411 9412 9413 9414 9415 9416 9417 9418 9419 9420 9421 9422 9423
+          :If 82=⎕DR'' ⋄ namechars∩←⎕AVU ⋄ :EndIf
+          namechars←⎕D~⍨⎕UCS namechars               ⍝ characters that can make a name, excepted digits
+          name←'[',namechars,'][',⎕D,namechars,']*'  ⍝ single APL name - digits may appear from second character on
+          fullname←'((',name,')|#|##|⎕SE)(\.(',name,')|#|##|⎕SE)*'  ⍝ fully-qualified APL name (for base classes and interface - ⎕THIS not allowed)
+          qname←'⎕[A-Za-z]+'                         ⍝ quad-name
+          qvar←'PATH' 'LX' 'AVU' 'PW' 'SM' 'CT' 'TRAP' 'DCT' 'WSID' 'DIV' 'FR' 'IO' 'ML' 'PP' 'RL' 'RTL' 'USING' 'WX'
+          qvar←{'⎕(',')',⍨¯1↓∊⍵,[1.5]'|'}Decase¨qvar    ⍝ quad-vars
+          names←name,'(',S,name,')*'                 ⍝ space-separated APL names
+          names23←name,'(',S,name,'){1,2}'           ⍝ two or three space-separated APL names
+          pnames←'(',name,'|\(',s,names,s,'\))'      ⍝ name or parenthesised list of names
+          res←'(',pnames,'|\{',s,pnames,s,'\})'      ⍝ result is pnames, optionally wrapped in braces
+          res←'(',res,s,'←)'                         ⍝ result must be followed by an assignment
+          largs←'(',name,s,'|\{',s,name,s,'\}',s,')' ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
+          largS←'(',name,S,'|\{',s,name,s,'\}',s,')' ⍝ left arg is a single name, optionally wrapped in braces - single name needs a space after
+          fn←name                                    ⍝ function is a single name
+          op←'\(',s,names23,s,'\)'                   ⍝ operator is parenthesised list of 2 to 3 names
+          srarg←'(',s,name,'|',s,'\(',s,names,s,'\))'⍝ right arg is name or list of names - but single name needs a space before
+          Srarg←'(',S,name,'|',s,'\(',s,names,s,'\))'⍝ right arg is name or list of names - but single name needs a space before
+          locals←'(',s,';',s,'(',name,'|',qvar,'))*' ⍝ trad locals
       ⍝ actual line matchers
-      tradfn1←res,'?',s,fn,Srarg,'?',locals,s,e                     ⍝ must have no larg to allow missing rarg
-      tradfn2←res,'?',s,largS,'?',fn,Srarg,locals,s,e               ⍝ must have a rarg to allow a rarg
-      tradop←res,'?',s,largs,'?',op,srarg,locals,s,e                ⍝ tradop must have a rarg
-      (delfn1 delfn2 delop)←(b,s,'∇',s)∘,¨(tradfn1 tradfn2 tradop)  ⍝ ∇ functions and operators
-      (tradfn1 tradfn2 tradop)←(b,s)∘,¨(tradfn1 tradfn2 tradop)     ⍝ trad functions and operators
-      delc←b,s,'∇',s,e                           ⍝ del closer - must have no trailing garbage
-      dfno←b,s,name,s,'←',s,lb                   ⍝ dfn header
-      dfnc←rb,s,e                                ⍝ dfn closer
-      deldfn←b,s,'∇',s,name,s,'←',s,lb           ⍝ del-dfn header
-      Key←{b,s,':',(Decase ⍵),'(',S,'|',e,')'}   ⍝ regex from keyword - they may have trailing garbage
-      req←Key'Require'
-      so←Key¨'Namespace' 'Class' 'Interface'            ⍝ script opening keywords
-      sc←Key¨'End'∘,¨'Namespace' 'Class' 'Interface'    ⍝ script closing keywords
+          tradfn1←res,'?',s,fn,Srarg,'?',locals,s,e                     ⍝ must have no larg to allow missing rarg
+          tradfn2←res,'?',s,largS,'?',fn,Srarg,locals,s,e               ⍝ must have a rarg to allow a rarg
+          tradop←res,'?',s,largs,'?',op,srarg,locals,s,e                ⍝ tradop must have a rarg
+          (delfn1 delfn2 delop)←(b,s,'∇',s)∘,¨(tradfn1 tradfn2 tradop)  ⍝ ∇ functions and operators
+          (tradfn1 tradfn2 tradop)←(b,s)∘,¨(tradfn1 tradfn2 tradop)     ⍝ trad functions and operators
+          delc←b,s,'∇',s,e                           ⍝ del closer - must have no trailing garbage
+          dfno←b,s,name,s,'←',s,lb                   ⍝ dfn header
+          dfnc←rb,s,e                                ⍝ dfn closer
+          deldfn←b,s,'∇',s,name,s,'←',s,lb           ⍝ del-dfn header
+          Key←{b,s,':',(Decase ⍵),'(',S,'|',e,')'}   ⍝ regex from keyword - they may have trailing garbage
+          req←Key'Require'
+          so←Key¨'Namespace' 'Class' 'Interface'            ⍝ script opening keywords
+          sc←Key¨'End'∘,¨'Namespace' 'Class' 'Interface'    ⍝ script closing keywords
       ⍝ actually do stuff
-      src Repl←str''''''    ⍝ replace strings with empty strings
-      src Repl←com''        ⍝ strip comments
-      :If ~0∊⍴where←tradfn1 tradfn2 tradop Where hd←⊃src   ⍝ tradfn/tradop header on line[0]
-          (pos line patti)←⊃where ⍝ there can be only one match since tradfn and tradop match start and end of line
-          hd Repl←(b,s,res)''     ⍝ remove leading result if any
-          hd Repl←(locals,s,e)''  ⍝ remove trailing locals if any
-          :Select patti
-          :Case 1 ⋄ nameclass←3.1   ⍝ tradfn1 has no larg
-              hd Repl←(b,s)''           ⍝ remove leading space
-              actname←⊃(b,fn)Find hd    ⍝ extract fn
-          :Case 2 ⋄ nameclass←3.1   ⍝ tradfn2/tradop have a rarg
-              hd Repl←(srarg,s,e)''     ⍝ remove trailing rarg if any
-              actname←⊃(fn,e)Find hd    ⍝ extract fn
-          :Case 3 ⋄ nameclass←4.1   ⍝ tradfn2/tradop have a rarg
-              hd Repl←(srarg,s,e)''     ⍝ remove trailing rarg if any
-              hd←⊃(op,e)Find hd         ⍝ extract (lop op rop)
-              hd Repl←S' '              ⍝ replace whitespace by space character
-              actname←2⊃(~hd∊' ()')⊆hd  ⍝ extract op
-          :EndSelect
-          :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in tradfn' ⋄ :EndIf
-      :Else  ⍝ expect a script, possibly with several items
-          :If ~0∊⍴reqd←(req,'.*',e)Find src  ⍝ Some :Require keywords
-              reqd Repl←(req,s)''                   ⍝ drop leading keyword
-              :If 1∊mask←'"'=⊃¨reqd                 ⍝ process quoted arguments
-                  (mask/reqd)←1↓¨¯1↓¨(b,'"([^"]|\\")*"')Find(mask/reqd)  ⍝ watch escaped quotes '\"' - unmatched quote make the whole argument ignored
-                  (mask/reqd)←(mask/reqd)Repl'\\"' '"'
-              :EndIf ⋄ :If 1∊mask←~mask             ⍝ process unquoted arguments
-                  (mask/reqd)←(b,ns)Find(mask/reqd)  ⍝ stop at first space
-              :EndIf
-              :If ~errors ⋄ :AndIf (≢reqd)≠(≢'file://'Find reqd)  ⍝ not tolerant to invalid arguments to :Require
-                  :Return
-              :EndIf
-              reqd←reqd Repl(b,'file://')''         ⍝ otherwise ignore the :Require statement
-              :If ~errors                           ⍝ :Require must point to a valid file
-                  :If 0∊⎕NEXISTS reqd               ⍝ at least one file doesn't exist
-                  :OrIf 0∨.={2⊃Sniff''(GetFile ⍵)}¨reqd  ⍝ at least one file contains invalid source
-                      :Return                       ⍝ can't fix if anything went wrong
+          src Repl←str''''''    ⍝ replace strings with empty strings
+          src Repl←com''        ⍝ strip comments
+          :If ~0∊⍴where←tradfn1 tradfn2 tradop Where hd←⊃src   ⍝ tradfn/tradop header on line[0]
+              (pos line patti)←⊃where ⍝ there can be only one match since tradfn and tradop match start and end of line
+              hd Repl←(b,s,res)''     ⍝ remove leading result if any
+              hd Repl←(locals,s,e)''  ⍝ remove trailing locals if any
+              :Select patti
+              :Case 1 ⋄ nameclass←3.1   ⍝ tradfn1 has no larg
+                  hd Repl←(b,s)''           ⍝ remove leading space
+                  actname←⊃(b,fn)Find hd    ⍝ extract fn
+              :Case 2 ⋄ nameclass←3.1   ⍝ tradfn2/tradop have a rarg
+                  hd Repl←(srarg,s,e)''     ⍝ remove trailing rarg if any
+                  actname←⊃(fn,e)Find hd    ⍝ extract fn
+              :Case 3 ⋄ nameclass←4.1   ⍝ tradfn2/tradop have a rarg
+                  hd Repl←(srarg,s,e)''     ⍝ remove trailing rarg if any
+                  hd←⊃(op,e)Find hd         ⍝ extract (lop op rop)
+                  hd Repl←S' '              ⍝ replace whitespace by space character
+                  actname←2⊃(~hd∊' ()')⊆hd  ⍝ extract op
+              :EndSelect
+              :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in tradfn' ⋄ :EndIf
+          :Else  ⍝ expect a script, possibly with several items
+              :If ~0∊⍴reqd←(req,'.*',e)Find src  ⍝ Some :Require keywords
+                  reqd Repl←(req,s)''                   ⍝ drop leading keyword
+                  :If 1∊mask←'"'=⊃¨reqd                 ⍝ process quoted arguments
+                      (mask/reqd)←1↓¨¯1↓¨(b,'"([^"]|\\")*"')Find(mask/reqd)  ⍝ watch escaped quotes '\"' - unmatched quote make the whole argument ignored
+                      (mask/reqd)←(mask/reqd)Repl'\\"' '"'
+                  :EndIf ⋄ :If 1∊mask←~mask             ⍝ process unquoted arguments
+                      (mask/reqd)←(b,ns)Find(mask/reqd)  ⍝ stop at first space
                   :EndIf
-              :EndIf
-              src Repl←(req,'.*',e)''               ⍝ remove :Require lines
-          :EndIf
-          ⍝      1      2       3     4     5  6   7    8  9  10 11/12/13 14/15/16  ⍝ changing these require carefully looking for these constants in the code below
-          patt←delfn1 delfn2 delop deldfn delc'∇'dfno dfnc lb rb,,,,so,,,,,,,sc     ⍝ tradfn (r←{a}f b) must win over dfn - dfn must win over braces - delfn/delop must win over delo - delo and delc must win over '∇'
-          src←(0<≢¨src)/src                                             ⍝ remove empty lines otherwise ⍺⊂⍵ cannot reconstruct it
-          openclose←(∊(≢¨src)↑¨1)⊂{+\+⌿1 ¯1×[1]'{}'∘.=⍵}∊src            ⍝ raw open/close brace state
-          :If 0∊⍴where←patt Where oldsrc←src ⋄ ⋄ :Return ⋄ :EndIf       ⍝ nothing found
-          (pos line patti)←↓⍉↑where ⋄ open←close←(4,≢src)⍴0             ⍝ (open close):[brace dfn del script;line]
-          mask←1≤openclose[↓⍉↑(patti∊pattd←1 2 3 4 5 6)∘/¨line pos]     ⍝ for each del : is it within braces
-          (pos line patti)/⍨←⊂(patti∊pattd){(~⍺)∨(⍺\⍵)}~mask            ⍝ if so ignore them
-          :If (~errors)∧(6∊patti) ⋄ :Return ⋄ :EndIf  ⍝ meaningless ∇ outside a dfn
-          open[1;(patti∊9)/line]+←1 ⋄ close[1;(patti∊10)/line]+←1      ⍝ non-dfn braces - may have several open/close in a single line - others can't - also note that {res} and {larg} are taken as non-proper dfns !
-          open[2;(patti∊7)/line]+←1 ⋄ close[2;(patti∊8)/line]+←1        ⍝ dfns
-          open[3;(patti∊1 2 3 4)/line]+←1 ⋄ close[3;(patti∊5)/line]+←1  ⍝ dels
-          open[4;(patti∊pattso←11 12 13)/line]+←1 ⋄ close[4;(patti∊pattsc←14 15 16)/line]+←1  ⍝ scripts
-          before←0,¯1↓[2]after←+\open-close
-          :If errors    ⍝ most dels are valid
-              ⍝ TODO this is almost impossible to reverse-engineer. ⎕FIX⍠'FixWithErrors' 1⊢ works on ('a∇b' 'a∇') but not on ('a∇b' 'a∇b'), works on ('∇∇') but not on ('∇∇∇∇')
-              ⍝ we'd rather create false positives here
-          :Else         ⍝ only delfn and delop are valid del openers
-              :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
-          :EndIf
-          part←(0∨.≠1↓open)∧(0∧.=before)                ⍝ cut on open that is not in a block
-          src←part⊂src
-          :If 1≠≢src ⋄ :Return ⋄ :EndIf                 ⍝ script must define only one item
-          hd←⊃src←⊃src
-          :Select 1↓⊣/⊃part⊂open    ⍝ ignore braces
-          :Case 1 0 0               ⍝ dfn : look for ⍺⍺/⍵⍵ excepted in an inner dfn
-              openclose←{+\+⌿1 ¯1×[1]'{}'∘.=⍵}src←∊src      ⍝ raw open/close brace state
-              :If (0≠⊃⌽openclose)∨(0=+/(⊃part⊂close)[2;])   ⍝ no proper closing
-              :OrIf 0∊{(∨\⍵)/⍵}{⌽⍺⍺⌽⍺⍺ ⍵}openclose          ⍝ braces close midway
-                  :Return
-              :EndIf
-              hd Repl←(b,s)''                               ⍝ remove leading space
-              actname←⊃(b,name)Find hd                      ⍝ find first name
-              :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf
-              src←(openclose=1)/src                         ⍝ keep only main dfn body
-              :If ~0∊⍴'⍺⍺|⍵⍵'Where src ⋄ nameclass←4.2 ⋄ :Else ⋄ nameclass←3.2 ⋄ :EndIf
-          :CaseList (0 1 0)(1 1 0)  ⍝ del : parse tradfn/dfn
-              :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
-              (⊃src)Repl←(b,s,'∇')''                        ⍝ remove leading del
-              (⊃⌽src)Repl←(b,s,'∇')''                       ⍝ remove closing del
-              (actname nameclass)←Sniff(expname src)        ⍝ recur on tradfn within dels
-              ⍝ :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf  ⍝ nope - could well be a tradfn with invalid header
-          :Case 0 0 1               ⍝ script : expect name after keyword
-              :If ~errors
-                  openclose←(3,≢oldsrc)⍴0
-                  openclose[1;(patti∊1⊃pattso)/line]+←1 ⋄ openclose[1;(patti∊1⊃pattsc)/line]-←1 ⍝ namespaces
-                  openclose[2;(patti∊2⊃pattso)/line]+←1 ⋄ openclose[2;(patti∊2⊃pattsc)/line]-←1 ⍝ classes
-                  openclose[3;(patti∊3⊃pattso)/line]+←1 ⋄ openclose[3;(patti∊3⊃pattsc)/line]-←1 ⍝ interfaces
-                  :If 0∨.>∊+\openclose                                            ⍝ un-matched close - todo: doesn't detect :Namespace ⋄ :Class ⋄ :EndNamespace
-                  :OrIf ~0∊⍴NS Find((0∧.=before)∧(0∧.=after))/oldsrc              ⍝ do not allow garbage outside script
-                  :OrIf 0≠+/after[1 2;⊃⌽⍴after]                                   ⍝ braces must close nicely
+                  :If ~errors ⋄ :AndIf (≢reqd)≠(≢'file://'Find reqd)  ⍝ not tolerant to invalid arguments to :Require
                       :Return
                   :EndIf
+                  reqd←reqd Repl(b,'file://')''         ⍝ otherwise ignore the :Require statement
+                  :If ~errors                           ⍝ :Require must point to a valid file
+                      :If 0∊⎕NEXISTS reqd               ⍝ at least one file doesn't exist
+                      :OrIf 0∨.={2⊃Sniff''(GetFile ⍵)}¨reqd  ⍝ at least one file contains invalid source
+                          :Return                       ⍝ can't fix if anything went wrong
+                      :EndIf
+                  :EndIf
+                  src Repl←(req,'.*',e)''               ⍝ remove :Require lines
               :EndIf
-              patti←⊃patti∩pattso                           ⍝ type of script found
-              hd Repl←(so,¨⊂s)''                            ⍝ remove keyword and trailing space
-              :If errors ⋄ patt←b,name ⋄ :Else              ⍝ FixWithErrors allows garbage after name
-                  base←s,'(:',s,fullname,'|:',s,'(',fullname,')?(',s,',',s,fullname,')*)?'  ⍝ :Class (pattern 11) may have name:base
-                  patt←b,name,((patti=2⊃pattso)/base),s,e   ⍝ allowed trailing spaces must be trimmed later
+          ⍝      1      2       3     4     5  6   7    8  9  10 11/12/13 14/15/16  ⍝ changing these require carefully looking for these constants in the code below
+              patt←delfn1 delfn2 delop deldfn delc'∇'dfno dfnc lb rb,,,,so,,,,,,,sc     ⍝ tradfn (r←{a}f b) must win over dfn - dfn must win over braces - delfn/delop must win over delo - delo and delc must win over '∇'
+              src←(0<≢¨src)/src                                             ⍝ remove empty lines otherwise ⍺⊂⍵ cannot reconstruct it
+              openclose←(∊(≢¨src)↑¨1)⊂{+\+⌿1 ¯1×[1]'{}'∘.=⍵}∊src            ⍝ raw open/close brace state
+              :If 0∊⍴where←patt Where oldsrc←src ⋄ ⋄ :Return ⋄ :EndIf       ⍝ nothing found
+              (pos line patti)←↓⍉↑where ⋄ open←close←(4,≢src)⍴0             ⍝ (open close):[brace dfn del script;line]
+              mask←1≤openclose[↓⍉↑(patti∊pattd←1 2 3 4 5 6)∘/¨line pos]     ⍝ for each del : is it within braces
+              (pos line patti)/⍨←⊂(patti∊pattd){(~⍺)∨(⍺\⍵)}~mask            ⍝ if so ignore them
+              :If (~errors)∧(6∊patti) ⋄ :Return ⋄ :EndIf  ⍝ meaningless ∇ outside a dfn
+              open[1;(patti∊9)/line]+←1 ⋄ close[1;(patti∊10)/line]+←1      ⍝ non-dfn braces - may have several open/close in a single line - others can't - also note that {res} and {larg} are taken as non-proper dfns !
+              open[2;(patti∊7)/line]+←1 ⋄ close[2;(patti∊8)/line]+←1        ⍝ dfns
+              open[3;(patti∊1 2 3 4)/line]+←1 ⋄ close[3;(patti∊5)/line]+←1  ⍝ dels
+              open[4;(patti∊pattso←11 12 13)/line]+←1 ⋄ close[4;(patti∊pattsc←14 15 16)/line]+←1  ⍝ scripts
+              before←0,¯1↓[2]after←+\open-close
+              :If errors    ⍝ most dels are valid
+              ⍝ TODO this is almost impossible to reverse-engineer. ⎕FIX⍠'FixWithErrors' 1⊢ works on ('a∇b' 'a∇') but not on ('a∇b' 'a∇b'), works on ('∇∇') but not on ('∇∇∇∇')
+              ⍝ we'd rather create false positives here
+              :Else         ⍝ only delfn and delop are valid del openers
+                  :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
               :EndIf
-              :If ~0∊⍴actname←⊃patt Find hd                 ⍝ find first name - script may be unnamed in which case it's not supported by Link
-              :AndIf ~0∊⍴actname←⊃(b,name)Find actname      ⍝ take first name, avoid trailing :base and whitespace
-                  nameclass←(pattso⍳patti)⊃9.1 9.4 9.5      ⍝ relies on matches being reported in order of appearance by ⎕S
-              :EndIf
-          :Case 0 0 0 ⋄ :Return  ⍝ non-proper dfn or res←{larg} in a bad non-del tradfn
-          :Else ⋄ Error'Internal sniffing error: bad block open/close'
-          :EndSelect
-      :EndIf
-    ∇
-
-    ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;RandCase;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
+              part←(0∨.≠1↓open)∧(0∧.=before)                ⍝ cut on open that is not in a block
+              src←part⊂src
+              :If 1≠≢src ⋄ :Return ⋄ :EndIf                 ⍝ script must define only one item
+              hd←⊃src←⊃src
+              :Select 1↓⊣/⊃part⊂open    ⍝ ignore braces
+              :Case 1 0 0               ⍝ dfn : look for ⍺⍺/⍵⍵ excepted in an inner dfn
+                  openclose←{+\+⌿1 ¯1×[1]'{}'∘.=⍵}src←∊src      ⍝ raw open/close brace state
+                  :If (0≠⊃⌽openclose)∨(0=+/(⊃part⊂close)[2;])   ⍝ no proper closing
+                  :OrIf 0∊{(∨\⍵)/⍵}{⌽⍺⍺⌽⍺⍺ ⍵}openclose          ⍝ braces close midway
+                      :Return
+                  :EndIf
+                  hd Repl←(b,s)''                               ⍝ remove leading space
+                  actname←⊃(b,name)Find hd                      ⍝ find first name
+                  :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf
+                  src←(openclose=1)/src                         ⍝ keep only main dfn body
+                  :If ~0∊⍴'⍺⍺|⍵⍵'Where src ⋄ nameclass←4.2 ⋄ :Else ⋄ nameclass←3.2 ⋄ :EndIf
+              :CaseList (0 1 0)(1 1 0)  ⍝ del : parse tradfn/dfn
+                  :If 0≠after[3;⊃⌽⍴after] ⋄ :Return ⋄ :EndIf    ⍝ mismatched dels are unacceptable
+                  (⊃src)Repl←(b,s,'∇')''                        ⍝ remove leading del
+                  (⊃⌽src)Repl←(b,s,'∇')''                       ⍝ remove closing del
+                  (actname nameclass)←Sniff(expname src)        ⍝ recur on tradfn within dels
+              ⍝ :If 0∊⍴actname ⋄ Error'Internal sniffing error: no name found in script' ⋄ :EndIf  ⍝ nope - could well be a tradfn with invalid header
+              :Case 0 0 1               ⍝ script : expect name after keyword
+                  :If ~errors
+                      openclose←(3,≢oldsrc)⍴0
+                      openclose[1;(patti∊1⊃pattso)/line]+←1 ⋄ openclose[1;(patti∊1⊃pattsc)/line]-←1 ⍝ namespaces
+                      openclose[2;(patti∊2⊃pattso)/line]+←1 ⋄ openclose[2;(patti∊2⊃pattsc)/line]-←1 ⍝ classes
+                      openclose[3;(patti∊3⊃pattso)/line]+←1 ⋄ openclose[3;(patti∊3⊃pattsc)/line]-←1 ⍝ interfaces
+                      :If 0∨.>∊+\openclose                                            ⍝ un-matched close - todo: doesn't detect :Namespace ⋄ :Class ⋄ :EndNamespace
+                      :OrIf ~0∊⍴NS Find((0∧.=before)∧(0∧.=after))/oldsrc              ⍝ do not allow garbage outside script
+                      :OrIf 0≠+/after[1 2;⊃⌽⍴after]                                   ⍝ braces must close nicely
+                          :Return
+                      :EndIf
+                  :EndIf
+                  patti←⊃patti∩pattso                           ⍝ type of script found
+                  hd Repl←(so,¨⊂s)''                            ⍝ remove keyword and trailing space
+                  :If errors ⋄ patt←b,name ⋄ :Else              ⍝ FixWithErrors allows garbage after name
+                      base←s,'(:',s,fullname,'|:',s,'(',fullname,')?(',s,',',s,fullname,')*)?'  ⍝ :Class (pattern 11) may have name:base
+                      patt←b,name,((patti=2⊃pattso)/base),s,e   ⍝ allowed trailing spaces must be trimmed later
+                  :EndIf
+                  :If ~0∊⍴actname←⊃patt Find hd                 ⍝ find first name - script may be unnamed in which case it's not supported by Link
+                  :AndIf ~0∊⍴actname←⊃(b,name)Find actname      ⍝ take first name, avoid trailing :base and whitespace
+                      nameclass←(pattso⍳patti)⊃9.1 9.4 9.5      ⍝ relies on matches being reported in order of appearance by ⎕S
+                  :EndIf
+              :Case 0 0 0 ⋄ :Return  ⍝ non-proper dfn or res←{larg} in a bad non-del tradfn
+              :Else ⋄ Error'Internal sniffing error: bad block open/close'
+              :EndSelect
+          :EndIf
+        ∇
+        
+        ∇ {ok}←Sniff_QA stop;Comment;Fluff;Name;RandCase;Space;Test;body;c;complex_names;del;f;file;filebad;h;h1;h2;i;logfile;o;objs;ot;t;tn;valid;valid1;valid2;w;where
       ⍝ All possible traditional function/operator headers
-      complex_names←1
-      h←'f1' 'f1 a1' 'f1(a d)' 'la f1 a1' 'la f1(a d)'
-      h,←'{la2}f1 a1' '{la2}f1(a d)' 'R←f1' 'R←f1 a1' 'R←f1(a d)'
-      h,←'R←la f1 a1' 'R←la f1(a d)' 'R←{la2}f1 a1' 'R←{la2}f1(a d)' '{R}←f1'
-      h,←'{R}←f1 a1' '{R}←f1(a d)' '{R}←la f1 a1' '{R}←la f1(a d)' '{R}←{la2}f1 a1'
-      h,←'{R}←{la2}f1(a d)' '(r1 r2)←f1' '(r1 r2)←f1 a1' '(r1 r2)←f1(a d)' '(r1 r2)←la f1 a1'
-      h,←'(r1 r2)←la f1(a d)' '(r1 r2)←{la2}f1 a1' '(r1 r2)←{la2}f1(a d)' '{(r1 r2)}←f1' '{(r1 r2)}←f1 a1'
-      h,←'{(r1 r2)}←f1(a d)' '{(r1 r2)}←la f1 a1' '{(r1 r2)}←la f1(a d)' '{(r1 r2)}←{la2}f1 a1' '{(r1 r2)}←{la2}f1(a d)'
-      h,←'(lo f1)a1' '(lo f1)(a d)' 'la(lo f1)a1' 'la (lo f1)(a d)' '{la2}(lo f1)a1'
-      h,←'{la2}(lo f1)(a d)' 'R←(lo f1)a1' 'R←(lo f1)(a d)' 'R←la(lo f1)a1' 'R←la(lo f1)(a d)'
-      h,←'R←{la2}(lo f1)a1' 'R←{la2}(lo f1)(a d)' '{R}←(lo f1)a1' '{R}←(lo f1)(a d)' '{R}←la(lo f1)a1'
-      h,←'{R}←la(lo f1)(a d)' '{R}←{la2}(lo f1) a1' '{R}←{la2}(lo f1)(a d)' '(r1 r2)←(lo f1)a1' '(r1 r2)←(lo f1)(a d)'
-      h,←'(r1 r2)←la(lo f1)a1' '(r1 r2)←la(lo f1)(a d)' '(r1 r2)←{la2}(lo f1)a1' '(r1 r2)←{la2}(lo f1)(a d)' '{(r1 r2)}←(lo f1)a1'
-      h,←'{(r1 r2)}←(lo f1)(a d)' '{(r1 r2)}←la(lo f1)a1' '{(r1 r2)}←la(lo f1)(a d)' '{(r1 r2)}←{la2}(lo f1)a1' '{(r1 r2)}←{la2}(lo f1)(a d)'
-      h,←'(lo f1 ro)a1' '(lo f1 ro)(a d)' 'la(lo f1 ro)a1' 'la(lo f1 ro)(a d)' '{la2}(lo f1 ro)a1'
-      h,←'{la2}(lo f1 ro)(a d)' 'R←(lo f1 ro)a1' 'R←(lo f1 ro)(a d)' 'R←la(lo f1 ro)a1' 'R←la(lo f1 ro)(a d)'
-      h,←'R←{la2}(lo f1 ro)a1' 'R←{la2}(lo f1 ro)(a d)' '{R}←(lo f1 ro)a1' '{R}←(lo f1 ro)(a d)' '{R}←la(lo f1 ro)a1'
-      h,←'{R}←la(lo f1 ro)(a d)' '{R}←{la2}(lo f1 ro)a1' '{R}←{la2}(lo f1 ro)(a d)' '(r1 r2)←(lo f1 ro)a1' '(r1 r2)←(lo f1 ro)(a d)'
-      h,←'(r1 r2)←la(lo f1 ro)a1' '(r1 r2)←la(lo f1 ro)(a d)' '(r1 r2)←{la2}(lo f1 ro)a1' '(r1 r2)←{la2}(lo f1 ro)(a d)' '{(r1 r2)}←(lo f1 ro)a1'
-      h,←'{(r1 r2)}←(lo f1 ro)(a d)' '{(r1 r2)}←la(lo f1 ro)a1' '{(r1 r2)}←la(lo f1 ro)(a d)' '{(r1 r2)}←{la2}(lo f1 ro)a1' '{(r1 r2)}←{la2}(lo f1 ro)(a d)'
+          complex_names←1
+          h←'f1' 'f1 a1' 'f1(a d)' 'la f1 a1' 'la f1(a d)'
+          h,←'{la2}f1 a1' '{la2}f1(a d)' 'R←f1' 'R←f1 a1' 'R←f1(a d)'
+          h,←'R←la f1 a1' 'R←la f1(a d)' 'R←{la2}f1 a1' 'R←{la2}f1(a d)' '{R}←f1'
+          h,←'{R}←f1 a1' '{R}←f1(a d)' '{R}←la f1 a1' '{R}←la f1(a d)' '{R}←{la2}f1 a1'
+          h,←'{R}←{la2}f1(a d)' '(r1 r2)←f1' '(r1 r2)←f1 a1' '(r1 r2)←f1(a d)' '(r1 r2)←la f1 a1'
+          h,←'(r1 r2)←la f1(a d)' '(r1 r2)←{la2}f1 a1' '(r1 r2)←{la2}f1(a d)' '{(r1 r2)}←f1' '{(r1 r2)}←f1 a1'
+          h,←'{(r1 r2)}←f1(a d)' '{(r1 r2)}←la f1 a1' '{(r1 r2)}←la f1(a d)' '{(r1 r2)}←{la2}f1 a1' '{(r1 r2)}←{la2}f1(a d)'
+          h,←'(lo f1)a1' '(lo f1)(a d)' 'la(lo f1)a1' 'la (lo f1)(a d)' '{la2}(lo f1)a1'
+          h,←'{la2}(lo f1)(a d)' 'R←(lo f1)a1' 'R←(lo f1)(a d)' 'R←la(lo f1)a1' 'R←la(lo f1)(a d)'
+          h,←'R←{la2}(lo f1)a1' 'R←{la2}(lo f1)(a d)' '{R}←(lo f1)a1' '{R}←(lo f1)(a d)' '{R}←la(lo f1)a1'
+          h,←'{R}←la(lo f1)(a d)' '{R}←{la2}(lo f1) a1' '{R}←{la2}(lo f1)(a d)' '(r1 r2)←(lo f1)a1' '(r1 r2)←(lo f1)(a d)'
+          h,←'(r1 r2)←la(lo f1)a1' '(r1 r2)←la(lo f1)(a d)' '(r1 r2)←{la2}(lo f1)a1' '(r1 r2)←{la2}(lo f1)(a d)' '{(r1 r2)}←(lo f1)a1'
+          h,←'{(r1 r2)}←(lo f1)(a d)' '{(r1 r2)}←la(lo f1)a1' '{(r1 r2)}←la(lo f1)(a d)' '{(r1 r2)}←{la2}(lo f1)a1' '{(r1 r2)}←{la2}(lo f1)(a d)'
+          h,←'(lo f1 ro)a1' '(lo f1 ro)(a d)' 'la(lo f1 ro)a1' 'la(lo f1 ro)(a d)' '{la2}(lo f1 ro)a1'
+          h,←'{la2}(lo f1 ro)(a d)' 'R←(lo f1 ro)a1' 'R←(lo f1 ro)(a d)' 'R←la(lo f1 ro)a1' 'R←la(lo f1 ro)(a d)'
+          h,←'R←{la2}(lo f1 ro)a1' 'R←{la2}(lo f1 ro)(a d)' '{R}←(lo f1 ro)a1' '{R}←(lo f1 ro)(a d)' '{R}←la(lo f1 ro)a1'
+          h,←'{R}←la(lo f1 ro)(a d)' '{R}←{la2}(lo f1 ro)a1' '{R}←{la2}(lo f1 ro)(a d)' '(r1 r2)←(lo f1 ro)a1' '(r1 r2)←(lo f1 ro)(a d)'
+          h,←'(r1 r2)←la(lo f1 ro)a1' '(r1 r2)←la(lo f1 ro)(a d)' '(r1 r2)←{la2}(lo f1 ro)a1' '(r1 r2)←{la2}(lo f1 ro)(a d)' '{(r1 r2)}←(lo f1 ro)a1'
+          h,←'{(r1 r2)}←(lo f1 ro)(a d)' '{(r1 r2)}←la(lo f1 ro)a1' '{(r1 r2)}←la(lo f1 ro)(a d)' '{(r1 r2)}←{la2}(lo f1 ro)a1' '{(r1 r2)}←{la2}(lo f1 ro)(a d)'
       ⍝ add single name in lists and many (3-7) names in lists
-      h,←('a d' 'r1 r2'⎕R(,¨'a' 'r')⊢h),('a d' 'r1 r2'⎕R{l←¯2↑⊃⍵.Match ⋄ ∊l∘,∘⍕¨⍳2+?5}h)
+          h,←('a d' 'r1 r2'⎕R(,¨'a' 'r')⊢h),('a d' 'r1 r2'⎕R{l←¯2↑⊃⍵.Match ⋄ ∊l∘,∘⍕¨⍳2+?5}h)
       ⍝ add failing headers
-      h,←'{res1 res2}←{larg}foo(rarg)' '{(res)}←{(larg)}foo(rarg1 rarg2)'  ⍝ invalid parentheses
-      h,←'res←{larg1 larg2}foo rarg' 'res←{(larg1 larg2)}foo res'  ⍝ multiple larg
-      h,←'{(res)}←{larg1 larg2}foo(rarg)' '{(res1 res2)} ←{(larg1 larg2)}foo(rarg1 rarg2)'  ⍝ multiple larg
+          h,←'{res1 res2}←{larg}foo(rarg)' '{(res)}←{(larg)}foo(rarg1 rarg2)'  ⍝ invalid parentheses
+          h,←'res←{larg1 larg2}foo rarg' 'res←{(larg1 larg2)}foo res'  ⍝ multiple larg
+          h,←'{(res)}←{larg1 larg2}foo(rarg)' '{(res1 res2)} ←{(larg1 larg2)}foo(rarg1 rarg2)'  ⍝ multiple larg
       ⍝ add locals
-      h,←{⍵,∊';a'∘,¨⍕¨⍳?5}¨h
-      h,←'res←larg foo rarg;local;;bad' '{(res1 res2)}←{larg}foo(rarg1 rarg2);local;bad;'  ⍝ failing cases
+          h,←{⍵,∊';a'∘,¨⍕¨⍳?5}¨h
+          h,←'res←larg foo rarg;local;;bad' '{(res1 res2)}←{larg}foo(rarg1 rarg2);local;bad;'  ⍝ failing cases
       ⍝ Dfns and dfn look-alikes
-      h,←'f1←{}' 'f1←{⍺⍺}' 'f1←{⍵⍵}' 'f1←{%⍺⍺}' 'f1←{%⍵⍵}' 'f1←{''⍺⍺''}' 'f1←{''⍵⍵''}' 'f1←{⍝ ⍺⍺%}' 'f1←{⍝ ⍵⍵%}'
-      h,←'f1←{+{⍺⍺ ⍵}⍵}' 'a←{b{}c d%}' 'a←{b}c d%}' 'a←{b⍝}c d%}' 'a←{b''}c{''d}' 'a←{b}⍝c d'
-      h,←'f1←{a}{⍺ ⍺⍺ ⍵⍵ ⍵}{b}' 'f1←{%a%}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{%b%}'
-      h,←'f1←+{⍺ ⍺⍺ ⍵⍵ ⍵}÷' 'f1←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}÷'
+          h,←'f1←{}' 'f1←{⍺⍺}' 'f1←{⍵⍵}' 'f1←{%⍺⍺}' 'f1←{%⍵⍵}' 'f1←{''⍺⍺''}' 'f1←{''⍵⍵''}' 'f1←{⍝ ⍺⍺%}' 'f1←{⍝ ⍵⍵%}'
+          h,←'f1←{+{⍺⍺ ⍵}⍵}' 'a←{b{}c d%}' 'a←{b}c d%}' 'a←{b⍝}c d%}' 'a←{b''}c{''d}' 'a←{b}⍝c d'
+          h,←'f1←{a}{⍺ ⍺⍺ ⍵⍵ ⍵}{b}' 'f1←{%a%}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{%b%}'
+          h,←'f1←+{⍺ ⍺⍺ ⍵⍵ ⍵}÷' 'f1←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}÷'
       ⍝ wrap them all in dels
-      h,←del←{'∇',⍵,'%∇'}¨h
+          h,←del←{'∇',⍵,'%∇'}¨h
       ⍝ add failing cases
-      h,←⊂'∇foo arg;local%arg'  ⍝ no closing del
-      h,←⊂'∇foo;local%arg%∇bad'
-      h,←'foo←{⎕IO←1%⍵' 'foo←{⎕IO←1%∇⍵'  ⍝ unclosed dfn
+          h,←⊂'∇foo arg;local%arg'  ⍝ no closing del
+          h,←⊂'∇foo;local%arg%∇bad'
+          h,←'foo←{⎕IO←1%⍵' 'foo←{⎕IO←1%∇⍵'  ⍝ unclosed dfn
       ⍝ add random names
-      valid2←⎕D,valid1←⎕UCS ¯1+⍸¯1≠⎕NC⍪⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢0,⍳10000 ⍝ valid chars - first char can't be digit
-      Name←{valid1[?≢valid1],valid2[?(¯1+?10)⍴(≢valid2)]} ⍝ random valid name
-      :If complex_names ⋄ h,←'\w+'⎕R Name h ⋄ :EndIf
+          valid2←⎕D,valid1←⎕UCS ¯1+⍸¯1≠⎕NC⍪⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢0,⍳10000 ⍝ valid chars - first char can't be digit
+          Name←{valid1[?≢valid1],valid2[?(¯1+?10)⍴(≢valid2)]} ⍝ random valid name
+          :If complex_names ⋄ h,←'\w+'⎕R Name h ⋄ :EndIf
       ⍝ add random space and comments
-      Space←{⎕UCS 9 32[?(¯1+???5)⍴2]} ⍝ random whitespace
-      c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' '⍝∇' ⍝ evil comments
-      Comment←{⍵.Match,⍨c⊃⍨?3}
-      RandCase←{(⎕IO=?2⍴⍨≢⍵)CaseText¨⍵}  ⍝ random case
-      w←'[^:/⍺⍵',valid2,']'  ⍝ for :Namespace, file:///tmp/file {⍺⍺}{⍵⍵}
-      h,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢h   ⍝ randomise code
+          Space←{⎕UCS 9 32[?(¯1+???5)⍴2]} ⍝ random whitespace
+          c←'⍝ ⍺⍺ ⍵⍵' '⍝}' '⍝)' '⍝∇' ⍝ evil comments
+          Comment←{⍵.Match,⍨c⊃⍨?3}
+          RandCase←{(⎕IO=?2⍴⍨≢⍵)CaseText¨⍵}  ⍝ random case
+          w←'[^:/⍺⍵',valid2,']'  ⍝ for :Namespace, file:///tmp/file {⍺⍺}{⍵⍵}
+          h,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢h   ⍝ randomise code
       ⍝ create some namespace scripts - empty for now
-      file←'/sniff_qa_ok.dyalog',⍨739⌶0 ⋄ 'foo0'⎕NPUT file 1
-      filebad←'/sniff_qa_bad.dyalog',⍨739⌶0 ⋄ 'this is total garbage !!!;;;'⎕NPUT filebad 1
-      Fluff←{
-          file←{'"',⍵,'"'}⍣(1=?2)⊢file
-          l←c,'' 'this is total garbage !!!;;;'(':Require file://',file)
-          ∊l[?(1+?10)⍴≢l],¨'%'
-      }
-      body←'%'⎕R'\\\%'⊢∊del,[1.5]'%'
-      ot←'.+'⎕R':& ∆\%∇\%:End&'⊢'Namespace' 'Class' 'Interface'
-      o←'∇'⎕R''⊢'∆'⎕R Name⊢ot    ⍝ empty definitions
-      o,←'∇'⎕R body⊢'∆'⎕R'a'⊢ot     ⍝ simple names
-      :If complex_names ⋄ o,←'∇'⎕R('\w+'⎕R Name⊢body)⊢'∆'⎕R Name⊢ot ⋄ :EndIf ⍝ complex names
-      o,←'^'⎕R Fluff o
-      o,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢o   ⍝ randomise code
+          file←'/sniff_qa_ok.dyalog',⍨739⌶0 ⋄ 'foo0'⎕NPUT file 1
+          filebad←'/sniff_qa_bad.dyalog',⍨739⌶0 ⋄ 'this is total garbage !!!;;;'⎕NPUT filebad 1
+          Fluff←{
+              file←{'"',⍵,'"'}⍣(1=?2)⊢file
+              l←c,'' 'this is total garbage !!!;;;'(':Require file://',file)
+              ∊l[?(1+?10)⍴≢l],¨'%'
+          }
+          body←'%'⎕R'\\\%'⊢∊del,[1.5]'%'
+          ot←'.+'⎕R':& ∆\%∇\%:End&'⊢'Namespace' 'Class' 'Interface'
+          o←'∇'⎕R''⊢'∆'⎕R Name⊢ot    ⍝ empty definitions
+          o,←'∇'⎕R body⊢'∆'⎕R'a'⊢ot     ⍝ simple names
+          :If complex_names ⋄ o,←'∇'⎕R('\w+'⎕R Name⊢body)⊢'∆'⎕R Name⊢ot ⋄ :EndIf ⍝ complex names
+          o,←'^'⎕R Fluff o
+          o,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢o   ⍝ randomise code
       ⍝ failing cases
-      where←⎕NS ⍬
-      where.⎕FIX':Interface Interface1' ':EndInterface'
-      where.⎕FIX':Interface Interface2' ':EndInterface'
-      where.⎕FIX':Class BaseClass' ':EndClass'
-      f←'' ' % ' 'this is total garbage' 'this is total garbage !!! ;;;'
-      f,←'%∇foo%∇' ' %∇foo%∇' '∇foo%∇%' '∇foo%∇% '    ⍝ Mantis 18621
-      f,←'r←(op foo)arg%r←op arg' 'r←larg(op foo)arg%r←op arg'
-      f,←'dfn←{%}%arg' 'dfn←{%}arg' 'dfn←{}arg' 'dfn←{arg}arg'  ⍝ Mantis 18619	
-      f,←'dop←+{⍺⍺}' 'dop←+{%⍺⍺%}' 'dop←+{⍺⍺}arg' 'dop←+{%⍺⍺%}arg'
-      f,←'dop←{⍵}{⍺⍺}' 'dop←{⍵}{%⍺⍺%}' 'dop←{⍵}{⍺⍺}arg' 'dop←{⍵}{%⍺⍺%}arg'
-      f,←'dfn←var∘{⍺+⍵}' 'dfn←var∘{%⍺+⍵%}'
-      f,←'dfn←+{⍺ ⍺⍺ ⍵⍵ ⍵}+' 'dfn←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}+' 'dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}' 'dfn←{⍺}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{⍵}' ⍝ Mantis 18619
-      f,←'dfn←{' 'dop←{%⍺⍺' 'dfn←{%{⍺⍺}' 'dfn←{%}{%}' 'dop←{%}{%⍺⍺%}'
-      f,←':Namespace' 'Namespace +' ':Namespace % :EndNamespace' ':Namespace + % :EndNamespace'  ⍝ unnamed namespace must fail
-      f,←'∆'⎕R Name⊢':Namespace ∆%:EndNamespace' ':Namespace.∆%:EndNamespace' ':Namespace.∆.∆%:EndNamespace'
-      f,←⊂':Namespace ns % :EndNamespace % :Class class % :EndClass'   ⍝ two definitions - must fail
-      f,←⊂':Namespace ns2 % :EndClass % :Class class2 % :EndNamespace' ⍝ two definitions (arguable) - must fail
-      f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % '
-      f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % :EndClass'
-      f,←⊂':Namespace ns % :EndNamespace % :EndClass'
-      f,←⊂':Namespace ns % :EndClass % :EndNamespace'
-      f,←⊂':Namespace ns % :Class class'
-      f,←⊂':Namespace ns % :Class class % :EndClass'
-      f,←⊂':Namespace ns % :Class class % :EndNamespace'
-      f,←⊂':Namespace ns % :Class class % :EndClass % :EndNamespace'
-      f,←⊂':Namespace ns % :Class class % :EndClass % :EndClass'
-      f,←⊂':Namespace ns % :Class class % :EndNamespace % :EndNamespace'
-      f,←⊂':Require%:Class class % :EndClass'
-      f,←⊂':Require %:Class class % :EndClass'
-      f,←⊂':Require stu ff % :Class class % :EndClass'
-      f,←⊂':Require "stu ff" % :Class class % :EndClass'
-      f,←⊂':Require file:///stuff/notfound % :Class class % :EndClass'
-      f,←⊂':Require "file:///stuff/notfound" % :Class class % :EndClass'
-      f,←⊂':Require ',filebad,' % :Class class % :EndClass'
-      f,←⊂':Require "',filebad,'" % :Class class % :EndClass'
-      f,←⊂':Class Class % ∇ constructor % :Access Public % :Implements Constructor % ∇ % :EndClass'
-      f,←':Class Class:BaseClass % :EndClass' ':Class Class:,Interface1 % :EndClass' ':Class Class:,Interface1,Interface2 % :EndClass' ':Class Class:BaseClass,Interface1,Interface2 % :EndClass'
-      f,←':Class Class:BaseClassNotFound % :EndClass' ':Class Class:,Interface1NotFound % :EndClass' ':Class Class:,Interface1NotFound,Interface2NotFound % :EndClass' ':Class Class:BaseClassNotFound,Interface1NotFound,Interface2NotFound % :EndClass'
-      f,←':Class Class:#.Base.Class.Not.Found % :EndClass' ':Class Class:,⎕SE.##.Interface1.Not.Found % :EndClass' ':Class Class:,⎕SE.##.Interface1.Not.Found,⎕SE.##.Interface2.Not.Found % :EndClass' ':Class Class:#.Base.Class.Not.Found,⎕SE.##.Interface1.Not.Found,⎕SE.##.Interface2.Not.Found % :EndClass'
-      f,←⊂':Class Class % :Include #.NOT.FOUND % ∇ constructor % :Access Public % :Implements Constructor % ∇ % :EndClass'
-      f,←⊂':Class Class % :Access Public % :Require nonsense % :EndClass'
-      f,←':Class class' ':Namespace ns'
-      f,←':Class class % goo←{' ':Namespace ns % goo←{'
-      f,←':Class class % :Namespace ns' ':Namespace ns % :Class class'
-      f,←':Class class % goo←{ % :EndClass' ':Namespace ns % goo←{ % :EndNamespace'
-      f,←⊂':Class class % ∇ foo arg ' ⍝ unmatched ∇ are prohibitive
-      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺'  ⍝ unmatched ∇ are prohibitive
-      f,←⊂':Class class % ∇ foo arg % ∇ % goo ← { '  ⍝ neither can dfns
-      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % goo ← { '  ⍝ neither can dfns
-      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % :Namespace foo'  ⍝ the rest can be left wide open
-      f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % :Namespace ns'  ⍝ the rest can be left wide open
-      f,←⊂':Class class % ∇ foo arg % ∇ % :Namespace foo'  ⍝ the rest can be left wide open
-      f,←⊂':Class class % ∇ foo arg % ∇ % :Namespace ns'  ⍝ the rest can be left wide open
-      f,←⊂':Namespace badns1%∇res←foo arg;%res←arg%∇%:EndNamespace'  ⍝ foo is invalid, but ∇'s are ok
-      f,←⊂':Namespace badns1%∇this is total garbage!!!%∇%:EndNamespace'  ⍝ ∇ seem ok
-      f,←⊂':Namespace badns1%∇!!!%∇%:EndNamespace'  ⍝ ∇ seem ok
-      f,←':Namespace badns%∇%:EndNamespace' ':Namespace badns%∇%∇%:EndNamespace'
-      f,←':Namespace badns%test∇test%:EndNamespace' ':Namespace badns%test∇test%test∇test%:EndNamespace'
-      f,←⊂':Namespace ns%test←{⍺∇⍵}%∇foo%dfn←{⍺∇⍵}%∇%:EndNamespace'  ⍝ ∇ within dfns must be ignored
-      f,←':Namespace ns%dfn←{%∇%}%:EndNamespace' ':Namespace ns%dfn←{%∇res←{larg}foo arg%}%:EndNamespace'  ⍝ even when on single line
-      f,←⊂':Namespace ns%∇r←{larg}fn rarg%r←{1:⍵⋄⍵}rarg∇%dfn←{a←⍵%z←{1:0⋄1}⍬%z←{1:0%1}⍬%0}%:EndNamespace'
-      f,←⊂':Namespace ns%∇res←{larg}fn rarg%sub←{1:∇⍵⋄⍵}%sub←{1:∇⍵%⍵}%sub←{%1:∇⍵⋄⍵%}%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵%⍵}rarg%res←{%1:∇⍵⋄⍵%}rarg%∇%:EndNamespace'
-      f,←⊂':Namespace ns%dfn←{%sub←{1:∇⍵⋄⍵}%sub←{1:∇⍵%⍵}%sub←{%1:∇⍵⋄⍵%}%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵%⍵}rarg%res←{1:∇⍵⋄⍵}rarg%res←{%1:⍵⋄⍵%}rarg%}%:EndNamespace'
-      f,←'dfn←{''⍝''}' ':Class class%dfn←{''⍝''}%:EndClass'
-      f,←⊂':Class class%dfn←{%∇{⍵ ⍺⍺ data}¨(4↑la-1↑⍨⍴la)∘,¨v%}%:EndClass'
-      f,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢f   ⍝ randomise code
+          where←⎕NS ⍬
+          where.⎕FIX':Interface Interface1' ':EndInterface'
+          where.⎕FIX':Interface Interface2' ':EndInterface'
+          where.⎕FIX':Class BaseClass' ':EndClass'
+          f←'' ' % ' 'this is total garbage' 'this is total garbage !!! ;;;'
+          f,←'%∇foo%∇' ' %∇foo%∇' '∇foo%∇%' '∇foo%∇% '    ⍝ Mantis 18621
+          f,←'r←(op foo)arg%r←op arg' 'r←larg(op foo)arg%r←op arg'
+          f,←'dfn←{%}%arg' 'dfn←{%}arg' 'dfn←{}arg' 'dfn←{arg}arg'  ⍝ Mantis 18619	
+          f,←'dop←+{⍺⍺}' 'dop←+{%⍺⍺%}' 'dop←+{⍺⍺}arg' 'dop←+{%⍺⍺%}arg'
+          f,←'dop←{⍵}{⍺⍺}' 'dop←{⍵}{%⍺⍺%}' 'dop←{⍵}{⍺⍺}arg' 'dop←{⍵}{%⍺⍺%}arg'
+          f,←'dfn←var∘{⍺+⍵}' 'dfn←var∘{%⍺+⍵%}'
+          f,←'dfn←+{⍺ ⍺⍺ ⍵⍵ ⍵}+' 'dfn←+{%⍺ ⍺⍺ ⍵⍵ ⍵%}+' 'dfn←{⍺}{⍺ ⍺⍺ ⍵⍵ ⍵}{⍵}' 'dfn←{⍺}{%⍺ ⍺⍺ ⍵⍵ ⍵%}{⍵}' ⍝ Mantis 18619
+          f,←'dfn←{' 'dop←{%⍺⍺' 'dfn←{%{⍺⍺}' 'dfn←{%}{%}' 'dop←{%}{%⍺⍺%}'
+          f,←':Namespace' 'Namespace +' ':Namespace % :EndNamespace' ':Namespace + % :EndNamespace'  ⍝ unnamed namespace must fail
+          f,←'∆'⎕R Name⊢':Namespace ∆%:EndNamespace' ':Namespace.∆%:EndNamespace' ':Namespace.∆.∆%:EndNamespace'
+          f,←⊂':Namespace ns % :EndNamespace % :Class class % :EndClass'   ⍝ two definitions - must fail
+          f,←⊂':Namespace ns2 % :EndClass % :Class class2 % :EndNamespace' ⍝ two definitions (arguable) - must fail
+          f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % '
+          f,←⊂':Namespace ns % ∇ foo arg % arg←{ % ⍺⍺ % } % ∇ % :EndClass'
+          f,←⊂':Namespace ns % :EndNamespace % :EndClass'
+          f,←⊂':Namespace ns % :EndClass % :EndNamespace'
+          f,←⊂':Namespace ns % :Class class'
+          f,←⊂':Namespace ns % :Class class % :EndClass'
+          f,←⊂':Namespace ns % :Class class % :EndNamespace'
+          f,←⊂':Namespace ns % :Class class % :EndClass % :EndNamespace'
+          f,←⊂':Namespace ns % :Class class % :EndClass % :EndClass'
+          f,←⊂':Namespace ns % :Class class % :EndNamespace % :EndNamespace'
+          f,←⊂':Require%:Class class % :EndClass'
+          f,←⊂':Require %:Class class % :EndClass'
+          f,←⊂':Require stu ff % :Class class % :EndClass'
+          f,←⊂':Require "stu ff" % :Class class % :EndClass'
+          f,←⊂':Require file:///stuff/notfound % :Class class % :EndClass'
+          f,←⊂':Require "file:///stuff/notfound" % :Class class % :EndClass'
+          f,←⊂':Require ',filebad,' % :Class class % :EndClass'
+          f,←⊂':Require "',filebad,'" % :Class class % :EndClass'
+          f,←⊂':Class Class % ∇ constructor % :Access Public % :Implements Constructor % ∇ % :EndClass'
+          f,←':Class Class:BaseClass % :EndClass' ':Class Class:,Interface1 % :EndClass' ':Class Class:,Interface1,Interface2 % :EndClass' ':Class Class:BaseClass,Interface1,Interface2 % :EndClass'
+          f,←':Class Class:BaseClassNotFound % :EndClass' ':Class Class:,Interface1NotFound % :EndClass' ':Class Class:,Interface1NotFound,Interface2NotFound % :EndClass' ':Class Class:BaseClassNotFound,Interface1NotFound,Interface2NotFound % :EndClass'
+          f,←':Class Class:#.Base.Class.Not.Found % :EndClass' ':Class Class:,⎕SE.##.Interface1.Not.Found % :EndClass' ':Class Class:,⎕SE.##.Interface1.Not.Found,⎕SE.##.Interface2.Not.Found % :EndClass' ':Class Class:#.Base.Class.Not.Found,⎕SE.##.Interface1.Not.Found,⎕SE.##.Interface2.Not.Found % :EndClass'
+          f,←⊂':Class Class % :Include #.NOT.FOUND % ∇ constructor % :Access Public % :Implements Constructor % ∇ % :EndClass'
+          f,←⊂':Class Class % :Access Public % :Require nonsense % :EndClass'
+          f,←':Class class' ':Namespace ns'
+          f,←':Class class % goo←{' ':Namespace ns % goo←{'
+          f,←':Class class % :Namespace ns' ':Namespace ns % :Class class'
+          f,←':Class class % goo←{ % :EndClass' ':Namespace ns % goo←{ % :EndNamespace'
+          f,←⊂':Class class % ∇ foo arg ' ⍝ unmatched ∇ are prohibitive
+          f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺'  ⍝ unmatched ∇ are prohibitive
+          f,←⊂':Class class % ∇ foo arg % ∇ % goo ← { '  ⍝ neither can dfns
+          f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % goo ← { '  ⍝ neither can dfns
+          f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % :Namespace foo'  ⍝ the rest can be left wide open
+          f,←⊂':Class class % ∇ foo arg % arg←{ % ⍺⍺ % ∇ % :Namespace ns'  ⍝ the rest can be left wide open
+          f,←⊂':Class class % ∇ foo arg % ∇ % :Namespace foo'  ⍝ the rest can be left wide open
+          f,←⊂':Class class % ∇ foo arg % ∇ % :Namespace ns'  ⍝ the rest can be left wide open
+          f,←⊂':Namespace badns1%∇res←foo arg;%res←arg%∇%:EndNamespace'  ⍝ foo is invalid, but ∇'s are ok
+          f,←⊂':Namespace badns1%∇this is total garbage!!!%∇%:EndNamespace'  ⍝ ∇ seem ok
+          f,←⊂':Namespace badns1%∇!!!%∇%:EndNamespace'  ⍝ ∇ seem ok
+          f,←':Namespace badns%∇%:EndNamespace' ':Namespace badns%∇%∇%:EndNamespace'
+          f,←':Namespace badns%test∇test%:EndNamespace' ':Namespace badns%test∇test%test∇test%:EndNamespace'
+          f,←⊂':Namespace ns%test←{⍺∇⍵}%∇foo%dfn←{⍺∇⍵}%∇%:EndNamespace'  ⍝ ∇ within dfns must be ignored
+          f,←':Namespace ns%dfn←{%∇%}%:EndNamespace' ':Namespace ns%dfn←{%∇res←{larg}foo arg%}%:EndNamespace'  ⍝ even when on single line
+          f,←⊂':Namespace ns%∇r←{larg}fn rarg%r←{1:⍵⋄⍵}rarg∇%dfn←{a←⍵%z←{1:0⋄1}⍬%z←{1:0%1}⍬%0}%:EndNamespace'
+          f,←⊂':Namespace ns%∇res←{larg}fn rarg%sub←{1:∇⍵⋄⍵}%sub←{1:∇⍵%⍵}%sub←{%1:∇⍵⋄⍵%}%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵%⍵}rarg%res←{%1:∇⍵⋄⍵%}rarg%∇%:EndNamespace'
+          f,←⊂':Namespace ns%dfn←{%sub←{1:∇⍵⋄⍵}%sub←{1:∇⍵%⍵}%sub←{%1:∇⍵⋄⍵%}%res←{1:∇⍵⋄⍵}rarg%res←{1:∇⍵%⍵}rarg%res←{1:∇⍵⋄⍵}rarg%res←{%1:⍵⋄⍵%}rarg%}%:EndNamespace'
+          f,←'dfn←{''⍝''}' ':Class class%dfn←{''⍝''}%:EndClass'
+          f,←⊂':Class class%dfn←{%∇{⍵ ⍺⍺ data}¨(4↑la-1↑⍨⍴la)∘,¨v%}%:EndClass'
+          f,←'⎕'⎕R Space w ⎕R'⎕&⎕'⍠'UCP' 1⊢'%|$'⎕R Comment⍠'ML' 1⊢f   ⍝ randomise code
       ⍝ actually run the tests
-      Test←{
-          src←'%'(≠⊆⊢)⍵ ⋄ expname←Name ⍬
-          (exp←where Fix expname src 1)≡(res←SniffScript expname src):1
-          msg←⍕'"',⍵,'" gave',res,'instead of',exp
-          stop:⎕SIGNAL⊂('EN' 8)('EM' 'ASSERTION ERROR')('Message'msg)
-          ⎕←msg ⋄ 0
-      }
-      ok←⍬
+          Test←{
+              src←'%'(≠⊆⊢)⍵ ⋄ expname←Name ⍬
+              (exp←where Fix expname src 1)≡(res←SniffScript expname src):1
+              msg←⍕'"',⍵,'" gave',res,'instead of',exp
+              stop:⎕SIGNAL⊂('EN' 8)('EM' 'ASSERTION ERROR')('Message'msg)
+              ⎕←msg ⋄ 0
+          }
+          ok←⍬
       ⍝⎕←logfile←(739⌶0),'/sniff_qa_',(⊃'YYYY-MM-DD"_"hh"h"mm"m"ss"s"fff'(1200⌶)1 ⎕DT⊂⎕TS),'.txt'
-      :For i :In ⍳≢t←⊃,/1 1 1/h o f
+          :For i :In ⍳≢t←⊃,/1 1 1/h o f
           ⍝(⊂(⍕i),' ',(i⊃t))⎕NPUT logfile 2
-          ok,←Test i⊃t
-          where.⎕EX(where.⎕NL-⍳10)~'BaseClass' 'Interface1' 'Interface2'  ⍝ other dyalog crashes after fixing too many wild names
-      :EndFor
-      ok←∧/ok
-      ⎕NDELETE file
-    ∇
+              ok,←Test i⊃t
+              where.⎕EX(where.⎕NL-⍳10)~'BaseClass' 'Interface1' 'Interface2'  ⍝ other dyalog crashes after fixing too many wild names
+          :EndFor
+          ok←∧/ok
+          ⎕NDELETE file
+        ∇
     :EndSection
-
-
-
+    
+    
+    
     :Section UI
     ⍝ Settings
-    WARN←1     ⍝ flag to enable/disable warnings
-    SHOWMSG←1  ⍝ flag to enable/disable display of log/warning messages
+        WARN←1     ⍝ flag to enable/disable warnings
+        SHOWMSG←1  ⍝ flag to enable/disable display of log/warning messages
     ⍝ Globals
-    WARNLOG←DEBUGLOG←0⍴⊂''  ⍝ actual logs
-    LOGSIZE←1000
-
-    ∇ msg←{caller}(depth FormatMessage)msg
-      :If 900⌶⍬ ⋄ caller←0 ⋄ :EndIf
-      msg←⊆msg   ⍝ allow building a string as a list of strings to avoid catenating them if not actually using the message
-      :If ''≡0⍴caller ⋄ msg,⍨←caller': '  ⍝ caller provided as-is
-      :ElseIf ¯1≡caller ⋄ msg,⍨←(LinkCall ⍬)': '  ⍝ outer link call
-      :ElseIf 0≡caller  ⍝ no preprending of call
-      :Else ⋄ msg,⍨←((1+depth+caller)⊃⎕XSI)': '  ⍝ look up the stack : 1 is for self, 2 if for one' caller etc
-      :EndIf
-      msg←⊃,/,∘⍕¨msg
-      :If 0∊(1=≡msg)(1=≢⍴msg)(2 0∊⍨10|⎕DR msg)
-          Error'Internal error: badly formatted error message'
-      :EndIf
-    ∇
-    ∇ msg←TimeStamp msg
-      msg,⍨←,'ZI4,</>,ZI2,</>,ZI2,<->,ZI2,<:>,ZI2,<:>,ZI2,<.>,ZI3,< >'⎕FMT,[0.5]⎕TS
-    ∇
-    ∇ {errno}Error msg;caller
-      :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
-      (,⍕⊃,/(LinkCall ⍬)': ',⊆msg)⎕SIGNAL errno
-    ∇
-    ∇ {msg}←{caller}Warn msg
+        WARNLOG←DEBUGLOG←0⍴⊂''  ⍝ actual logs
+        LOGSIZE←1000
+        
+        ∇ msg←{caller}(depth FormatMessage)msg
+          :If 900⌶⍬ ⋄ caller←0 ⋄ :EndIf
+          msg←⊆msg   ⍝ allow building a string as a list of strings to avoid catenating them if not actually using the message
+          :If ''≡0⍴caller ⋄ msg,⍨←caller': '  ⍝ caller provided as-is
+          :ElseIf ¯1≡caller ⋄ msg,⍨←(LinkCall ⍬)': '  ⍝ outer link call
+          :ElseIf 0≡caller  ⍝ no preprending of call
+          :Else ⋄ msg,⍨←((1+depth+caller)⊃⎕XSI)': '  ⍝ look up the stack : 1 is for self, 2 if for one' caller etc
+          :EndIf
+          msg←⊃,/,∘⍕¨msg
+          :If 0∊(1=≡msg)(1=≢⍴msg)(2 0∊⍨10|⎕DR msg)
+              Error'Internal error: badly formatted error message'
+          :EndIf
+        ∇
+        ∇ msg←TimeStamp msg
+          msg,⍨←,'ZI4,</>,ZI2,</>,ZI2,<->,ZI2,<:>,ZI2,<:>,ZI2,<.>,ZI3,< >'⎕FMT,[0.5]⎕TS
+        ∇
+        ∇ {errno}Error msg;caller
+          :If 900⌶⍬ ⋄ errno←ERRNO ⋄ :EndIf
+          (,⍕⊃,/(LinkCall ⍬)': ',⊆msg)⎕SIGNAL errno
+        ∇
+        ∇ {msg}←{caller}Warn msg
     ⍝ Warn user
-      :If ~WARN ⋄ :Return ⋄ :EndIf
-      :If 900⌶⍬ ⋄ caller←⊢ ⋄ :EndIf
-      WARNLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
-      WARNLOG↑⍨←-LOGSIZE⌊≢WARNLOG
-      :If SHOWMSG ⋄ ⎕←'Link Warning: ',msg ⋄ :EndIf
-    ∇
-    ∇ {msg}←{caller}Log msg
+          :If ~WARN ⋄ :Return ⋄ :EndIf
+          :If 900⌶⍬ ⋄ caller←⊢ ⋄ :EndIf
+          WARNLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
+          WARNLOG↑⍨←-LOGSIZE⌊≢WARNLOG
+          :If SHOWMSG ⋄ ⎕←'Link Warning: ',msg ⋄ :EndIf
+        ∇
+        ∇ {msg}←{caller}Log msg
     ⍝ Debug information
-      :If debug≤0 ⋄ :Return ⋄ :EndIf
-      :If 900⌶⍬ ⋄ caller←⊢ ⋄ :EndIf
-      DEBUGLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
-      DEBUGLOG↑⍨←-LOGSIZE⌊≢DEBUGLOG
-      :If SHOWMSG ⋄ ⎕←'Link Debug: ',msg ⋄ :EndIf
-    ∇
-
+          :If debug≤0 ⋄ :Return ⋄ :EndIf
+          :If 900⌶⍬ ⋄ caller←⊢ ⋄ :EndIf
+          DEBUGLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
+          DEBUGLOG↑⍨←-LOGSIZE⌊≢DEBUGLOG
+          :If SHOWMSG ⋄ ⎕←'Link Debug: ',msg ⋄ :EndIf
+        ∇
+        
     :EndSection
-
-
-
+    
+    
+    
     :Section UCMD
-
-    ∇ UCMD_Install;from;to
+        
+        ∇ UCMD_Install;from;to
     ⍝ FOR INTERNAL TESTING ONLY - DO NOT CALL THIS FUNCTION
     ⍝ To install link, refer to the installation documentation :
     ⍝ https://github.com/Dyalog/link/tree/master/help/Installation.md
-      :If ~0∊⍴from←⊃⎕NPARTS 4⊃5179⌶⎕SE.Link.U   ⍝ DYALOGSTARTUPKEEPLINK
-          from,←'../../SALT/spice/Link.dyalog'
-      :ElseIf ~0∊⍴from←+2 ⎕NQ'.' 'GetEnvironment' 'DYALOGSTARTUPSE'
-          from,←'../SALT/spice/Link.dyalog'
-      :Else
-          'Not a development link installation - Cannot update Link User Commands'⎕SIGNAL 999
-      :EndIf
-      to←(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/SALT/spice/Link.dyalog'
-      ⎕←'Copying "',from,'" → "',to,'"'
-      to ⎕NCOPY⍠'IfExists' 'Replace'⊢from
-      ⎕←⎕SE.UCMD']UReset'
-    ∇
-
-    ∇ r←UCMD_List
+          :If ~0∊⍴from←⊃⎕NPARTS 4⊃5179⌶⎕SE.Link.U   ⍝ DYALOGSTARTUPKEEPLINK
+              from,←'../../SALT/spice/Link.dyalog'
+          :ElseIf ~0∊⍴from←+2 ⎕NQ'.' 'GetEnvironment' 'DYALOGSTARTUPSE'
+              from,←'../SALT/spice/Link.dyalog'
+          :Else
+              'Not a development link installation - Cannot update Link User Commands'⎕SIGNAL 999
+          :EndIf
+          to←(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/SALT/spice/Link.dyalog'
+          ⎕←'Copying "',from,'" → "',to,'"'
+          to ⎕NCOPY⍠'IfExists' 'Replace'⊢from
+          ⎕←⎕SE.UCMD']UReset'
+        ∇
+        
+        ∇ r←UCMD_List
       ⍝ Name, group, short description and parsing rules
-      r←'['
-      r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
-      r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
+          r←'['
+          r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
+          r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"1-2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -sysvars -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
-      r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
-      r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
-      r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
-      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -flatten -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+          r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"1-2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+          r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -sysvars -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+          r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
+          r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
+          r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
+          r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -flatten -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
-      r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
-      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
-      r,←'{"Name":"Resync",      "args":"[ns1]",    "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
-      r←⎕JSON']',⍨¯1↓r
-      r.Group←⊂'Link'
-      r/⍨←×⎕NC'⎕SE.Link'
-    ∇
-
-    ∇ r←level UCMD_Help cmd;info;Means;m;mods;myMods;myModI;myModS;a;modVals;modTxts;argTxts;myArgs;myArgI;myArgss;args;myArgS
-      info←{⍵⊃⍨⍵.Name⍳⊢/'.'(≠⊆⊢)cmd}UCMD_List
-     
-      m←⍉⍪'' '' ''
-      m⍪←'-all' '' 'break all links (in all children of # and ⎕SE)'
-      m⍪←'-arrays' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
-      m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
-      m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
-      m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
-      m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
-      m⍪←'-extended' '' 'include additional properties for each link'
+          r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
+          r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
+          r,←'{"Name":"Resync",      "args":"[ns1]",    "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
+          r←⎕JSON']',⍨¯1↓r
+          r.Group←⊂'Link'
+          r/⍨←×⎕NC'⎕SE.Link'
+        ∇
+        
+        ∇ r←level UCMD_Help cmd;info;Means;m;mods;myMods;myModI;myModS;a;modVals;modTxts;argTxts;myArgs;myArgI;myArgss;args;myArgS
+          info←{⍵⊃⍨⍵.Name⍳⊢/'.'(≠⊆⊢)cmd}UCMD_List
+          
+          m←⍉⍪'' '' ''
+          m⍪←'-all' '' 'break all links (in all children of # and ⎕SE)'
+          m⍪←'-arrays' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
+          m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
+          m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
+          m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
+          m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
+          m⍪←'-extended' '' 'include additional properties for each link'
       ⍝m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
-      m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
-      m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
-      m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
-      m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
-      m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
-      m⍪←'-overwrite' '' 'overwrite destination if needed'
-      m⍪←'-proceed' '' 'perform changes required to resynchronise'
-      m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
-      m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
-      m⍪←'-sysvars' '' 'Export namespace-scoped system variables to file for all unscripted namespaces'
-      m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
-      m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
-      (mods modVals modTxts)←↓⍉m
-      myMods←'-\pL+'⎕S'&'⊢info.Parse
-      myModI←⊂mods⍳myMods
-      myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
-     
-      a←⍉⍪'' ''
-      a⍪←'ns' 'namespace to be linked'
-      a⍪←'ns0' 'source namespace'
-      a⍪←'ns1' 'linked namespace'
-      a⍪←'ns2' 'target namespace'
-      a⍪←'dir' 'directory to be linked'
-      a⍪←'dir0' 'source directory'
-      a⍪←'dir2' 'target directory'
-      a⍪←'file' 'name of file where item source is stored'
-      a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
-      a⍪←'item' 'name of APL item'
-      (args argTxts)←↓⍉a
-      myArgs←'\w+'⎕S'&'⊢info.args
-      myArgI←⊂args⍳myArgs
-      myArgS←∊'(\[?)(\pL+)\d?(\]?)'⎕S' \1<\2>\3'⊢info.args
-     
-      r←⊂info.Desc
-      r,←⊂'    ]LINK.',cmd,myArgS,myModS
-      r,←⊂''
-      :If 0=level
-          r,←⊂']LINK.',cmd,' -??  ⍝ for argument and modifier details'
-      :Else
+          m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
+          m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
+          m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
+          m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
+          m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
+          m⍪←'-overwrite' '' 'overwrite destination if needed'
+          m⍪←'-proceed' '' 'perform changes required to resynchronise'
+          m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
+          m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
+          m⍪←'-sysvars' '' 'Export namespace-scoped system variables to file for all unscripted namespaces'
+          m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
+          m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
+          (mods modVals modTxts)←↓⍉m
+          myMods←'-\pL+'⎕S'&'⊢info.Parse
+          myModI←⊂mods⍳myMods
+          myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
+          
+          a←⍉⍪'' ''
+          a⍪←'ns' 'namespace to be linked'
+          a⍪←'ns0' 'source namespace'
+          a⍪←'ns1' 'linked namespace'
+          a⍪←'ns2' 'target namespace'
+          a⍪←'dir' 'directory to be linked'
+          a⍪←'dir0' 'source directory'
+          a⍪←'dir2' 'target directory'
+          a⍪←'file' 'name of file where item source is stored'
+          a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
+          a⍪←'item' 'name of APL item'
+          (args argTxts)←↓⍉a
+          myArgs←'\w+'⎕S'&'⊢info.args
+          myArgI←⊂args⍳myArgs
+          myArgS←∊'(\[?)(\pL+)\d?(\]?)'⎕S' \1<\2>\3'⊢info.args
+          
+          r←⊂info.Desc
+          r,←⊂'    ]LINK.',cmd,myArgS,myModS
           r,←⊂''
-          r,←'^  (\pL+)\d?' ' +$'⎕R'  <\1>' ''↓¯1⌽⍕myArgI⌷args,⍪argTxts
-          r,←⊂''
-          r,←' +$'⎕R''↓¯1⌽⍕myModI⌷modTxts,⍨⍪mods,¨modVals
-          r,←⊂''
-      :EndIf
-      r/⍨←~'' ''⍷r
-      r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
-     
-      :If 1.31>⎕SE.Dyalog.Utils.Version ⋄ :AndIf ⎕PW<80   ⍝ link issue #199 - fixed in Utils v1.31
-          r←,⊂'Cannot display help with ⎕PW<80'
-      :EndIf
-    ∇
-
-    ∇ r←UCMD_Run(cmd args);error;lc;name;names;opts;spice;this;val
-      spice←⊃⎕RSI ⋄ this←spice.##.THIS   ⍝ spice namespace (should be ⎕SE.SALTUtils.c.Link) ⋄ UCMD caller's namespace
+          :If 0=level
+              r,←⊂']LINK.',cmd,' -??  ⍝ for argument and modifier details'
+          :Else
+              r,←⊂''
+              r,←'^  (\pL+)\d?' ' +$'⎕R'  <\1>' ''↓¯1⌽⍕myArgI⌷args,⍪argTxts
+              r,←⊂''
+              r,←' +$'⎕R''↓¯1⌽⍕myModI⌷modTxts,⍨⍪mods,¨modVals
+              r,←⊂''
+          :EndIf
+          r/⍨←~'' ''⍷r
+          r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
+          
+          :If 1.31>⎕SE.Dyalog.Utils.Version ⋄ :AndIf ⎕PW<80   ⍝ link issue #199 - fixed in Utils v1.31
+              r←,⊂'Cannot display help with ⎕PW<80'
+          :EndIf
+        ∇
+        
+        ∇ r←UCMD_Run(cmd args);error;lc;name;names;opts;spice;this;val
+          spice←⊃⎕RSI ⋄ this←spice.##.THIS   ⍝ spice namespace (should be ⎕SE.SALTUtils.c.Link) ⋄ UCMD caller's namespace
       ⍝ propagate lowercase modifiers to dromedaryCase options' namespace members
-      :If (cmd≡'Create')∧(1=≢args.Arguments)
-          args.Arguments,⍨←⊂'⎕THIS'  ⍝ in the UCMD, namespace defaults to caller's ⎕THIS
-      :EndIf
-      :Select |1 2⊃⎕SE.Link.⎕AT cmd
-      :Case 0  ⍝ niladic
-          opts←⊃  ⍝ hack : rslt← ⊃ (⍎Niladic)args
-      :Case 1  ⍝ monadic
-          opts←⊢
-      :Case 2  ⍝ ambivalent or dyadic
-          'opts'⎕NS ⍬
-          names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch'
-          :For name :In names
-              lc←0 CaseText name
-              :If ×args.⎕NC lc
-              :AndIf 0≢val←args⍎lc  ⍝ UCMD interface defaults unset modifiers to 0 - so don't execute them
-                  :Select name
-                  :CaseList 'codeExtensions' 'customExtensions' 'typeExtensions' ⋄ val←this⍎val
-                  :Case 'arrays' ⋄ :If val≡,'1' ⋄ val←1 ⋄ :EndIf  ⍝ link issue #192 - ]link.create -arrays=1 doesn't work
-                  :EndSelect
-                  name opts.{⍎⍺,'←⍵'}val
-              :EndIf
-          :EndFor
-      :EndSelect
-      :Trap debug↓0   ⍝ link issue #217
+          :If (cmd≡'Create')∧(1=≢args.Arguments)
+              args.Arguments,⍨←⊂'⎕THIS'  ⍝ in the UCMD, namespace defaults to caller's ⎕THIS
+          :EndIf
+          :Select |1 2⊃⎕SE.Link.⎕AT cmd
+          :Case 0  ⍝ niladic
+              opts←⊃  ⍝ hack : rslt← ⊃ (⍎Niladic)args
+          :Case 1  ⍝ monadic
+              opts←⊢
+          :Case 2  ⍝ ambivalent or dyadic
+              'opts'⎕NS ⍬
+              names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch'
+              :For name :In names
+                  lc←0 CaseText name
+                  :If ×args.⎕NC lc
+                  :AndIf 0≢val←args⍎lc  ⍝ UCMD interface defaults unset modifiers to 0 - so don't execute them
+                      :Select name
+                      :CaseList 'codeExtensions' 'customExtensions' 'typeExtensions' ⋄ val←this⍎val
+                      :Case 'arrays' ⋄ :If val≡,'1' ⋄ val←1 ⋄ :EndIf  ⍝ link issue #192 - ]link.create -arrays=1 doesn't work
+                      :EndSelect
+                      name opts.{⍎⍺,'←⍵'}val
+                  :EndIf
+              :EndFor
+          :EndSelect
+          :Trap debug↓0   ⍝ link issue #217
           ⍝ must not use :With because of link issue #163
-          r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
-      :Else  ⍝ provide nice error message
-          r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
-      :EndTrap
-    ∇
-
+              r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
+          :Else  ⍝ provide nice error message
+              r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
+          :EndTrap
+        ∇
+        
     :EndSection
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
 :EndNamespace

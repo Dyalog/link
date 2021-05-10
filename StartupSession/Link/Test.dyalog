@@ -991,7 +991,7 @@
       assert'0 0≡⎕NEXISTS varfile fnfile'
       assert'0∧.=⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
       z←⎕SE.UCMD']Link.Expunge ',⍕name∘,¨'.HeLLo' '.OhMyOhMy'
-      'link issue #256'assert'0 0≡z'         
+      'link issue #256'assert'0 0≡z'
      
       {}⎕SE.Link.Break name
       ⎕EX name ⋄ 3 ⎕NDELETE folder
@@ -2244,8 +2244,8 @@
       {}ride.APL')SAVE "',folder,'/linked_workspace.dws"'
       res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
       ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
-      assert'(''1'',NL)≡ride.APL''1∊''''      ]Link.Break ',name,'''''⍷↑⎕SE.Link.U.WARNLOG'' '
-      res←ride.APL']link.break ',name
+      assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
+      res←ride.APL'⎕SE.Link.Resync ',name
       assert'res≡''Unlinked: '',name,NL'
       res←ride.APL']link.create ',name,' ',folder,' -casecode'
       assert'∨/''Linked:''⍷res'
@@ -2254,6 +2254,12 @@
       assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
       assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
      
+      ⍝ link issue #259
+      ∘∘∘
+      {}ride.APL')CLEAR'     
+      {}ride.APL']Link.Create # ',folder
+      {}ride.APL']Link.Create ',name,' ',folder
+      res←ride.APL')CLEAR'     
       CleanUp folder name
       ok←1
     ∇

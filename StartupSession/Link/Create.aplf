@@ -108,8 +108,8 @@
          opts.fastLoad←0  ⍝ fastLoad is observed only at load (FixFiles) time - affects U.DetermineAplName
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
-         U.SetLinks links,opts
          Watcher.Watch opts  ⍝ first crawler may call Notify
+         U.SetLinks links,opts  ⍝ set links after setting FileSystemWatcher
          ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
      :EndHold
  :Else

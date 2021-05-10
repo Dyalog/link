@@ -174,7 +174,7 @@
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(9=⌊links.⎕NC⊂⊂'fsw')/links  ⍝ links that have a FSW
+      :AndIf ~0∊⍴links←(⎕NULL≠links.fsw)/links  ⍝ links that have a FSW
           :If USE_NQ ⍝ Did we using indirection via a queue?
               (timers tids)←↓⍉↑links.fsw.(QUEUE TID)
               :If ~0∊⍴timers←(9=⌊⎕NC timers)/timers
@@ -194,7 +194,7 @@
               ⎕DL 0.1 ⍝ Give any extant events time to be processed
               {0::_←0 ⋄ _←⍵⍎'Dispose ⋄ 0'}¨links.fsw  ⍝ at )CLEAR time, .Net object might throw EXCEPTION: Object reference not set to an instance of an object.
           :EndIf
-          links.fsw←⊂⍬
+          links.fsw←⎕NULL
       :EndIf
     ∇
     

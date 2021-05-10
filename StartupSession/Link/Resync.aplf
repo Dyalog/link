@@ -7,7 +7,7 @@
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If 0∊⍴links←U.GetLinks ⋄ →0⊣msg←'No active links' ⋄ :EndIf
      diff←0 4⍴⊂''
-     :For ns :In links
+     :For ns :In links.ns
          diff⍪←opts Diff ns  ⍝ will error if ns is not a linked namespace
      :EndFor
 
@@ -21,7 +21,7 @@
          msg,←(⊂''),↓⍕('Direction' 'Name' 'File' 'Comments'⍪diff)[;2 1 3 4]
          msg←↑msg
          →0
-     :EndIf         
+     :EndIf
 
      :If ∧/mask←2≥type←'←→'⍳diff[;1]  ⍝ should be impossible due to checks above
          msg←''
