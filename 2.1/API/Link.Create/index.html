@@ -1,0 +1,1135 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.4">
+    
+    
+      
+        <title>Link.Create - Link 3.0</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bde7dde4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#linkcreate" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Link 3.0" class="md-header__button md-logo" aria-label="Link 3.0" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Link 3.0
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Link.Create
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Link 3.0" class="md-nav__button md-logo" aria-label="Link 3.0" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Link 3.0
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        Getting Started
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting Started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/Setup/" class="md-nav__link">
+        Setting up your Environment
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/WStoLink/" class="md-nav__link">
+        WStoLink
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/SALTtoLink/" class="md-nav__link">
+        SALTtoLink
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/Installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Upgradeto30/" class="md-nav__link">
+        Upgrading to Link 3.0
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ReleaseNotes/" class="md-nav__link">
+        Release Notes
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      <label class="md-nav__link" for="__nav_5">
+        Discussion
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Discussion" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Discussion
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Discussion/TechDetails/" class="md-nav__link">
+        Technical Details and Limitations
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Discussion/Workspaces/" class="md-nav__link">
+        Workspaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Discussion/HowDoesItWork/" class="md-nav__link">
+        How does Link work?
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Discussion/History/" class="md-nav__link">
+        History
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" checked>
+      
+      <label class="md-nav__link" for="__nav_6">
+        API
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        Index
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Add/" class="md-nav__link">
+        Link.Add
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Break/" class="md-nav__link">
+        Link.Break
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.CaseCode/" class="md-nav__link">
+        Link.CaseCode
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Link.Create
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Link.Create
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    Result
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-options" class="md-nav__link">
+    Common Options
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-options" class="md-nav__link">
+    "Advanced" Options
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Export/" class="md-nav__link">
+        Link.Export
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Expunge/" class="md-nav__link">
+        Link.Expunge
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Fix/" class="md-nav__link">
+        Link.Fix
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.GetFileName/" class="md-nav__link">
+        Link.GetFileName
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.GetItemName/" class="md-nav__link">
+        Link.GetItemName
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Import/" class="md-nav__link">
+        Link.Import
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.LaunchDir/" class="md-nav__link">
+        Link.LaunchDir
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Notify/" class="md-nav__link">
+        Link.Notify
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Pause/" class="md-nav__link">
+        Link.Pause
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Refresh/" class="md-nav__link">
+        Link.Refresh
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Resync/" class="md-nav__link">
+        Link.Resync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Status/" class="md-nav__link">
+        Link.Status
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.StripCaseCode/" class="md-nav__link">
+        Link.StripCaseCode
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.TypeExtension/" class="md-nav__link">
+        Link.TypeExtension
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Version/" class="md-nav__link">
+        Link.Version
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    Result
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-options" class="md-nav__link">
+    Common Options
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-options" class="md-nav__link">
+    "Advanced" Options
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="linkcreate">Link.Create</h1>
+<pre><code>]LINK.Create &lt;ns&gt; &lt;dir&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload]
+
+msg ← {opts} ⎕SE.Link.Create (ns dir)
+</code></pre>
+<h4 id="arguments">Arguments</h4>
+<ul>
+<li><strong>namespace</strong> name of - or reference to - a namespace</li>
+<li><strong>directory</strong> name of a file system directory (without trailing slash or backslash)</li>
+</ul>
+<h4 id="result">Result</h4>
+<ul>
+<li>String describing the established link, along with possible failures</li>
+</ul>
+<h4 id="common-options">Common Options</h4>
+<ul>
+<li><strong>source</strong>    {ns|dir|<strong>auto</strong>}  </li>
+</ul>
+<blockquote>
+<p>Whether to consider the ns or dir as the source (also used by a subsequent <a href="../Link.Refresh/">Refresh</a>).
+- <code>dir</code> means that the namespace must be non-existent or empty and will be populated from source files.
+- <code>ns</code> means that the directory must be non-existent or empty and will be populated by source files for the items in the namespace.
+- <code>auto</code> will use whichever of ns or dir that is not empty. If both are empty, it will use <code>dir</code> on a subsequent <a href="../Link.Refresh/">Refresh</a>.</p>
+<p>Defaults to <code>auto</code>.</p>
+</blockquote>
+<ul>
+<li>
+<p><strong>watch</strong>    {none|ns|dir|<strong>both</strong>} </p>
+<blockquote>
+<p>Specifies which sides of the link to watch for changes (and synchronise).
+- <code>ns</code> will mirror namespace changes (done with the editor) to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.
+- <code>dir</code> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to <a href="../Link.Pause/">Link.Pause</a> the link before doing massive changes to files, then <a href="../Link.Resync/">Link.Resync</a> to resume file watching.
+- <code>both</code> will do both.</p>
+<p>Watching a <code>dir</code> (or <code>both</code>) is currently only supported using the .Net Framework or .NetCore, but a <a href="/Crawler.md">Crawler</a> is planned to perform watching on all platforms, and to recover from cases where changes are not picked up by other mechanisms.</p>
+<p>The default is <code>both</code> where supported, else <code>ns</code>.  </p>
+</blockquote>
+</li>
+<li>
+<p><strong>caseCode</strong> (default off) Adds a suffix to file names on write</p>
+<blockquote>
+<p>If your application contains items with names that differ only in case (for example <code>Debug</code> and <code>DEBUG</code>), and your file system i s case-insensitive (for example, under Microsoft Windows), then enabling <strong>caseCode</strong> will cause a suffix to be added to file names, containing an octal encoding of the location of uppercase letters in the name.</p>
+<p>For example, with caseCode on, two functions named <code>Debug</code> and <code>DEBUG</code> will be written to files named
+<code>Debug-1.aplf</code> and <code>DEBUG-37.aplf</code>.</p>
+<p>Note: Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. Also note that you will probably want to enable <strong>forceFilenames</strong> if you enable <strong>caseCode</strong>.</p>
+</blockquote>
+</li>
+<li>
+<p><strong>forceExtensions</strong> (default off) Force correct extensions</p>
+</li>
+</ul>
+<blockquote>
+<p>If enabled, file extensions will be adjusted (if necessary) when an item is defined in the workspace from an external file, so that the file extension accurately reflects the type of the item according to <strong>typeExtensions</strong>.</p>
+</blockquote>
+<ul>
+<li><strong>forceFilenames</strong> (default off) Force correct filenames</li>
+</ul>
+<blockquote>
+<p>If enabled, file names will be adjusted so that they match the item name, when an item is defined 
+in the workspace from an external file, so that the file name matches the name of the item.</p>
+<p>By default, Link will always new files with the same name as items created in the active workspace. However, it will not insist that file names match item names when importing items from a directory.</p>
+<p>If <strong>forceFilenames</strong> is not set.  Link will update to the same file that an item was loaded from, even though the file name does not match the item name.</p>
+</blockquote>
+<ul>
+<li><strong>arrays</strong> (default off) Export arrays</li>
+</ul>
+<blockquote>
+<ul>
+<li>if simply set (to 1) (e.g. <code>-arrays</code>), then all arrays are exported </li>
+<li>if set to a comma-separated list of names (e.g. <code>-arrays=name1{,name2,...}</code>) then arrays with specified names are exported</li>
+</ul>
+<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>, and only when the link is initially created. Arrays will not be monitored for changes during operation of the application.</p>
+</blockquote>
+<ul>
+<li><strong>sysVars</strong> (default off) Export namespace-scoped system variables to file</li>
+</ul>
+<blockquote>
+<p>The exhaustive list of exported variables is: <code>⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX</code>. They will be exported for all unscripted namespaces.</p>
+<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>.</p>
+</blockquote>
+<h4 id="advanced-options">"Advanced" Options</h4>
+<ul>
+<li>
+<p><strong>flatten</strong> (default off) Do not create sub-namespaces</p>
+<blockquote>
+<p><strong>flatten</strong> will load all items into the root of the linked namespace, even if the source code is arranged into sub-directories. This is typically used for applications which have source which is divided into modules, but still expects to run in a "flat" workspace.</p>
+<p>Note that if <strong>flatten</strong> is set, new items need special treatment:
+- If a function or operator is renamed in the editor, the new item will be placed in the
+same folder as the original item.
+- If a new item is created, it will be placed in the root of the linked directory.
+- It is also possible to use the <strong>getFilename</strong> setting to add application-specific logic to determine the file name to be used (or prompt the user for a decision).
+- A simple work-around is to always create a stub source file in the correct directory and editing the function that appears in the workspace, rather than creating new functions in the workspace.</p>
+<p>This option takes effect only when <strong>source</strong> is <strong>dir</strong>.</p>
+</blockquote>
+</li>
+<li>
+<p><strong>beforeWrite</strong> <code>ns.hookname</code> name of function to call before writing to file</p>
+</li>
+</ul>
+<blockquote>
+<p>If you specify a <strong>beforeWrite</strong> function, it will be called before Link updates a file or directory, allowing support of custom code or data formats. </p>
+<p>Your function will be called with a nested right argument containing the following elements:</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[1]</td>
+<td>Event name ('beforeWrite')</td>
+</tr>
+<tr>
+<td>[2]</td>
+<td>Reference to a namespace containing link options for the active link.</td>
+</tr>
+<tr>
+<td>[3]</td>
+<td>Fully qualified filename that Link intends to write to (directories end with a slash)</td>
+</tr>
+<tr>
+<td>[4]</td>
+<td>Fully qualified APL name of the item that Link intends to write</td>
+</tr>
+<tr>
+<td>[5]</td>
+<td>Name class of the APL item to write</td>
+</tr>
+<tr>
+<td>[6]</td>
+<td>Old APL name (different from APL name if the write is due to a rename)</td>
+</tr>
+<tr>
+<td>[7]</td>
+<td>Source code that Link intends to write to file</td>
+</tr>
+</tbody>
+</table>
+<p>Note: Do not assume a specific length, more elements may be added in the future.</p>
+<p>Your callback function must return one of the following results:</p>
+<ul>
+<li><code>0</code>: The <strong>beforeWrite</strong> function has completed all necessary actions. Link should not update any files.</li>
+<li><code>1</code>: The <strong>beforeWrite</strong> function wishes to "pass" on this write: Link should proceed as planned.</li>
+</ul>
+</blockquote>
+<ul>
+<li><strong>beforeRead</strong> <code>ns.hookname</code> name of function to call before before reading a file</li>
+</ul>
+<blockquote>
+<p>If you specify a <strong>beforeRead</strong> function, it will be called before Link reads source from a file or directory, allowing support of custom code or data formats.</p>
+<p>Your function will be called with a nested right argument containing the following elements:</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[1]</td>
+<td>Event name (<code>'beforeRead'</code>)</td>
+</tr>
+<tr>
+<td>[2]</td>
+<td>Reference to a namespace containing link options for the active link.</td>
+</tr>
+<tr>
+<td>[3]</td>
+<td>Fully qualified filename that Link intends to read from (directories end with a slash)</td>
+</tr>
+<tr>
+<td>[4]</td>
+<td>Fully qualified APL name of the item that Link intends to update</td>
+</tr>
+<tr>
+<td>[5]</td>
+<td>Name class of the APL item to be read</td>
+</tr>
+</tbody>
+</table>
+<p>Note: Do not assume a specific length, more elements may be added in the future.</p>
+<p>Your callback function must return one of the following results:
+ - <code>0</code>: The <strong>beforeRead</strong> function has completed all necessary actions. Link should not update the workspace.
+ - <code>1</code>: The <strong>beforeRead</strong> function wishes to "pass" on this read: Link should proceed as planned.</p>
+</blockquote>
+<ul>
+<li>
+<p><strong>getFilename</strong> <code>ns.hookname</code> name of the function to call to decide the file or directory name linked to an APL item</p>
+<blockquote>
+<p>If you specify a <strong>getFilename</strong> function, it will be called before Link updates a file or directory, allowing you to modify the name (or more likely the extension) of the file used to store the source for an APL item. Changing the file name this way allows you to override the <strong>caseCode</strong>, <strong>forceFilenames</strong> and <strong>forceExtensions</strong> options.</p>
+<p>Your function will be called with a nested right argument containing the following elements:
+|Index|Description|
+| ---- | ---- |
+|[1]|Event name (<code>'getFilename'</code>)|
+|[2]|Reference to a namespace containing link options for the active link.|
+|[3]|Fully qualified filename that Link intends to use (directories end with a slash)|
+|[4]|Fully qualified APL name of the item|
+|[5]|Name class of the APL item|
+|[6]|Old APL name (different from APL name if the write is due to a rename)|</p>
+<p>Note: Do not assume a specific length, more elements may be added in the future.</p>
+<p>Your callback function must return a character vector which must be:
+ - empty: to signify that Link should proceed with the suggested file name.
+ - non-empty: to specify the name to be used.</p>
+</blockquote>
+</li>
+<li>
+<p><strong>codeExtensions</strong> File extensions that are expected to contain source code</p>
+</li>
+</ul>
+<blockquote>
+<p>When reacting to changes in a watched directory, Link will only process files if the changed file has one of the listed extensions.</p>
+<p>The default is <code>'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'</code></p>
+<p>From a user command, the syntax is <code>-codeExtensions=var</code> where <code>var</code> holds the expected array of extensions.</p>
+</blockquote>
+<ul>
+<li>
+<p><strong>customExtensions</strong> Specifies additional file extensions handled by <strong>beforeRead</strong> functions</p>
+<blockquote>
+<p>If you have specified a <strong>beforeRead</strong> handler function, and your code supports the use of custom file extensions to store source data in application-specific formats, you need to set <strong>customExtensions</strong> so that Link does not ignore changes to these file types.</p>
+<p>default is <code>''</code> - no custom extensions</p>
+<p>From a user command, the syntax is <code>-customExtensions=var</code> where <code>var</code> holds the expected array.</p>
+<p>The reason for splitting the list of extensions into two parts is to avoid your code having to repeat the list of standard extensions, or update this list if it should be extended in the future.</p>
+</blockquote>
+</li>
+<li>
+<p><strong>typeExtensions</strong> Specify the default file extensions to use when creating files</p>
+</li>
+</ul>
+<blockquote>
+<p>The <strong>typeExtensions</strong> table specifies the default extension that should be used when creating a new file to contain the source for an item of a given type. </p>
+<p><strong>typeExtensions</strong> is a two-column matrix with numeric name class numbers in the first column
+and corresponding file extensions in the second column.</p>
+<p>Note that the <strong>forceExtensions</strong> switch can be used to correct all extensions on pre-existing files when a link is created.</p>
+<p>The default is:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>extension</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>apla</td>
+</tr>
+<tr>
+<td>3</td>
+<td>aplf</td>
+</tr>
+<tr>
+<td>4</td>
+<td>aplo</td>
+</tr>
+<tr>
+<td>9.1</td>
+<td>apln</td>
+</tr>
+<tr>
+<td>9.4</td>
+<td>aplc</td>
+</tr>
+<tr>
+<td>9.5</td>
+<td>apli</td>
+</tr>
+</tbody>
+</table>
+<p>From a user command, the syntax is <code>-typeExtensions=var</code> where <code>var</code> holds the expected array.</p>
+</blockquote>
+<ul>
+<li><strong>fastLoad</strong> (default off) Flag to reduce the load time by not inspecting source to detect name clashes<blockquote>
+<p>This affects only initial directory loading, but not subsequent editor or file system watcher events. It is worth setting fastLoad for very large projects with users that don't produce name clashes (i.e. two files defining the same APL name). </p>
+<p>Side effects are (again, only at initial load time, not at subsequent events):
+  - good: load will be significantly faster because files won't be inspected to determine their true APL name.
+  - bad: clashing names won't be detected: files may silently overwrite each other's APL definition if they define the same APL name.
+  - bad: <strong>forceFileNames</strong>/<strong>forceExtensions</strong> won't be observed
+  - bad: <strong>beforeRead</strong> may report incorrect name class</p>
+<p>This option takes effect only when <strong>source</strong> is <strong>dir</strong>.</p>
+</blockquote>
+</li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../Link.CaseCode/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Link.CaseCode
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../Link.Export/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Link.Export
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../assets/javascripts/workers/search.4fa0e4ee.min.js", "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1d3bfcf1.min.js"></script>
+      
+    
+  </body>
+</html>
