@@ -503,7 +503,8 @@
       ⎕SE.Link.Links←links
       :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
       :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
-          (fsw links.fsw)←(links.fsw ⎕NULL)⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
+          fsw←links.fsw  ⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
+          links.fsw←⎕NULL  ⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
           {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
           links.fsw←fsw
       :EndIf
