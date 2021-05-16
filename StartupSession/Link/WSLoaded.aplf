@@ -20,10 +20,11 @@
 
          ⍝ restore saved workspace links
          :If ~0∊⍴wslinks
-             links,←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
-             msg←⊂'Some links were saved with the workspace, please break them:'
-             msg,←⊂∊(6⍴' ') ']Link.Break',' ',¨⍕¨wslinks.ns
-             ¯1 U.Warn 1↓U.FormatMessage msg
+             links,←wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
+             wslinks.restored←1 ⋄ wslinks.fsw←⎕NULL  ⍝ fsw re-instancited by Resync
+             msg←(⍕≢wslinks),' linked namespace',('s '/⍨1≠≢wslinks),' linked in this workspace: '
+             'IMPORTANT'U.Warn(⊂msg),⍕¨wslinks.ns
+             'IMPORTANT'U.Warn'Link.Resync is required to use anything other than Link.Status and Link.Diff'
          :EndIf
 
          U.SetLinks links

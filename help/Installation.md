@@ -1,8 +1,7 @@
 # Installation
 
-Link requires Dyalog APL versions v17.1 and newer. \
-Link can also work with Dyalog APL v17.0 Unicode, provided [some additional installation steps](#v17.0-default-session) \
-LInk v2.1+ has optimal behaviour with Dyalog v18.1 and newer (see [release notes](ReleaseNotes.md)).
+Link v2.1 requires Dyalog APL versions v18.0 and newer. \
+LInk v2.1 has optimal behaviour with Dyalog v18.1 and newer (see [release notes](ReleaseNotes.md)).
 
 ## Standard installation ##
 
@@ -60,15 +59,3 @@ Since SALT is not available, the `LINK` user command group is also unavailable, 
 
 Availability of the `LINK` user command group will depend on SALT being available.
 
-
-
-## v17.0 default session
-
-1. Copy the **link** repository contents into the Dyalog installation directory so **startup.dyalog** ends up in the same directory as **dyalog.exe**
-1. `2⎕FIX'file://',(2⎕NQ#'GetEnvironment' 'DYALOG'),'/StartupSession/Link/Install/RemoveLinks.dyalog'`
-1. `2⎕FIX'file://',(2⎕NQ#'GetEnvironment' 'DYALOG'),'/StartupSession/Link/Install/WSLoaded-default.dyalog'`
-1. `2⎕FIX'file://',(2⎕NQ#'GetEnvironment' 'DYALOG'),'/StartupSession/Link/Install/BUILD_DYALOGSPACE.dyalog'`
-1. Run `BUILD_DYALOGSPACE`
-1. Run `⎕SE.Dyalog.Callbacks.WSLoaded 1`
-1. Run `]UReset`
-1. Save the session

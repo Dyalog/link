@@ -23,7 +23,7 @@ So the easy test to check that the link is up-to-date is `0∊⍴⎕SE.Link.Diff
 
 #### Options
 
-- `arrays` and `sysVars` have the same syntax and defaults as in [Link.Create](Link.Create.md), and allow the comparison of arrays and system variables, which would otherwise be ignored.
+- `arrays` and `sysVars` have the same syntax and defaults as in [Link.Create](Link.Create.md), and allow the comparison of arrays and system variables. By default, only arrays that have a corresponding file are compared.
 
 #### Result
 

@@ -130,17 +130,18 @@
       :EndIf
     ∇
 
-    ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts
+    ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts;nc2;aplsrc
       compsrc←0 ⋄ changed←0
-      (name2 parent nc file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
-      :If 0=ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
-      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly (arrays only)
+      (name2 parent nc2 file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
+      :If 0=nc←ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
+      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly
       :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
       :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
       :EndIf
       :If compsrc ⋄ ⍝ need a closer look
           :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
-          changed←~filesrc CompareSource ns GetAplSource name  ⍝ compare source to be sure - will return 1 where whitespace not preserved
+          aplsrc←ns GetAplSource name
+          changed←~CompareSource aplsrc filesrc nc nc2  ⍝ compare source to be sure - will return 1 where whitespace not preserved
       :EndIf
     ∇
 
@@ -408,6 +409,7 @@
     ⍝ Get a reference to a container namespace (or ⍬ if that is not possible)
       :If 9=⎕NC'ns' ⋄ r←ns ⋄ :Return ⋄ :EndIf ⍝ already a ref
       r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
+      ns←,⍕ns   ⍝ issue #261
       ns←('⎕THIS\.' '\.⎕THIS'⎕R'' '')ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
       :If ns≡'⎕THIS'
           :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing
@@ -476,7 +478,7 @@
     :Section Lookup
 
     ∇ links←GetLinks;mask;links
-      :Trap 0/0  ⍝ anything broken should mean no links available
+      :Trap 0  ⍝ anything broken should mean no links available
           links←⍬
           :If ×⎕NC'⎕SE.Link.Links'
           :AndIf ~0∊⍴links,←⎕SE.Link.Links
@@ -488,12 +490,22 @@
       :Else ⋄ links←⍬
       :EndTrap
     ∇
-    ∇ SetLinks links;mask
+    ∇ {links}←ErrorIfRestored links
+    ⍝ chicken out if ANY link is restored
+      :If (0≠≢links)
+      :AndIf ∨/links.restored
+          'Link.Resync is required to access other functions than Link.Status and Link.Diff'⎕SIGNAL ERRNO
+      :EndIf
+    ∇
+
+    ∇ SetLinks links;fsw;mask
       :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
       ⎕SE.Link.Links←links
       :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
       :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
+          (fsw links.fsw)←(links.fsw ⎕NULL)⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
           {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
+          links.fsw←fsw
       :EndIf
     ∇
 
@@ -550,7 +562,7 @@
       :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
       :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
       :EndIf
-      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions'
+      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed'
       :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
           Error'Unknown modifiers: ',FmtEach mask/nl
@@ -624,7 +636,7 @@
           nc←|ns NameClass name
           :Select nc
           :Case 2.1 ⍝ variable
-              :Trap 11 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
+              :Trap 0 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
               :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
               :EndTrap
           :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
@@ -706,7 +718,7 @@
           :Return  ⍝ trad ns created
       :EndIf
       :Trap 0
-          name where.{⍎⍺,'←⍵'}⎕SE.Dyalog.Array.Deserialise src  ⍝ array
+          name where.{⍎⍺,'←⎕SE.Dyalog.Array.Deserialise ⍵'}src  ⍝ array materialised in its namespace
           nc←where NameClass name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
@@ -744,8 +756,10 @@
     ⍝ opts cached for performance on ns lookup
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       :If depth
-          :If 0∊⍴args←↓⍉↑(where name oldname src) ⋄ (file oldfile nc)←⊂0⍴⊂''
-          :Else ⋄ (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
+          :If 0∊⍴args←↓⍉↑(where name oldname src)
+              (file oldfile nc)←⊂0⍴⊂''
+          :Else
+              (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
           :EndIf
       :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
@@ -1120,27 +1134,35 @@
       :EndIf
     ∇
 
-    ∇ match←src1 CompareSource src2;name1;name2;ns;ns1;ns2
+    ∇ match←CompareSource(src1 src2 nc1 nc2);name1;name2;ns;ns1;ns2
       :If ~match←src1≡src2  ⍝ source may possibly differ
-      :AndIf ~IS181    ⍝ cannot preserve source as typed
-          ⍝ double-check that descanned versions match
-          (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
-      :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
-      :AndIf match←name1≡name2  ⍝ if names differ then sources differ
-          match←(ns1.⎕NR name1)≡(ns2.⎕NR name2)  ⍝ compare descanned versions
+          :If ~IS181    ⍝ cannot preserve source as typed
+          :AndIf ∨/3.1 3.2 4.1 4.2∊nc1,nc2  ⍝ attempting to compare functions
+               ⍝ double-check that descanned versions match
+              (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
+          :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
+          :AndIf match←name1≡name2  ⍝ if names differ then sources differ
+              match←≡/(ns1 ns2).⎕NR name1 name2  ⍝ compare descanned versions
+          :EndIf
+          :If 2.1∊nc1,nc2  ⍝ attempting to compare arrays
+              match←≡/⎕SE.Dyalog.Array.(Serialise∘Deserialise)¨src1 src2 ⍝ compare "canonical" representation
+          :EndIf
       :EndIf
     ∇
 
-    ∇ diff←Diff link;actname;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;where
+    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
-      :Else ⋄ filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
+      :Else
+          filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
       :EndIf
       :If 0∊⍴nsref←(0 GetRefTo)link.ns ⋄ name←0⍴⊂'' ⋄ namesrc←0⍴⊂⍬
-      :Else ⋄ namesrc←nsref GetAplSource¨⊃(name namenc)←2↑(1 ListLinkedNs 1)link  ⍝ include root ns - list all arrays for now - ignored failed names
+      :Else
+          (name namenc)←2↑(1 ListLinkedNs 1)link  ⍝ include root ns - list all arrays for now - ignored failed names
+          namesrc←nsref GetAplSource¨name
       :EndIf
       (file filesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨filesrc  ⍝ failure to get source should not happen unless race condition
-      (name namesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
+      (name namesrc namenc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
       (where expname actname filenc)←link DetermineAplName file
       (mask/expname)←(mask←0<≢¨actname)/actname
       expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
@@ -1153,19 +1175,60 @@
       namemask∧←namemask\(⍸namemask)=nameifile[namemask/fileiname]  ⍝ link must be both ways
       :If ##.DEBUG ⋄ :AndIf (+/filemask)≠(+/namemask) ⋄ Error'Internal error' ⋄ :EndIf
       :Select link.arrays
-      :Case 0 ⋄ linkmask←namenc≠2.1    ⍝ diff no apl array
+      :Case 0 ⋄ linkmask←(namenc≠2.1)∨(namemask\filemask[namemask/fileiname])  ⍝ diff arrays that have a file
       :Case 1 ⋄ linkmask←(⍴name)⍴1      ⍝ diff all apl arrays
-      :Else ⋄ linkmask←(namenc≠2.1)∨(name∊link.arrays)  ⍝ diff declared apl arrays
+      :Else ⋄ linkmask←(namenc≠2.1)∨(name∊link.arrays)           ⍝ diff declared apl arrays
+          linkmask∨←(namenc≠2.1)∨(namemask\filemask[namemask/fileiname])  ⍝ diff arrays that have a file
       :EndSelect
       :If ~link.sysVars ⋄ linkmask∧←~'⎕'∊¨name ⋄ :EndIf
       ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
-      diff←0 3⍴⊂''
-      diff⍪←('→'),⍨((linkmask∧~namemask)/name),[1.5]⊂''    ⍝ names not linked to file - ignore undeclared apl arrays
-      diff⍪←('←'),⍨(⊂''),[1.5]((~filemask)/file)           ⍝ files not linked to names - do not ignore arrays
+      diff←0 4⍴⊂''
+      difflist←(linkmask∧~namemask)/name ⍝ names not linked to file - ignore undeclared apl arrays
+      diff⍪←'?',difflist,⍤0 1⊢'' 'item has no corresponding file'      ⍝ cannot distinguish creation from deletion
+      difflist←(~filemask)/file  ⍝ files not linked to names - do not ignore arrays
+      diff⍪←'?',(⊂''),(difflist),[1.5]⊂'File has no corresponding item'  ⍝ cannot distinguish creation from deletion
       filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
-      mask←~(namemask/namesrc)CompareSource¨filesrc[namemask/fileiname]
-      :If ##.DEBUG ⋄ :AndIf mask[(⍸namemask)⍳(filemask/nameifile)]≢~(filemask/filesrc)CompareSource¨namesrc[filemask/nameifile] ⋄ Error'Internal error' ⋄ :EndIf
-      diff⍪←('?'),⍨(mask/namemask/name),[1.5](file[mask/namemask/fileiname])   ⍝ sources differ
+      :If FixTie link  ⍝ functions and scripts are associated to files - cannot compare source
+          mask←namemask∧(~arrays←namenc∊2.1 ¯9.1)  ⍝ avoid arrays and unscripted namespaces
+          (tsdiff tocheck)←(mask/name)TSDiff file[mask/fileiname]
+          diff⍪←tsdiff
+          namemask∧←arrays∨mask\tocheck  ⍝ arrays, unscripted namespaces and directories remain to be compared by source
+      :EndIf ⍝
+      ⍝ remaining files are not associated - compare source directly
+      mask←~CompareSource¨↓⍉↑(namemask/namesrc)(filesrc[namemask/fileiname])(namemask/namenc)(filenc[namemask/fileiname])
+      diff⍪←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'Sources differ'
+    ∇
+
+    ∇ (diff tocheck)←names TSDiff files;aplfiles;aplnames;aplparents;aplts;changed;filets;filetype;mask;txt
+     ⍝ Return lists of names and files where 5177⌶ and ⎕NINFO timestamps do not match
+     ⍝ In those cases, the file must have been updated without APL being notified
+      (filetype filets)←↓⍉↑1 3 ⎕NINFO files
+      tocheck←filetype≠2  ⍝ exclude directories; source files only
+      (files names filets)←(~tocheck)∘/¨files names filets
+      (aplnames aplparents aplfiles aplts)←1 1 0 1 0 0 0 1/↓⍉↑5179⌶¨names
+      tocheck∨←(~tocheck)\~mask←aplfiles≡¨files  ⍝ files must be correctly associated
+      changed←(mask/filets)≢¨(mask/aplts)  ⍝ file has changed
+      txt←'updated '∘,¨TSFmtNice 1 ⎕DT changed/mask/aplts
+      txt←txt,⍨¨'Source file dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂' when loaded, '
+      diff←'←',(changed/mask/names),(changed/mask/files),⍪txt
+    ∇
+
+    ∇ r←TSFmtNice ts;now;yday;today;z;i;m;idn;s;tomorrow;later;ix;w
+     ⍝ Format a vector of 1 ⎕DT's nicely
+      s←⍴ts
+      later←1+tomorrow←2+yday←¯1+today←⌊now←1 ⎕DT'J'
+      r←16↑⍤1⊢↑'DD Mmm hh:mm'(1200⌶)ts←,ts ⍝ Make matrix
+      :If 0≠≢i←⍸m←1 2 3∊⍨ix←+/ts∘.≥yday,today,tomorrow,later
+          r[i;]←r[i;7+⍳5],' ',(3 10⍴'yesterday today     tomorrow  ')[ix[i];]
+      :EndIf
+      r[i;7+⍳5]←↑5↑¨'YYYY'(1200⌶)ts[i←⍸~m] ⍝ Replace time by year if longer ago
+      :If 0≠⍴i←((z>0)∧100>z←⌊(now-ts)×24×60)/⍳⍴ts
+          r[i;]←16↑[2]↑(⍕¨⌊z[i]),¨(' minutes ago' ' minute ago')[1+1=z[i]]
+      :EndIf
+      :If 0≠⍴i←(1>|z)/⍳⍴ts
+          r[i;]←((⍴i),16)⍴16↑'Now'
+      :EndIf
+      r←s⍴(+/∨\' '≠⌽r)↑¨↓r
     ∇
 
     :EndSection
@@ -1595,7 +1658,7 @@
       ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
       r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
-      r,←'{"Name":"Resync",      "args":"ns1",     "Parse":"1  -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
+      r,←'{"Name":"Resync",      "args":"[ns1]",    "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'
@@ -1619,6 +1682,7 @@
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
       m⍪←'-overwrite' '' 'overwrite destination if needed'
+      m⍪←'-proceed' '' 'perform changes required to resynchronise'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
       m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
       m⍪←'-sysvars' '' 'Export namespace-scoped system variables to file for all unscripted namespaces'
@@ -1678,7 +1742,7 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch'
+          names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch'
           :For name :In names
               lc←0 CaseText name
               :If ×args.⎕NC lc
@@ -1691,11 +1755,11 @@
               :EndIf
           :EndFor
       :EndSelect
-      :Trap 0   ⍝ link issue #217
+      :Trap debug↓0   ⍝ link issue #217
           ⍝ must not use :With because of link issue #163
           r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
       :Else  ⍝ provide nice error message
-          r←∊'Error: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
+          r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
       :EndTrap
     ∇
 

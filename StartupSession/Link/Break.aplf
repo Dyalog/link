@@ -11,7 +11,7 @@
  :Trap DEBUG↓0
 
      :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
-         :If 0∊⍴links←U.GetLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
+         :If 0∊⍴links←U.ErrorIfRestored U.GetLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
          linked←⍎¨links.ns
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
@@ -58,7 +58,9 @@
          :If ×≢tobreak ⋄ msg,←⊂'Unlinked:',U.List∪tobreak ⋄ :EndIf
          :If ×≢missing ⋄ msg,←⊂'Not found:',U.List∪missing ⋄ :EndIf
          :If ×≢unlinked ⋄ msg,←⊂'Not linked:',U.List∪unlinked ⋄ :EndIf
-         msg←1↓U.FmtLines msg
+         :If 0∊⍴msg ⋄ msg←'No link to break'
+         :Else ⋄ msg←1↓U.FmtLines msg
+         :EndIf
      :EndHold
  :Else
      U.Resignal 1

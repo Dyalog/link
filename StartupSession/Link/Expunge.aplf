@@ -16,12 +16,14 @@
              :EndIf
              :If ¯9.1=nc  ⍝ trad ns
              :AndIf (⊂U.NormNs name)∊links.ns  ⍝ is a link root
+                 U.ErrorIfRestored links  ⍝ error only in linked namespaces
                  {}Break name  ⍝ github issue #119: tell user about problems
                  r[i]←⎕EX name
              :Else
                  :Hold '⎕SE.Link.Notify'
                      (parent name)←U.SplitNs name
                      :If ~0∊⍴link←links U.LookupRef parent←⍎parent
+                         U.ErrorIfRestored links ⍝ error only in linked namespaces
                          (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
                          r[i]←parent.⎕EX name  ⍝ do it before the watcher kicks in
                          :If 0<≢oldfile  ⍝ tied to file

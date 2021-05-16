@@ -8,7 +8,7 @@
          :If 0=⎕NC'⎕SE.Link.Links'   ⍝ init links if necessary
              U.SetLinks ⍬
          :EndIf
-         :If ~0∊⍴nsrefs←links←U.GetLinks                ⍝ Clean up links if necessary
+         :If ~0∊⍴nsrefs←links←U.ErrorIfRestored U.GetLinks
              nsrefs←⍎¨links.ns
          :EndIf
 
@@ -106,10 +106,11 @@
              U.Error'Unknown source setting:'opts.source
          :EndSelect
          opts.fastLoad←0  ⍝ fastLoad is observed only at load (FixFiles) time - affects U.DetermineAplName
+         opts.restored←0  ⍝ set by WSLoaded
          arrow←U.Arrow opts
          opts.⎕DF 1⌽'][',arrow
-         U.SetLinks links,opts
          Watcher.Watch opts  ⍝ first crawler may call Notify
+         U.SetLinks links,opts  ⍝ set links after setting FileSystemWatcher
          ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
      :EndHold
  :Else
