@@ -174,7 +174,7 @@
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(⎕NULL≠links.fsw)/links  ⍝ links that have a FSW
+      :AndIf ~0∊⍴links←(⎕NULL≢links.fsw)/links  ⍝ links that have a FSW
           :If USE_NQ ⍝ Did we using indirection via a queue?
               (timers tids)←↓⍉↑links.fsw.(QUEUE TID)
               :If ~0∊⍴timers←(9=⌊⎕NC timers)/timers
