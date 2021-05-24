@@ -70,15 +70,15 @@
           Log'FileSystemWatcher or Crawler required to run tests'
           :Return
       :EndIf
-      :If (canwatch⍲cancrawl)
-          notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
-          Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
-      :EndIf
+      ⍝:If (canwatch⍲cancrawl)
+      ⍝    notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
+      ⍝    Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
+      ⍝:EndIf
       :If ~⎕SE.Link.U.IS181 ⋄ Log'Not running Dyalog v18.1 or later - some tests will be skipped' ⋄ :EndIf
-      :If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
-      :ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
-      :ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
-      :EndIf
+      ⍝:If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
+      ⍝:ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
+      ⍝:ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
+      ⍝:EndIf
       :If cancrawl∧⎕TID=0
           Log(⊃⎕XSI),'&',(⍕''''{⍺,((1+⍵=⍺)/⍵),⍺}¨⊆test_filter),'   ⍝ Crawler QA''s must be run in a non-zero thread'
           :Return
@@ -1282,8 +1282,10 @@
      
       ⎕EX name,'.jsondict'
       {}⎕SE.Link.Break name
-      assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
-     
+      :If ~0∊⍴5177⌶⍬ ⋄ :AndIf ⎕SE∨.≠{⍵.##}⍣≡⊢2⊃¨5177⌶⍬
+          assert'0'  ⍝ no more links in #
+      :EndIf
+      
       ⍝ attempt to export
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
