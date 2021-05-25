@@ -208,7 +208,7 @@
 
 
 
-    ∇ ok←test_failures(folder name);debug;err;errf;erru;mod;names;opts;warn;z
+    ∇ ok←test_failures(folder name);debug;err;errf;erru;mod;names;opts;warn;z;unlikelyname
       assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source not found'
       assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
      
@@ -269,9 +269,10 @@
       assert'∨/''Not found:''⍷z'
      
       z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
-      assert'z≡1'
-      z←#'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
-      assert'z≡0'
+      assert'z≡,⊂''foo'''
+      z←⎕THIS'foo'⎕SE.Link.Fix,⊂'unlikelyname←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
+      assert'z≡,⊂''unlikelyname'''
+      assert'3=⊃⎕NC''unlikelyname'''
       Breathe ⍝ windows needs some time to clean up the file ties
      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
@@ -540,8 +541,13 @@
 
 
 
-    ∇ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz
+    ∇ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
      
+      'link issue #265'assert'0=⎕NC''unlikelyname'''
+      ⎕SE.Link.Fix 'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
+      'link issue #265'assert'3=⎕NC''unlikelyname'''
+      'link issue #265'assert'''unlikelyname''≡unlikelyname'
+      
       3 ⎕MKDIR Retry⊢folder
      
       opts←⎕NS''
@@ -1285,7 +1291,7 @@
       :If ~0∊⍴5177⌶⍬ ⋄ :AndIf ⎕SE∨.≠{⍵.##}⍣≡⊢2⊃¨5177⌶⍬
           assert'0'  ⍝ no more links in #
       :EndIf
-      
+     
       ⍝ attempt to export
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
@@ -1871,8 +1877,8 @@
       assertError'⎕SE.Link.Diff name' 'Not Linked:'
       {}'{watch:''none''}'⎕SE.Link.Create name folder
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
-      3 ⎕NDELETE folder  
-     (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
+      3 ⎕NDELETE folder
+      (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
       exp←(names~vars),[1.5](⊂'')
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''ns''}'⎕SE.Link.Refresh name
