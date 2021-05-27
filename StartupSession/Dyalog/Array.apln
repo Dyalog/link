@@ -44,36 +44,41 @@
               ~Scal ⍵:⎕SIGNAL 999
               Ns ⍵
           }
-        ∇ repr←Ns ref;name;names;code;ser;ind;xr;nr
-          :Trap 0
-              repr←or,(Join ⎕SRC ref),cr
+        ∇ repr←Ns ref;name;names;code;ser;ind;xr;nr;nc
+          :Select nc←⎕NC⊂'ref'
+          :CaseList 9.1 9.4 9.5
+              :Trap 0
+                  repr←or,(Join ⎕SRC ref),nl,cr
+              :Else
+                  repr←or nl
+         
+                  names←'⎕'(=⊂⊢)'⎕CT⎕DIV⎕IO⎕ML⎕PP⎕RL⎕RTL⎕WX⎕USING⎕AVU⎕DCT⎕FR'
+                  names/⍨←≢⌿ref ref.##∘.⍎names
+                  names,←ref.⎕NL-⍳9
+         
+                  :For name :In names
+                      code←Join ref.⎕NR name
+         
+                      :Select ref.⎕NC⊂name
+                      :CaseList 3.1 4.1
+                          repr,←name,':(∇',code,nl,'∇)'
+                      :CaseList 3.2 4.2
+                          repr,←1↓':'@(<\'←'=⊢)code
+                      :CaseList 3.3 4.3
+                          xr←183 ref.⌶name
+                          nr←ref.⎕NR name
+                          repr,←name,':',{1↓¯1↓⍵}⍣(⍬≢⍴xr)⊢xr Tacit nr
+                      :Else
+                          repr,←name,':',Ser ref⍎name
+                      :EndSelect
+                      repr,←nl
+                  :EndFor
+         
+                  repr,←cr
+              :EndTrap
           :Else
-              repr←or nl
-         
-              names←'⎕'(=⊂⊢)'⎕CT⎕DIV⎕IO⎕ML⎕PP⎕RL⎕RTL⎕WX⎕USING⎕AVU⎕DCT⎕FR'
-              names/⍨←≢⌿ref ref.##∘.⍎names
-              names,←ref.⎕NL-⍳9
-         
-              :For name :In names
-                  code←Join ref.⎕NR name
-         
-                  :Select ref.⎕NC⊂name
-                  :CaseList 3.1 4.1
-                      repr,←name,':(∇',code,nl,'∇)'
-                  :CaseList 3.2 4.2
-                      repr,←1↓':'@(<\'←'=⊢)code
-                  :CaseList 3.3 4.3
-                      xr←183 ref.⌶name
-                      nr←ref.⎕NR name
-                      repr,←name,':',{1↓¯1↓⍵}⍣(⍬≢⍴xr)⊢xr Tacit nr
-                  :Else
-                      repr,←name,':',Ser ref⍎name
-                  :EndSelect
-                  repr,←nl
-              :EndFor
-         
-              repr,←cr
-          :EndTrap
+              11 ⎕SIGNAL⍨'Cannot represent ','instance' 'unscripted class' 'unscripted interface' 'external class' 'external interface' 'unknown object'⊃⍨9.2 9.4 9.5 9.6 9.7⍳nc
+          :EndSelect
         ∇
           Tacit←{
               2 9∊⍨⊂⍺:Ser ⍵        ⍝ array
@@ -125,18 +130,28 @@
     :EndNamespace
       Serialise←{
           ⍺←0
+          num←⊃⍺/⍨2|⎕DR¨⍺
+     
+          Bad←{
+              '+'∊⍺:0
+              ≢∘serialise.Ser∘Deserialise⍨code
+          }
           code←serialise.Ser ⍵
+          ⍺ Bad code:'It would not be possible to deserialise the generated array notation'⎕SIGNAL 16
+     
           split←{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT code
      
           1=⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
      
-          spaces←⌊|⍺+2×0=⍺
+          spaces←⌊|num+2×0=num
           fmt←⎕FMT'''[^'']+''' '\[[^][]+\]' '\([^)(]+\)'⎕R''⍣≡code
           delta←¯1⌽+/fmt∊'(['
           delta-←+/fmt∊')]'
           ind←spaces×+\delta
           ind{⍵,⍨⍺⍴''}¨split
       }
+
+
 
       Deserialise←{ ⍝ Convert text to array
           ⍺←1 ⍝ 1=execute expression; 0=return expression
