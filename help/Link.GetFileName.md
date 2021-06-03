@@ -2,7 +2,7 @@
 
     files ←  ⎕SE.Link.GetFileName items
 
-Returns the fully qualified name of the file containing the source of the given APL item.  See also [⎕SE.Link.GetItemName](Link.GetItemName.md).
+Returns the fully qualified name of the file containing the source of the given APL item. See also the inverse function [Link.GetItemName](Link.GetItemName.md).
 
 #### Arguments
 

@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
      scal←1=≡,names ⋄ shape←⍴names←⊆names
-     :For i :In ⍳⍴names←,names
+     :For i :In ⍳⍴names←0 U.NormFile¨,names
          :If 900⌶⍬   ⍝ only expert users provide correct link options to avoid lookup
          :AndIf 0∊⍴opts←U.LookupFile i⊃names
              U.Error'Not linked: ',⍕i⊃names

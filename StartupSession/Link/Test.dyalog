@@ -544,10 +544,10 @@
     ∇ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
      
       'link issue #265'assert'0=⎕NC''unlikelyname'''
-      ⎕SE.Link.Fix 'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
+      ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
       'link issue #265'assert'3=⎕NC''unlikelyname'''
       'link issue #265'assert'''unlikelyname''≡unlikelyname'
-      
+     
       3 ⎕MKDIR Retry⊢folder
      
       opts←⎕NS''
@@ -960,6 +960,7 @@
       ⍝ Test that CaseCode and StripCaseCode functions work correctly
       var←⍳4 5 7
       varfile←⎕SE.Link.CaseCode folder,'/HeLLo.apla'
+     
       assert'varfile≡folder,''/HeLLo-15.apla'''
       assert'(folder,''/HeLLo.apla'')≡⎕SE.Link.StripCaseCode varfile'
       :If ⎕SE.Link.U.IS181 ⋄ fn←'   r   ← OhMyOhMy  ( oh   my  )' 'r←  oh my   oh my'
@@ -968,6 +969,13 @@
       fnfile←⎕SE.Link.CaseCode folder,'/OhMyOhMy.aplf'
       assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
       assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
+      :If ⎕SE.Link.U.ISWIN
+          fnfile←⎕SE.Link.CaseCode'\'@{⍵='/'}folder,'/OhMyOhMy.aplf'
+          'link issue #270'assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
+          fnfile←'\'@{⍵='/'}fnfile
+          'link issue #270'assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
+          fnfile←'/'@{⍵='\'}fnfile
+      :EndIf
      
       ⍝ Test that explicit Fix updates the right file
       assert'0 0≡⎕NEXISTS varfile fnfile'
