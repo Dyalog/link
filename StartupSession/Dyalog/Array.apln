@@ -3,6 +3,9 @@
     DEBUG←1
 
     :Namespace serialise
+        ⎕FR←1287 ⋄ ⎕PP←34
+
+
         :Section UTIL
         (sp qu os cs or cr oc cc ec di nl)←' ''[](){}⊂⋄',⎕UCS 13
           Clean←{
@@ -17,7 +20,7 @@
                   nums←⍕⎕UCS ⍵.Match↓⍨-cont
                   ''',',(cont⍴'('),'⎕UCS ',nums,cont/'),''',⊃⌽⍵.Match
               }
-              '([\x00-\x1F\x80-\xA0\x{2028}\x{2029}\x{FEFF}]+)(.?)'⎕R Sub⍠'Mode' 'D'⊢⍵
+              '([\x00-\x1F\x7F-\x9F\x{2028}\x{2029}\x{FEFF}\x{FFF9}-\x{FFFF}]+)(.?)'⎕R Sub⍠'Mode' 'D'⊢⍵  
           }
         Unempty←⊢↑⍨1⌈≢
           Empty←{
@@ -37,10 +40,11 @@
         :EndSection
         :Section REPR
           Repr←{
-              ⍬≡⍵:'⍬'
+              ⍵≡⍬:'⍬'
+              ⍵≡0⍴⎕NULL:'0⌿⎕NULL'
               Char ⍵:Clean Esc qu,(qu ⎕R qu qu⊢⍵),qu
-              Num ⍵:⍕⍵⊣(⎕FR ⎕PP)←1287 34
-              ⎕NULL∧.=⍵:'⎕NULL'⍴⍨5×≢⍵
+              Num ⍵:⍕⍵
+              Null ⍵:'⎕NULL'⍴⍨5×≢⍵
               ~Scal ⍵:⎕SIGNAL 999
               Ns ⍵
           }
@@ -88,7 +92,7 @@
         :Section TYPE
         Char←0 2∊⍨10|⎕DR
         Num←~0 2 6∊⍨10|⎕DR
-        Null←⎕NULL∧.=⊢
+        Null←∧/⎕NULL≡¨⊢  ⍝ can't use ∧.= because = is pervasive on deep arrays
         Ptr←6=10|⎕DR
         Basic←Char∨Num∨Null
         :EndSection
@@ -102,7 +106,8 @@
         Mat←{2=≢⍴⍵}
         String←Simple∧Char∧Vec
         Table←Mat>0∊(String∨Simple∧Scal∧Num∨Null)¨
-        Lead0←0∊⍴
+        Lead0←0=≢
+        Any0←0∊⍴
         :EndSection
           Ser←{
               (Simple∧Scal)⍵:Repr ⍵
@@ -110,8 +115,8 @@
          
               Self←⊂nl,⍨∇
          
-              (Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
-              Table ⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ Ser¨⍵
+              (Any0<Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
+              (Any0<Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ Ser¨⍵
               HiRank ⍵:Self⍤¯1 _Sub_ os cs⊢⍵
               Nested ⍵:Self¨_Sub_ or cr⊢⍵
          
@@ -131,7 +136,8 @@
           1=⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
      
           spaces←⌊|⍺+2×0=⍺
-          fmt←⎕FMT'''[^'']+''' '\[[^][]+\]' '\([^)(]+\)'⎕R''⍣≡code
+          code←'''[^'']+'''⎕R''⊢code                   ⍝ remove quoted text first
+          fmt←⎕FMT'\[[^][]+\]' '\([^)(]+\)'⎕R''⍣≡code  ⍝ remove bracket contents
           delta←¯1⌽+/fmt∊'(['
           delta-←+/fmt∊')]'
           ind←spaces×+\delta
@@ -166,7 +172,7 @@
               ⍵
           }
      
-          ErrIfEmpty←{⍵⊣'Empty array'⎕SIGNAL 11/⍨0=≢⍵}
+          ErrIfEmpty←{⍵⊣'Array doesn''t have a prototype'⎕SIGNAL 11/⍨(0=≢⍵)}
      
           SubParse←{
               ('})]'⍳⊃⌽⍵)≠('{(['⍳⊃⍵):'Bad bracketing'⎕SIGNAL 2
@@ -193,7 +199,7 @@
      
           Execute←{   ⍝ overcome LIMIT ERROR on more than 4096 parenthesised expressions
               ExecuteEach←{         ⍝ split at level-1 parentheses and execute each
-                  l←(t=¯1)++\t←1 ¯1 0['()'⍳⍵]           ⍝ parenthesis type and level
+                  l←(t=¯1)++\t←{1 ¯1 0['()'⍳⍵]}Unquot ⍵ ⍝ parenthesis type and level
                   (h x t l)←(1 0 0 0=⊂∧\l=0)/¨⍵ ⍵ t l   ⍝ extract header before first opening parenthesis
                   ⍺{0::0 ⋄ r←⍺⍎⍵ ⋄ ~(⊃⎕NC'r')∊3 4}h:⍺⍎⍵ ⍝ header must be an functional expression
                   H←⍺{⍺⍺⍎⍵⍵,'⍵'}h                       ⍝ function to apply header to array
@@ -611,6 +617,14 @@
           {
               1 2[1 ⋄ ]
           }Is 1 2(⍪1)
+
+          {
+              ['['⋄]
+          }Is 1 1⍴'['
+          {
+              ['('⋄]
+          }Is 1 1⍴'('   ⍝ link issue #271
+          
       :EndSection
       :Section Combo
           {
@@ -752,7 +766,7 @@
 
 
 
-    ∇ r←RoundtripQA stop_on_error;⎕IO;Is;⎕TRAP
+    ∇ r←RoundtripQA stop_on_error;Is;array;arrays;mask;shapes;⎕IO;⎕TRAP
       ⎕IO←0
       ⎕TRAP←(~stop_on_error)/⊂999 'C' '→r←0'
       Is←{
@@ -771,8 +785,14 @@
       :EndSection
       :Section vectors
           Is,42
-          Is,42
-          Is'Hello',⎕AV
+          ⎕FR←1287 ⋄ Is{(¯1*?⍵⍴2)×(*14000×¯1+2×?⍵⍴0)}10  ⍝ 1287
+          ⎕FR←645 ⋄ Is{(¯1*?⍵⍴2)×(*700×¯1+2×?⍵⍴0)}10     ⍝ 645
+          Is{⍺+0J1×⍵}⌿{(¯1*?⍵⍴2)×(*700×¯1+2×?⍵⍴0)}2 10   ⍝ 1289
+          Is 1=?100⍴2                                    ⍝ 11
+          Is?100⍴100                                     ⍝ 83
+          Is?100⍴32000                                   ⍝ 163
+          Is?100⍴2000000000                              ⍝ 323
+          Is'Hello',⎕AV[256?256]
           Is(1 2 3 'Hello')(4 5 6 'World')
           Is(1 2 3 'Hello')(4 5 6 'World')
           Is↓4 2⍴⍳8
@@ -826,12 +846,12 @@
           Is 1 1 2 3⍴⍳6     ⍝ issue #254
           Is 3 2 1 1⍴⍳6     ⍝ issue #254
           Is 2 3 4 5⍴⍳120   ⍝ issue #254
-          Is⊂[3 4 5]⎕A[?1 2 3 1 5 6⍴26]      ⍝ issue #254
+          Is⊂[3 4 5]⎕AV[?1 2 3 1 5 6⍴256]      ⍝ issue #254
       :EndSection
      
       :Section Large Arrays                  ⍝ (more than 4096 constants) - issue #255
-          Is⊂[2 3]?50 100 2 3⍴100            ⍝ Numeric is straightforward
-          Is⊂[3 4 5]⎕A[?50 10 10 1 2 3⍴26]   ⍝ Text gets functional headers produced by Parse
+          Is⊂[2 3]?50 100 2 3⍴100              ⍝ Numeric is straightforward
+          Is⊂[3 4 5]⎕AV[?50 10 10 1 2 3⍴256]   ⍝ Text gets functional headers produced by Parse
       :EndSection
      
       :Section Empty
@@ -862,6 +882,20 @@
           Is ⎕JSON'{"v":[[1,2],3]}'
           Is ⎕JSON'[{}]'
           Is ⎕JSON'{"n":{}}'
+      :EndSection
+     
+      :Section Deep arrays
+          arrays←⎕NULL((⎕NS ⍬).(⎕THIS⊣var←(idiom←{⍵[⍋⍵]})(foo←{,⍵})123))(?256⍴0)(⎕AV[256?256])
+          shapes←⍬ 0 1 256(0 0)(0 256)(256 0)(16 16)
+          shapes,←(0 1 256)(0 256 1)(1 0 256)(1 256 0)(256 1 0)(256 0 1)
+          shapes,←(0 0 0 0 0 0)(0 1 2 3 4 5)(5 4 3 2 1 0)(0 0 2 3 0 0)(2 0 0 0 0 3)
+          shapes,←(1 2 3 4 5)(5 4 3 2 1)
+          mask←~¯1⌽4↑⍤0⊢0∊¨shapes  ⍝ empty arrays with namespaces are not supported (they can't be compared with ≡ anyways)
+          arrays←(,mask)/(,shapes∘.⍴arrays)
+          :For array :In arrays
+              Is array
+          :EndFor
+          Is arrays
       :EndSection
       r←1
     ∇
