@@ -28,6 +28,8 @@
 
 An optional left argument of `1` may be specified to force return of a vector by using `⋄` to fuse lines. Alternatively, a negative number may be given as left argument to specify how many spaces to indent the content of multi-line parenthesis/brackets (default is 2).
 
+**Note:** `Serialise` will error if it cannot generate array notation that will round-trip.
+
  ### `∆NS`
 
  Extends `⎕NS` to allow a two-element right argument of names and values:
