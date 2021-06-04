@@ -1414,7 +1414,7 @@
       ⍝ test default UCMD to ⎕THIS
       2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith  ⍝ not goot - :With brings in locals into the target namespace
-      z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ',folder
+      z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ⎕THIS.⎕THIS ',folder
       assert'∨/''Linked:''⍷z'
       assert'1=≢⎕SE.Link.Links'
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
