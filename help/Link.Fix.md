@@ -1,18 +1,16 @@
 # Link.Fix
 
-    {fixed} ← {namespace} {name} {oldname} ⎕SE.Link. Fix src 
+    {names} ← {namespace} {name} {oldname} ⎕SE.Link.Fix src 
 
-This function is intended as a replacement for `⎕FIX` or `⎕FX` in code which manipulates linked namespaces.  It will allow you to add
-or modify an array, function, operator, or scripted namespace, class or interface within a linked namespace. The source will be fixed in the target namespace, and the corresponding file will be created/updated.
+This function is intended as a replacement for `⎕FIX` or `⎕FX` in in tools which manage code. 
 
-For arrays, Fix uses the Array Notation from `⎕SE.Dyalog.Array`. For other items, it uses the source provided by `⎕NR` or `⎕SRC`. In all cases the source is a vector of text vectors.
+It will allow you to add or modify an array, function, operator, or scripted namespace, class or interface within a linked namespace. The source will be fixed in the target namespace, and the corresponding file will be created/updated. When called in non-linked namesapces, Fix will simply call `2∘⎕FIX`.
+
+For arrays, Fix uses the Array Notation from `⎕SE.Dyalog.Array`. For other items, it uses the source provided by `⎕NR` or `⎕SRC`. In all cases the source is a vector of text vectors. Arrays are supported only in linked namespaces.
 
 Normally, one can use `⎕FIX` or `⎕FX` inside the target namespace, e.g. `myns.⎕FIX 'avg←{sum←+⌿⍵' 'sum÷≢⍵}'` but since `Link.Fix` exists only as `⎕SE.Link.Fix` then the target namespace must be explicitly specified as in `myns ⎕SE.Link.Fix 'avg←{sum←+⌿⍵' 'sum÷≢⍵}'`. The default namespace is the calling namespace.
 
-Note: If the item has already been updated or created and you
-only need to update the source file, you can also use [Link.Add](Link.Add.md).
-
-When an item is edited and the namespace is being watched, a call is made to this function by the APL interpreter.
+If the APL item already exists and you only need to update the source file, you can also use [Link.Add](Link.Add.md).
 
 #### Right Argument: source
 
@@ -26,4 +24,4 @@ When an item is edited and the namespace is being watched, a call is made to thi
 
 #### Result
 
-- 1 if the item was fixed in a linked namespace, else 0 (and the source code wasn't fixed)
+- list of strings: names of items that were fixed (same result as `2∘⎕FIX`)

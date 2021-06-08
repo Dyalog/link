@@ -2,11 +2,11 @@
 
     items ←  ⎕SE.Link.GetItemName files 
 
-Returns the name of the fully qualified APL item that is linked to a file. See also [⎕SE.Link.GetFileName](Link.GetFileName.md).
+Returns the name of the fully qualified APL item that is linked to a file. See also the inverse function [Link.GetFileName](Link.GetFileName.md).
 
 #### Arguments
 
-- file name(s)
+- file name(s) specifying the full path(s) to files or folders within a linked directory
 
 #### Result
 

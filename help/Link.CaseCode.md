@@ -7,6 +7,8 @@ If case codes is on (default is off), each file name will have a case code (see 
 If you set up a `getFilename` hook when [creating a Link](Link.Create.md), Link will prompt your hook for a file name whenever a new source file needs
 to be created. If case coding is also enabled, the file name should be correctly case coded. The *CaseCode* function is provided to add case coding to any file name. 
 
+See also the inverse function [Link.StripCaseCode](Link.StripCaseCode.md).
+
 ### What is a "case code"?
 A reverse binary indication of the letter cases in the main part of the name, encoded in octal. For example
 
@@ -19,7 +21,7 @@ A reverse binary indication of the letter cases in the main part of the name, en
 
 #### Arguments
 
-- file name(s)
+- file name(s) specifying the full path(s) to files or folders within a linked directory
 
 #### Result
 

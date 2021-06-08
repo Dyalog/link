@@ -1,38 +1,40 @@
- {linked}←where Fix src;RSI;XSI;callback;delete;error;file;fix;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML
-⍝ Fix a function/operator or script, preserving any existing source files
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add
+⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
-⍝   One day, the left argument of (ns name) may be inferred, for now it must be provided
-⍝ Returns 1 if a link was found for the name, else 0
-⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
+⍝ Return the list of names of objects that were fixed
+⍝   NB: in a linked namespace, only single-name sources are supported
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     :If 0∊⍴links←U.GetLinks ⋄ linked←0 ⋄ :Return ⋄ :EndIf
-
+     names←0⍴⊂''
      XSI←⎕XSI ⋄ RSI←⎕RSI
      :If 900⌶⍬ ⋄ where←'' ⋄ :EndIf  ⍝ fix into calling space by default
-     callback←∨/'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'⍷⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
+
+     nosrc←0=≢src
+     :If 9≠⎕NC'where' ⋄ where←⊆,where ⋄ :EndIf  ⍝ do not ravel reference
+     (ns name oldname)←3↑where,'' '' ''
+     :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
+     oldname,←(0=≢oldname)/name ⍝ oldname not specified
+     name,←(0=≢name)/oldname ⍝ name not specified
+     this←⊃RSI XSI U.ContainerNs ns
+     nsname←⍕nsref←this(0 U.GetRefTo)ns
+     :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
+
+     callback←'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
+     add←'⎕SE.Link.Add'≡⊃1↓XSI
      →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback) - see mantis 18160: can't :Hold 0⍴⊂'' in a high-priority callback
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
      ⍝ Ok not to hold ⎕SE.Link.Links in high-priority callback because it only reads it and doesn't change it, and no other APL thread will run.
      ⍝ However not holding '⎕SE.Link.Notify' is annoying because there is a non-zero probability of the files being in an incomplete/misleading state
 NOHOLD:
-         nosrc←0=≢src
-         :If 9≠⎕NC'where' ⋄ where←⊆,where ⋄ :EndIf  ⍝ do not ravel reference
-         (ns name oldname)←3↑where,'' '' ''
-         :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
-         oldname,←(0=≢oldname)/name ⍝ oldname not specified
-         name,←(0=≢name)/oldname ⍝ name not specified
-         this←⊃RSI XSI U.ContainerNs ns
-         nsname←⍕nsref←this(0 U.GetRefTo)ns
-
-         :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
-         :If ~linked←~0∊⍴link←links U.LookupRef ns←nsref ⋄ :Return ⋄ :EndIf
+         :If 0∊⍴links←U.GetLinks
+         :OrIf 0∊⍴link←links U.LookupRef ns←nsref
+             :GoTo NOLINK
+         :EndIf
          :If ~U.IsNamedRef nsref ⋄ U.Error'Not a properly named namespace: ',ns ⋄ :EndIf
-
          U.ErrorIfRestored links  ⍝ now that we know we're dealing with a linked namespace, allow error
 
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src
@@ -126,15 +128,26 @@ NOHOLD:
 
          :If fix
              :If (0∊⍴error)∧(update∧tie) ⋄ src←file ⋄ :EndIf  ⍝ unless there was an error updating the file
-             :If ¯1 0∊⍨2⊃ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
+             (fixedname nc)←ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
+             :If nc∊¯1 0
                  U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
              :EndIf
+             names←,⊂fixedname
+         :Else
+             names←,⊂name
          :EndIf
 
          :If ~0∊⍴error ⋄ U.Error error ⋄ :EndIf
-         ⍝:If callback ⋄ linked←fix ⋄ :EndIf    ⍝ editor must know if we didn't fix
 
      :EndHold ⍝ Links
+     :Return
+
+NOLINK:
+     :If ~callback  ⍝ leave editor alone if not linked
+     :AndIf ~add    ⍝ Link.Add fixes only in linked namespaces
+         names←2 nsref.⎕FIX src
+     :EndIf
+
  :Else
      U.Resignal 1
  :EndTrap

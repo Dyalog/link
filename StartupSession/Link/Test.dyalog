@@ -70,15 +70,15 @@
           Log'FileSystemWatcher or Crawler required to run tests'
           :Return
       :EndIf
-      :If (canwatch⍲cancrawl)
-          notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
-          Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
-      :EndIf
+      ⍝:If (canwatch⍲cancrawl)
+      ⍝    notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
+      ⍝    Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
+      ⍝:EndIf
       :If ~⎕SE.Link.U.IS181 ⋄ Log'Not running Dyalog v18.1 or later - some tests will be skipped' ⋄ :EndIf
-      :If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
-      :ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
-      :ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
-      :EndIf
+      ⍝:If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
+      ⍝:ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
+      ⍝:ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
+      ⍝:EndIf
       :If cancrawl∧⎕TID=0
           Log(⊃⎕XSI),'&',(⍕''''{⍺,((1+⍵=⍺)/⍵),⍺}¨⊆test_filter),'   ⍝ Crawler QA''s must be run in a non-zero thread'
           :Return
@@ -208,7 +208,7 @@
 
 
 
-    ∇ ok←test_failures(folder name);debug;err;errf;erru;mod;names;opts;warn;z
+    ∇ ok←test_failures(folder name);debug;err;errf;erru;mod;names;opts;warn;z;unlikelyname
       assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source not found'
       assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
      
@@ -269,9 +269,10 @@
       assert'∨/''Not found:''⍷z'
      
       z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
-      assert'z≡1'
-      z←#'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
-      assert'z≡0'
+      assert'z≡,⊂''foo'''
+      z←⎕THIS'foo'⎕SE.Link.Fix,⊂'unlikelyname←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
+      assert'z≡,⊂''unlikelyname'''
+      assert'3=⊃⎕NC''unlikelyname'''
       Breathe ⍝ windows needs some time to clean up the file ties
      
       {}⎕SE.Link.Break name ⋄ ⎕EX name
@@ -540,7 +541,12 @@
 
 
 
-    ∇ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz
+    ∇ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
+     
+      'link issue #265'assert'0=⎕NC''unlikelyname'''
+      ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
+      'link issue #265'assert'3=⎕NC''unlikelyname'''
+      'link issue #265'assert'''unlikelyname''≡unlikelyname'
      
       3 ⎕MKDIR Retry⊢folder
      
@@ -716,7 +722,7 @@
       '()'⎕NPUT folder,'/array.apla'
       'link issue #260'assert name,'≡',name,'.array.##'
      
-      'link issue #263'assert'''No link to break''≡⎕SE.Link.Break ⍬'
+      'link issue #263'assert'''No link to break in arguments''≡⎕SE.Link.Break ⍬'
      
       CleanUp folder name
       ok←1
@@ -954,6 +960,7 @@
       ⍝ Test that CaseCode and StripCaseCode functions work correctly
       var←⍳4 5 7
       varfile←⎕SE.Link.CaseCode folder,'/HeLLo.apla'
+     
       assert'varfile≡folder,''/HeLLo-15.apla'''
       assert'(folder,''/HeLLo.apla'')≡⎕SE.Link.StripCaseCode varfile'
       :If ⎕SE.Link.U.IS181 ⋄ fn←'   r   ← OhMyOhMy  ( oh   my  )' 'r←  oh my   oh my'
@@ -962,6 +969,13 @@
       fnfile←⎕SE.Link.CaseCode folder,'/OhMyOhMy.aplf'
       assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
       assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
+      :If ⎕SE.Link.U.ISWIN
+          fnfile←⎕SE.Link.CaseCode'\'@{⍵='/'}folder,'/OhMyOhMy.aplf'
+          'link issue #270'assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
+          fnfile←'\'@{⍵='/'}fnfile
+          'link issue #270'assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
+          fnfile←'/'@{⍵='\'}fnfile
+      :EndIf
      
       ⍝ Test that explicit Fix updates the right file
       assert'0 0≡⎕NEXISTS varfile fnfile'
@@ -1282,7 +1296,9 @@
      
       ⎕EX name,'.jsondict'
       {}⎕SE.Link.Break name
-      assert'⎕SE∧.= {⍵.##}⍣≡⊢2⊃¨5177⌶⍬'  ⍝ no more links in #
+      :If ~0∊⍴5177⌶⍬ ⋄ :AndIf ⎕SE∨.≠{⍵.##}⍣≡⊢2⊃¨5177⌶⍬
+          assert'0'  ⍝ no more links in #
+      :EndIf
      
       ⍝ attempt to export
       3 ⎕NDELETE folder
@@ -1398,7 +1414,7 @@
       ⍝ test default UCMD to ⎕THIS
       2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith  ⍝ not goot - :With brings in locals into the target namespace
-      z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ',folder
+      z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ⎕THIS.⎕THIS ',folder
       assert'∨/''Linked:''⍷z'
       assert'1=≢⎕SE.Link.Links'
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
@@ -1869,8 +1885,8 @@
       assertError'⎕SE.Link.Diff name' 'Not Linked:'
       {}'{watch:''none''}'⎕SE.Link.Create name folder
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
-      3 ⎕NDELETE folder  
-     (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
+      3 ⎕NDELETE folder
+      (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
       exp←(names~vars),[1.5](⊂'')
       assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
       {}'{source:''ns''}'⎕SE.Link.Refresh name

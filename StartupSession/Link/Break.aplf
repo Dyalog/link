@@ -58,7 +58,7 @@
          :If ×≢tobreak ⋄ msg,←⊂'Unlinked:',U.List∪tobreak ⋄ :EndIf
          :If ×≢missing ⋄ msg,←⊂'Not found:',U.List∪missing ⋄ :EndIf
          :If ×≢unlinked ⋄ msg,←⊂'Not linked:',U.List∪unlinked ⋄ :EndIf
-         :If 0∊⍴msg ⋄ msg←'No link to break'
+         :If 0∊⍴msg ⋄ msg←'No link to break in arguments'
          :Else ⋄ msg←1↓U.FmtLines msg
          :EndIf
      :EndHold
