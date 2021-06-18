@@ -1,4 +1,22 @@
- {res}←OnAfterFix(obj evt src ns oldname name file)
+ {linked}←OnAfterFix(obj evt src ns oldname name file);nss;z
  ⍝ Thin cover for editor onAfterFix event
- {}ns name oldname ⎕SE.Link.Fix ⍬
- res←1  ⍝ Link.Fix always does the job
+ ⍝ Returns 1 if a link was found for the name, else 0
+ ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
+ ⍝ If obj is not linked, Link has no business here, but SALT might
+
+ :If 0≠⎕NC'⎕SE.Link.Links'
+ :AndIf 0≠≢⎕SE.Link.Links
+     nss←⍎¨⎕SE.Link.Links.ns
+     z←ns
+     :Repeat
+         :If ~linked←(⊂z)∊nss
+             z⍎←'##' ⍝ move up
+             linked←z∊nss ⍝ Link.Fix will do what needs to be done; skip SALT's handling
+         :EndIf
+     :Until linked∨z≡z⍎'##'
+     :If linked
+         {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
+     :EndIf
+ :Else
+     linked←0 ⍝ Let SALT try
+ :EndIf
