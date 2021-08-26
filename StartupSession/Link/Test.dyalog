@@ -1,4 +1,4 @@
-﻿:Namespace Test
+:Namespace Test
 ⍝ Put the Link system and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
@@ -36,6 +36,8 @@
     ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
     ⍝ unfortunately isolates have to be put in # because they copy DRC into #, and therefore hold references to #, and can't be held in ⎕SE at the cost of preventing )CLEAR.
+
+    DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
 
     NAME←'#.linktest'  ⍝ namespace used by link tests
     FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
@@ -1978,10 +1980,15 @@
 
     ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;ns1;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
-      :If 82=⎕DR''  ⍝ GhostRider requires Unicode
+
+      :If 0=DO_GUI_TESTS
+          Log 'Skipping  GUI (GhostRider) tests - set DO_GUI_TESTS←1 to enable' 
+          ok←1 ⋄ :Return
+      :ElseIf 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
           ok←1 ⋄ :Return
       :EndIf
+
       :Trap 0  ⍝ Link issue #219
           ride←NewGhostRider
       :Else
