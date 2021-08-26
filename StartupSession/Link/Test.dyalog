@@ -307,6 +307,7 @@
      
       ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
+      break_tests name folder
      
       3 ⎕NDELETE folder
       name⍎'⎕USING←'''''
@@ -1032,11 +1033,45 @@
       ok←1
     ∇
 
+    
 
 
+    ∇ ok←break_tests (name folder);z;folder2;se_name;opts;case;old;islinked
+    ⍝ Test variations of Break, with special focus on -all[=]
+    ⍝ Called from test_basic
+    ⍝ Assumes that both name and folder currently exist 
 
+      z←⎕SE.Link.Create name folder
+      islinked←{2::0 ⋄ ∧/(⊆⍵)∊(⎕SE.Link.U.GetLinks).ns}
+      'Create failed' assert 'islinked name'
+      z←⎕SE.Link.Break name                         ⍝ Test explicit break of a link
+      'Break failed' assert '~islinked name'
 
+      3 ⎕NDELETE folder2←folder,'_folder2'
+      folder2 ⎕NCOPY folder
+      se_name←'⎕SE',1↓name
 
+      z←⎕SE.Link.Create name folder
+      z←⎕SE.Link.Create se_name folder2
+      'Create failed' assert 'islinked name se_name'
+      
+      opts←⎕NS ''
+      z←opts ⎕SE.Link.Break '' ⊣ opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
+      'Break -all=⎕SE failed' assert '~islinked se_name'
+
+      z←opts ⎕SE.Link.Break '' ⊣ opts.all←'#'       ⍝ Break all children of #
+      'Break -all=* failed' assert '~islinked name'
+      
+      :For case :In '*' (,'*')                      ⍝ Test all alternatives of "all"
+          z←⎕SE.Link.Create name folder
+          z←⎕SE.Link.Create se_name folder2
+         'Create failed' assert 'islinked name se_name'
+          z←opts ⎕SE.Link.Break '' ⊣ opts.all←case
+          ('Break -all=',(⍕case),' failed') assert '0=≢⎕SE.Link.U.GetLinks'
+      :EndFor            
+    
+      3 ⎕NDELETE folder2
+    ∇
 
 
 
@@ -1101,7 +1136,8 @@
       {}⎕SE.Link.Expunge'#.unlikelyname'
       'link issue #204'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
      
-      ⍝ link issue #111 : ]link.break -all must work
+      ⍝ link issue #284 : ]link.break -all should close links under #
+      ⍝ previously #111 stated it should close ALL links
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
@@ -1112,7 +1148,10 @@
       'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
      
       {}'{all:1}'⎕SE.Link.Break ⍬
-      'link issue #111'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+      'link issue #284'assert'{6::1 ⋄ ⎕SE.Link.Links.ns≡,⊂''⎕SE.unlikelyname''}⍬'
+      {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
+      'link issue #284'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
@@ -1303,7 +1342,7 @@
       ⍝ attempt to export
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
-      {}⎕SE.UCMD'z←]link.export ',name,' ',folder
+      ⎕SE.UCMD 'z←Link.Export ',name,' ',folder
       'link issue #151'assert'∧/∨/¨''ERRORS ENCOUNTERED:'' ''',name,'.failed''⍷¨⊂z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
@@ -1311,7 +1350,7 @@
       3 ⎕NDELETE folder
       root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
       #.⎕FX'UnlikelyName' '⎕←''UnlikelyName'''
-      {}⎕SE.UCMD'z←]link.create -casecode # "',folder,'"'
+      ⎕SE.UCMD'z←link.create -casecode # "',folder,'"'
       'link issue #159'assert'1=≢⎕SE.Link.Links'
       'link issue #159'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
