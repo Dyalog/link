@@ -37,6 +37,8 @@
     ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
     ⍝ unfortunately isolates have to be put in # because they copy DRC into #, and therefore hold references to #, and can't be held in ⎕SE at the cost of preventing )CLEAR.
 
+    DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
+
     NAME←'#.linktest'  ⍝ namespace used by link tests
     FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
 
@@ -307,6 +309,7 @@
      
       ⎕SE.Link.U.WARN←warn
       {}⎕SE.Link.Break name
+      break_tests name folder
      
       3 ⎕NDELETE folder
       name⍎'⎕USING←'''''
@@ -1032,11 +1035,45 @@
       ok←1
     ∇
 
+    
 
 
+    ∇ ok←break_tests (name folder);z;folder2;se_name;opts;case;old;islinked
+    ⍝ Test variations of Break, with special focus on -all[=]
+    ⍝ Called from test_basic
+    ⍝ Assumes that both name and folder currently exist 
 
+      z←⎕SE.Link.Create name folder
+      islinked←{2::0 ⋄ ∧/(⊆⍵)∊(⎕SE.Link.U.GetLinks).ns}
+      'Create failed' assert 'islinked name'
+      z←⎕SE.Link.Break name                         ⍝ Test explicit break of a link
+      'Break failed' assert '~islinked name'
 
+      3 ⎕NDELETE folder2←folder,'_folder2'
+      folder2 ⎕NCOPY folder
+      se_name←'⎕SE',1↓name
 
+      z←⎕SE.Link.Create name folder
+      z←⎕SE.Link.Create se_name folder2
+      'Create failed' assert 'islinked name se_name'
+      
+      opts←⎕NS ''
+      z←opts ⎕SE.Link.Break '' ⊣ opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
+      'Break -all=⎕SE failed' assert '~islinked se_name'
+
+      z←opts ⎕SE.Link.Break '' ⊣ opts.all←'#'       ⍝ Break all children of #
+      'Break -all=* failed' assert '~islinked name'
+      
+      :For case :In '*' (,'*')                      ⍝ Test all alternatives of "all"
+          z←⎕SE.Link.Create name folder
+          z←⎕SE.Link.Create se_name folder2
+         'Create failed' assert 'islinked name se_name'
+          z←opts ⎕SE.Link.Break '' ⊣ opts.all←case
+          ('Break -all=',(⍕case),' failed') assert '0=≢⎕SE.Link.U.GetLinks'
+      :EndFor            
+    
+      3 ⎕NDELETE folder2
+    ∇
 
 
 
@@ -1101,7 +1138,8 @@
       {}⎕SE.Link.Expunge'#.unlikelyname'
       'link issue #204'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
      
-      ⍝ link issue #111 : ]link.break -all must work
+      ⍝ link issue #284 : ]link.break -all should close links under #
+      ⍝ previously #111 stated it should close ALL links
       '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
@@ -1112,7 +1150,10 @@
       'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
      
       {}'{all:1}'⎕SE.Link.Break ⍬
-      'link issue #111'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+      'link issue #284'assert'{6::1 ⋄ ⎕SE.Link.Links.ns≡,⊂''⎕SE.unlikelyname''}⍬'
+      {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
+      'link issue #284'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
@@ -1303,7 +1344,7 @@
       ⍝ attempt to export
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
-      {}⎕SE.UCMD'z←]link.export ',name,' ',folder
+      ⎕SE.UCMD 'z←Link.Export ',name,' ',folder
       'link issue #151'assert'∧/∨/¨''ERRORS ENCOUNTERED:'' ''',name,'.failed''⍷¨⊂z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
@@ -1311,7 +1352,7 @@
       3 ⎕NDELETE folder
       root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
       #.⎕FX'UnlikelyName' '⎕←''UnlikelyName'''
-      {}⎕SE.UCMD'z←]link.create -casecode # "',folder,'"'
+      ⎕SE.UCMD'z←link.create -casecode # "',folder,'"'
       'link issue #159'assert'1=≢⎕SE.Link.Links'
       'link issue #159'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
       'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
@@ -1978,10 +2019,15 @@
 
     ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;ns1;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
-      :If 82=⎕DR''  ⍝ GhostRider requires Unicode
+
+      :If 0=DO_GUI_TESTS
+          Log 'Skipping  GUI (GhostRider) tests - set DO_GUI_TESTS←1 to enable' 
+          ok←1 ⋄ :Return
+      :ElseIf 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
           ok←1 ⋄ :Return
       :EndIf
+
       :Trap 0  ⍝ Link issue #219
           ride←NewGhostRider
       :Else

@@ -1,4 +1,4 @@
- msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML;i;all
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
@@ -16,7 +16,7 @@
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
-         :If ~opts.all∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.all),' for modifier "all" - must be one of: 0 1'
+         :If ~(⊂,opts.all)∊,¨0 1 '#' '⎕SE' '*' ⋄ U.Error'Invalid value ',(⍕opts.all),' for modifier "all" - must be one of: 0 1 # ⎕SE *'
          :ElseIf ~(⊂opts.recursive)∊'on' 'off' 'error' ⋄ U.Error'Invalid value ',(⍕opts.recursive),' for modifier "recursive" - must be one of: on off error'
          :EndIf
 
@@ -27,8 +27,11 @@
          refs←there(0 U.GetRefTo)U.OnEach nss  ⍝ turn into references
          missing,←(0=≢¨refs)/nss ⋄ refs←(0⍴#),(0<≢¨refs)/refs  ⍝ ⍬ for reference not found - ensure prototype is ref
 
-         :If opts.all
-             tobreak←refs←linked
+         all←(0 1 1 2 3 ¯1)[(,¨0 1 '#' '⎕SE' '*')⍳⊂,opts.all]
+         :If all=¯1
+             U.Error '''all'' flag must be one of ''#'' ''⎕SE'' ''*'''
+         :ElseIf all≠0 ⍝ Any kind of "all" option?
+             tobreak←(∨⌿((2 2⊤all)/⎕SE #)∘.U.IsParent linked)/linked ⍝ break children of either ⎕SE, #, or both
          :ElseIf 0∊⍴refs
              tobreak←refs
          :ElseIf opts.recursive≡'on'
