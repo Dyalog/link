@@ -42,7 +42,7 @@ NOHOLD:
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
          :ElseIf (0=nc)∧(~nosrc) ⋄ U.Error'Invalid source for ',nsname,'.',name ⍝ ,': ',⍕src
          :ElseIf (0=nc) ⋄ U.Error'No source for ',nsname,'.',name
-         :ElseIf callback∧(2.1=nc)  ⍝ never watch namespace arrays
+         :ElseIf callback∧(2.1=nc)∧~⎕NEXISTS file  ⍝ only update array if file already exists
              ¯1 U.Log'ignoring editing of array: 'nsname'.'name
              :Return
          :EndIf
@@ -69,7 +69,7 @@ NOHOLD:
              :EndIf
          :ElseIf callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
-             :If 0 ⋄ :AndIf 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array (never happens)
+             :If 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array
              ⍝:ElseIf ~tie ⋄ :AndIf (ns.⎕NC name)∊3 4 ⍝ functions not tied to file cannot preserve whitespace - Link.Diff would otherwise report a diff between file and namespace
              ⍝    src←ns.⎕NR name    ⍝ use ⎕NR so that workspace matches file
              :Else ⋄ src←⊃U.LASTFIX  ⍝ source as typed
