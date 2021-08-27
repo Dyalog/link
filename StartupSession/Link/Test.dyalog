@@ -1,4 +1,4 @@
-﻿:Namespace Test
+:Namespace Test
 ⍝ Put the Link system and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
@@ -2366,7 +2366,7 @@
           assert'~∨/''Not found''⍷z'
           assert'∧/⎕NEXISTS',⍕Stringify¨(folder,'/sub/')∘,¨'goo.aplf' 'newvar.apla'
           z←sub ⎕SE.Link.Fix':Namespace ns' 'ns←1' ':EndNamespace'
-          assert'z∧⎕NEXISTS',Stringify folder,'/sub/ns.apln'
+          assert'(z≡,⊂''ns'')∧⎕NEXISTS',Stringify folder,'/sub/ns.apln'
           z←⎕SE.Link.Refresh name
           assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           z←⎕SE.Link.Expunge sub
