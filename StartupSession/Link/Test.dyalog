@@ -1422,7 +1422,10 @@
 
 
 
-      assert_create←{ ⍝ ⍺=ws should contain "new" defs, ⍵=files should
+      assert_create←{ 
+          ⍝ subroutine of test_create, verify that ws and file are updated according to opts.watch
+          ⍝ ⍺=1 if ws should contain "new" defs, 0 for old
+          ⍝ ⍵=1 files should contain "new" defs...
           _←assert(⍺/'new'),'var≡⍎subname,''.var'''
           _←assert(⍺/'new'),'foosrc≡NR subname,''.foo'''
           _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''   ⍝ problem is that ⎕SRC reads directly from file !
@@ -1664,7 +1667,7 @@
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
-      1 assert_create 1 ⍝ asset we have new ws items and new file contents
+      1 assert_create 1 ⍝ assert we have new ws items and new file contents
       ⍝ watch=dir must not reflect changes from APL to files
       ⍝  ⎕SE.Link.Fix updates files independently of watch setting
       subname'var'⎕SE.Link.Fix varsrc
@@ -1694,14 +1697,14 @@
      
       ⍝ now try source=dir watch=ns
       opts.source←'dir' ⋄ opts.watch←'ns' ⋄ {}opts ⎕SE.Link.Create name folder
-      1 assert_create 1
+      1 assert_create 1 ⍝ NB dir contains "new" definitions
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ APL changes must be reflected to file
 
       subname'var'EdFix varsrc
       subname'foo'EdFix foosrc
       subname'ns'EdFix nssrc
-      0 assert_create 0
+      0 assert_create 0 ⍝ check that existing ("new") definitions now replaced by originals (0)
       ⍝ New variables should NOT have a file created
       subname 'var2' EdFix varsrc            ⍝ Create an extra variable
       assert '~⎕NEXISTS subfolder,''/var2.apla''' ⍝ verify no file created
