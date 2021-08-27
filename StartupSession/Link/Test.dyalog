@@ -1,4 +1,4 @@
-:Namespace Test
+﻿:Namespace Test
 ⍝ Put the Link system and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
@@ -1422,13 +1422,13 @@
 
 
 
-      assert_create←{  ⍝ ⍺=newapl ⋄ ⍵=newfile
+      assert_create←{ ⍝ ⍺=ws should contain "new" defs, ⍵=files should
           _←assert(⍺/'new'),'var≡⍎subname,''.var'''
           _←assert(⍺/'new'),'foosrc≡NR subname,''.foo'''
           _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''   ⍝ problem is that ⎕SRC reads directly from file !
-          _←assert((⊃⍵)/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'    ⍝ namespace arrays must not be watched
-          _←assert((⊃⌽⍵)/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
-          _←assert((⊃⌽⍵)/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
+          _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
+          _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+          _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
       }
 
     ∇ on←AutoFormat
@@ -1658,13 +1658,13 @@
       assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
       assert'∧/foosrc∘≡¨NR¨name subname,¨⊂''.foo'''  ⍝ source-as-typed
       assert'nssrc∘≡¨⎕SRC¨⍎¨name subname,¨⊂''.ns'''
-      0 assert_create 0
+      0 assert_create 0 ⍝ assert we have old ws items and old file contents
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ watch=dir must reflect changes from files to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
-      1 assert_create 1
+      1 assert_create 1 ⍝ asset we have new ws items and new file contents
       ⍝ watch=dir must not reflect changes from APL to files
       ⍝  ⎕SE.Link.Fix updates files independently of watch setting
       subname'var'⎕SE.Link.Fix varsrc
@@ -1697,16 +1697,22 @@
       1 assert_create 1
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ APL changes must be reflected to file
+
       subname'var'EdFix varsrc
       subname'foo'EdFix foosrc
       subname'ns'EdFix nssrc
-      0 assert_create 1 0  ⍝ excepted for arrays
+      0 assert_create 0
+      ⍝ New variables should NOT have a file created
+      subname 'var2' EdFix varsrc            ⍝ Create an extra variable
+      assert '~⎕NEXISTS subfolder,''/var2.apla''' ⍝ verify no file created
+
       ⍝ file changes must not be reflected back to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       Breathe ⍝ breathe to ensure it's not reflected
       0 assert_create 1
+      
       {}⎕SE.Link.Expunge name
      
       ⍝ now try source=dir watch=none
@@ -1763,7 +1769,7 @@
       subname'var'EdFix newvarsrc
       subname'foo'EdFix newfoosrc
       subname'ns'EdFix newnssrc
-      1 assert_create 0 1  ⍝ files updated excepted for arrays
+      1 assert_create 1
       {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
