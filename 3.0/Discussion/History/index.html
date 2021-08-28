@@ -812,7 +812,7 @@
 <p>Workspaces are very convenient, but the binary format makes them awkward if you want to compare, or otherwise manage, different versions of the source code - or the data, for that matter. Users preferred to store their data in component files or other storage mechanisms. As teams started writing larger systems, many development teams also created their own source code management systems (<abbr title="Source Code Managers">SCMs</abbr>), typically storing multiple versions of code in component files or <abbr title="Structured Query Language">SQL</abbr> tables.</p>
 <p>These <abbr title="Source Code Managers">SCMs</abbr> served large developer teams well for several decades. However, none of them became tools that were shared by the APL community, and they all suffered from the fundamental problem of using binary formats.</p>
 <h3 id="salt-the-simple-apl-library-toolkit">SALT - the Simple APL Library Toolkit</h3>
-<p>In 2006, Dyalog APL Version 11.0 introduced Classes and the ability to represent Namespaces as text "scripts". With that release, Dyalog APL included a tool known as <a href="https://docs.dyalog.com/18.1/SALT%20User%20Guide.pdf">SALT</a>, which supported the use of Unicode text files as backing for the source of not only classes and namespaces, but functions, operators and variables as well. At the same time, a component named SPICE added user commands to Dyalog APL, using text source files which implemented a specific API, based on SALT's file handling.</p>
+<p>In 2006, Dyalog APL Version 11.0 introduced Classes and the ability to represent Namespaces as text "scripts". With that release, Dyalog APL included a tool known as <a href="https://docs.dyalog.com/latest/SALT%20User%20Guide.pdf">SALT</a>, which supported the use of Unicode text files as backing for the source of not only classes and namespaces, but functions, operators and variables as well. At the same time, a component named SPICE added user commands to Dyalog APL, using text source files which implemented a specific API, based on SALT's file handling.</p>
 <p>SALT is Link's direct predecessor, and has many of the same features as Link:</p>
 <ul>
 <li>The ability to load entire directory structures into the workspace as namespaces</li>
@@ -827,7 +827,7 @@
 <li>New interpreter functionality based on <code>2 ⎕FIX</code> makes it possible for the interpreter to preserve source code exactly as typed, when an external source file is used.</li>
 <li>A file system watcher added support for using external editors and immediately replicating the effect of <abbr title="Source Code Manager">SCM</abbr> system actions, such as a git pull or revert operation, inside the active workspace.</li>
 <li>Rather than using the extension <code>.dyalog</code> for all source, Link uses different extensions for different types of source, such as <code>.aplf</code> for functions, <code>.apln</code> for namespaces, and <code>.apla</code> for arrays.</li>
-<li>Use of a model of the proposed <a href="">Literal Array Notation</a> to represent arrays, rather than the notation used by SALT.</li>
+<li>Use of a model of the proposed Literal Array Notation to represent arrays, rather than the notation used by SALT.</li>
 <li>
 <p>We hope to add support for the array notation to the Dyalog APL interpreter in a future release.</p>
 </li>
