@@ -57,7 +57,7 @@ Link writes textual representations of APL objects to UTF-8 text files. Most of 
 
 #### Loading APL Objects from Source
 
-As a general rule, Link loads code into the workspace using `2 ⎕FIX 'file://...'`. 
+With the exception of variables stored in `.apla` files, which are processed by `⎕SE.Dyalog.Array.Deserialise`, Link loads code into the workspace using `2 ⎕FIX 'file://...'`. 
 
 When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a *new* function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.
 
