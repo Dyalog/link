@@ -1,12 +1,12 @@
 # Setting Up Your Environment
 
-With a small project, you can get by using [`Link.Create`](/API/Link.Create) and/or [`Link.Import`](/API/Link.Import) to bring your source into the workspace in order to work with it. However, even in a small project, this quickly gets tedious, and as the project grows, you may want to load code from more that one directory, and perhaps run some code in order to set things up or even start the application. Fortunately, the [Link API](/API/index.md) provides all the functions that you need to automate the setup.
+With a small project, you can get by using [`Link.Create`](../API/Link.Create.md) and/or [`Link.Import`](../API/Link.Import.md) to bring your source into the workspace in order to work with it. However, even in a small project, this quickly gets tedious, and as the project grows, you may want to load code from more that one directory, and perhaps run some code in order to set things up or even start the application. Fortunately, the [Link API](../API/index.md) provides all the functions that you need to automate the setup.
 
 ## Description of the functions and procedure for automating set up
 
 ## Worked example
 
-To illustrate, we will create a small application that uses the stats library that we created in the [introduction](index.md). We'll put the application into a namespace called `linkdemo`:
+To illustrate, we will create a small application that uses the stats library that we created in the [section on basic usage](./index.md#starting-a-new-project). We will put the application into a namespace called `linkdemo`:
 
 ```      apl
       )clear
@@ -53,7 +53,7 @@ Enter some numbers:
 
 ### Automating Startup
 
-Starting with version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/18.0/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/18.0/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file `dev.dcfg` in the `linkdemo` folder with the following contents:
+Starting with version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file `dev.dcfg` in the `linkdemo` folder with the following contents:
 
 ```json
 {
@@ -107,5 +107,5 @@ As we have seen, Link allows you to run your application based entirely on textu
 To prepare a workspace for shipment, we will need to:
 
 * Set `⎕LX` in the so that it calls the `Start` function
-* Use [Link.Break](/API/Link.Break.md) to remove links to the source files. If you omit this step, you can create a [potentially confusing situation](/Workspaces.md#Saving-a-Workspace-with-Links).
+* Use [Link.Break](../API/Link.Break.md) to remove links to the source files. If you omit this step, you can create a [potentially confusing situation](../Discussion/Workspaces/#saving-workspaces-containing-links).
 * `)SAVE` the workspace

@@ -10,9 +10,6 @@ If you had previously used [Link.Pause](Link.Pause.md), your links will no longe
 
 **WARNING:** Resync is one of the most recent items of functionality added to Link, and should be considered somewhat experimental in Link 3.0. While this is the case, the default value for the `confirm`  option will be `list` ,  which means that Resync will display output documenting the updates that it intends to make. If there are any outstanding differences, you need to explicitly set `confirm=yes` to execute the synchronisation.
 
-The current plan is that, once Resync reaches maturity, the default will become `confirm=yes`, and an optional [Crawler](/Crawler.md) will become available. The *Crawler* will run Resync in the background, from time to time, to keep. It is likely that this will happen in Link version 3.1, hopefully during the summer of 2021.
-
-
 #### Arguments
 
 - Currently unused, reserved for future enhancements

@@ -1,6 +1,6 @@
 # Migrating from SALT to Link
 
-If you have been using SALT ([Link's direct predecessor](/History.md)) to maintain the source of your application, the good news is that nearly all of your source files already have a format which can be used directly with Link (with the exception of source files containing arrays). 
+If you have been using SALT ([Link's direct predecessor](../Discussion/History.md)) to maintain the source of your application, the good news is that nearly all of your source files already have a format which can be used directly with Link (with the exception of source files containing arrays). 
 
 There are a few issues that may require some work to sort out.
 
@@ -18,7 +18,7 @@ Obviously, you need to replace all calls to SALT functions like `⎕SE.SALT.Load
 
 SALT uses the extension of `.dyalog` for all source files including arrays. Link will load `.dyalog` files and, if you edit existing objects the source file will be updated. However, if you create any new items, all new files will have extensions that vary by type, for example `.aplf` for functions, `.apln` for namespaces, or `.apla` for arrays.
 
-You can rename all your source files to the Link defaults in one operation by creating a link using the [`-forcefilenames`](/API/Link.Create) switch. Remember to take a backup before you cause such a sweeping change to your source files!
+You can rename all your source files to the Link defaults in one operation by creating a link using the [`-forcefilenames`](../API/Link.Create.md) switch. Remember to take a backup before you cause such a sweeping change to your source files!
 
 ## `.dyapp` Files
 
@@ -26,11 +26,11 @@ From Dyalog version 18.0, you can launch the APL interpreter using any APL sourc
 
 ## Arrays
 
-SALT uses a couple of different formats to represent arrays, either XML or executable APL expressions. Link uses the future literal array notation. You will need to load your arrays into the workspace using SALT and then use [Link.Add](/API/Link.Add.md) to write them back out again.
+SALT uses a couple of different formats to represent arrays, either XML or executable APL expressions. Link uses the future literal array notation. You will need to load your arrays into the workspace using SALT and then use [Link.Add](../API/Link.Add.md) to write them back out again.
 
 ## Loading Individual Files
 
-The SALT `Load` function supports loading individual source files and maintaining a link to the source file, so that editing the function will cause the source file to be updated. While [Link.Import](/API/Link.Import.md) can load individual files, the files loaded in this way will not be synchronised. [Link.Create](/API/Link.Create.md) only supports linking an entire directory to a namespace.
+The SALT `Load` function supports loading individual source files and maintaining a link to the source file, so that editing the function will cause the source file to be updated. While [Link.Import](../API/Link.Import.md) can load individual files, the files loaded in this way will not be synchronised. [Link.Create](../API/Link.Create.md) only supports linking an entire directory to a namespace.
 
 This may well change in a future release. Until then, you can use `2 ⎕FIX 'file://filename'` to achieve more or less the same effect as SALT's Load.
 

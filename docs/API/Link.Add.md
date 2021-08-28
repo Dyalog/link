@@ -9,7 +9,7 @@ message ← ⎕SE.Link.Add items
 
 This function allows you to add one or more existing APL items to the link, creating the appropriate representation in the linked directory. A source file will be created or updated whether the linked namespace is watched or not.
 
-This is useful to write a new or modified array to a source file: [arrays are normally not written to file by Link](/API/Link.Create/#arrays).
+This is useful to write a new or modified array to a source file: [arrays are normally not written to file by Link](Link.Create.md#arrays).
 
 It is also useful when a change has been made to a linked item using any mechanism other than the APL editor, for example the definition of a new dfn using assignment, or the use of `)COPY` to bring new objects into the workspace.
 

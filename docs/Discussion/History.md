@@ -18,7 +18,7 @@ These SCMs served large developer teams well for several decades. However, none 
 
 ### SALT - the Simple APL Library Toolkit
 
-In 2006, Dyalog APL Version 11.0 introduced Classes and the ability to represent Namespaces as text "scripts". With that release, Dyalog APL included a tool known as [SALT](https://docs.dyalog.com/18.1/SALT%20User%20Guide.pdf), which supported the use of Unicode text files as backing for the source of not only classes and namespaces, but functions, operators and variables as well. At the same time, a component named SPICE added user commands to Dyalog APL, using text source files which implemented a specific API, based on SALT's file handling.
+In 2006, Dyalog APL Version 11.0 introduced Classes and the ability to represent Namespaces as text "scripts". With that release, Dyalog APL included a tool known as [SALT](https://docs.dyalog.com/latest/SALT%20User%20Guide.pdf), which supported the use of Unicode text files as backing for the source of not only classes and namespaces, but functions, operators and variables as well. At the same time, a component named SPICE added user commands to Dyalog APL, using text source files which implemented a specific API, based on SALT's file handling.
 
 SALT is Link's direct predecessor, and has many of the same features as Link:
 
@@ -35,7 +35,7 @@ After SALT had grown organically for more than a decade, it was decided that thi
   * New interpreter functionality based on `2 ⎕FIX` makes it possible for the interpreter to preserve source code exactly as typed, when an external source file is used.
 * A file system watcher added support for using external editors and immediately replicating the effect of SCM system actions, such as a git pull or revert operation, inside the active workspace.
 * Rather than using the extension `.dyalog` for all source, Link uses different extensions for different types of source, such as `.aplf` for functions, `.apln` for namespaces, and `.apla` for arrays.
-* Use of a model of the proposed [Literal Array Notation]() to represent arrays, rather than the notation used by SALT.
+* Use of a model of the proposed Literal Array Notation to represent arrays, rather than the notation used by SALT.
   * We hope to add support for the array notation to the Dyalog APL interpreter in a future release.
 
 *  Link has no source code management features; the expectation is that users who require SCM will combine Link with an external SCM such as Git or SVN
