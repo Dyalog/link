@@ -1,0 +1,59 @@
+site_name: Link User Guide
+nav:
+  - Introduction:
+    - index.md
+    - Discussion/TechDetails.md
+    - Discussion/Workspaces.md
+    - Discussion/History.md
+    
+  - Installation and Upgrade:
+    - Usage/Installation.md
+    - Upgradeto30.md
+    
+  - Usage:
+    - Usage/index.md
+    - Usage/Setup.md
+    - Usage/WStoLink.md
+    - Usage/SALTtoLink.md
+    
+  - API:
+    - API/index.md
+    - API/Link.Add.md
+    - API/Link.Break.md
+    - API/Link.CaseCode.md
+    - API/Link.Create.md
+    - API/Link.Export.md
+    - API/Link.Expunge.md
+    - API/Link.Fix.md
+    - API/Link.GetFileName.md
+    - API/Link.GetItemName.md
+    - API/Link.Import.md
+    - API/Link.LaunchDir.md
+    - API/Link.Notify.md
+    - API/Link.Pause.md
+    - API/Link.Refresh.md
+    - API/Link.Resync.md
+    - API/Link.Status.md
+    - API/Link.StripCaseCode.md
+    - API/Link.TypeExtension.md
+    - API/Link.Version.md
+  
+  - ChangeHistory.md
+    
+theme:
+  favicon: 'img/favicon-32.png'
+  logo: 'img/dyalog-white.svg'
+  features:
+    - navigation.sections
+    - navigation.instant
+  name: material
+
+extra_css:
+  - style/main.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - abbr
