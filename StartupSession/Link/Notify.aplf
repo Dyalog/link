@@ -80,7 +80,8 @@
 
          :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
              →END⊣msg,←⊂'file extension not managed by link'
-         :ElseIf 0=≢nsref ⋄ warn←1 ⋄ →END⊣msg,←⊂'file does not reflect in a valid namespace'
+         :ElseIf 0=≢nsref ⋄ warn←1 ⋄ msg,←⊂'unable to find corresponding namespace'
+             →(type≢'deleted')×END ⍝ Exit if event was "deleted", else report error
          :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              warn←~deleted  ⍝ link issue #235 : the delete callback provoked by ⎕SE.Link.Expunge cannot see the expunged name
