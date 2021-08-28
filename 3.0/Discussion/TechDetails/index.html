@@ -906,14 +906,14 @@
 <p><strong>Unscripted Namespaces:</strong> Namespaces created with <code>⎕NS</code> or <code>)NS</code> have no source code of their own and are mapped to directories. In Link version 3.0, one endpoint of a link is always an unscripted namespace and the other endpoint of the link is a directory.</p>
 <p><strong>Scripted Namespaces:</strong> So-called scripted namespaces, created using the editor or <code>⎕FIX</code>, have textual source and are treated the same way as functions and other "code objects". Link 3.0 does not support scripted namespaces, or any other objects that map to a single source file, as endpoints for a link.</p>
 <p>It is likely that this restriction will be lifted in a future version of Link.</p>
-<p><strong>Variables</strong> are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with <a href="/API/Link.Add">Link.Add</a>, or with the <code>-arrays</code> modifier of <a href="/API/Link.Create">Link.Create</a> and <a href="/API/Link.Export">Link.Export</a>.</p>
+<p><strong>Variables</strong> are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with <a href="../../API/Link.Add/">Link.Add</a>, or with the <code>-arrays</code> modifier of <a href="../../API/Link.Create/">Link.Create</a> and <a href="../../API/Link.Export/">Link.Export</a>.</p>
 <p><strong>Functions and Operators:</strong> Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.</p>
 <p><strong>Unsupported:</strong> Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).</p>
 <h2 id="other-limitations">Other Limitations</h2>
 <ul>
 <li>Namespaces must be named. To be precise, it must be true that <code>ns≡(⎕NS⍬)⍎⍕ns</code>. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using <code>⎕NS</code> dyadically to name the created namespace (for example <code>'myproject' ⎕NS ⍬</code> rather than <code>myproject←⎕NS ⍬</code>). This allows retrieving namespace reference from its display from (for example <code>#.myproject</code> rather than <code>#.[namespace]</code>).</li>
 <li>Link does not support namespace-tagged functions and operators (e.g. <code>foo←namespace.{function}</code>).</li>
-<li>Changes made using <code>←</code>, <code>⎕NS</code>, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>, <code>)NS</code> and <code>)COPY</code> or the APL line <code>∇</code> editor are not currently detected. For Link to be aware of the change, a call must be made to <a href="/API/Link.Fix">Link.Fix</a>. Similarly, deletions with <code>⎕EX</code> or <code>)ERASE</code> must be replaced by a call to <a href="/API/Link.Expunge">Link.Expunge</a>.</li>
+<li>Changes made using <code>←</code>, <code>⎕NS</code>, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>, <code>)NS</code> and <code>)COPY</code> or the APL line <code>∇</code> editor are not currently detected. For Link to be aware of the change, a call must be made to <a href="../../API/Link.Fix/">Link.Fix</a>. Similarly, deletions with <code>⎕EX</code> or <code>)ERASE</code> must be replaced by a call to <a href="../../API/Link.Expunge/">Link.Expunge</a>.</li>
 <li>Link does not support source files that define multiple names, even though <code>2∘⎕FIX</code> does support this.</li>
 <li>The detection of external changes to files and directories is currently only supported under .NET and .NET Core. Note that the built-in APL editor <em>will</em> detect changes to source files on all platforms, but not before the editor is opened.</li>
 <li>Source code must not have embedded newlines within character constants. Although <code>⎕FX</code> does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to <code>⎕UCS</code> e.g. <code>newline←⎕UCS 13 10  ⍝ carriage-return + line-feed</code></li>
@@ -927,7 +927,7 @@
 <p>When a link is created:</p>
 <ul>
 <li>
-<p>An entry is created in the table which is stored in the workspace using an undocumented I-Beam, recording the endpoints and all options associated with the Link. <a href="/API/Link.Status">Link.Status</a> can be used to report this information. Earlier versions used <code>⎕SE.Link.Links</code>, but version 3.0 only uses this for links with an endpoint in <code>⎕SE</code>.</p>
+<p>An entry is created in the table which is stored in the workspace using an undocumented I-Beam, recording the endpoints and all options associated with the Link. <a href="../../API/Link.Status/">Link.Status</a> can be used to report this information. Earlier versions used <code>⎕SE.Link.Links</code>, but version 3.0 only uses this for links with an endpoint in <code>⎕SE</code>.</p>
 </li>
 <li>
 <p>Depending on which end of the link is specified as the source, APL source files are created from workspace definitions, or objects are loaded into the workspace from such files. These processes are described in more detail in the following sections.</p>
@@ -948,25 +948,25 @@
 <p>If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.</p>
 <h3 id="the-source-of-link">The Source of Link</h3>
 <p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. The code is included with installations of Dyalog version 18.1 or later. </p>
-<p>If you want to use Link with version 18.0 or download and install Link from GitHub, see the <a href="/Usage/Installation">installation instructions</a>.</p>
+<p>If you want to use Link with version 18.0 or download and install Link from GitHub, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
 <h3 id="the-crawler">The Crawler</h3>
-<p>In a future version of Link, hopefully available during 2021, an optional and configurable crawler will be able to run in the background and occasionally compare linked namespaces and directories, using the same logic as <a href="/API/Link.Resync">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
+<p>In a future version of Link, hopefully available during 2021, an optional and configurable crawler will be able to run in the background and occasionally compare linked namespaces and directories, using the same logic as <a href="../../API/Link.Resync/">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
 <ul>
 <li>The File System Watcher is not available on your platform</li>
 <li>You add functions or operators to the active workspace without using the editor, for example using <code>)COPY</code> or dfn assignment.</li>
 </ul>
 <p>The section on <a href="#supported-objects">supported objects</a> provides much more information about the type of APL objects that are supported by Link.</p>
 <h3 id="breaking-links">Breaking Links</h3>
-<p>If <a href="/API/Link.Break">Link.Break</a> is used to explicitly break an existing Link, the entry is removed from <code>⎕SE.Link.Links</code> and the namespace reverts to being a completely "normal" namespace in the workspace. If file system watch was active, the watcher is disabled. Any information that the interpreter was keeping about connections to files is removed using <code>5178⌶</code>. None of the definitions in the namespace are modified by the process of breaking a link.</p>
+<p>If <a href="../../API/Link.Break/">Link.Break</a> is used to explicitly break an existing Link, the entry is removed from <code>⎕SE.Link.Links</code> and the namespace reverts to being a completely "normal" namespace in the workspace. If file system watch was active, the watcher is disabled. Any information that the interpreter was keeping about connections to files is removed using <code>5178⌶</code>. None of the definitions in the namespace are modified by the process of breaking a link.</p>
 <p>If you delete a linked namespace using <code>)ERASE</code> or <code>⎕EX</code>, Link may not immediately detect that this has happened. However, if you call <code>Link.Status</code>, or make a change to a watched file that causes the file system watcher to attempt to update the namespace, Link will discover that something is amiss, issue a warning, and delete the link.</p>
 <p>If you completely destroy the active workspace using <code>)LOAD</code> or <code>)CLEAR</code>, all links will be deleted.</p>
 <h2 id="the-future">The Future</h2>
 <p>To summarise, the Link road map currently includes the following goals:</p>
 <ul>
-<li>Adding the <a href="#the-crawler">crawler</a>, which will automatically run <a href="/API/Link.Resync">Link.Resync</a> in the background, in order to detect and help eliminate differences between the contents of linked namespaces and the corresponding directories. It may replace the File System Watcher in environments where it is not available.</li>
+<li>Adding the <a href="#the-crawler">crawler</a>, which will automatically run <a href="../../API/Link.Resync/">Link.Resync</a> in the background, in order to detect and help eliminate differences between the contents of linked namespaces and the corresponding directories. It may replace the File System Watcher in environments where it is not available.</li>
 <li>Eliminating the use of SALT with a new implementation of user commands and other mechanisms for loading source code into the interpreter based on Link instead.</li>
 <li>Support for linking individual source files. Link 3.0 is only able to link a namespace to a directory. There are situations where it is practical to create a link to a single source file, particularly in the case of a scripted namespace.</li>
-<li>Improving integration with the APL interpreter so that the editor will honour a <a href="/API/Link.Pause">Pause</a>.</li>
+<li>Improving integration with the APL interpreter so that the editor will honour a <a href="../../API/Link.Pause/">Pause</a>.</li>
 </ul>
 <p>Over time, it is a strategic goal for Dyalog to move more of the work done by Link into the APL interpreter, such as:</p>
 <ul>

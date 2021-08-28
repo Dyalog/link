@@ -817,10 +817,10 @@
                 
                 
                 <h1 id="setting-up-your-environment">Setting Up Your Environment</h1>
-<p>With a small project, you can get by using <a href="/API/Link.Create"><code>Link.Create</code></a> and/or <a href="/API/Link.Import"><code>Link.Import</code></a> to bring your source into the workspace in order to work with it. However, even in a small project, this quickly gets tedious, and as the project grows, you may want to load code from more that one directory, and perhaps run some code in order to set things up or even start the application. Fortunately, the <a href="/API/index.md">Link API</a> provides all the functions that you need to automate the setup.</p>
+<p>With a small project, you can get by using <a href="../../API/Link.Create/"><code>Link.Create</code></a> and/or <a href="../../API/Link.Import/"><code>Link.Import</code></a> to bring your source into the workspace in order to work with it. However, even in a small project, this quickly gets tedious, and as the project grows, you may want to load code from more that one directory, and perhaps run some code in order to set things up or even start the application. Fortunately, the <a href="../../API/">Link API</a> provides all the functions that you need to automate the setup.</p>
 <h2 id="description-of-the-functions-and-procedure-for-automating-set-up">Description of the functions and procedure for automating set up</h2>
 <h2 id="worked-example">Worked example</h2>
-<p>To illustrate, we will create a small application that uses the stats library that we created in the <a href="../">introduction</a>. We'll put the application into a namespace called <code>linkdemo</code>:</p>
+<p>To illustrate, we will create a small application that uses the stats library that we created in the <a href="../#starting-a-new-project">section on basic usage</a>. We will put the application into a namespace called <code>linkdemo</code>:</p>
 <pre><code class="language-apl">      )clear
 clear ws
       )ns linkdemo
@@ -857,7 +857,7 @@ Enter some numbers:
       ⍬
 </code></pre>
 <h3 id="automating-startup">Automating Startup</h3>
-<p>Starting with version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the <a href="https://help.dyalog.com/18.0/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm">LOAD parameter</a> or from a configuration file using the  <a href="https://help.dyalog.com/18.0/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm">CONFIGFILE parameter</a>. Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file <code>dev.dcfg</code> in the <code>linkdemo</code> folder with the following contents:</p>
+<p>Starting with version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm">LOAD parameter</a> or from a configuration file using the  <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm">CONFIGFILE parameter</a>. Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file <code>dev.dcfg</code> in the <code>linkdemo</code> folder with the following contents:</p>
 <pre><code class="language-json">{
   Settings: {
       MAXWS: 100M,
@@ -896,7 +896,7 @@ Enter some numbers:
 <p>To prepare a workspace for shipment, we will need to:</p>
 <ul>
 <li>Set <code>⎕LX</code> in the so that it calls the <code>Start</code> function</li>
-<li>Use <a href="/API/Link.Break.md">Link.Break</a> to remove links to the source files. If you omit this step, you can create a <a href="/Workspaces.md#Saving-a-Workspace-with-Links">potentially confusing situation</a>.</li>
+<li>Use <a href="../../API/Link.Break/">Link.Break</a> to remove links to the source files. If you omit this step, you can create a <a href="../Discussion/Workspaces/#saving-workspaces-containing-links">potentially confusing situation</a>.</li>
 <li><code>)SAVE</code> the workspace</li>
 </ul>
                 
