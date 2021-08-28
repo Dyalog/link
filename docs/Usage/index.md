@@ -118,7 +118,7 @@ If you update the source files under program control and inbound synchronisation
 
 By default, Link does not consider arrays to be part of the source code of an application and will not write arrays to source files unless you explicitly request it. Link is not intended to be used as a database management system; if you have arrays that are modified during the normal running of your application, we recommend that you store that data in an RDBMS or other files that are managed by the application code, rather than using Link for this.
 
-If you have arrays that represent error tables, range definitions or other *constant* definitions that it makes sense to conside to be part of the source code, you can add them using [Link.Add](/API/Link.Add.md):
+However, if you have arrays that represent error tables, range definitions or other *constant* definitions that it makes sense to conside to be part of the source code, you can add them using [Link.Add](/API/Link.Add.md):
 
 ```apl
       stats.Directions←'North' 'South' 'East' 'West'
@@ -126,9 +126,9 @@ If you have arrays that represent error tables, range definitions or other *cons
 Added: #.stats.Directions
 ```
 
-Note that by default, source files for arrays are presumed to define the initial value of the array when the application starts. Note that changes made to arrays will not be picked up by a crawler even if the array was originally loaded from a source file.  You always need to use the built-in editor or explicitly call Link.Add to update the source file with a new value.
+Once you have created a source file for an array, Link *will* update that file if you use the editor to modify the array. Note that if you modify the array using assignment or other means than the editor, you will need to call [Link.Add](/API/Link.Add.md) to force and update of the source file.
 
-Although changes to the array in the workspace are not automatically written to file, changes made to the source files will always be considered to be updates to the source code and reflected in the workspace if synchronisation is active.
+Changes made to source files, including the addition of new `.apla`files, will always be reflected in the workspace, if the link has been set up to watch the file system.
 
 ## Setting up Development and Runtime Environments
 
