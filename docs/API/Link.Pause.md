@@ -16,7 +16,7 @@ It may also be useful when running application code, to guarantee that the code 
 
 While Link itself will not perform synchronisation while links are paused, the editor which is integrated with the Dyalog APL IDE will update source files in some situations.
 
-In the default scenario, where Link is watching both sides of a link, the information which links each code object in the workspace to a source file is [maintained by the interpreter](/Discussion/HowDoesItWork#loading-apl-objects-from-source). If code is edited using the built-in editor, the editor *will* automatically also update the source file (prompting the user for confirmation, depending on how the APL system is configured). The only way to avoid this is to use [Link.Break](Link.Break.md). In the [longer term](/Discussion/History#the-future) we hope to convince the editor to honour paused links.
+In the default scenario, where Link is watching both sides of a link, the information which links each code object in the workspace to a source file is [maintained by the interpreter](../Discussion/HowDoesItWork.md#loading-apl-objects-from-source). If code is edited using the built-in editor, the editor *will* automatically also update the source file (prompting the user for confirmation, depending on how the APL system is configured). The only way to avoid this is to use [Link.Break](Link.Break.md). In the [longer term](../Discussion/HowDoesItWork.md#the-future) we hope to convince the editor to honour paused links.
 
 #### Arguments
 

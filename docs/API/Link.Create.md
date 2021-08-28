@@ -36,7 +36,7 @@ The **watch** option specifies which sides of the link to watch for changes (and
 
 `watch` is a simple character vector, one of `'none'`, `'ns'`m `'dir'` or `'both'`.
 
-- **none**: Changes are not automatically reflected across the link. However, linked files can be updated from definitions in the active workspace using [Link.Add](/API/Link.Add) and names in the active workspace can be updated from linked files using [Link.Refresh](/API/Link.Refresh).
+- **none**: Changes are not automatically reflected across the link. However, linked files can be updated from definitions in the active workspace using [Link.Add](Link.Add.md) and names in the active workspace can be updated from linked files using [Link.Refresh](Link.Refresh.md).
 - **ns** will mirror namespace changes (done with the editor) to files. Note that it will **not** reflect changes made using other mechanisms, such as assignment, `⎕FX`, `⎕FIX`, `⎕CY`,  or `⎕NS`. If you want to programmatically change an item so that the change is reflected to files, you should use [⎕SE.Link.Fix](Link.Fix.md).
 - **dir** will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to [Link.Pause](Link.Pause.md) the link before doing massive changes to files, then [Link.Resync](Link.Resync.md) to resume file watching.
 - **both** will do both.

@@ -32,8 +32,8 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 
 ## Link is NOT...
 
-* **A source code management system**: we recommend using Git to manage the text files that Link will help you create and edit using Dyalog.
-* **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, arrays are only written to source files upon request using [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
+- **A source code management system**: we recommend using Git to manage the text files that Link will help you create and edit using Dyalog.
+- **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, arrays are only written to source files upon request using [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
 
 ## Link fundamentals
 
@@ -50,7 +50,7 @@ Any changes made to code in the active workspace using the tracer and editor are
 * **Keep the workspace up-to-date:**
 Any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
 
-You can invoke [Link.Create](/API/Link.Create.md) several times to create multiple links, and you can also use [Link.Import](/API/Link.Import.md) or [Link.Export](/API/Link.Export.md) to import source code into the workspace or export code to external files *without* creating links that will respond to subsequent changes. 
+You can invoke [Link.Create](API/Link.Create.md) several times to create multiple links, and you can also use [Link.Import](API/Link.Import.md) or [Link.Export](API/Link.Export.md) to import source code into the workspace or export code to external files *without* creating links that will respond to subsequent changes. 
 
 ## Functions vs. User Commands
 With a few exceptions, each [Link API function](API/index.md) has a corresponding User Command, designed to make the functionality slightly easier to use interactively in the session.
@@ -98,6 +98,6 @@ If you have an existing APL application that you want to move to Link, you might
 
 ## Frequently Asked Questions
 
-* [What happens if I save a workspace after creating Links?](../Discussion/Workspaces/#saving-workspaces-containing-links)
-* [Are workspaces dead now?](../Discussion/Workspaces/#are-workspaces-dead-now)
-* [How is Link implemented?](../Discussion/TechDetails/#how-does-link-work)
+* [What happens if I save a workspace after creating Links?](Discussion/Workspaces.md#saving-workspaces-containing-links)
+* [Are workspaces dead now?](Discussion/Workspaces.md#are-workspaces-dead-now)
+* [How is Link implemented?](Discussion/TechDetails.md#how-does-link-work)
