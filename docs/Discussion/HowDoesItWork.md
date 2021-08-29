@@ -35,11 +35,11 @@ If .NET is available, Link uses a File System Watcher to monitor linked director
 
 Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link` when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. The code is included with installations of Dyalog version 18.1 or later. 
 
-If you want to use Link with version 18.0 or download and install Link from GitHub, see the [installation instructions](/Usage/Installation.md).
+If you want to use Link with version 18.0 or download and install Link from GitHub, see the [installation instructions](../Usage/Installation.md).
 
 ### The Crawler
 
-In a future version of Link, hopefully available during 2021, an optional and configurable [Crawler](/Crawler.md) will be able to run in the background and occasionally compare linked namespaces and directories using the same logic as [Link.Resync](/API/Link.Resync.md), and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:
+In a future version of Link, an optional and configurable Crawler will be able to run in the background and occasionally compare linked namespaces and directories using the same logic as [Link.Resync](../API/Link.Resync.md), and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:
 
 * The File System Watcher is not available on your platform
 * You add functions or operators to the active workspace without using the editor, for example using ``)COPY`` or dfn assignment.
@@ -48,7 +48,7 @@ The document [Technical Details and Limitations](TechDetails.md) provides much m
 
 ## Breaking Links
 
-If [Link.Break](/API/Link.Break.md) is used to explicitly break an existing Link, the entry is removed from `⎕SE.Link.Links`, and the namespace reverts to being a completely "normal" namespace in the workspace. If file system watch was active, the watcher is disabled. Any information that the interpreter was keeping about connections to files is removed using `5178⌶`. None of the definitions in the namespace are modified by the process of breaking a link.
+If [Link.Break](../API/Link.Break.md) is used to explicitly break an existing Link, the entry is removed from `⎕SE.Link.Links`, and the namespace reverts to being a completely "normal" namespace in the workspace. If file system watch was active, the watcher is disabled. Any information that the interpreter was keeping about connections to files is removed using `5178⌶`. None of the definitions in the namespace are modified by the process of breaking a link.
 
 If you delete a linked namespace using `)ERASE` or `⎕EX`, Link may not immediately detect that this has happened. However, if you call `Link.Status`, or make a change to a watched file that causes the file system watcher to attempt to update the namespace, Link will discover that something is amiss, issue a warning, and delete the link.
 

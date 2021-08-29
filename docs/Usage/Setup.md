@@ -107,5 +107,5 @@ As we have seen, Link allows you to run your application based entirely on textu
 To prepare a workspace for shipment, we will need to:
 
 * Set `⎕LX` in the so that it calls the `Start` function
-* Use [Link.Break](../API/Link.Break.md) to remove links to the source files. If you omit this step, you can create a [potentially confusing situation](../Discussion/Workspaces/#saving-workspaces-containing-links).
+* Use [Link.Break](../API/Link.Break.md) to remove links to the source files. If you omit this step, you can create a [potentially confusing situation](../Discussion/Workspaces.md/#saving-workspaces-containing-links).
 * `)SAVE` the workspace
