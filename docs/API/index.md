@@ -24,6 +24,13 @@ you would write:
       options ⎕SE.Link.Create 'myapp' '/sources/myapp'  ⍝ namespace and director name on the right, options on left
 ```
 
+Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), you can take advantage of the new JSON5 dialect support in the `⎕JSON` system function to use JSON as a notation for options without requiring quotes around option names:
+
+```
+        opt←⎕JSON⍠'Dialect' 'JSON5'
+        (opt '{source:"dir", flatten:1}') ⎕SE.Link.Create 'myapp' '/sources/myapp' 
+```
+
 ## User commands
 Some API functions have a corresponding user command, to make them a little easier to use interactively. The API functions with user command covers are indicated with <sup>`]`</sup> in the function reference tables. These user commands all take exactly the same arguments and options as the API functions, specified using user command syntax. The Link.Create call above would thus be written:
 ```apl
