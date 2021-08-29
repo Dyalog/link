@@ -1,5 +1,9 @@
 # Link documentation
 
+**NOTE:** This is the documentation for Link 2.0, which is distrubuted with Dyalog APL versions 17.1 and 18.0.
+If you are looking for documentation for Link version 3.0 it is [available separately](https://dyalog.github.io/link/).
+If you are using version 18.0 and just getting started with Link, installing version 3.0 is highly recommended.
+
 ***Link*** facilitates the use of text files for APL source code
 by associating **namespaces** inside the active workspace
 to **directories** containing source code. Functionality provided by links include:

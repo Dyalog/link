@@ -1,3 +1,7 @@
+**NOTE:** This is the documentation for Link 2.0, which is distributed with Dyalog APL versions 17.1 and 18.0.
+The API documentation for Link version 3.0 it is [available separately](https://dyalog.github.io/link/latest/API/).
+If you are using version 18.0 and just getting started with Link, installing version 3.0 is highly recommended.
+
 The Link API functions are normally found in ```⎕SE.Link```. All API functions take a character
 vector or a nested vector as a right argument. The left argument may either be a namespace containing option values, or an array of character vectors. Namespaces may be specified by reference. For more details on setting options, look below the following table:
 
