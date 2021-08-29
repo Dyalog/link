@@ -11,4 +11,4 @@ This version is actively developed in the master branch of this repository and s
 ## Version 2.0
 Version 2.0 is distributed with Dyalog APL versions 17.1 and 18.0. It is no longer being actively developed. Support (and fixes if necessary) are available to Dyalog customers via our normal support channels.
 
-[Version 2.0 has separate documentation](help/Home.md), including a [Version 2.0 API reference](help/API.md).
+[Version 2.0 has separate documentation](blob/2.0/help/Home.md), including a [Version 2.0 API reference](blob/2.0/help/API.md).
