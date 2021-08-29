@@ -1,4 +1,6 @@
 site_name: Link User Guide
+repo_url: https://github.com/dyalog/link
+repo_name: Dyalog/Link
 nav:
   - Introduction:
     - index.md
