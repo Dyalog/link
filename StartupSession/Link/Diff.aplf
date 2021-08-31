@@ -8,7 +8,6 @@
          :If 0∊⍴links←U.GetLinks ⋄ U.Error 'Not Linked: ',⍕ns ⋄ :EndIf
          opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
          (container ns)←(⎕RSI ⎕XSI) U.ContainerNs ns
-         :if ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
          :If ~0∊⍴nsref←(0 U.GetRefTo)ns
          :AndIf ~0∊⍴link←links U.LookupRef nsref
              0 Watcher.Pause link  ⍝ FSW cannot kick in because of the :Hold

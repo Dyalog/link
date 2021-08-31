@@ -9,7 +9,6 @@
      (defopts←⎕NS ⍬).(overwrite arrays)←0 0
      opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
-     :If ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
 
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
          U.Error'Not a properly named namespace: ',,⍕rawsrc
@@ -24,7 +23,7 @@
              dir←dest←0 U.NormDir dest
          :EndIf
          :If single
-             ns←⊃U.SplitNs src←container U.NormName src
+             ns←⊃U.SplitNs src←container U.NormName src  ⍝ single name is relative to calling namespace (container) because there is no implicit namespace
              arrays←1   ⍝ always export single array
          :Else
              ns←src←U.NormNs src                      ⍝ src is an unscripted namespace
