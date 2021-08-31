@@ -130,6 +130,19 @@
 </div>
     
     
+      <div class="md-header__source">
+        
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+      </div>
+    
   </nav>
 </header>
     
@@ -158,6 +171,19 @@
     </a>
     Link User Guide
   </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -703,24 +729,34 @@
             <article class="md-content__inner md-typeset">
               
                 
+                  <a href="https://github.com/dyalog/link/edit/master/docs/Usage/Installation.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
                 
                 <h1 id="installation">Installation</h1>
 <p>The fully supported version of Link 3.0 is included with Dyalog version 18.1 or later; no installation is required. The instructions on this page only apply if you want to:</p>
 <ul>
 <li>Use Link 3.0 in place of Link 2.0 with Dyalog version 18.0</li>
 <li>Participate in testing pre-releases of Link</li>
-<li>Have some other reason for wanting to use a different version than that which is distributed with Dyalog.</li>
+<li>Have some other reason for wanting to use a different version than that which is distributed with the copy of Dyalog APL that you are using.</li>
 </ul>
 <p>Link is maintained as an open source project at <a href="https://github.com/dyalog/link">github.com/dyalog/link</a>. Once you have downloaded a particular release of Link to a folder on your machine, you have two alternatives:</p>
 <ul>
-<li><strong>OVERWRITE the installed version of Link</strong> by copying the contents of the StartupSession folder that you have downloaded into <strong>$DYALOG/StartupSession</strong>.</li>
-<li><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder that you have downloaded. This route is recommended if you think you will regularly be updating your copy of Link; if you have done a <code>git clone</code> of the repository, then all you need to do is a <code>git pull</code> and restart APL.</li>
+<li>
+<p><strong>OVERWRITE the installed version of Link</strong> by copying the contents of the StartupSession folder in the Git checkout or download into <strong>$DYALOG/StartupSession</strong>. If this is impractical (as it often is due to restrictions on updating that folder), try one of the following alternatives.</p>
+</li>
+<li>
+<p><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder that you have downloaded. This route is recommended if you think you will regularly be updating your copy of Link; if you have done a <code>git clone</code> of the repository, then all you need to do is a <code>git pull</code> and restart APL.</p>
+</li>
 </ul>
-<p>If you are using Dyalog version 18.0, you also need to update the user command file used to invoke Links user commands. This should only need to be done once, even if you subsequently download new versions of Link. Again, there are two options:</p>
+<p>Alternatively, edit the configuration file (for example, for Dyalog version 18.0 the file <code>~/.dyalog/dyalog.180U64.dcfg</code>) to set a value for <code>DYALOGSTARTUPSE</code> in the settings section. This is the most practical solution when starting APL from an icon that cannot be configured, for example on a Mac or under Linux.</p>
+<p>If you are using Dyalog version 18.0, you will also need to update the user command file used to invoke Links user commands. This should only need to be done once, even if you subsequently download new versions of Link. Again, there are two options:</p>
 <ul>
 <li>Overwrite the installed version of the Link user commands by copying <strong>SALT/spice/Link.dyalog</strong>, from the downloaded repository, into <strong>$DYALOG/SALT/spice/Link.dyalog</strong>.</li>
-<li>Place the copy of <strong>SALT/spice/Link.dyalog</strong>, from the downloaded repository, into your <strong>MyUCMDs</strong> folder. This will cause it to take priority over the installed copy.</li>
+<li>Place the copy of <strong>SALT/spice/Link.dyalog</strong>, from the downloaded repository, into your <strong>MyUCMDs</strong> folder. This will cause it to take priority over the installed copy. For example, if you checked the repository out to <code>~/link</code>:</li>
 </ul>
+<p><code>$ cp ~/link/SALT/spice/Link.dyalog ~/MyUCMDs</code></p>
 <p>You will need to restart Dyalog APL each time you update these files.</p>
                 
               

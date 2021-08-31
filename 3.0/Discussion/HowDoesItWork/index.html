@@ -130,6 +130,19 @@
 </div>
     
     
+      <div class="md-header__source">
+        
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+      </div>
+    
   </nav>
 </header>
     
@@ -158,6 +171,19 @@
     </a>
     Link User Guide
   </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -748,6 +774,10 @@
             <article class="md-content__inner md-typeset">
               
                 
+                  <a href="https://github.com/dyalog/link/edit/master/docs/Discussion/HowDoesItWork.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
                 
                 <h1 id="how-does-link-work">How does Link work?</h1>
 <p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of April 2021.</p>
@@ -770,16 +800,16 @@
 <p>If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.</p>
 <h3 id="the-source-of-link">The Source of Link</h3>
 <p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code> when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. The code is included with installations of Dyalog version 18.1 or later. </p>
-<p>If you want to use Link with version 18.0 or download and install Link from GitHub, see the <a href="/Usage/Installation.md">installation instructions</a>.</p>
+<p>If you want to use Link with version 18.0 or download and install Link from GitHub, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
 <h3 id="the-crawler">The Crawler</h3>
-<p>In a future version of Link, hopefully available during 2021, an optional and configurable <a href="/Crawler.md">Crawler</a> will be able to run in the background and occasionally compare linked namespaces and directories using the same logic as <a href="/API/Link.Resync.md">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
+<p>In a future version of Link, an optional and configurable Crawler will be able to run in the background and occasionally compare linked namespaces and directories using the same logic as <a href="../../API/Link.Resync/">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
 <ul>
 <li>The File System Watcher is not available on your platform</li>
 <li>You add functions or operators to the active workspace without using the editor, for example using <code>)COPY</code> or dfn assignment.</li>
 </ul>
 <p>The document <a href="../TechDetails/">Technical Details and Limitations</a> provides much more information about the type of APL objects that are supported by Link.</p>
 <h2 id="breaking-links">Breaking Links</h2>
-<p>If <a href="/API/Link.Break.md">Link.Break</a> is used to explicitly break an existing Link, the entry is removed from <code>⎕SE.Link.Links</code>, and the namespace reverts to being a completely "normal" namespace in the workspace. If file system watch was active, the watcher is disabled. Any information that the interpreter was keeping about connections to files is removed using <code>5178⌶</code>. None of the definitions in the namespace are modified by the process of breaking a link.</p>
+<p>If <a href="../../API/Link.Break/">Link.Break</a> is used to explicitly break an existing Link, the entry is removed from <code>⎕SE.Link.Links</code>, and the namespace reverts to being a completely "normal" namespace in the workspace. If file system watch was active, the watcher is disabled. Any information that the interpreter was keeping about connections to files is removed using <code>5178⌶</code>. None of the definitions in the namespace are modified by the process of breaking a link.</p>
 <p>If you delete a linked namespace using <code>)ERASE</code> or <code>⎕EX</code>, Link may not immediately detect that this has happened. However, if you call <code>Link.Status</code>, or make a change to a watched file that causes the file system watcher to attempt to update the namespace, Link will discover that something is amiss, issue a warning, and delete the link.</p>
 <p>If you completely destroy the active workspace using <code>)LOAD</code> or <code>)CLEAR</code>, all links will be deleted.</p>
                 
