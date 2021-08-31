@@ -917,7 +917,9 @@
           :EndIf
           :If (arrays=0)∧(~0=≡link.arrays)  ⍝ add some specified arrays
               arraynames←nsref NormName¨link.arrays
-              mask←(nsref NameClass¨arraynames)=2.1
+              :If 0∊mask←(nsref NameClass¨arraynames)=2.1
+                  ¯1 Warn ('-arrays modifier: Non-array names ignored:'),⍕(~mask)/link.arrays
+              :EndIf
               nc,⍨←2.1⍴⍨≢names,⍨←mask/arraynames
               (names nc)/⍨←⊂(⍳⍨names)=(⍳⍴names)  ⍝ remove redundant names e.g. sysvars
           :EndIf
