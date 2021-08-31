@@ -26,7 +26,6 @@
              :EndIf
          :EndIf  ⍝ otherwise watch defaults to 'both'
          opts←U.DefaultOpts opts
-         :If ~(⊂opts.arrays)∊0 1 ⋄ opts.arrays←container U.NormName¨opts.arrays ⋄ :EndIf
 
          :If hasdir←⎕NEXISTS dir ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
          :Else ⋄ emptydir←1

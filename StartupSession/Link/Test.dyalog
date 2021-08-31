@@ -1035,43 +1035,43 @@
       ok←1
     ∇
 
-    
 
 
-    ∇ ok←break_tests (name folder);z;folder2;se_name;opts;case;old;islinked
+
+    ∇ ok←break_tests(name folder);z;folder2;se_name;opts;case;old;islinked
     ⍝ Test variations of Break, with special focus on -all[=]
     ⍝ Called from test_basic
-    ⍝ Assumes that both name and folder currently exist 
-
+    ⍝ Assumes that both name and folder currently exist
+     
       z←⎕SE.Link.Create name folder
       islinked←{2::0 ⋄ ∧/(⊆⍵)∊(⎕SE.Link.U.GetLinks).ns}
-      'Create failed' assert 'islinked name'
+      'Create failed'assert'islinked name'
       z←⎕SE.Link.Break name                         ⍝ Test explicit break of a link
-      'Break failed' assert '~islinked name'
-
+      'Break failed'assert'~islinked name'
+     
       3 ⎕NDELETE folder2←folder,'_folder2'
       folder2 ⎕NCOPY folder
       se_name←'⎕SE',1↓name
-
+     
       z←⎕SE.Link.Create name folder
       z←⎕SE.Link.Create se_name folder2
-      'Create failed' assert 'islinked name se_name'
-      
-      opts←⎕NS ''
-      z←opts ⎕SE.Link.Break '' ⊣ opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
-      'Break -all=⎕SE failed' assert '~islinked se_name'
-
-      z←opts ⎕SE.Link.Break '' ⊣ opts.all←'#'       ⍝ Break all children of #
-      'Break -all=* failed' assert '~islinked name'
-      
-      :For case :In '*' (,'*')                      ⍝ Test all alternatives of "all"
+      'Create failed'assert'islinked name se_name'
+     
+      opts←⎕NS''
+      z←opts ⎕SE.Link.Break''⊣opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
+      'Break -all=⎕SE failed'assert'~islinked se_name'
+     
+      z←opts ⎕SE.Link.Break''⊣opts.all←'#'       ⍝ Break all children of #
+      'Break -all=* failed'assert'~islinked name'
+     
+      :For case :In '*'(,'*')                      ⍝ Test all alternatives of "all"
           z←⎕SE.Link.Create name folder
           z←⎕SE.Link.Create se_name folder2
-         'Create failed' assert 'islinked name se_name'
-          z←opts ⎕SE.Link.Break '' ⊣ opts.all←case
-          ('Break -all=',(⍕case),' failed') assert '0=≢⎕SE.Link.U.GetLinks'
-      :EndFor            
-    
+          'Create failed'assert'islinked name se_name'
+          z←opts ⎕SE.Link.Break''⊣opts.all←case
+          ('Break -all=',(⍕case),' failed')assert'0=≢⎕SE.Link.U.GetLinks'
+      :EndFor
+     
       3 ⎕NDELETE folder2
     ∇
 
@@ -1079,7 +1079,7 @@
 
 
 
-    ∇ ok←test_bugs(folder name);foo;newbody;nr;opts;props;root;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;z;engine;server;warn
+    ∇ ok←test_bugs(folder name);arrays;engine;foo;newbody;nr;opts;props;ref;root;server;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;warn;z
     ⍝ Github issues
       name ⎕NS''
       ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
@@ -1153,7 +1153,7 @@
       'link issue #284'assert'{6::1 ⋄ ⎕SE.Link.Links.ns≡,⊂''⎕SE.unlikelyname''}⍬'
       {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
       'link issue #284'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
-
+     
       ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
       z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
       z←⎕SE.Link.Create'#.unlikelyname'folder
@@ -1344,7 +1344,7 @@
       ⍝ attempt to export
       3 ⎕NDELETE folder
       (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
-      ⎕SE.UCMD 'z←Link.Export ',name,' ',folder
+      ⎕SE.UCMD'z←Link.Export ',name,' ',folder
       'link issue #151'assert'∧/∨/¨''ERRORS ENCOUNTERED:'' ''',name,'.failed''⍷¨⊂z'
       'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
      
@@ -1399,6 +1399,19 @@
           {}⎕SE.Link.Break name
       :EndIf
      
+      ⎕EX name
+      ⍝ #282 Create" does not work when "arrays" carries unqualified name(s)
+      ref←⍎name ⎕NS ⍬
+      ref.(msg1 msg2)←'hello' 'world'
+      ref.(dot←{⍺←⍵ ⋄ ⍺+.×+⍵})
+      :For arrays :In 'msg1,msg2'(name,'.msg1,',name,'.msg2')
+          3 ⎕NDELETE folder
+          opts←⎕NS ⍬ ⋄ opts.arrays←'msg1,msg2'
+          z←opts ⎕SE.Link.Create name folder
+          'link issue #282'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+          'link issue #282'assert'∧/⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/msg',⍵,'.apla'}¨'12'
+          {}⎕SE.Link.Break name
+      :EndFor
       CleanUp folder name
       ok←1
     ∇
@@ -1422,7 +1435,7 @@
 
 
 
-      assert_create←{ 
+      assert_create←{
           ⍝ subroutine of test_create, verify that ws and file are updated according to opts.watch
           ⍝ ⍺=1 if ws should contain "new" defs, 0 for old
           ⍝ ⍵=1 files should contain "new" defs...
@@ -1700,22 +1713,22 @@
       1 assert_create 1 ⍝ NB dir contains "new" definitions
       'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ APL changes must be reflected to file
-
+     
       subname'var'EdFix varsrc
       subname'foo'EdFix foosrc
       subname'ns'EdFix nssrc
       0 assert_create 0 ⍝ check that existing ("new") definitions now replaced by originals (0)
       ⍝ New variables should NOT have a file created
-      subname 'var2' EdFix varsrc            ⍝ Create an extra variable
-      assert '~⎕NEXISTS subfolder,''/var2.apla''' ⍝ verify no file created
-
+      subname'var2'EdFix varsrc            ⍝ Create an extra variable
+      assert'~⎕NEXISTS subfolder,''/var2.apla''' ⍝ verify no file created
+     
       ⍝ file changes must not be reflected back to APL
       {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
       {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
       {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
       Breathe ⍝ breathe to ensure it's not reflected
       0 assert_create 1
-      
+     
       {}⎕SE.Link.Expunge name
      
       ⍝ now try source=dir watch=none
@@ -2028,15 +2041,15 @@
 
     ∇ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;ns1;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
     ⍝ Test editor and tracer
-
+     
       :If 0=DO_GUI_TESTS
-          Log 'Skipping  GUI (GhostRider) tests - set DO_GUI_TESTS←1 to enable' 
+          Log'Skipping  GUI (GhostRider) tests - set DO_GUI_TESTS←1 to enable'
           ok←1 ⋄ :Return
       :ElseIf 82=⎕DR''  ⍝ GhostRider requires Unicode
           Log'Not a unicode interpreter - not running ',⊃⎕SI
           ok←1 ⋄ :Return
       :EndIf
-
+     
       :Trap 0  ⍝ Link issue #219
           ride←NewGhostRider
       :Else
