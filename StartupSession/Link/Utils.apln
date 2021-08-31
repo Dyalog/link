@@ -725,10 +725,26 @@
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
     ∇
-    ∇ fixed←target QFix(file name tie force);changed;nc;src;tie
+    ∇ fixed←target QFix(file name tie force);changed;nc;src;tie;value
     ⍝ fixed=1: fixed source
     ⍝ fixed=0: source already up to date - not fixed
     ⍝ fixed=¯1: failed to fix source
+      
+      :If '.apla'≡⎕C⊃⌽⎕NPARTS file ⍝ If it is an array, do not try to ⎕FIX
+          :Trap 0 ⍝ Trap any failue in Deserialise
+               value←target.{⎕SE.Dyalog.Array.Deserialise ⍵}⊃⎕NGET file 1
+          :Else
+               fixed←¯1 
+               :Return
+          :EndTrap
+              
+          :If   fixed←0=⊃⎕NC 'target.',name ⍝ fix if not defined
+          :OrIf fixed←value≢⍎'target.',name ⍝ or if value is different
+              ⍎'target.',name,'←value'
+          :EndIf
+          :Return
+      :EndIf
+
       :If tie ⋄ src←file   ⍝ tie to file - see FixTie
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
           :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both' ⋄ :EndIf
