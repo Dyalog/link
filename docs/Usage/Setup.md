@@ -109,3 +109,12 @@ To prepare a workspace for shipment, we will need to:
 * Set `⎕LX` in the so that it calls the `Start` function
 * Use [Link.Break](../API/Link.Break.md) to remove links to the source files. If you omit this step, you can create a [potentially confusing situation](../Discussion/Workspaces.md/#saving-workspaces-containing-links).
 * `)SAVE` the workspace
+
+### Scripted Applications
+
+Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it provides you with a completely clean environment without any development tools, which means that the session namespace is not populated. As a result, Link is not loaded into `⎕SE`. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:
+
+`(⎕NS⍬).({}enableSALT⊣⎕CY'salt')`
+
+Note that this depends on the interpreter being able to find the salt workspace (`salt.dws`). You may need to provide a full path name to that file, if you don't have a standard installation.
+
