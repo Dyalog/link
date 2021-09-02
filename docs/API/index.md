@@ -24,7 +24,7 @@ you would write:
       options ⎕SE.Link.Create 'myapp' '/sources/myapp'  ⍝ namespace and director name on the right, options on left
 ```
 
-Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), Link API functions will accept a character vector left argument which represents an array in the proposed [Literal Array Notation](https://aplwiki.com/wiki/Array_notation), for example:
+Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), Link API functions will accept a character vector left argument which represents an array in the proposed (Literal Array Notation)[https://aplwiki.com/wiki/Array_notation], for example:
 ```
         '(source:''dir'' ⋄ flatten:1)' ⎕SE.Link.Create 'myapp' '/sources/myapp' 
 ```
