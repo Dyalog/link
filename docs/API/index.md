@@ -24,11 +24,9 @@ you would write:
       options ⎕SE.Link.Create 'myapp' '/sources/myapp'  ⍝ namespace and director name on the right, options on left
 ```
 
-Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), you can take advantage of the new JSON5 dialect support in the `⎕JSON` system function to use JSON as a notation for options without requiring quotes around option names:
-
+Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), Link API functions will accept a character vector left argument which represents an array in the proposed [Literal Array Notation](https://aplwiki.com/wiki/Array_notation), for example:
 ```
-        opt←⎕JSON⍠'Dialect' 'JSON5'
-        (opt '{source:"dir", flatten:1}') ⎕SE.Link.Create 'myapp' '/sources/myapp' 
+        '(source:''dir'' ⋄ flatten:1)' ⎕SE.Link.Create 'myapp' '/sources/myapp' 
 ```
 
 ## User commands
@@ -36,6 +34,8 @@ Some API functions have a corresponding user command, to make them a little easi
 ```apl
       ]LINK.Create myapp /sources/myapp -source=dir -flatten
 ```
+***Lowercase option names:*** Although option names are case sensitive and some of them contain uppercase letters when provided to API functions via option namespaces, the user command option names are entirely lowercase, to make interactive use more convenient.
+
 ***Specifying extensions:*** Two options require arrays identifying file extensions: `codeExtensions`, `customExtensions` and `typeExtensions`. For convenience, the `]LINK.Create` user command accepts the *name* of a variable containing the array, rather than the array values. 
 
 ## Basic API Function reference

@@ -35,7 +35,7 @@ After SALT had grown organically for more than a decade, it was decided that thi
   * New interpreter functionality based on `2 ⎕FIX` makes it possible for the interpreter to preserve source code exactly as typed, when an external source file is used.
 * A file system watcher added support for using external editors and immediately replicating the effect of SCM system actions, such as a git pull or revert operation, inside the active workspace.
 * Rather than using the extension `.dyalog` for all source, Link uses different extensions for different types of source, such as `.aplf` for functions, `.apln` for namespaces, and `.apla` for arrays.
-* Use of a model of the proposed (Literal Array Notation)[https://aplwiki.com/wiki/Array_notation] to represent arrays, rather than the notation used by SALT.
+* Use of a model of the proposed [Literal Array Notation](https://aplwiki.com/wiki/Array_notation) to represent arrays, rather than the notation used by SALT.
   * We hope to add support for the array notation to the Dyalog APL interpreter in a future release.
 
 *  Link has no source code management features; the expectation is that users who require SCM will combine Link with an external SCM such as Git or SVN
