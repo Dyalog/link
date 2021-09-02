@@ -854,7 +854,7 @@ you would write:</p>
       options.(source flatten)←'dir' 1                  ⍝ set two named options
       options ⎕SE.Link.Create 'myapp' '/sources/myapp'  ⍝ namespace and director name on the right, options on left
 </code></pre>
-<p>Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), Link API functions will accept a character vector left argument which represents an array in the proposed <a href="https://aplwiki.com/wiki/Array_notation">Literal Array Notation</a>, for example:</p>
+<p>Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), Link API functions will accept a character vector left argument which represents an array in the proposed (Literal Array Notation)[https://aplwiki.com/wiki/Array_notation], for example:</p>
 <pre><code>        '(source:''dir'' ⋄ flatten:1)' ⎕SE.Link.Create 'myapp' '/sources/myapp' 
 </code></pre>
 <h2 id="user-commands">User commands</h2>
