@@ -1,9 +1,10 @@
- msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name
+ msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name;restored
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     restored←⍬
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If 0∊⍴links←U.GetLinks ⋄ →0⊣msg←'No active links' ⋄ :EndIf
      diff←0 4⍴⊂''
@@ -24,6 +25,8 @@
 
      :ElseIf ∧/mask←2≥type←'←→'⍳diff[;1]   ⍝ Can proceed with changes
          msg←''
+         restored←links.restored
+         links.restored←0   ⍝ turn this off now or update operations will fail
          :If ∨/mask←type=1  ⍝ some APL objects to update from file
              z←{Notify'changed'⍵}¨diff[⍸mask;3]
              msg,←,(⍕+/mask),' file',(1<+/mask)↓'s read, '
@@ -45,5 +48,8 @@
      :EndIf
 
  :Else
+     :If restored≢⍬
+         links.restored←restored ⍝ Restore recorded state on any failure
+     :EndIf
      U.Resignal 1
  :EndTrap

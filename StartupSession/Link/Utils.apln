@@ -1205,9 +1205,9 @@
       ⍝ ⎕←⍪↑¨(file filesrc expname filemask)(name namesrc expfile namemask)
           diff←0 4⍴⊂''
           difflist←(linkmask∧~namemask)/name ⍝ names not linked to file - ignore undeclared apl arrays
-          diff⍪←'?',difflist,⍤0 1⊢'' 'item has no corresponding file'      ⍝ cannot distinguish creation from deletion
+          diff⍪←'→',difflist,⍤0 1⊢'' 'Item has no corresponding file'        ⍝ suggest creation
           difflist←(~filemask)/file  ⍝ files not linked to names - do not ignore arrays
-          diff⍪←'?',(⊂''),(difflist),[1.5]⊂'File has no corresponding item'  ⍝ cannot distinguish creation from deletion
+          diff⍪←'←',(⊂''),(difflist),[1.5]⊂'File has no corresponding item'  ⍝ suggest import
           filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
           :If FixTie link  ⍝ functions and scripts are associated to files - cannot compare source
               mask←namemask∧(~arrays←namenc∊2.1 ¯9.1)  ⍝ avoid arrays and unscripted namespaces
