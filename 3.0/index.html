@@ -912,7 +912,7 @@
 <li><a href="Discussion/History/">The historical perspective:</a> Link is a step on a journey which begins more than a decade ago with the introduction of SALT for managing source code in text files, as an alternative to binary workspaces and files, and will hopefully end with the interpreter handling everything itself.</li>
 </ul>
 <h2 id="audience">Audience</h2>
-<p>It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces, namespaces and nameclasses.</p>
+<p>It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces, and namespaces.</p>
 <h2 id="what-is-link">What is Link?</h2>
 <p><strong><em>Link</em></strong> allows you to use Unicode text files to store APL source code, rather than "traditional" binary workspaces. The benefits of using Link and text files include:</p>
 <ul>
@@ -937,7 +937,7 @@
 <h2 id="link-is-not">Link is NOT...</h2>
 <ul>
 <li><strong>A source code management system</strong>: we recommend using Git to manage the text files that Link will help you create and edit using Dyalog.</li>
-<li><strong>A database management system:</strong> although Link is able to store APL arrays using a pre-release of the <em>literal array notation</em>, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, arrays are only written to source files upon request using <a href="API/Link.Add/">Link.Add</a> or by specifying optional parameters to <a href="API/Link.Export/">Link.Export</a>. Application data should be stored in a database management system or files managed by the application.</li>
+<li><strong>A database management system:</strong> although Link is able to store APL arrays using a pre-release of the <em>literal array notation</em>, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, source files are only created for arrays by explicit calls to <a href="API/Link.Add/">Link.Add</a> or by specifying optional parameters to <a href="API/Link.Export/">Link.Export</a>. Application data should be stored in a database management system or files managed by the application.</li>
 </ul>
 <h2 id="link-fundamentals">Link fundamentals</h2>
 <p>Link establishes <strong><em>links</em></strong> between one or more <strong>namespaces</strong> in the active APL workspace and corresponding <strong>directories</strong> containing APL source code in Unicode test files. For example, the following user command invocation will link a namespace called <code>myapp</code> to the folder <code>/home/sally/myapp</code>:</p>
@@ -959,14 +959,17 @@ Any changes made to the external files using a text editor, or resulting from an
 </code></pre>
 <p>where <code>arg2</code>'s presence depends on the specific command, <code>-name</code> is a flag enabling the specific option and <code>-name=value</code> sets that option to a specific value. Some options (like <code>codeExtensions</code> and <code>typeExtensions</code>) require an array of values: in these cases the user commands typically take the <em>name</em> of a variable containing that array.</p>
 <p>For a list of installed user commands, type:</p>
-<pre><code class="language-apl">     ]LINK .?
+<pre><code class="language-apl">     ]LINK -?
 </code></pre>
 <h3 id="api-functions">API functions</h3>
 <p>The API is designed for use under program control, and options are provided in an optional namespace passed as the left argument. The general syntax of the utility functions is</p>
 <pre><code class="language-apl">     options FnName arguments
 </code></pre>
 <p>where <code>options</code> is a namespace with variables, named according to the option they set, containing their corresponding values. The <code>-name=value</code> option can be set by <code>options.name←value</code>, and switches with values (e.g. <code>-name</code>) can be set by <code>options.name←1</code>. Unset options will assume their default value.</p>
-<p>The details of the arguments to the functions and the user commands can be found in the <a href="API/">API Reference</a>.</p>
+<p>Options can also be provided as a character vector with the literal array representation of the option workspace, for example:</p>
+<pre><code class="language-apl">     '{name: 1}' FnName arguments
+</code></pre>
+<p>The details of the arguments and options can be found in the <a href="API/">API Reference</a>.</p>
 <h2 id="further-reading">Further reading</h2>
 <p>To get started using Link, please read:</p>
 <ul>
