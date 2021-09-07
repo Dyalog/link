@@ -858,12 +858,13 @@ you would write:</p>
 <pre><code>        '(source:''dir'' ⋄ flatten:1)' ⎕SE.Link.Create 'myapp' '/sources/myapp' 
 </code></pre>
 <h2 id="user-commands">User commands</h2>
-<p>Some API functions have a corresponding user command, to make them a little easier to use interactively. The API functions with user command covers are indicated with <sup><code>]</code></sup> in the function reference tables. These user commands all take exactly the same arguments and options as the API functions, specified using user command syntax. The Link.Create call above would thus be written:</p>
+<p>Most API functions have a corresponding user command, to make them a little easier to use interactively. The API functions with user command covers are indicated with <sup><code>]</code></sup> in the function reference tables. These user commands all take exactly the same arguments and options as the API functions, specified using user command syntax. The Link.Create call above would thus be written:</p>
 <pre><code class="language-apl">      ]LINK.Create myapp /sources/myapp -source=dir -flatten
 </code></pre>
 <p><strong><em>Lowercase option names:</em></strong> Although option names are case sensitive and some of them contain uppercase letters when provided to API functions via option namespaces, the user command option names are entirely lowercase, to make interactive use more convenient.</p>
 <p><strong><em>Specifying extensions:</em></strong> Two options require arrays identifying file extensions: <code>codeExtensions</code>, <code>customExtensions</code> and <code>typeExtensions</code>. For convenience, the <code>]LINK.Create</code> user command accepts the <em>name</em> of a variable containing the array, rather than the array values. </p>
 <h2 id="basic-api-function-reference">Basic API Function reference</h2>
+<p>The following functions cover the vast majority of normal use-cases:</p>
 <table>
 <thead>
 <tr>
@@ -886,14 +887,14 @@ you would write:</p>
 <td><a href="Link.Break/">Break</a></td>
 <td><code>]Break</code></td>
 <td>namespaces</td>
-<td>options: <code>all</code> <code>exact</code></td>
+<td>options: <code>all</code> <code>recursive</code></td>
 <td>message</td>
 </tr>
 <tr>
 <td><a href="Link.Create/">Create</a></td>
 <td><code>]Create</code></td>
 <td>namespace directory</td>
-<td>options: <code>source</code> <code>watch</code> (and <a href="Link.Create/#common-options">many more</a>)</td>
+<td>options: <code>source</code> <code>watch</code> <code>arrays</code> (and <a href="Link.Create/#common-options">many more</a>)</td>
 <td>message</td>
 </tr>
 <tr>
@@ -935,7 +936,7 @@ you would write:</p>
 <td><a href="Link.Resync/">Resync</a></td>
 <td><code>]Resync</code></td>
 <td><em><none></em></td>
-<td>options: <code>confirm</code> <code>pause</code></td>
+<td>options: <code>proceed</code> <code>arrays</code> <code>sysvars</code></td>
 <td>message</td>
 </tr>
 <tr>
@@ -956,9 +957,10 @@ you would write:</p>
 </table>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The currently active version of Link can be found as part of <code>]TOOLS.Version</code></p>
+<p>The currently active version of Link is reported by <code>⎕SE.Link.Version</code> and found in the output of <code>]TOOLS.Version</code></p>
 </div>
 <h2 id="advanced-api-function-reference">Advanced API Function reference</h2>
+<p>The "advanced" functions are typically used when building your own tools on top of Link, rather than simply using Link to maintain the source of an application:</p>
 <table>
 <thead>
 <tr>

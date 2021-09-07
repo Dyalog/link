@@ -1096,15 +1096,16 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <li><strong>auto</strong> will use whichever of ns or dir that is not empty. If both are empty, it will use <strong>dir</strong> on a subsequent <a href="../Link.Refresh/">Refresh</a>.</li>
 </ul>
 <h3 id="watch"><strong>watch</strong></h3>
-<p>Default: <strong>both</strong> where supported, else <strong>ns</strong></p>
+<p>Default: <strong>both</strong> if a file system watcher can be created, else <strong>ns</strong></p>
 <p>The <strong>watch</strong> option specifies which sides of the link to watch for changes (and synchronise). Watching a <strong>dir</strong> (or <strong>both</strong>) is currently only supported using the .NET Framework or .NET Core.</p>
-<p><code>watch</code> is a simple character vector, one of <code>'none'</code>, <code>'ns'</code>m <code>'dir'</code> or <code>'both'</code>.</p>
+<p><code>watch</code> is a simple character vector, one of <code>'none'</code>, <code>'ns'</code>, <code>'dir'</code> or <code>'both'</code>.</p>
 <ul>
-<li><strong>none</strong>: Changes are not automatically reflected across the link. However, linked files can be updated from definitions in the active workspace using <a href="../Link.Add/">Link.Add</a> and names in the active workspace can be updated from linked files using <a href="../Link.Refresh/">Link.Refresh</a>.</li>
+<li><strong>none</strong>: Changes are not automatically reflected across the link.</li>
 <li><strong>ns</strong> will mirror namespace changes (done with the editor) to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.</li>
-<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to <a href="Link.Pause.md">Link.Pause</a> the link before doing massive changes to files, then <a href="../Link.Resync/">Link.Resync</a> to resume file watching.</li>
+<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that updating a large number of files (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes and not report them to Link.</li>
 <li><strong>both</strong> will do both.</li>
 </ul>
+<p>Note that <a href="../Link.Refresh/">Link.Refresh</a> can be used to force a wholesale update of everything based on the setting of the <code>-source</code>option, and <a href="../Link.Resync/">Link.Resync</a> can always be used to generate a list of differences between the workspace and linked directories if you are in doubt about the current state.</p>
 <h3 id="casecode"><strong>caseCode</strong></h3>
 <p>Default: <strong>off</strong></p>
 <p>The <strong>caseCode</strong> flag adds a suffix to file names on write.</p>
@@ -1113,7 +1114,7 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <code>Debug-1.aplf</code> and <code>DEBUG-37.aplf</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. You will probably want to enable <strong>forceFilenames</strong> if you enable <strong>caseCode</strong>.</p>
+<p>Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. You will probably also want to enable <strong>forceFilenames</strong> if you enable <strong>caseCode</strong>.</p>
 </div>
 <h3 id="forceextensions"><strong>forceExtensions</strong></h3>
 <p>Default: <strong>off</strong></p>
@@ -1132,7 +1133,7 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <li>if simply set (<code>options.arrays←1</code> for the function or <code>-arrays</code> for the user command), then all arrays are exported.</li>
 <li>if set to a comma-separated list of names (<code>options.arrays←'name1,name2,...'</code> for the function or <code>-arrays=name1,name2,...</code> for the user command) then arrays with specified names are exported.</li>
 </ul>
-<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>, and only when the link is initially created. Arrays will not be monitored for changes during operation of the application.</p>
+<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>, and only when the link is initially created.</p>
 <h3 id="sysvars"><strong>sysVars</strong></h3>
 <p>Default: <strong>off</strong></p>
 <p>The <strong>sysVars</strong> flag will export namespace-scoped system variables to file.</p>
@@ -1143,10 +1144,10 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <p>Default: <strong>off</strong></p>
 <p>The <strong>flatten</strong> flag prevents the creation of sub-namespaces in the active workspace.</p>
 <p>The <strong>flatten</strong> option will load all items into the root of the linked namespace, even if the source code is arranged into sub-directories. This is typically used for applications that have source which is divided into modules, but still expects to run in a "flat" workspace.</p>
-<p>Note that if <strong>flatten</strong> is set, new items need special treatment:</p>
+<p>Note that if <strong>flatten</strong> is set, newly created items need special treatment:</p>
 <ul>
 <li>If a function or operator is renamed in the editor, the new item will be placed in the
-ame folder as the original item.</li>
+same folder as the original item.</li>
 <li>If a new item is created, it will be placed in the root of the linked directory.</li>
 <li>It is also possible to use the <strong>getFilename</strong> setting to add application-specific logic to determine the file name to be used (or prompt the user for a decision).</li>
 </ul>
