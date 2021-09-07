@@ -808,28 +808,34 @@
 <p>This appendix details the changes made at each version of Link since the release of version 2.0</p>
 <p>For a discussion of key differences between 2.0 and 3.0, see <a href="../Upgradeto30/">Upgrading to Link 3.0</a>.</p>
 <h2 id="version-30">Version 3.0</h2>
+<p>For the version 3.0 project, most enhancements and bug fixes are recorded as <a href="https://github.com/Dyalog/link/issues">GitHub Issues</a>. The following lists only records the most important enhancements.</p>
 <ul>
-<li>When specifying a directory, a trailing slash is reserved for future extension</li>
-<li>Public functions now throw errors rather than return an error message when they fail.</li>
-<li><a href="../API/Link.Pause/">Link.Pause</a> has been added</li>
+<li>
+<p>When specifying a directory, a trailing slash is reserved for future extension</p>
+</li>
+<li>
+<p>API functions now throw errors rather than return an error message when they fail.</p>
+</li>
 <li>Link.List has been renamed to <a href="../API/Link.Status/">Link.Status</a></li>
+<li><a href="../API/Link.Resync/">Link.Resync</a> reports differences between the workspace and external source directories, and supports resumption of work from a saved workspace.</li>
 <li><a href="../API/Link.Create/">Link.Create</a>: <code>source</code>=<code>both</code> has been removed. It used to copy from namespace to directory, then the other way.</li>
 <li><a href="../API/Link.Create/">Link.Create</a>: <code>source</code>=<code>auto</code> has been added. It uses the non-empty side of the link as the source.</li>
-<li><a href="../API/Link.Break/">Link.Break</a> has a <code>recursive</code> flag to break all children namespaces if they are linked to their own directories</li>
+<li><a href="../API/Link.Break/">Link.Break</a> has a <code>recursive</code> flag to break all children namespaces if they are linked to their own directories and the <code>-all</code> modifier allows you to break all links in the active workspace but maintain links in the session namespace.</li>
 <li><a href="../API/Link.Import/">Link.Import</a> and <a href="../API/Link.Export/">Link.Export</a> have an <code>overwrite</code> flag to allow overwriting a non-empty destination</li>
 <li><a href="../API/Link.Create/">Link.Create</a> and <a href="../API/Link.Export/">Link.Export</a> have an <code>arrays</code> modifier to export arrays and a <code>sysVars</code> modifier to export namespace-scoped system variables</li>
 <li><a href="../API/Link.Create/">Link.Create</a> has a <code>fastLoad</code> flag to reduce the load time by not inspecting source to detect name clashes</li>
 <li><code>beforeWrite</code> had been split into two callbacks : <code>beforeWrite</code> when actually about to write to file, and <code>getFilename</code> when querying the file name to use (see the <a href="../API/Link.Create/">Link.Create documentation</a> for more details).</li>
 <li><code>beforeWrite</code> and <code>beforeRead</code> arguments have been refactored into a more consistent set.</li>
 <li><a href="../API/Link.Fix/">Link.Fix</a> now correctly expects text source for arrays (as produced by ⎕SE.Dyalog.Array.Serialise), as documented, whereas Link 2.0 expected the array itself. Similarly, the source (rather than the array itself) is correctly reported by the <code>beforeWrite</code> callback.</li>
-<li>Dyalog APL v18.1 or newer is required for the fixes to the following issues </li>
-<li><a href="https://github.com/Dyalog/link/issues/155">#155 Require keyword does not work</a></li>
-<li><a href="https://github.com/Dyalog/link/issues/149">#149 Link induce status messages</a></li>
-<li><a href="https://github.com/Dyalog/link/issues/148">#148: Fixing linked function removes all monitor/trace points in it</a></li>
-<li><a href="https://github.com/Dyalog/link/issues/144">#144: Link can produce unloadable files</a></li>
+<li>If a variable has an existing source file, then the file will be updated if the variable is edited using the built-in editor.</li>
 </ul>
+<p>Although Link 3.0 will work with Dyalog APL v18.0, many bug-fixes require version 18.2 or later - including but not limited to:
+- <a href="https://github.com/Dyalog/link/issues/155">#155 Require keyword does not work</a>
+- <a href="https://github.com/Dyalog/link/issues/149">#149 Link induce status messages</a>
+- <a href="https://github.com/Dyalog/link/issues/148">#148: Fixing linked function removes all monitor/trace points in it</a>
+- <a href="https://github.com/Dyalog/link/issues/144">#144: Link can produce unloadable files</a></p>
 <h2 id="version-21">Version 2.1</h2>
-<p>Version 3.0 was labelled version 2.1 during most of its development, until the end of March 2021. It was renumbered just before the beginning of the distribution of official Beta releases of Dyalog Version 18.1. In other words: if you have version 2.1 installed, this is an early version of what became 3.0 and you should upgrade at your earliest convenience.</p>
+<p>Version 3.0 was labelled version 2.1 during most of its development, until the end of March 2021. It was renumbered just before the beginning of the distribution of official Beta releases of Dyalog Version 18.2. In other words: if you have version 2.1 installed, this is an early version of what became 3.0 and you should upgrade at your earliest convenience.</p>
 <h2 id="version-20">Version 2.0</h2>
 <ul>
 <li><a href="../API/Link.Break/">Link.Break</a> has an <code>all</code> flag to break all links</li>
