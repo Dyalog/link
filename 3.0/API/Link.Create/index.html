@@ -775,8 +775,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../Link.Pause/" class="md-nav__link">
-        Link.Pause
+      <a href="../Link.Pause.md" class="md-nav__link">
+        None
       </a>
     </li>
   
@@ -1102,7 +1102,7 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <ul>
 <li><strong>none</strong>: Changes are not automatically reflected across the link. However, linked files can be updated from definitions in the active workspace using <a href="../Link.Add/">Link.Add</a> and names in the active workspace can be updated from linked files using <a href="../Link.Refresh/">Link.Refresh</a>.</li>
 <li><strong>ns</strong> will mirror namespace changes (done with the editor) to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.</li>
-<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to <a href="../Link.Pause/">Link.Pause</a> the link before doing massive changes to files, then <a href="../Link.Resync/">Link.Resync</a> to resume file watching.</li>
+<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to <a href="Link.Pause.md">Link.Pause</a> the link before doing massive changes to files, then <a href="../Link.Resync/">Link.Resync</a> to resume file watching.</li>
 <li><strong>both</strong> will do both.</li>
 </ul>
 <h3 id="casecode"><strong>caseCode</strong></h3>
