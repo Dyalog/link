@@ -855,10 +855,15 @@ IMPORTANT: Link.Resync is required to use anything other than Link.Status and Li
 <pre><code>      ]link.resync -proceed
 1 file read, 1 file updated 
 </code></pre>
-<p>!!! Beware: The recommendations are not necessarily the correct actions
-    If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
-<p>!!! Beware: If you continue working without doing a Resync, strange things may happen
-    Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>​    <strong>Beware: The recommendations are not necessarily the correct actions</strong>: If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Beware: If you continue working without doing a Resync, strange things may happen
+Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.</p>
+</div>
 <p>In other words, you should <strong>NOT</strong> continue working without a Resync, unless you have a very good reason to do so and understand exactly what might happen.</p>
 <h3 id="distribution">Distribution</h3>
 <p>If you want to distribute a workspace created using Link to import code, note that if the workspace is loaded on a machine where the recorded source file names are not valid, this will lead to confusion. Application workspaces should always be built using <a href="../../API/Link.Import/">Link.Import</a>. Alternatively, use <a href="../../API/Link.Break/">Link.Break</a> to remove the links before you <code>)SAVE</code> the workspace.</p>
