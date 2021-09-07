@@ -943,11 +943,11 @@ Enter some numbers:
 <p>To prepare a workspace for shipment, we will need to:</p>
 <ul>
 <li>Set <code>⎕LX</code> in the so that it calls the <code>Start</code> function</li>
-<li>Use <a href="../../API/Link.Break/">Link.Break</a> to remove links to the source files. If you omit this step, you can create a <a href="../../Discussion/Workspaces/#saving-workspaces-containing-links">potentially confusing situation</a>.</li>
+<li>Use <a href="../../API/Link.Break/">Link.Break</a> to remove links to the source files. If you omit this step, you can create an <a href="../../Discussion/Workspaces/#saving-workspaces-containing-links">extremely confusing situation</a>.</li>
 <li><code>)SAVE</code> the workspace</li>
 </ul>
 <h3 id="scripted-applications">Scripted Applications</h3>
-<p>Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it provides you with a completely clean environment without any development tools, which means that the session namespace is not populated. As a result, Link is not loaded into <code>⎕SE</code>. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:</p>
+<p>Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it intentionally provides you with a completely clean environment without any development tools loaded. This means that the session namespace is not populated, and Link is not loaded. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:</p>
 <p><code>(⎕NS⍬).({}enableSALT⊣⎕CY'salt')</code></p>
 <p>Note that this depends on the interpreter being able to find the salt workspace (<code>salt.dws</code>). You may need to provide a full path name to that file, if you don't have a standard installation.</p>
                 

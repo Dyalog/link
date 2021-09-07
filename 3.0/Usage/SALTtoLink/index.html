@@ -868,7 +868,7 @@
 <h2 id="no-version-control-features">No Version Control Features</h2>
 <p>SALT includes basic version control features, such as storing multiple versions of the source for a single function by creating file names containing sequence numbers, and providing tools to compare different versions. Link assumes that you will use an external <abbr title="Source Code Manager">SCM</abbr> like Git or SVN, and contains no version control features of its own.</p>
 <h2 id="different-api">Different API</h2>
-<p>Obviously, you need to replace all calls to SALT functions like <code>⎕SE.SALT.Load</code> with calls to <code>⎕SE.Link.Create</code> or <code>⎕SE.Link.Import</code>.</p>
+<p>You need to replace all calls to SALT functions like <code>⎕SE.SALT.Load</code> with calls to <code>⎕SE.Link.Create</code> or <code>⎕SE.Link.Import</code>.</p>
 <h2 id="file-name-extensions">File Name Extensions</h2>
 <p>SALT uses the extension of <code>.dyalog</code> for all source files including arrays. Link will load <code>.dyalog</code> files and, if you edit existing objects the source file will be updated. However, if you create any new items, all new files will have extensions that vary by type, for example <code>.aplf</code> for functions, <code>.apln</code> for namespaces, or <code>.apla</code> for arrays.</p>
 <p>You can rename all your source files to the Link defaults in one operation by creating a link using the <a href="../../API/Link.Create/"><code>-forcefilenames</code></a> switch. Remember to take a backup before you cause such a sweeping change to your source files!</p>
