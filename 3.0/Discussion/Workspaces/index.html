@@ -855,10 +855,8 @@ IMPORTANT: Link.Resync is required to use anything other than Link.Status and Li
 <pre><code>      ]link.resync -proceed
 1 file read, 1 file updated 
 </code></pre>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><strong>Beware: The recommendations are not necessarily the correct actions</strong>: If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
-</div>
+<p>!!! Beware: The recommendations are not necessarily the correct actions
+    If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Beware: If you continue working without doing a Resync, strange things may happen:</strong> Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.</p>
