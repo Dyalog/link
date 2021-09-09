@@ -1,28 +1,25 @@
 # Basic Usage
 These sections cover the most commonly used commands. For more advanced usage, please consult the [API documentation](../API/index.md).
 
-## Starting from text files
+## Starting from an existing folder containing text files
 Use [Link.Create](../API/Link.Create.md) to Link a directory containing text source to a namespace in the active workspace.
 
-The following example loads APL code from the folder **/home/sally/myapp** into a namespace called `myapp`.
+The following example loads APL code from the folder **/users/sally/myapp** into a namespace called `myapp`.
 
 ```APL
-      ⎕SE.Link.Create myapp '/home/sally/myapp'
+      ⎕SE.Link.Create myapp '/users/sally/myapp'
 ```
 
 For every day use in the session, it might be more convenient to use the user command:
 ```APL
-      ]LINK.Create myapp /home/sally/myapp
+      ]LINK.Create myapp /users/sally/myapp
 ```
 
-## Starting from a workspace
-If your existing code is in a workspace rather than in source files, you might want to read the section on [converting a workspace to source files](WStoLink.md) before continuing.
-
 ## Importing code without creating a link
-Sometimes you want to experiment and make modifications to your code without saving those changes. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link.
+Sometimes you want to experiment and make modifications to your code without saving those changes. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create, the important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import.
 
 ## Starting a new project
-If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both). For [Link.Create](../API/Link.Create.md) to successfully establish a link, at least one of those must exist and exactly one of them needs to contain some code?
+If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both), and use [Link.Create](../API/Link.Create.md), naming the namespace and the folder, as in the example at the start of this page.
 
 - If neither of them exist, Link.Create will reject the request on suspicion that there is a typo, in order to avoid silently creating an empty directory by mistake.
 - If both of them exist AND contain code, and the code is not identical on both sides, Link.Create will fail and you will need to specify the  `source` option, whether the namespace or the directory should be considered to be the source. Incorrectly specifying the source will potentially overwrite existing content on the other side, so use this with extreme caution!
@@ -35,31 +32,34 @@ To illustrate, we will create a namespace and populate it with two dfns and one 
       stats.Root←{⍺←2 ⋄ ⍵*÷⍺}
       stats.StdDev←{2 Root(+.×⍨÷⍴),⍵-Mean ⍵}
 ```
-We could now create a source directory using [Link.Export](../API/Link.Export.md), and then use [Link.Create](../API/Link.Create.md) to create a link to it. However, [Link.Create](../API/Link.Create.md) can do this in one step: assuming that the directory `/tmp/stats` is empty or does not exist, the following command will detect that there is code in the workspace but not in the directory, and create a link based on the namespace that we just created:
+We could now create a source directory using [Link.Export](../API/Link.Export.md), and then use [Link.Create](../API/Link.Create.md) to create a link to it. However, [Link.Create](../API/Link.Create.md) can do this in one step: assuming that the directory `/users/sally/stats` is empty or does not exist, the following command will detect that there is code in the namespace but not in the directory, and create a link based on the namespace that we just populated with our functions:
 
 ```apl
-      ]LINK.Create stats /tmp/stats -source=ns
+      ]LINK.Create stats /users/sally/stats -source=ns
 Linked: #.stats ←→ C:\tmp\stats
 ```
 The double arrow `←→` in the output indicates that synchronisation is bi-directional. We can verify that the three expected files have been created:
 
 ```apl
       ls←⎕NINFO⍠1 ⍝ List files, allowing wildcards
-      ls '/tmp/stats/*'
-  /tmp/stats/Mean.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
+      ls '/users/sally/stats/*'
+  /users/sally/stats/Mean.aplf  /users/sally/stats/Root.aplf  
+  /users/sally/stats/StdDev.aplf  
 ```
 Let's verify that our source directory can be used to re-build the original namespace::
 
 ```apl
       )CLEAR
 clear ws
-      ]LINK.Create stats /tmp/stats
-Linked: stats ←→ C:\tmp\stats
+      ]LINK.Create stats /users/sally/stats
+Linked: stats ←→ users/sally/stats
       stats.⎕NL -3 ⍝ Verify functions were loaded as expected
  Mean  Root  StdDev
 ```
 
-If you have an existing workspace containing several namespaces, code in the root of the workspace, or variables, you will want to read about [converting your workspace to text source](WStoLink.md).
+## Starting a project from a workspace
+
+If your existing code is in a workspace rather than in text files, you should read the section on [converting a workspace to source files](WStoLink.md) before continuing.
 
 ## Saving your work
 Once a link is set up using [Link.Create](../API/Link.Create.md), you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the `stats` namespace are instantly copied to the corresponding source file. 
@@ -69,7 +69,7 @@ Once a link is set up using [Link.Create](../API/Link.Create.md), you can work w
 
 Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace.
 
-If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a `Median` function:
+If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a `Median` function to the namespace we created earlier:
 
 ```apl
       )ED stats.Median
@@ -88,21 +88,28 @@ When the editor fixes the definition of the function in the workspace, Link will
 
 
 ```apl
-      ls '/tmp/stats/*'
-  /tmp/stats/Mean.aplf  /tmp/stats/Median.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
+      ls '/users/sally/stats/*'
+  /users/sally/stats/Mean.aplf  /users/sally/stats/Root.aplf  
+  /users/sally/stats/StdDev.aplf /users/stats/StdDev.aplf  
 ```
 
 ## Viewing the status of links
-The function [Link.Status](../API/Link.Status.md) will show namespaces that are currently linked and the folders to which they are linked. The user command `]LINK.Status` is a convenient way to use this.
+The function (and corresponding user command) [Link.Status](../API/Link.Status.md) will show namespaces that are currently linked and the folders to which they are linked. For example:
+
+```apl
+       ]link.status
+ Namespace  Directory            Files
+ #.stats    /users/sally/stats       4  
+```
 
 ## Unlinking a namespace
-To continue using code in the active workspace, but without updating text source files, use [Link.Break](../API/Link.Break.md) (or its user command equivalent.
+To continue using code in the active workspace without the risk of updating text source files or picking up changes made using external editors, use [Link.Break](../API/Link.Break.md).
 
 Clearing the workspace, for example using `)CLEAR`, or exiting Dyalog, for example with `)OFF`, will also break all links in the active workspace.
 
 See the [technical details on breaking links](../Discussion/TechDetails.md#breaking-links) for more information, for example about what happens when you delete a linked namespace from the active workspace.
 
-## Changes made Outside the Editor
+## Changes made outside the Editor
 
 When changes are made using the editor which is built-in to Dyalog IDE (which includes RIDE), source files are updated immediately. Changes made outside the editor will not immediately be picked up. This includes:
 
@@ -126,7 +133,7 @@ However, if you have arrays that represent error tables, range definitions or ot
 Added: #.stats.Directions
 ```
 
-Once you have created a source file for an array, Link *will* update that file if you use the editor to modify the array. Note that if you modify the array using assignment or other means than the editor, you will need to call [Link.Add](../API/Link.Add.md) to force and update of the source file.
+Once you have created a source file for an array, Link *will* update that file if you use the editor to modify the array. Only if you modify the array using assignment or other means than the editor will you need to call [Link.Add](../API/Link.Add.md) to force an update of the source file.
 
 Changes made to source files, including the addition of new `.apla`files, will always be reflected in the workspace, if the link has been set up to watch the file system.
 

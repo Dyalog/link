@@ -1,18 +1,19 @@
 # Link.Status
 
     ]LINK.Status [<ns>] [-extended]
-
+    
     status ← {opts} ⎕SE.Link.Status ns 
 
-This function provides details of existing links.
+This function provides information about existing links.
 
 #### Arguments
 
-- namespace to look for links in (use `''` to list all links)
+- ns: namespace to look for links in (use `''` to list all links)
 
 #### Options
 
 - **extended** {**0**|1}
+   
    > Request additional information
 
 #### Result
@@ -22,11 +23,10 @@ This function provides details of existing links.
    - namespace reference
    - directory name
    - number of linked files and directories (excluding root directory)
-   > If `extended` was specified, link options settings:
+   > If `extended` was specified, options settings for each link:
    - case code
    - flatten
    - force extensions
    - force filenames
    - watch
    - paused
-   

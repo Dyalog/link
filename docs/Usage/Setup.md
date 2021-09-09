@@ -15,7 +15,7 @@ clear ws
       ]link.create linkdemo /users/sally/linkdemo
 Linked: #.linkdemo ←→ /users/sally/linkdemo
 
-      )ed linkdemo.Run
+      )ed linkdemo.Main
 ```
 
 Our application is going to prompt the user for an input array and output the mean and standard deviation of the data, until the user inputs an empty array. Obviously, the code should be enhanced to validate the input and perhaps trap errors, but that is left as an exercise for the reader.
@@ -34,11 +34,15 @@ Our application is going to prompt the user for an input array and output the me
      ∇                                                                                   
 ```
 
-We will need the `stats` code in the workspace as well, of course. Since we only intend to use it and don't want to risk making changes to its source code while testing our own application, we will use `]link.import` rather than `]link.create` to bring that code into the workspace:
+We will need the `stats` code in the workspace as well, of course. Since we only intend to use it and don't want to risk making changes to its source code while testing our own application, we will use `]link.import` rather than `]link.create` to bring that code into the workspace. Note that after the import, `]link.status` still only reports a single link:
 
 ```      apl
       ]link.import stats /users/sally/stats
-Imported: #.starts ← c:\tmp\stats
+Imported: #.stats ← /users/tmp/stats
+
+      ]link.status
+ Namespace    Directory             Files
+ #.linkdemo   /users/sally/linkdemo     1  
 
       linkdemo.Main
       Enter some numbers:
@@ -53,7 +57,7 @@ Enter some numbers:
 
 ### Automating Startup
 
-Starting with version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file `dev.dcfg` in the `linkdemo` folder with the following contents:
+Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file `dev.dcfg` in the `linkdemo` folder with the following contents:
 
 ```json
 {
@@ -73,17 +77,16 @@ The function `linkdemo.Start` will bring in the `stats` library using `Link.Impo
 [1]   ⍝ Establish development environment for the linkdemo application                 
 [2]                                                                                    
 [3]    ⎕IO←⎕ML←1                                                                       
-[4]    ⎕SE.Link.Import '#.stats' '/home/sally/stats' ⍝ Load the stats library
-[5]    ST←#.stats                                                                      
-[6]
-[7]    :If run                                                                         
-[8]        Main                                                                        
-[9]        ⎕OFF                                                                        
-[10]   :EndIf                                                                          
+[4]    ⎕SE.Link.Import '#.stats' '/users/sally/stats' ⍝ Load the stats library
+[5]
+[6]    :If run                                                                         
+[7]        Main                                                                        
+[8]        ⎕OFF                                                                        
+[9]    :EndIf                                                                          
      ∇                                                                                 
 ```
 
-We can now launch out development environment using `dyalog CONFIGFILE=linkdemo/devt.cfg`, or on some platforms right-clicking on this file and selecting Run.
+We can now launch our development environment using `dyalog CONFIGFILE=linkdemo/devt.cfg`, or on some platforms right-clicking on this file and selecting Run.
 
 ### Development vs Runtime
 
@@ -107,12 +110,12 @@ As we have seen, Link allows you to run your application based entirely on textu
 To prepare a workspace for shipment, we will need to:
 
 * Set `⎕LX` in the so that it calls the `Start` function
-* Use [Link.Break](../API/Link.Break.md) to remove links to the source files. If you omit this step, you can create a [potentially confusing situation](../Discussion/Workspaces.md/#saving-workspaces-containing-links).
+* Use [Link.Break](../API/Link.Break.md) to remove links to the source files. If you omit this step, you can create an [extremely confusing situation](../Discussion/Workspaces.md#saving-workspaces-containing-links).
 * `)SAVE` the workspace
 
 ### Scripted Applications
 
-Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it provides you with a completely clean environment without any development tools, which means that the session namespace is not populated. As a result, Link is not loaded into `⎕SE`. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:
+Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it intentionally provides you with a completely clean environment without any development tools loaded. This means that the session namespace is not populated, and Link is not loaded. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:
 
 `(⎕NS⍬).({}enableSALT⊣⎕CY'salt')`
 

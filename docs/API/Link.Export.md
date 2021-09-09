@@ -4,16 +4,16 @@
     
     msg ← {opts} ⎕SE.Link.Export (ns dir) 
 
-This function takes the same arguments as [Link.Create](Link.Create.md) but saves the contents of a namespace to directory without maintaining a Link.
+This function takes the same arguments as [Link.Create](Link.Create.md) but saves the contents of a namespace to directory without creating a Link.
 
 If the source is an unscripted namespace, then the destination is interpreted as a directory.
 
-If the source is anything else, then the destination is interpreter as a directory (and a correctly named file will be created there), *unless* it ends with a recognised extension, in which case it is interpreted as a file name.
+If the source is anything else, then the destination is interpreted as a directory (and a correctly named file will be created there), *unless* it ends with a recognised extension (like `.aplf`), in which case it is interpreted as a file name.
 
 #### Arguments
 
-- source : unscripted namespace or APL name
-- destination: directory or file name
+- ns : unscripted namespace or APL name
+- dir: directory or file name
 
 #### Options
 
