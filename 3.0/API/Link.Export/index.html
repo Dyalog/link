@@ -811,13 +811,13 @@
 
 msg ← {opts} ⎕SE.Link.Export (ns dir)
 </code></pre>
-<p>This function takes the same arguments as <a href="../Link.Create/">Link.Create</a> but saves the contents of a namespace to directory without maintaining a Link.</p>
+<p>This function takes the same arguments as <a href="../Link.Create/">Link.Create</a> but saves the contents of a namespace to directory without creating a Link.</p>
 <p>If the source is an unscripted namespace, then the destination is interpreted as a directory.</p>
-<p>If the source is anything else, then the destination is interpreter as a directory (and a correctly named file will be created there), <em>unless</em> it ends with a recognised extension, in which case it is interpreted as a file name.</p>
+<p>If the source is anything else, then the destination is interpreted as a directory (and a correctly named file will be created there), <em>unless</em> it ends with a recognised extension (like <code>.aplf</code>), in which case it is interpreted as a file name.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>source : unscripted namespace or APL name</li>
-<li>destination: directory or file name</li>
+<li>ns : unscripted namespace or APL name</li>
+<li>dir: directory or file name</li>
 </ul>
 <h4 id="options">Options</h4>
 <ul>

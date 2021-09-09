@@ -1076,8 +1076,8 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 </code></pre>
 <h2 id="arguments">Arguments</h2>
 <ul>
-<li><code>namespace</code> is either a reference to, or a simple character containing the name of, a namespace.<br />
-    In the user command <code>&lt;ns&gt;</code> is simply the name of the namespace.</li>
+<li><code>namespace</code> is either a reference to, or a simple character containing the name of a namespace.<br />
+    In the user command <code>&lt;ns&gt;</code> is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing <code>[namespace]</code> or similar segments).</li>
 <li><code>directory</code> is a simple character vector containing the path to a file system directory without any trailing slash or backslash.<br />
     In the user command, <code>&lt;dir&gt;</code> is the path to the file system directory.</li>
 </ul>
@@ -1100,12 +1100,15 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <p>The <strong>watch</strong> option specifies which sides of the link to watch for changes (and synchronise). Watching a <strong>dir</strong> (or <strong>both</strong>) is currently only supported using the .NET Framework or .NET Core.</p>
 <p><code>watch</code> is a simple character vector, one of <code>'none'</code>, <code>'ns'</code>, <code>'dir'</code> or <code>'both'</code>.</p>
 <ul>
-<li><strong>none</strong>: Changes are not automatically reflected across the link.</li>
-<li><strong>ns</strong> will mirror namespace changes (done with the editor) to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.</li>
-<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that updating a large number of files (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes and not report them to Link.</li>
-<li><strong>both</strong> will do both.</li>
+<li><strong>none:</strong> changes are not automatically propagated across the link in either direction.</li>
+<li><strong>ns:</strong> changes made in a linked namespace changes (made with the editor) will be copied to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.</li>
+<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the linked namespace. Note that there is a chance that updating a large number of files (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes and not report them to Link. If the source files are on a network drive, the file system watcher may be even more unreliable. Use <a href="../Link.Resync/">⎕SE.Link.Resync</a> if you suspect something is wrong.</li>
+<li><strong>both</strong> will synchronise changes in both directions. This is the default, and is recommended except in very special circumstances.</li>
 </ul>
-<p>Note that <a href="../Link.Refresh/">Link.Refresh</a> can be used to force a wholesale update of everything based on the setting of the <code>-source</code>option, and <a href="../Link.Resync/">Link.Resync</a> can always be used to generate a list of differences between the workspace and linked directories if you are in doubt about the current state.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><a href="../Link.Refresh/">Link.Refresh</a> can be used to force a wholesale update of everything based on the setting of the <code>-source</code>option, and <a href="../Link.Resync/">Link.Resync</a> can always be used to generate a list of differences between the workspace and linked directories if you are in doubt about the current state.</p>
+</div>
 <h3 id="casecode"><strong>caseCode</strong></h3>
 <p>Default: <strong>off</strong></p>
 <p>The <strong>caseCode</strong> flag adds a suffix to file names on write.</p>
