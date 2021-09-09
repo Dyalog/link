@@ -817,9 +817,10 @@ msg ← {opts} ⎕SE.Link.Resync ⍬
 <pre><code class="language-apl">      ]link.resync -proceed
 1 file read, 1 file updated 
 </code></pre>
+<p>If Link is not able to suggest an action, it will display <code>?</code> in the direction column, for example if the source file is now older than when it was loaded into the workspace, <code>-proceed</code> will be rejected, you will need to resolve the difference manually.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><strong>Beware: The recommendations are not necessarily the correct actions!</strong> If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
+<p><strong>Beware: The recommendations are NOT necessarily the correct actions!</strong> For example, if an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
 </div>
 <h4 id="arguments">Arguments</h4>
 <ul>
@@ -830,11 +831,7 @@ msg ← {opts} ⎕SE.Link.Resync ⍬
 <li><strong>proceed</strong></li>
 </ul>
 <blockquote>
-<p>Whether to execute the synchronisation, list the changes required, or both.
-- <code>list</code> means that a list of actions that would be performed will be displayed.
-- <code>yes</code> means that the actions will be performed.
-- <code>copy</code> means that the actions will be performed and the list of actions will also be returned.</p>
-<p>Defaults to <code>list</code> in 3.0, this is expected to change in Link 3.1.</p>
+<p>Whether to execute the changes suggested by Resync without the <code>proceed</code> option.</p>
 </blockquote>
 <ul>
 <li><strong>arrays</strong>, <strong>sysvars</strong></li>
