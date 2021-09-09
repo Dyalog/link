@@ -1,35 +1,51 @@
 # Link.Resync 
 
-    ]LINK.Resync 
+    ]LINK.Resync <ns> 
     
     msg ← {opts} ⎕SE.Link.Resync ⍬
 
-`Link.Resync` will re-synchronise your workspace and source directories. It is the best way to resume work if you have used [Link.Pause](Link.Pause.md) to temporarily stop watching the file system, or you have loaded a checkpoint workspace that might contain obsolete code, or you have any other reason to suspect that the contents of the active workspace no longer match the source directories.
+`Link.Resync` will re-synchronise the contents of linked namespaces and the corresponding source directories. It is useful when:
 
-If you had previously used [Link.Pause](Link.Pause.md), your links will no longer be in a paused state following a Resync - unless you explicitly set the `pause=yes` option.
+* You know that you have made changes of a type which will not trigger updates, such as function assignments or the `)COPY` system command
+* You have reason to believe that the file system watcher might have missed some updates
+* You have loaded a workspace that was saved with active links. In this case, all Link functionality will be disabled until you do a Resync to ensure that the workspace content matches the external source.
 
-**WARNING:** Resync is one of the most recent items of functionality added to Link, and should be considered somewhat experimental in Link 3.0. While this is the case, the default value for the `confirm`  option will be `list` ,  which means that Resync will display output documenting the updates that it intends to make. If there are any outstanding differences, you need to explicitly set `confirm=yes` to execute the synchronisation.
+By default, Resync takes no action, but outputs a list of differences found, with a recommendation of whether the the difference should be resolved by updating a file should be created or updated (`→`), or that a file should be read and the workspace updated (`←` ). For example:
+
+```
+      ]link.resync
+2 updates required: use -proceed option to synchronise
+ Name          Direction  File             Comments
+ #.badapp.Foo  →                           Item has no corresponding file
+ #.badapp.Goo  ←          /myapp/Goo.aplf  File now dated 08:17 yesterday,
+                                           WS copy is dated 03 Sep 2021 
+```
+
+If you accept the recommendations, you can add the `proceed` switch, after which the link will be up-to-date and work can proceed normally.
+
+```apl
+      ]link.resync -proceed
+1 file read, 1 file updated 
+```
+
+If Link is not able to suggest an action, it will display `?` in the direction column, for example if the source file is now older than when it was loaded into the workspace, `-proceed` will be rejected, you will need to resolve the difference manually.
+
+!!! Note
+	**Beware: The recommendations are NOT necessarily the correct actions!** For example, if an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before `-proceed` ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.
 
 #### Arguments
 
-- Currently unused, reserved for future enhancements
+- ns: namespace(s) to consider
 
 #### Options
 
-- **confirm**
-  
-  > Whether to execute the synchronisation, list the changes required, or both.
-  > - `list` means that a list of actions that would be performed will be displayed.
-  > - `yes` means that the actions will be performed.
-  > - `copy` means that the actions will be performed and the list of actions will also be returned.
-  >
-  > Defaults to `list` in 3.0, this is expected to change in Link 3.1.
-  
-- **pause**
+- **proceed**
 
-  > Whether the link should be in a paused state following the resync.
-  >
-  > Defaults to `no`.
+  > Whether to execute the changes suggested by Resync without the `proceed` option.
+
+- **arrays**, **sysvars**
+
+  > Whether arrays and system variables should be included in the analysis. See [Link.Create](Link.Create.md) for details of these options.
 
 #### Result
 

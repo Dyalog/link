@@ -6,9 +6,10 @@
 
 Refresh will break and re-create a link by using one one side of the link as source, and bringing the other side into line.
 
-**BEWARE:** Refresh has the potential to lose changes: if there are un-synchronised changes on both sides of the link, then Refresh will destroy one set of changes (the non-source side will be overwritten by the source side). [Link.Resync](Link.Resync.md) provides better control, allowing you to review the differences before selecting how they should be resolved, and is now recommended in place of Refresh in most scenarios.
+!!! Note
+	**Refresh has the potential to lose changes:** Refresh will overwrite one end of the link without checking for changes. [Link.Resync](Link.Resync.md) provides better control, allowing you to review the differences before selecting how they should be resolved, and is now recommended in place of Refresh in most scenarios.
 
-Refresh is useful when you have decided not to watch one side of a link, but now want to pick up any changes that have occurred:
+Refresh is useful when you have decided not to watch one side of a link, but now want to pick up any changes that have happened since the link was created or most recently refreshed.
 
 * To bring the workspace into line with the source directories, use `source=dir`.
 * If you have made changes to linked namespaces using other mechanisms than the editor (such as using `⎕FIX`, `⎕FX`, `⎕NS`, `⎕CY` or assignment), you can Refresh with `source=ns` to update the directory.

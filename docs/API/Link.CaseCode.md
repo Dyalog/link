@@ -1,7 +1,7 @@
 # Link.CaseCode
 
     names ← {options} ⎕SE.Link.CaseCode names
-     
+
 If case codes is on (default is off), each file name will have a case code (see below). 
 
 If you set up a `getFilename` hook when [creating a Link](Link.Create.md), Link will prompt your hook for a file name whenever a new source file needs
@@ -18,7 +18,7 @@ A reverse binary indication of the letter cases in the main part of the name, en
 `HelloWorld-41`
 
 #### Arguments
-`names` is a simple character vector or nested vector of character vectors giving the names of items for which to enable case codes.
+`names` is a simple character vector or nested vector of character vectors giving the names of items for which to generate case coded results.
 
 #### Result
 

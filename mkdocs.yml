@@ -32,7 +32,6 @@ nav:
     - API/Link.Import.md
     - API/Link.LaunchDir.md
     - API/Link.Notify.md
-    - API/Link.Pause.md
     - API/Link.Refresh.md
     - API/Link.Resync.md
     - API/Link.Status.md

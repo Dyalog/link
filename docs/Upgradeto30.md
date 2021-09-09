@@ -17,7 +17,7 @@ Some of the changes have the potential to break existing applications that use L
 
 The most important new features are:
 
-* The addition of [Link.Pause](API/Link.Pause.md) and [Link.Resync](API/Link.Resync.md) which provide better support for resuming work after a break, especially if the active workspace has been saved and reloaded.
+* The addition of code to warn upon the loading of a workspace saved with active links, combined with the [Link.Resync](API/Link.Resync.md) command which will assist in bringing a saved workspace in line with the external source, provide better support for resuming work after a break.
 * "Case Coding" of file names, supporting the maintenence of source for names which differ only in case (for example, `FOO` vs `Foo`) in case-insensitive file systems.
 * The addition of the [Link.LaunchDir](API/Link.LaunchDir.md) API function, which returns the name of the directory that the interpreter was started from, either using the `LOAD=` or `CONFIGFILE=`setting.
 

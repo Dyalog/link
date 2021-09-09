@@ -4,7 +4,7 @@ As the *versus* in the heading is intended to imply, the main purpose of Link is
 
 ### Are Workspaces Dead Now?
 
-No: Workspaces still have many uses, even if they are no longer a recommended mechanism for source code management:
+No: Workspaces still have many uses, even if they are falling out of favour as mechanism for source code management:
 
 * **Distribution:** For large applications, it will be inconvenient or undesirable to ship large collections of source files that are loaded at startup. The use of workspaces as a mechanism for the distribution of packaged collections of code and data is expected to continue.
 * **Crash Analysis:** When an application fails, it is often useful to save the workspace, complete with execution stack, code and data, for subsequent analysis and sometimes resumption of execution. Dyalog will continue to support this, although we may gradually impose some restrictions, for example requiring the same version and variant of the interpreter in order to resume execution of a saved workspace.
@@ -14,6 +14,22 @@ With the exception of the scenarios mentioned above, Link is intended to make it
 
 ### Saving workspaces containing Links
 
-If you do `)SAVE` a workspace which has active links in it, this creates a potentially confusing situation. Objects defined in the workspace will still contain the information that was created by `2 ⎕FIX`,  which means that after a re-load, editing may cause the editor itself to update the source files, even though Link has not been activated. If you reload the workspace on a different machine, the source files may not be available, leading to confusing error messages.
+If you `)SAVE` a workspace which has active links in it, this creates a potential conflict between the source code embedded in the workspace and any changes that may have been made to external source since the workspace was saved. If you `)LOAD` a saved workspace, Link will issue a warning along the lines of:
 
-You should always [Link.Break](../API/Link.Break.md) or [Link.Resync](../API/Link.Resync.md) after loading a workspace which was saved with links in it.
+```
+IMPORTANT: 1 linked namespace linked in this workspace: #.myapp
+IMPORTANT: Link.Resync is required to use anything other than Link.Status and Link.Diff
+```
+
+In other words, most link user commands and API functions will be disabled, until you run [Link.Resync](../API/Link.Resync.md), which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.
+
+!!! Note
+	**Beware: If you continue working without doing a Resync, strange things may happen:** Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.
+
+In other words, you should **NOT** continue working without a Resync, unless you have a very good reason to do so and understand exactly what might happen.
+
+### Distribution
+
+If you want to distribute a workspace created using Link to import code, note that if the workspace is loaded on a machine where the recorded source file names are not valid, this will lead to confusion. Application workspaces should always be built using [Link.Import](../API/Link.Import.md). Alternatively, use [Link.Break](../API/Link.Break.md) to remove the links before you `)SAVE` the workspace.
+
+See the discussion about [setting up your environment](../Usage/Setup.md) for more tips on creating development and runtime environments.
