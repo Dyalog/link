@@ -795,20 +795,39 @@
                 
                 
                 <h1 id="linkresync">Link.Resync</h1>
-<pre><code>]LINK.Resync
+<pre><code>]LINK.Resync &lt;ns&gt;
 
 msg ← {opts} ⎕SE.Link.Resync ⍬
 </code></pre>
-<p><code>Link.Resync</code> will re-synchronise your workspace and source directories. It is the best way to resume work if you have used <a href="Link.Pause.md">Link.Pause</a> to temporarily stop watching the file system, or you have loaded a checkpoint workspace that might contain obsolete code, or you have any other reason to suspect that the contents of the active workspace no longer match the source directories.</p>
-<p>If you had previously used <a href="Link.Pause.md">Link.Pause</a>, your links will no longer be in a paused state following a Resync - unless you explicitly set the <code>pause=yes</code> option.</p>
-<p><strong>WARNING:</strong> Resync is one of the most recent items of functionality added to Link, and should be considered somewhat experimental in Link 3.0. While this is the case, the default value for the <code>confirm</code>  option will be <code>list</code> ,  which means that Resync will display output documenting the updates that it intends to make. If there are any outstanding differences, you need to explicitly set <code>confirm=yes</code> to execute the synchronisation.</p>
+<p><code>Link.Resync</code> will re-synchronise the contents of linked namespaces and the corresponding source directories. It is useful when:</p>
+<ul>
+<li>You know that you have made changes of a type which will not trigger updates, such as function assignments or the <code>)COPY</code> system command</li>
+<li>You have reason to believe that the file system watcher might have missed some updates</li>
+<li>You have loaded a workspace that was saved with active links. In this case, all Link functionality will be disabled until you do a Resync to ensure that the workspace content matches the external source.</li>
+</ul>
+<p>By default, Resync takes no action, but outputs a list of differences found, with a recommendation of whether the the difference should be resolved by updating a file should be created or updated (<code>→</code>), or that a file should be read and the workspace updated (<code>←</code> ). For example:</p>
+<pre><code>      ]link.resync
+2 updates required: use -proceed option to synchronise
+ Name          Direction  File             Comments
+ #.badapp.Foo  →                           Item has no corresponding file
+ #.badapp.Goo  ←          /myapp/Goo.aplf  File now dated 08:17 yesterday,
+                                           WS copy is dated 03 Sep 2021 
+</code></pre>
+<p>If you accept the recommendations, you can add the <code>proceed</code> switch, after which the link will be up-to-date and work can proceed normally.</p>
+<pre><code class="language-apl">      ]link.resync -proceed
+1 file read, 1 file updated 
+</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Beware: The recommendations are not necessarily the correct actions!</strong> If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
+</div>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>Currently unused, reserved for future enhancements</li>
+<li>ns: namespace(s) to consider</li>
 </ul>
 <h4 id="options">Options</h4>
 <ul>
-<li><strong>confirm</strong></li>
+<li><strong>proceed</strong></li>
 </ul>
 <blockquote>
 <p>Whether to execute the synchronisation, list the changes required, or both.
@@ -818,11 +837,10 @@ msg ← {opts} ⎕SE.Link.Resync ⍬
 <p>Defaults to <code>list</code> in 3.0, this is expected to change in Link 3.1.</p>
 </blockquote>
 <ul>
-<li><strong>pause</strong></li>
+<li><strong>arrays</strong>, <strong>sysvars</strong></li>
 </ul>
 <blockquote>
-<p>Whether the link should be in a paused state following the resync.</p>
-<p>Defaults to <code>no</code>.</p>
+<p>Whether arrays and system variables should be included in the analysis. See <a href="../Link.Create/">Link.Create</a> for details of these options.</p>
 </blockquote>
 <h4 id="result">Result</h4>
 <ul>

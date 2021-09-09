@@ -831,22 +831,7 @@
 <pre><code>IMPORTANT: 1 linked namespace linked in this workspace: #.myapp
 IMPORTANT: Link.Resync is required to use anything other than Link.Status and Link.Diff
 </code></pre>
-<p>In other words, most link user commands and API functions will be disabled, until you run <a href="../../API/Link.Resync/">Link.Resync</a>, which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders. For example:</p>
-<pre><code>      ]link.resync
-2 updates required: use -proceed option to synchronise
- Name          Direction  File             Comments
- #.badapp.Foo  →                           Item has no corresponding file
- #.badapp.Goo  ←          /myapp/Goo.aplf  File now dated 08:17 yesterday,
-                                           WS copy is dated 03 Sep 2021 
-</code></pre>
-<p>If you agree with the recommendations, where <code>→</code> means a file should be created or updated, and <code>←</code> that the file should be read and the workspace updated, you can repeat the Resync command adding the <code>proceed</code> switch, after which the link will be up-to-date and work can proceed normally.</p>
-<pre><code>      ]link.resync -proceed
-1 file read, 1 file updated 
-</code></pre>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><strong>Beware: The recommendations are not necessarily the correct actions</strong> If an item exists in the workspace but not on file, Resync will recommend creating the file (and vice versa if a file exists but the item is not found in the workspace). But if the file was intentionally removed or renamed in the source, the correct action is actually to delete or rename it in the workspace. Always review the recommendations carefully before <code>-proceed</code> ing. Of course, if you are using a source code management system like Git, you should easily be able to detect and recover from mistakes.</p>
-</div>
+<p>In other words, most link user commands and API functions will be disabled, until you run <a href="../../API/Link.Resync/">Link.Resync</a>, which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Beware: If you continue working without doing a Resync, strange things may happen:</strong> Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.</p>
