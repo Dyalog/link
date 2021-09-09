@@ -1229,8 +1229,8 @@
           (aplnames aplparents aplfiles aplts)←1 1 0 1 0 0 0 1/↓⍉↑5179⌶¨names
           tocheck∨←(~tocheck)\~mask←aplfiles≡¨files  ⍝ files must be correctly associated
           changed←(mask/filets)≢¨(mask/aplts)  ⍝ file has changed
-          txt←'updated '∘,¨TSFmtNice 1 ⎕DT changed/mask/aplts
-          txt←txt,⍨¨'Source file dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂' when loaded, '
+          txt←TSFmtNice 1 ⎕DT changed/mask/aplts
+          txt←txt,⍨¨'File now dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂', WS copy is dated '
           diff←'←',(changed/mask/names),(changed/mask/files),⍪txt
         ∇
         
@@ -1743,7 +1743,7 @@
               r,←⊂''
           :EndIf
           r/⍨←~'' ''⍷r
-          r,←⊂']FILE.Open https://github.com/Dyalog/link/tree/master/help/Link.',cmd,'.md  ⍝ for full documentation'
+          r,←⊂']FILE.Open https://dyalog.github.io/link/3.0/API/Link.',cmd ⍝ for full documentation'
           
           :If 1.31>⎕SE.Dyalog.Utils.Version ⋄ :AndIf ⎕PW<80   ⍝ link issue #199 - fixed in Utils v1.31
               r←,⊂'Cannot display help with ⎕PW<80'
