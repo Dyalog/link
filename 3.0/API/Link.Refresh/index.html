@@ -800,8 +800,11 @@
 msg ← {opts} ⎕SE.Link.Refresh ns
 </code></pre>
 <p>Refresh will break and re-create a link by using one one side of the link as source, and bringing the other side into line.</p>
-<p><strong>BEWARE:</strong> Refresh has the potential to lose changes: if there are un-synchronised changes on both sides of the link, then Refresh will destroy one set of changes (the non-source side will be overwritten by the source side). <a href="../Link.Resync/">Link.Resync</a> provides better control, allowing you to review the differences before selecting how they should be resolved, and is now recommended in place of Refresh in most scenarios.</p>
-<p>Refresh is useful when you have decided not to watch one side of a link, but now want to pick up any changes that have occurred:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Refresh has the potential to lose changes: Refresh will overwrite one end of the link without checking for changes. <a href="../Link.Resync/">Link.Resync</a> provides better control, allowing you to review the differences before selecting how they should be resolved, and is now recommended in place of Refresh in most scenarios.</p>
+</div>
+<p>Refresh is useful when you have decided not to watch one side of a link, but now want to pick up any changes that have happened since the link was created or most recently refreshed.</p>
 <ul>
 <li>To bring the workspace into line with the source directories, use <code>source=dir</code>.</li>
 <li>If you have made changes to linked namespaces using other mechanisms than the editor (such as using <code>⎕FIX</code>, <code>⎕FX</code>, <code>⎕NS</code>, <code>⎕CY</code> or assignment), you can Refresh with <code>source=ns</code> to update the directory.</li>
