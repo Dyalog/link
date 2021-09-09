@@ -558,8 +558,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#casecode" class="md-nav__link">
-    caseCode
+  <a href="#arrays" class="md-nav__link">
+    arrays
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sysvars" class="md-nav__link">
+    sysVars
   </a>
   
 </li>
@@ -574,20 +581,6 @@
           <li class="md-nav__item">
   <a href="#forcefilenames" class="md-nav__link">
     forceFilenames
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#arrays" class="md-nav__link">
-    arrays
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sysvars" class="md-nav__link">
-    sysVars
   </a>
   
 </li>
@@ -608,6 +601,13 @@
           <li class="md-nav__item">
   <a href="#flatten" class="md-nav__link">
     flatten
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#casecode" class="md-nav__link">
+    caseCode
   </a>
   
 </li>
@@ -775,18 +775,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -943,8 +931,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#casecode" class="md-nav__link">
-    caseCode
+  <a href="#arrays" class="md-nav__link">
+    arrays
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sysvars" class="md-nav__link">
+    sysVars
   </a>
   
 </li>
@@ -959,20 +954,6 @@
           <li class="md-nav__item">
   <a href="#forcefilenames" class="md-nav__link">
     forceFilenames
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#arrays" class="md-nav__link">
-    arrays
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sysvars" class="md-nav__link">
-    sysVars
   </a>
   
 </li>
@@ -993,6 +974,13 @@
           <li class="md-nav__item">
   <a href="#flatten" class="md-nav__link">
     flatten
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#casecode" class="md-nav__link">
+    caseCode
   </a>
   
 </li>
@@ -1076,8 +1064,8 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 </code></pre>
 <h2 id="arguments">Arguments</h2>
 <ul>
-<li><code>namespace</code> is either a reference to, or a simple character containing the name of, a namespace.<br />
-    In the user command <code>&lt;ns&gt;</code> is simply the name of the namespace.</li>
+<li><code>namespace</code> is either a reference to, or a simple character containing the name of a namespace.<br />
+    In the user command <code>&lt;ns&gt;</code> is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing <code>[namespace]</code> or similar segments).</li>
 <li><code>directory</code> is a simple character vector containing the path to a file system directory without any trailing slash or backslash.<br />
     In the user command, <code>&lt;dir&gt;</code> is the path to the file system directory.</li>
 </ul>
@@ -1096,25 +1084,32 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <li><strong>auto</strong> will use whichever of ns or dir that is not empty. If both are empty, it will use <strong>dir</strong> on a subsequent <a href="../Link.Refresh/">Refresh</a>.</li>
 </ul>
 <h3 id="watch"><strong>watch</strong></h3>
-<p>Default: <strong>both</strong> where supported, else <strong>ns</strong></p>
+<p>Default: <strong>both</strong> if a file system watcher can be created, else <strong>ns</strong></p>
 <p>The <strong>watch</strong> option specifies which sides of the link to watch for changes (and synchronise). Watching a <strong>dir</strong> (or <strong>both</strong>) is currently only supported using the .NET Framework or .NET Core.</p>
-<p><code>watch</code> is a simple character vector, one of <code>'none'</code>, <code>'ns'</code>m <code>'dir'</code> or <code>'both'</code>.</p>
+<p><code>watch</code> is a simple character vector, one of <code>'none'</code>, <code>'ns'</code>, <code>'dir'</code> or <code>'both'</code>.</p>
 <ul>
-<li><strong>none</strong>: Changes are not automatically reflected across the link. However, linked files can be updated from definitions in the active workspace using <a href="../Link.Add/">Link.Add</a> and names in the active workspace can be updated from linked files using <a href="../Link.Refresh/">Link.Refresh</a>.</li>
-<li><strong>ns</strong> will mirror namespace changes (done with the editor) to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.</li>
-<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to <a href="../Link.Pause/">Link.Pause</a> the link before doing massive changes to files, then <a href="../Link.Resync/">Link.Resync</a> to resume file watching.</li>
-<li><strong>both</strong> will do both.</li>
+<li><strong>none:</strong> changes are not automatically propagated across the link in either direction.</li>
+<li><strong>ns:</strong> changes made in a linked namespace changes (made with the editor) will be copied to files. Note that it will <strong>not</strong> reflect changes made using other mechanisms, such as assignment, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>,  or <code>⎕NS</code>. If you want to programmatically change an item so that the change is reflected to files, you should use <a href="../Link.Fix/">⎕SE.Link.Fix</a>.</li>
+<li><strong>dir</strong> will mirror changes made to files (using any mechanism) into the linked namespace. Note that there is a chance that updating a large number of files (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes and not report them to Link. If the source files are on a network drive, the file system watcher may be even more unreliable. Use <a href="../Link.Resync/">⎕SE.Link.Resync</a> if you suspect something is wrong.</li>
+<li><strong>both</strong> will synchronise changes in both directions. This is the default, and is recommended except in very special circumstances.</li>
 </ul>
-<h3 id="casecode"><strong>caseCode</strong></h3>
-<p>Default: <strong>off</strong></p>
-<p>The <strong>caseCode</strong> flag adds a suffix to file names on write.</p>
-<p>If your application contains items with names that differ only in case (for example <code>Debug</code> and <code>DEBUG</code>), and your file system is case-insensitive (for example, under Microsoft Windows), then enabling <strong>caseCode</strong> will cause a suffix to be added to file names, containing an octal encoding of the location of uppercase letters in the name.</p>
-<p>For example, with caseCode on, two functions named <code>Debug</code> and <code>DEBUG</code> will be written to files named
-<code>Debug-1.aplf</code> and <code>DEBUG-37.aplf</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. You will probably want to enable <strong>forceFilenames</strong> if you enable <strong>caseCode</strong>.</p>
+<p><a href="../Link.Refresh/">Link.Refresh</a> can be used to force a wholesale update of everything based on the setting of the <code>-source</code>option, and <a href="../Link.Resync/">Link.Resync</a> can always be used to generate a list of differences between the workspace and linked directories if you are in doubt about the current state.</p>
 </div>
+<h3 id="arrays"><strong>arrays</strong></h3>
+<p>Default: <strong>off</strong></p>
+<p>The <strong>arrays</strong> flag will export arrays on link creation.</p>
+<ul>
+<li>if simply set (<code>options.arrays←1</code> for the function or <code>-arrays</code> for the user command), then all arrays are exported.</li>
+<li>if set to a comma-separated list of names (<code>options.arrays←'name1,name2,...'</code> for the function or <code>-arrays=name1,name2,...</code> for the user command) then arrays with specified names are exported.</li>
+</ul>
+<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>, and only when the link is initially created.</p>
+<h3 id="sysvars"><strong>sysVars</strong></h3>
+<p>Default: <strong>off</strong></p>
+<p>The <strong>sysVars</strong> flag will export namespace-scoped system variables to file.</p>
+<p>The exhaustive list of exported variables is: <code>⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX</code>. They will be exported for all unscripted namespaces.</p>
+<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>.</p>
 <h3 id="forceextensions"><strong>forceExtensions</strong></h3>
 <p>Default: <strong>off</strong></p>
 <p>The <strong>forceExtensions</strong> flag forces correct file extensions.</p>
@@ -1125,33 +1120,30 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <p>If enabled, file names will be adjusted so that they match the item name, when an item is defined in the workspace from an external file, so that the file name matches the name of the item.</p>
 <p>By default, Link will always create new files with the same name as items created in the active workspace. However, it will not insist that file names match item names when importing items from a directory.</p>
 <p>If <strong>forceFilenames</strong> is not set.  Link will update to the same file that an item was loaded from, even though the file name does not match the item name.</p>
-<h3 id="arrays"><strong>arrays</strong></h3>
-<p>Default: <strong>off</strong></p>
-<p>The <strong>arrays</strong> flag will export arrays on link creation.</p>
-<ul>
-<li>if simply set (<code>options.arrays←1</code> for the function or <code>-arrays</code> for the user command), then all arrays are exported.</li>
-<li>if set to a comma-separated list of names (<code>options.arrays←'name1,name2,...'</code> for the function or <code>-arrays=name1,name2,...</code> for the user command) then arrays with specified names are exported.</li>
-</ul>
-<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>, and only when the link is initially created. Arrays will not be monitored for changes during operation of the application.</p>
-<h3 id="sysvars"><strong>sysVars</strong></h3>
-<p>Default: <strong>off</strong></p>
-<p>The <strong>sysVars</strong> flag will export namespace-scoped system variables to file.</p>
-<p>The exhaustive list of exported variables is: <code>⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX</code>. They will be exported for all unscripted namespaces.</p>
-<p>This option takes effect only when <strong>source</strong> is <strong>ns</strong>.</p>
 <h2 id="advanced-options">Advanced Options</h2>
 <h3 id="flatten"><strong>flatten</strong></h3>
 <p>Default: <strong>off</strong></p>
 <p>The <strong>flatten</strong> flag prevents the creation of sub-namespaces in the active workspace.</p>
 <p>The <strong>flatten</strong> option will load all items into the root of the linked namespace, even if the source code is arranged into sub-directories. This is typically used for applications that have source which is divided into modules, but still expects to run in a "flat" workspace.</p>
-<p>Note that if <strong>flatten</strong> is set, new items need special treatment:</p>
+<p>Note that if <strong>flatten</strong> is set, newly created items need special treatment:</p>
 <ul>
 <li>If a function or operator is renamed in the editor, the new item will be placed in the
-ame folder as the original item.</li>
+same folder as the original item.</li>
 <li>If a new item is created, it will be placed in the root of the linked directory.</li>
 <li>It is also possible to use the <strong>getFilename</strong> setting to add application-specific logic to determine the file name to be used (or prompt the user for a decision).</li>
 </ul>
 <p>A suggested workflow is to always create a stub source file in the correct directory and edit the function that appears in the workspace, rather than creating new functions in the workspace.</p>
 <p>This option takes effect only when <strong>source</strong> is <strong>dir</strong>.</p>
+<h3 id="casecode"><strong>caseCode</strong></h3>
+<p>Default: <strong>off</strong></p>
+<p>The <strong>caseCode</strong> flag adds a suffix to file names on write.</p>
+<p>If your application contains items with names that differ only in case (for example <code>Debug</code> and <code>DEBUG</code>), and your file system is case-insensitive (for example, under Microsoft Windows), then enabling <strong>caseCode</strong> will cause a suffix to be added to file names, containing an octal encoding of the location of uppercase letters in the name.</p>
+<p>For example, with caseCode on, two functions named <code>Debug</code> and <code>DEBUG</code> will be written to files named
+<code>Debug-1.aplf</code> and <code>DEBUG-37.aplf</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. You will probably also want to enable <strong>forceFilenames</strong> if you enable <strong>caseCode</strong>.</p>
+</div>
 <h3 id="beforewrite"><strong>beforeWrite</strong></h3>
 <p>If you specify a <strong>beforeWrite</strong> function, it will be called before Link updates a file or directory, allowing support of custom code or data formats. </p>
 <p><code>beforeWrite</code> is a simple character vector containing the name of a function relative to the linked namespace.</p>

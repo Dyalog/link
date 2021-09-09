@@ -637,18 +637,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -796,8 +784,8 @@
 <pre><code>dir ←  ⎕SE.Link.LaunchDir
 </code></pre>
 <p>If APL was launched with a <code>LOAD</code> or <code>CONFIGFILE</code> parameter, <code>Link.LaunchDir</code> returns the fully qualified name of the directory in which the file used to start APL is located. If both were specified, the <code>LOAD</code>ed file takes priority.</p>
-<p>If neither parameter was specified, the current working directory is returned.</p>
-<p>This function is useful during the startup of applications loaded directly from source, and allows you to locate additional resources that are located relative to the source for the code used to start the application.</p>
+<p>If neither parameter is specified, the current working directory is returned.</p>
+<p>This function is useful during the startup of applications loaded directly from source, and allows you to locate additional resources that are located relative to the source for the code used to start the application. For examples of usage, see <a href="../../Usage/Setup/">setting up your environment</a></p>
 <h4 id="arguments">Arguments</h4>
 <ul>
 <li>None</li>

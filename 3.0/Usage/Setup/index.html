@@ -671,18 +671,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../API/Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../API/Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -871,7 +859,7 @@ clear ws
       ]link.create linkdemo /users/sally/linkdemo
 Linked: #.linkdemo ←→ /users/sally/linkdemo
 
-      )ed linkdemo.Run
+      )ed linkdemo.Main
 </code></pre>
 <p>Our application is going to prompt the user for an input array and output the mean and standard deviation of the data, until the user inputs an empty array. Obviously, the code should be enhanced to validate the input and perhaps trap errors, but that is left as an exercise for the reader.</p>
 <pre><code class="language-apl">     ∇ Main;data                                           
@@ -886,9 +874,13 @@ Linked: #.linkdemo ←→ /users/sally/linkdemo
 [9]    :Until 0=≢data                                           
      ∇                                                                                   
 </code></pre>
-<p>We will need the <code>stats</code> code in the workspace as well, of course. Since we only intend to use it and don't want to risk making changes to its source code while testing our own application, we will use <code>]link.import</code> rather than <code>]link.create</code> to bring that code into the workspace:</p>
+<p>We will need the <code>stats</code> code in the workspace as well, of course. Since we only intend to use it and don't want to risk making changes to its source code while testing our own application, we will use <code>]link.import</code> rather than <code>]link.create</code> to bring that code into the workspace. Note that after the import, <code>]link.status</code> still only reports a single link:</p>
 <pre><code class="language-apl">      ]link.import stats /users/sally/stats
-Imported: #.starts ← c:\tmp\stats
+Imported: #.stats ← /users/tmp/stats
+
+      ]link.status
+ Namespace    Directory             Files
+ #.linkdemo   /users/sally/linkdemo     1  
 
       linkdemo.Main
       Enter some numbers:
@@ -901,7 +893,7 @@ Enter some numbers:
       ⍬
 </code></pre>
 <h3 id="automating-startup">Automating Startup</h3>
-<p>Starting with version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm">LOAD parameter</a> or from a configuration file using the  <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm">CONFIGFILE parameter</a>. Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file <code>dev.dcfg</code> in the <code>linkdemo</code> folder with the following contents:</p>
+<p>Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm">LOAD parameter</a> or from a configuration file using the  <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm">CONFIGFILE parameter</a>. Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file <code>dev.dcfg</code> in the <code>linkdemo</code> folder with the following contents:</p>
 <pre><code class="language-json">{
   Settings: {
       MAXWS: 100M,
@@ -915,16 +907,15 @@ Enter some numbers:
 [1]   ⍝ Establish development environment for the linkdemo application                 
 [2]                                                                                    
 [3]    ⎕IO←⎕ML←1                                                                       
-[4]    ⎕SE.Link.Import '#.stats' '/home/sally/stats' ⍝ Load the stats library
-[5]    ST←#.stats                                                                      
-[6]
-[7]    :If run                                                                         
-[8]        Main                                                                        
-[9]        ⎕OFF                                                                        
-[10]   :EndIf                                                                          
+[4]    ⎕SE.Link.Import '#.stats' '/users/sally/stats' ⍝ Load the stats library
+[5]
+[6]    :If run                                                                         
+[7]        Main                                                                        
+[8]        ⎕OFF                                                                        
+[9]    :EndIf                                                                          
      ∇                                                                                 
 </code></pre>
-<p>We can now launch out development environment using <code>dyalog CONFIGFILE=linkdemo/devt.cfg</code>, or on some platforms right-clicking on this file and selecting Run.</p>
+<p>We can now launch our development environment using <code>dyalog CONFIGFILE=linkdemo/devt.cfg</code>, or on some platforms right-clicking on this file and selecting Run.</p>
 <h3 id="development-vs-runtime">Development vs Runtime</h3>
 <p>The <code>Start</code>function takes a right argument <code>run</code> which decides whether it should just exit after initialising the environment, or it should launch the application by calling <code>Run</code>and terminate the session when the user decides that the job is done.</p>
 <p>This allows us to create a second configuration file, <code>linkdemo/run.dcfg</code>, which differs from <code>dev.dcfg</code> in that we reserve a bigger workspace (since we'll be doing real work rather than just testing), and brings the source code in using <code>Link.Import</code> rather than <code>Link.Create</code>, which means that we won't waste resources setting up a file system watcher, and that accidental changes made by anyone running the application will not update the source files.</p>
@@ -940,11 +931,11 @@ Enter some numbers:
 <p>To prepare a workspace for shipment, we will need to:</p>
 <ul>
 <li>Set <code>⎕LX</code> in the so that it calls the <code>Start</code> function</li>
-<li>Use <a href="../../API/Link.Break/">Link.Break</a> to remove links to the source files. If you omit this step, you can create a <a href="../Discussion/Workspaces.md/#saving-workspaces-containing-links">potentially confusing situation</a>.</li>
+<li>Use <a href="../../API/Link.Break/">Link.Break</a> to remove links to the source files. If you omit this step, you can create an <a href="../../Discussion/Workspaces/#saving-workspaces-containing-links">extremely confusing situation</a>.</li>
 <li><code>)SAVE</code> the workspace</li>
 </ul>
 <h3 id="scripted-applications">Scripted Applications</h3>
-<p>Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it provides you with a completely clean environment without any development tools, which means that the session namespace is not populated. As a result, Link is not loaded into <code>⎕SE</code>. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:</p>
+<p>Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it intentionally provides you with a completely clean environment without any development tools loaded. This means that the session namespace is not populated, and Link is not loaded. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:</p>
 <p><code>(⎕NS⍬).({}enableSALT⊣⎕CY'salt')</code></p>
 <p>Note that this depends on the interpreter being able to find the salt workspace (<code>salt.dws</code>). You may need to provide a full path name to that file, if you don't have a standard installation.</p>
                 

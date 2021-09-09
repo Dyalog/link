@@ -637,18 +637,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -796,9 +784,8 @@
 <pre><code>{name} ←  ⎕SE.Link.Notify args
 </code></pre>
 <p>When synchonisation is active, Link will call Notify each time it detects a change to a linked source file. 
-If synchronisation is not enabled, you can use this function to bring an external change into the active workspace, to notify
-the link system that an external file has changed.</p>
-<p>Note: The <a href="../Link.Refresh/">Link.Refresh</a> function can be used to synchronise all extant changes between a linked directory and namespace.</p>
+If synchronisation is not enabled, you can use this function to bring an external change into the active workspace, to notify the link system that an external file has changed.</p>
+<p>If the workspace and directories become un-synchronised, you are probably better off using <a href="../Link.Resync/">Link.Resync</a> to get a list of differences, or <a href="../Link.Refresh/">Link.Refresh</a> to completely re-load the external source.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
 <li>
@@ -817,11 +804,11 @@ the link system that an external file has changed.</p>
 </li>
 <li>
 <p><strong>oldpath</strong> is the previous path</p>
+</li>
+</ul>
 <blockquote>
 <p>can be omitted for all but a <strong>rename</strong> event</p>
 </blockquote>
-</li>
-</ul>
 <h4 id="result">Result</h4>
 <ul>
 <li>If link updated an APL item, its full name is returned as a string. Otherwise an empty string is returned.</li>
@@ -858,13 +845,13 @@ the link system that an external file has changed.</p>
         </a>
       
       
-        <a href="../Link.Pause/" class="md-footer__link md-footer__link--next" rel="next">
+        <a href="../Link.Refresh/" class="md-footer__link md-footer__link--next" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Link.Pause
+              Link.Refresh
             </div>
           </div>
           <div class="md-footer__button md-icon">

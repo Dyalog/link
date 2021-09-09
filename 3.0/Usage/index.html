@@ -387,15 +387,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#starting-from-text-files" class="md-nav__link">
-    Starting from text files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#starting-from-a-workspace" class="md-nav__link">
-    Starting from a workspace
+  <a href="#starting-from-an-existing-folder-containing-text-files" class="md-nav__link">
+    Starting from an existing folder containing text files
   </a>
   
 </li>
@@ -410,6 +403,13 @@
         <li class="md-nav__item">
   <a href="#starting-a-new-project" class="md-nav__link">
     Starting a new project
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#starting-a-project-from-a-workspace" class="md-nav__link">
+    Starting a project from a workspace
   </a>
   
 </li>
@@ -437,7 +437,7 @@
       
         <li class="md-nav__item">
   <a href="#changes-made-outside-the-editor" class="md-nav__link">
-    Changes made Outside the Editor
+    Changes made outside the Editor
   </a>
   
 </li>
@@ -693,18 +693,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../API/Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../API/Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -818,15 +806,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#starting-from-text-files" class="md-nav__link">
-    Starting from text files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#starting-from-a-workspace" class="md-nav__link">
-    Starting from a workspace
+  <a href="#starting-from-an-existing-folder-containing-text-files" class="md-nav__link">
+    Starting from an existing folder containing text files
   </a>
   
 </li>
@@ -841,6 +822,13 @@
         <li class="md-nav__item">
   <a href="#starting-a-new-project" class="md-nav__link">
     Starting a new project
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#starting-a-project-from-a-workspace" class="md-nav__link">
+    Starting a project from a workspace
   </a>
   
 </li>
@@ -868,7 +856,7 @@
       
         <li class="md-nav__item">
   <a href="#changes-made-outside-the-editor" class="md-nav__link">
-    Changes made Outside the Editor
+    Changes made outside the Editor
   </a>
   
 </li>
@@ -906,20 +894,18 @@
                 
                 <h1 id="basic-usage">Basic Usage</h1>
 <p>These sections cover the most commonly used commands. For more advanced usage, please consult the <a href="../API/">API documentation</a>.</p>
-<h2 id="starting-from-text-files">Starting from text files</h2>
+<h2 id="starting-from-an-existing-folder-containing-text-files">Starting from an existing folder containing text files</h2>
 <p>Use <a href="../API/Link.Create/">Link.Create</a> to Link a directory containing text source to a namespace in the active workspace.</p>
-<p>The following example loads APL code from the folder <strong>/home/sally/myapp</strong> into a namespace called <code>myapp</code>.</p>
-<pre><code class="language-APL">      ⎕SE.Link.Create myapp '/home/sally/myapp'
+<p>The following example loads APL code from the folder <strong>/users/sally/myapp</strong> into a namespace called <code>myapp</code>.</p>
+<pre><code class="language-APL">      ⎕SE.Link.Create myapp '/users/sally/myapp'
 </code></pre>
 <p>For every day use in the session, it might be more convenient to use the user command:</p>
-<pre><code class="language-APL">      ]LINK.Create myapp /home/sally/myapp
+<pre><code class="language-APL">      ]LINK.Create myapp /users/sally/myapp
 </code></pre>
-<h2 id="starting-from-a-workspace">Starting from a workspace</h2>
-<p>If your existing code is in a workspace rather than in source files, you might want to read the section on <a href="WStoLink/">converting a workspace to source files</a> before continuing.</p>
 <h2 id="importing-code-without-creating-a-link">Importing code without creating a link</h2>
-<p>Sometimes you want to experiment and make modifications to your code without saving those changes. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link.</p>
+<p>Sometimes you want to experiment and make modifications to your code without saving those changes. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create, the important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import.</p>
 <h2 id="starting-a-new-project">Starting a new project</h2>
-<p>If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both). For <a href="../API/Link.Create/">Link.Create</a> to successfully establish a link, at least one of those must exist and exactly one of them needs to contain some code?</p>
+<p>If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both), and use <a href="../API/Link.Create/">Link.Create</a>, naming the namespace and the folder, as in the example at the start of this page.</p>
 <ul>
 <li>If neither of them exist, Link.Create will reject the request on suspicion that there is a typo, in order to avoid silently creating an empty directory by mistake.</li>
 <li>If both of them exist AND contain code, and the code is not identical on both sides, Link.Create will fail and you will need to specify the  <code>source</code> option, whether the namespace or the directory should be considered to be the source. Incorrectly specifying the source will potentially overwrite existing content on the other side, so use this with extreme caution!</li>
@@ -930,24 +916,26 @@
       stats.Root←{⍺←2 ⋄ ⍵*÷⍺}
       stats.StdDev←{2 Root(+.×⍨÷⍴),⍵-Mean ⍵}
 </code></pre>
-<p>We could now create a source directory using <a href="../API/Link.Export/">Link.Export</a>, and then use <a href="../API/Link.Create/">Link.Create</a> to create a link to it. However, <a href="../API/Link.Create/">Link.Create</a> can do this in one step: assuming that the directory <code>/tmp/stats</code> is empty or does not exist, the following command will detect that there is code in the workspace but not in the directory, and create a link based on the namespace that we just created:</p>
-<pre><code class="language-apl">      ]LINK.Create stats /tmp/stats -source=ns
+<p>We could now create a source directory using <a href="../API/Link.Export/">Link.Export</a>, and then use <a href="../API/Link.Create/">Link.Create</a> to create a link to it. However, <a href="../API/Link.Create/">Link.Create</a> can do this in one step: assuming that the directory <code>/users/sally/stats</code> is empty or does not exist, the following command will detect that there is code in the namespace but not in the directory, and create a link based on the namespace that we just populated with our functions:</p>
+<pre><code class="language-apl">      ]LINK.Create stats /users/sally/stats -source=ns
 Linked: #.stats ←→ C:\tmp\stats
 </code></pre>
 <p>The double arrow <code>←→</code> in the output indicates that synchronisation is bi-directional. We can verify that the three expected files have been created:</p>
 <pre><code class="language-apl">      ls←⎕NINFO⍠1 ⍝ List files, allowing wildcards
-      ls '/tmp/stats/*'
-  /tmp/stats/Mean.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
+      ls '/users/sally/stats/*'
+  /users/sally/stats/Mean.aplf  /users/sally/stats/Root.aplf  
+  /users/sally/stats/StdDev.aplf  
 </code></pre>
 <p>Let's verify that our source directory can be used to re-build the original namespace::</p>
 <pre><code class="language-apl">      )CLEAR
 clear ws
-      ]LINK.Create stats /tmp/stats
-Linked: stats ←→ C:\tmp\stats
+      ]LINK.Create stats /users/sally/stats
+Linked: stats ←→ users/sally/stats
       stats.⎕NL -3 ⍝ Verify functions were loaded as expected
  Mean  Root  StdDev
 </code></pre>
-<p>If you have an existing workspace containing several namespaces, code in the root of the workspace, or variables, you will want to read about <a href="WStoLink/">converting your workspace to text source</a>.</p>
+<h2 id="starting-a-project-from-a-workspace">Starting a project from a workspace</h2>
+<p>If your existing code is in a workspace rather than in text files, you should read the section on <a href="WStoLink/">converting a workspace to source files</a> before continuing.</p>
 <h2 id="saving-your-work">Saving your work</h2>
 <p>Once a link is set up using <a href="../API/Link.Create/">Link.Create</a>, you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the <code>stats</code> namespace are instantly copied to the corresponding source file. </p>
 <div class="admonition note">
@@ -955,7 +943,7 @@ Linked: stats ←→ C:\tmp\stats
 <p>In the context of this document, the term <em>Dyalog IDE</em> includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.</p>
 </div>
 <p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace.</p>
-<p>If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a <code>Median</code> function:</p>
+<p>If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a <code>Median</code> function to the namespace we created earlier:</p>
 <pre><code class="language-apl">      )ED stats.Median
 </code></pre>
 <p>In the Edit window, we complete the function:</p>
@@ -965,16 +953,21 @@ Linked: stats ←→ C:\tmp\stats
  }
 </code></pre>
 <p>When the editor fixes the definition of the function in the workspace, Link will create a new file:</p>
-<pre><code class="language-apl">      ls '/tmp/stats/*'
-  /tmp/stats/Mean.aplf  /tmp/stats/Median.aplf  /tmp/stats/Root.aplf  /tmp/stats/StdDev.aplf  
+<pre><code class="language-apl">      ls '/users/sally/stats/*'
+  /users/sally/stats/Mean.aplf  /users/sally/stats/Root.aplf  
+  /users/sally/stats/StdDev.aplf /users/stats/StdDev.aplf  
 </code></pre>
 <h2 id="viewing-the-status-of-links">Viewing the status of links</h2>
-<p>The function <a href="../API/Link.Status/">Link.Status</a> will show namespaces that are currently linked and the folders to which they are linked. The user command <code>]LINK.Status</code> is a convenient way to use this.</p>
+<p>The function (and corresponding user command) <a href="../API/Link.Status/">Link.Status</a> will show namespaces that are currently linked and the folders to which they are linked. For example:</p>
+<pre><code class="language-apl">       ]link.status
+ Namespace  Directory            Files
+ #.stats    /users/sally/stats       4  
+</code></pre>
 <h2 id="unlinking-a-namespace">Unlinking a namespace</h2>
-<p>To continue using code in the active workspace, but without updating text source files, use <a href="../API/Link.Break/">Link.Break</a> (or its user command equivalent.</p>
+<p>To continue using code in the active workspace without the risk of updating text source files or picking up changes made using external editors, use <a href="../API/Link.Break/">Link.Break</a>.</p>
 <p>Clearing the workspace, for example using <code>)CLEAR</code>, or exiting Dyalog, for example with <code>)OFF</code>, will also break all links in the active workspace.</p>
 <p>See the <a href="../Discussion/TechDetails/#breaking-links">technical details on breaking links</a> for more information, for example about what happens when you delete a linked namespace from the active workspace.</p>
-<h2 id="changes-made-outside-the-editor">Changes made Outside the Editor</h2>
+<h2 id="changes-made-outside-the-editor">Changes made outside the Editor</h2>
 <p>When changes are made using the editor which is built-in to Dyalog IDE (which includes RIDE), source files are updated immediately. Changes made outside the editor will not immediately be picked up. This includes:</p>
 <ul>
 <li>Definitions created or changed using assignment (<code>←</code>), <code>⎕FX</code>  or <code>⎕FIX</code> - or the APL line "<code>∇</code>" editor.</li>
@@ -990,7 +983,7 @@ Linked: stats ←→ C:\tmp\stats
       ]Link.Add stats.Directions
 Added: #.stats.Directions
 </code></pre>
-<p>Once you have created a source file for an array, Link <em>will</em> update that file if you use the editor to modify the array. Note that if you modify the array using assignment or other means than the editor, you will need to call <a href="../API/Link.Add/">Link.Add</a> to force and update of the source file.</p>
+<p>Once you have created a source file for an array, Link <em>will</em> update that file if you use the editor to modify the array. Only if you modify the array using assignment or other means than the editor will you need to call <a href="../API/Link.Add/">Link.Add</a> to force an update of the source file.</p>
 <p>Changes made to source files, including the addition of new <code>.apla</code>files, will always be reflected in the workspace, if the link has been set up to watch the file system.</p>
 <h2 id="setting-up-development-and-runtime-environments">Setting up Development and Runtime Environments</h2>
 <p>We have seen how to use <code>]Link.Create</code>to load textual source into the workspace in order to work with it. As your project grows, you will probably want to split your code into modules, for example application code in one directory and shared utilities in another - and maybe also run some code to get things set up.</p>

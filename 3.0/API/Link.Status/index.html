@@ -592,18 +592,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -811,18 +799,18 @@
 
 status ← {opts} ⎕SE.Link.Status ns
 </code></pre>
-<p>This function provides details of existing links.</p>
+<p>This function provides information about existing links.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>namespace to look for links in (use <code>''</code> to list all links)</li>
+<li>ns: namespace to look for links in (use <code>''</code> to list all links)</li>
 </ul>
 <h4 id="options">Options</h4>
 <ul>
-<li><strong>extended</strong> {<strong>0</strong>|1}<blockquote>
+<li><strong>extended</strong> {<strong>0</strong>|1}</li>
+</ul>
+<blockquote>
 <p>Request additional information</p>
 </blockquote>
-</li>
-</ul>
 <h4 id="result">Result</h4>
 <ul>
 <li>Table of links<blockquote>
@@ -832,7 +820,7 @@ status ← {opts} ⎕SE.Link.Status ns
 <li>namespace reference</li>
 <li>directory name</li>
 <li>number of linked files and directories (excluding root directory)<blockquote>
-<p>If <code>extended</code> was specified, link options settings:</p>
+<p>If <code>extended</code> was specified, options settings for each link:</p>
 </blockquote>
 </li>
 <li>case code</li>

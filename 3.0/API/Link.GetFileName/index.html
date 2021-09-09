@@ -637,18 +637,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../Link.Pause/" class="md-nav__link">
-        Link.Pause
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../Link.Refresh/" class="md-nav__link">
         Link.Refresh
       </a>
@@ -798,11 +786,11 @@
 <p>Returns the fully qualified name of the file containing the source of the given APL item.  See also <a href="../Link.GetItemName/">⎕SE.Link.GetItemName</a>.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>APL item name(s)</li>
+<li>A simple vector with an APL item name, or a vector enclosed names. The result will have the same structure as the argument.</li>
 </ul>
 <h4 id="result">Result</h4>
 <ul>
-<li>for each APL item name: </li>
+<li>For each APL item name: </li>
 <li>if item does not exist or does not belong to a linked namespace: empty vector</li>
 <li>otherwise: file name that the item is linked to</li>
 </ul>
