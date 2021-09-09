@@ -799,13 +799,13 @@
 
 msg ← {opts} ⎕SE.Link.Import (ns dir)
 </code></pre>
-<p>This function takes the same arguments as <a href="../Link.Create/">Link.Create</a>, but loads a directory containing source files into a namespace without creating a permanent link.</p>
+<p>This function takes the same arguments as <a href="../Link.Create/">Link.Create</a>, but loads a directory containing source files into a namespace without creating an active link.</p>
 <p>If source is a directory, then its contents are imported into the destination namespace.</p>
 <p>If source is a single file, then the corresponding APL name is created in the destination namespace.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>destination: namespace</li>
-<li>source: directory or file name</li>
+<li>ns: namespace</li>
+<li>dir: directory or file name</li>
 </ul>
 <h4 id="options">Options</h4>
 <ul>
