@@ -83,7 +83,7 @@ where `options` is a namespace with variables, named according to the option the
 Options can also be provided as a character vector with the literal array representation of the option workspace, for example:
 
 ```apl
-     '{name: 1}' FnName arguments
+     '(name: 1)' FnName arguments
 ```
 
 The details of the arguments and options can be found in the [API Reference](API/index.md).
