@@ -1,4 +1,4 @@
-﻿  {r}←Expunge names;container;file;i;link;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
+﻿  {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant in addition to ⎕EX
  ⎕IO ⎕ML←1 1
  :If U.debug=2
