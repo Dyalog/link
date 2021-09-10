@@ -2,23 +2,24 @@ site_name: Link User Guide
 repo_url: https://github.com/dyalog/link
 repo_name: Dyalog/Link
 nav:
-  - Introduction:
+  - Overview:
     - index.md
     - Discussion/TechDetails.md
     - Discussion/Workspaces.md
     - Discussion/History.md
     
-  - Installation and Upgrade:
+  - Install and Upgrade:
     - Usage/Installation.md
     - Upgradeto30.md
+    - ChangeHistory.md
     
-  - Usage:
+  - Working with Link:
     - Usage/index.md
     - Usage/Setup.md
     - Usage/WStoLink.md
     - Usage/SALTtoLink.md
     
-  - API:
+  - API & Command Reference:
     - API/index.md
     - API/Link.Add.md
     - API/Link.Break.md
@@ -38,8 +39,6 @@ nav:
     - API/Link.StripCaseCode.md
     - API/Link.TypeExtension.md
     - API/Link.Version.md
-  
-  - ChangeHistory.md
     
 theme:
   favicon: 'img/favicon-32.png'

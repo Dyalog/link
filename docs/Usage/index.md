@@ -16,7 +16,11 @@ For every day use in the session, it might be more convenient to use the user co
 ```
 
 ## Importing code without creating a link
-Sometimes you want to experiment and make modifications to your code without saving those changes. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create, the important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import.
+Sometimes you want to experiment and make modifications to your code without saving those changes. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:
+
+```apl
+      ]LINK.Import myapp /users/sally/myapp
+```
 
 ## Starting a new project
 If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both), and use [Link.Create](../API/Link.Create.md), naming the namespace and the folder, as in the example at the start of this page.
@@ -38,7 +42,7 @@ We could now create a source directory using [Link.Export](../API/Link.Export.md
       ]LINK.Create stats /users/sally/stats -source=ns
 Linked: #.stats ←→ C:\tmp\stats
 ```
-The double arrow `←→` in the output indicates that synchronisation is bi-directional. We can verify that the three expected files have been created:
+The double arrow `←→` in the output indicates that synchronisation is bi-directional. If .NET is not available, the default will be to only replicate changes in the namespace to file, which will be indicated by a `→`. We can check that the three expected files have been created:
 
 ```apl
       ls←⎕NINFO⍠1 ⍝ List files, allowing wildcards
@@ -46,7 +50,7 @@ The double arrow `←→` in the output indicates that synchronisation is bi-dir
   /users/sally/stats/Mean.aplf  /users/sally/stats/Root.aplf  
   /users/sally/stats/StdDev.aplf  
 ```
-Let's verify that our source directory can be used to re-build the original namespace::
+We can also verify that the new source directory can be used to re-build the original namespace::
 
 ```apl
       )CLEAR
@@ -62,12 +66,14 @@ Linked: stats ←→ users/sally/stats
 If your existing code is in a workspace rather than in text files, you should read the section on [converting a workspace to source files](WStoLink.md) before continuing.
 
 ## Saving your work
-Once a link is set up using [Link.Create](../API/Link.Create.md), you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the `stats` namespace are instantly copied to the corresponding source file. 
+Once a link is set up using [Link.Create](../API/Link.Create.md), you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the `stats` namespace are instantly copied to the corresponding source file.
+
+The use of a source code management system like Git is recommended. I you do that, then you effectively save your work by doing a commit.
 
 !!! Note
 	In the context of this document, the term *Dyalog IDE* includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.
 
-Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace.
+Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).
 
 If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a `Median` function to the namespace we created earlier:
 
@@ -102,7 +108,7 @@ The function (and corresponding user command) [Link.Status](../API/Link.Status.m
  #.stats    /users/sally/stats       4  
 ```
 
-## Unlinking a namespace
+## Un-Linking a namespace
 To continue using code in the active workspace without the risk of updating text source files or picking up changes made using external editors, use [Link.Break](../API/Link.Break.md).
 
 Clearing the workspace, for example using `)CLEAR`, or exiting Dyalog, for example with `)OFF`, will also break all links in the active workspace.
