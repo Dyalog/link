@@ -203,13 +203,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_1" type="checkbox" id="__nav_1" >
       
       <label class="md-nav__link" for="__nav_1">
-        Introduction
+        Overview
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Introduction" data-md-level="1">
+      <nav class="md-nav" aria-label="Overview" data-md-level="1">
         <label class="md-nav__title" for="__nav_1">
           <span class="md-nav__icon md-icon"></span>
-          Introduction
+          Overview
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -283,13 +283,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
       
       <label class="md-nav__link" for="__nav_2">
-        Installation and Upgrade
+        Install and Upgrade
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Installation and Upgrade" data-md-level="1">
+      <nav class="md-nav" aria-label="Install and Upgrade" data-md-level="1">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
-          Installation and Upgrade
+          Install and Upgrade
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -312,6 +312,18 @@
     <li class="md-nav__item">
       <a href="../Upgradeto30/" class="md-nav__link">
         Upgrading to Link 3.0
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ChangeHistory/" class="md-nav__link">
+        Change History
       </a>
     </li>
   
@@ -341,13 +353,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
       
       <label class="md-nav__link" for="__nav_3">
-        Usage
+        Working with Link
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Usage" data-md-level="1">
+      <nav class="md-nav" aria-label="Working with Link" data-md-level="1">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
-          Usage
+          Working with Link
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -429,8 +441,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#unlinking-a-namespace" class="md-nav__link">
-    Unlinking a namespace
+  <a href="#un-linking-a-namespace" class="md-nav__link">
+    Un-Linking a namespace
   </a>
   
 </li>
@@ -522,13 +534,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
       
       <label class="md-nav__link" for="__nav_4">
-        API
+        API & Command Reference
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="API" data-md-level="1">
+      <nav class="md-nav" aria-label="API & Command Reference" data-md-level="1">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
-          API
+          API & Command Reference
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -766,21 +778,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ChangeHistory/" class="md-nav__link">
-        Change History
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -848,8 +845,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#unlinking-a-namespace" class="md-nav__link">
-    Unlinking a namespace
+  <a href="#un-linking-a-namespace" class="md-nav__link">
+    Un-Linking a namespace
   </a>
   
 </li>
@@ -903,7 +900,9 @@
 <pre><code class="language-APL">      ]LINK.Create myapp /users/sally/myapp
 </code></pre>
 <h2 id="importing-code-without-creating-a-link">Importing code without creating a link</h2>
-<p>Sometimes you want to experiment and make modifications to your code without saving those changes. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create, the important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import.</p>
+<p>Sometimes you want to experiment and make modifications to your code without saving those changes. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:</p>
+<pre><code class="language-apl">      ]LINK.Import myapp /users/sally/myapp
+</code></pre>
 <h2 id="starting-a-new-project">Starting a new project</h2>
 <p>If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both), and use <a href="../API/Link.Create/">Link.Create</a>, naming the namespace and the folder, as in the example at the start of this page.</p>
 <ul>
@@ -920,13 +919,13 @@
 <pre><code class="language-apl">      ]LINK.Create stats /users/sally/stats -source=ns
 Linked: #.stats ←→ C:\tmp\stats
 </code></pre>
-<p>The double arrow <code>←→</code> in the output indicates that synchronisation is bi-directional. We can verify that the three expected files have been created:</p>
+<p>The double arrow <code>←→</code> in the output indicates that synchronisation is bi-directional. If .NET is not available, the default will be to only replicate changes in the namespace to file, which will be indicated by a <code>→</code>. We can check that the three expected files have been created:</p>
 <pre><code class="language-apl">      ls←⎕NINFO⍠1 ⍝ List files, allowing wildcards
       ls '/users/sally/stats/*'
   /users/sally/stats/Mean.aplf  /users/sally/stats/Root.aplf  
   /users/sally/stats/StdDev.aplf  
 </code></pre>
-<p>Let's verify that our source directory can be used to re-build the original namespace::</p>
+<p>We can also verify that the new source directory can be used to re-build the original namespace::</p>
 <pre><code class="language-apl">      )CLEAR
 clear ws
       ]LINK.Create stats /users/sally/stats
@@ -937,12 +936,13 @@ Linked: stats ←→ users/sally/stats
 <h2 id="starting-a-project-from-a-workspace">Starting a project from a workspace</h2>
 <p>If your existing code is in a workspace rather than in text files, you should read the section on <a href="WStoLink/">converting a workspace to source files</a> before continuing.</p>
 <h2 id="saving-your-work">Saving your work</h2>
-<p>Once a link is set up using <a href="../API/Link.Create/">Link.Create</a>, you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the <code>stats</code> namespace are instantly copied to the corresponding source file. </p>
+<p>Once a link is set up using <a href="../API/Link.Create/">Link.Create</a>, you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the <code>stats</code> namespace are instantly copied to the corresponding source file.</p>
+<p>The use of a source code management system like Git is recommended. I you do that, then you effectively save your work by doing a commit.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In the context of this document, the term <em>Dyalog IDE</em> includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.</p>
 </div>
-<p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace.</p>
+<p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).</p>
 <p>If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a <code>Median</code> function to the namespace we created earlier:</p>
 <pre><code class="language-apl">      )ED stats.Median
 </code></pre>
@@ -963,7 +963,7 @@ Linked: stats ←→ users/sally/stats
  Namespace  Directory            Files
  #.stats    /users/sally/stats       4  
 </code></pre>
-<h2 id="unlinking-a-namespace">Unlinking a namespace</h2>
+<h2 id="un-linking-a-namespace">Un-Linking a namespace</h2>
 <p>To continue using code in the active workspace without the risk of updating text source files or picking up changes made using external editors, use <a href="../API/Link.Break/">Link.Break</a>.</p>
 <p>Clearing the workspace, for example using <code>)CLEAR</code>, or exiting Dyalog, for example with <code>)OFF</code>, will also break all links in the active workspace.</p>
 <p>See the <a href="../Discussion/TechDetails/#breaking-links">technical details on breaking links</a> for more information, for example about what happens when you delete a linked namespace from the active workspace.</p>
@@ -1005,7 +1005,7 @@ Added: #.stats.Directions
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
-        <a href="../Upgradeto30/" class="md-footer__link md-footer__link--prev" rel="prev">
+        <a href="../ChangeHistory/" class="md-footer__link md-footer__link--prev" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1014,7 +1014,7 @@ Added: #.stats.Directions
               <span class="md-footer__direction">
                 Previous
               </span>
-              Upgrading to Link 3.0
+              Change History
             </div>
           </div>
         </a>
