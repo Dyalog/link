@@ -145,7 +145,7 @@ NOHOLD:
 NOLINK:
      :If ~callback  ⍝ leave editor alone if not linked
      :AndIf ~add    ⍝ Link.Add fixes only in linked namespaces
-         names←2 nsref.⎕FIX src
+         names←,⊂⊃nsref U.Fix name src 1
      :EndIf
 
  :Else
