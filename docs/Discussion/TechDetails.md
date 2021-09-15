@@ -23,7 +23,8 @@ It is likely that this restriction will be lifted in a future version of Link.
 ## Other Limitations
 
 - Namespaces must be named. To be precise, it must be true that `ns≡(⎕NS⍬)⍎⍕ns`. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using `⎕NS` dyadically to name the created namespace (for example `'myproject' ⎕NS ⍬` rather than `myproject←⎕NS ⍬`). This allows retrieving namespace reference from its display from (for example `#.myproject` rather than `#.[namespace]`).
-- There must be exactly one file per name created in the workspace. In particular, you must not have more than one file defining the same object: this will cause an error on [Link.Create](../API/Link.Create.md) or [Link.Import](../API/Link.Import.md).
+- There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on [Link.Create](../API/Link.Create.md) or [Link.Import](../API/Link.Import.md).
+- In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The `casecode` option can be used to get Link to generate file names which encode case information - see [Link.Create](../API/Link.Create.md) for more information.
 - Link does not support namespace-tagged functions and operators (e.g. `foo←namespace.{function}`).
 - Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` or the APL line `∇` editor are not currently detected. For Link to be aware of the change, a call must be made to [Link.Fix](../API/Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](../API/Link.Expunge.md).
 - Link does not support source files that define multiple names, even though `2∘⎕FIX` does support this.
