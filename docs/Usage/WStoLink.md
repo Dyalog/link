@@ -13,7 +13,7 @@ The simplest way to do this is to use [Link.Export](../API/Link.Export.md). In p
 or equivalently, using the user command:
 
 ```APL
-      ]link.export # /folder/name -arrays -sysVars
+      ]link.export # /folder/name -arrays -sysvars
 ```
 
 You can also use [Link.Create](../API/Link.Create.md) with the same arguments, if you want an active link to exist after the export has been done.
