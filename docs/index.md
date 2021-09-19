@@ -31,7 +31,7 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 
 ## Link is NOT...
 
-- **A source code management system**: we recommend using Git to manage the text files that Link will help you create and edit using Dyalog.
+- **A source code management system**: unlike it's [predecessor SALT](../Usage/SALTtoLink.md), Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.
 - **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, source files are only created for arrays by explicit calls to [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
 
 ## Link fundamentals
@@ -40,6 +40,12 @@ Link establishes ***links*** between one or more **namespaces** in the active AP
 
 ```      apl
       ]LINK.Create myapp /home/sally/myapp
+```
+
+A set of API functions is available in the session namespace `⎕SE`, for performing Link operations under programme control. Using the API, the above would be written:
+
+```apl
+      ⎕SE.Link.Create 'myapp' '/home/sally/myapp'
 ```
 
 If `myapp` contains sub-directories, a namespace hierarchy corresponding to the directory structure will be created within the `myapp` namespace. By default, the link is bi-directional, which means that Link will:
