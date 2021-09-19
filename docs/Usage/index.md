@@ -39,7 +39,7 @@ To illustrate, we will create a namespace and populate it with two dfns and one 
 We could now create a source directory using [Link.Export](../API/Link.Export.md), and then use [Link.Create](../API/Link.Create.md) to create a link to it. However, [Link.Create](../API/Link.Create.md) can do this in one step: assuming that the directory `/users/sally/stats` is empty or does not exist, the following command will detect that there is code in the namespace but not in the directory, and create a link based on the namespace that we just populated with our functions:
 
 ```apl
-      ]LINK.Create stats /users/sally/stats -source=ns
+      ]LINK.Create stats /users/sally/stats
 Linked: #.stats ←→ C:\tmp\stats
 ```
 The double arrow `←→` in the output indicates that synchronisation is bi-directional. If .NET is not available, the default will be to only replicate changes in the namespace to file, which will be indicated by a `→`. We can check that the three expected files have been created:

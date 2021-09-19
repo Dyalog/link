@@ -17,7 +17,7 @@ With the exception of the scenarios mentioned above, Link is intended to make it
 If you `)SAVE` a workspace which has active links in it, this creates a potential conflict between the source code embedded in the workspace and any changes that may have been made to external source since the workspace was saved. If you `)LOAD` a saved workspace, Link will issue a warning along the lines of:
 
 ```
-IMPORTANT: 1 linked namespace linked in this workspace: #.myapp
+IMPORTANT: 1 namespace linked in this workspace: #.myapp
 IMPORTANT: Link.Resync is required to use anything other than Link.Status and Link.Diff
 ```
 

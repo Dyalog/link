@@ -14,11 +14,13 @@
              linked←z∊nss ⍝ Link.Fix will do what needs to be done; skip SALT's handling
          :EndIf
      :Until linked∨z≡z⍎'##'
-     :Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error
-         {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
-     :Else
-         U.Warn⊃⎕DMX.DM
-     :EndTrap
+     :If linked
+         :Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error
+             {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
+         :Else
+             U.Warn⊃⎕DMX.DM
+         :EndTrap
+     :EndIf
  :Else
      linked←0 ⍝ Let SALT try
  :EndIf
