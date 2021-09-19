@@ -921,12 +921,15 @@
 </ul>
 <h2 id="link-is-not">Link is NOT...</h2>
 <ul>
-<li><strong>A source code management system</strong>: we recommend using Git to manage the text files that Link will help you create and edit using Dyalog.</li>
+<li><strong>A source code management system</strong>: unlike it's <a href="../Usage/SALTtoLink.md">predecessor SALT</a>, Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.</li>
 <li><strong>A database management system:</strong> although Link is able to store APL arrays using a pre-release of the <em>literal array notation</em>, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, source files are only created for arrays by explicit calls to <a href="API/Link.Add/">Link.Add</a> or by specifying optional parameters to <a href="API/Link.Export/">Link.Export</a>. Application data should be stored in a database management system or files managed by the application.</li>
 </ul>
 <h2 id="link-fundamentals">Link fundamentals</h2>
 <p>Link establishes <strong><em>links</em></strong> between one or more <strong>namespaces</strong> in the active APL workspace and corresponding <strong>directories</strong> containing APL source code in Unicode test files. For example, the following user command invocation will link a namespace called <code>myapp</code> to the folder <code>/home/sally/myapp</code>:</p>
 <pre><code class="language-apl">      ]LINK.Create myapp /home/sally/myapp
+</code></pre>
+<p>A set of API functions is available in the session namespace <code>⎕SE</code>, for performing Link operations under programme control. Using the API, the above would be written:</p>
+<pre><code class="language-apl">      ⎕SE.Link.Create 'myapp' '/home/sally/myapp'
 </code></pre>
 <p>If <code>myapp</code> contains sub-directories, a namespace hierarchy corresponding to the directory structure will be created within the <code>myapp</code> namespace. By default, the link is bi-directional, which means that Link will:</p>
 <ul>

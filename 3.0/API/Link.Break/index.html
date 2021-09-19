@@ -837,6 +837,10 @@
 message ← {options} ⎕SE.Link.Break namespace
 </code></pre>
 <p>Breaks an existing link: Does not affect the contents of the active workspace except to remove all traces of the link, preventing any further synchronisation from taking place.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you have enabled Pause Threads on Error and you have a thread running which encounters an error, Link.Break can hang when a thread which is created to shut down the file system watcher becomes paused. If this happens, use IDE menu items to resume execution.</p>
+</div>
 <h2 id="arguments">Arguments</h2>
 <p><code>namespace</code> is a list of namespace names as character vectors or references</p>
 <p>In the user command, <code>&lt;ns&gt;</code> is a space-separated list of namespace names</p>

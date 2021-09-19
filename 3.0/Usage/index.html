@@ -916,7 +916,7 @@
       stats.StdDev←{2 Root(+.×⍨÷⍴),⍵-Mean ⍵}
 </code></pre>
 <p>We could now create a source directory using <a href="../API/Link.Export/">Link.Export</a>, and then use <a href="../API/Link.Create/">Link.Create</a> to create a link to it. However, <a href="../API/Link.Create/">Link.Create</a> can do this in one step: assuming that the directory <code>/users/sally/stats</code> is empty or does not exist, the following command will detect that there is code in the namespace but not in the directory, and create a link based on the namespace that we just populated with our functions:</p>
-<pre><code class="language-apl">      ]LINK.Create stats /users/sally/stats -source=ns
+<pre><code class="language-apl">      ]LINK.Create stats /users/sally/stats
 Linked: #.stats ←→ C:\tmp\stats
 </code></pre>
 <p>The double arrow <code>←→</code> in the output indicates that synchronisation is bi-directional. If .NET is not available, the default will be to only replicate changes in the namespace to file, which will be indicated by a <code>→</code>. We can check that the three expected files have been created:</p>

@@ -825,7 +825,7 @@
 <p>With the exception of the scenarios mentioned above, Link is intended to make it unnecessary to save workspaces. All source code changes that you make while editing or tracing your code should immediately end up in text files and be managed using an SCM. The normal workflow is to start each APL session by loading the code into the workspace from source directories. You might want to save a "stub" workspace that contains a very small amount of code that loads everything else from text source, but from version 18.0 of Dyalog APL you can now <a href="../../Usage/Setup/">easily set that up using text files as well</a>, rendering workspaces obsolete as part of your normal development workflow.</p>
 <h3 id="saving-workspaces-containing-links">Saving workspaces containing Links</h3>
 <p>If you <code>)SAVE</code> a workspace which has active links in it, this creates a potential conflict between the source code embedded in the workspace and any changes that may have been made to external source since the workspace was saved. If you <code>)LOAD</code> a saved workspace, Link will issue a warning along the lines of:</p>
-<pre><code>IMPORTANT: 1 linked namespace linked in this workspace: #.myapp
+<pre><code>IMPORTANT: 1 namespace linked in this workspace: #.myapp
 IMPORTANT: Link.Resync is required to use anything other than Link.Status and Link.Diff
 </code></pre>
 <p>In other words, most link user commands and API functions will be disabled, until you run <a href="../../API/Link.Resync/">Link.Resync</a>, which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.</p>
