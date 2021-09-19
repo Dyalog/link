@@ -2,6 +2,8 @@
 
     ext ← opts ⎕SE.Link.TypeExtension nc 
 
+This function is used internally by Link, but is also available for use when implementing extensions to Link using exits like `beforeRead` and `beforeWrite`.
+
 #### Right Argument
 
 - nameclass of item

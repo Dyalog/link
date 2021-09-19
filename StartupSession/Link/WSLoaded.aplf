@@ -1,4 +1,4 @@
- WSLoaded;i;keep;links;msg;wslinks
+ WSLoaded;i;keep;links;msg;wslinks;link;diff;allOK
 ⍝ Action to be taken upon )LOAD or )CLEAR
  :Trap 0  ⍝ can't afford to error
      :Hold '⎕SE.Link.Links'
@@ -22,13 +22,32 @@
          :If ~0∊⍴wslinks
              links,←wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
              wslinks.restored←1 ⋄ wslinks.fsw←⎕NULL  ⍝ fsw re-instancited by Resync
-             msg←(⍕≢wslinks),' linked namespace',('s '/⍨1≠≢wslinks),' linked in this workspace: '
-             'IMPORTANT'U.Warn(⊂msg),⍕¨wslinks.ns
-             'IMPORTANT'U.Warn'Link.Resync is required to use anything other than Link.Status and Link.Diff'
          :EndIf
 
          U.SetLinks links
      :EndHold
+
+     allOK←0
+     :Trap 0 ⍝ If diffs fail for any reason, bail out
+        diff←0 4⍴0
+        :For link :In wslinks.ns
+            diff⍪←⎕SE.Link.Diff link
+        :EndFor
+        allOK←0=≢diff
+     :EndTrap
+
+     :If allOK
+        links.restored←0 ⍝ No resync required
+        msg←(⍕≢wslinks),' link',('s '/⍨1≠≢wslinks),' restored: '
+        U.Warn (⊂msg),(⍕¨wslinks.ns)
+     :ElseIf 0≠≢wslinks
+        msg←(⍕≢wslinks),' namespaces',('s '/⍨1≠≢wslinks),' linked in this workspace: '
+        'IMPORTANT'U.Warn(⊂msg),⍕¨wslinks.ns
+        'IMPORTANT'U.Warn'Link.Resync is required to use anything other than Link.Status and Link.Diff'
+     :Else
+         ¯1 U.Log'No links found'    
+     :EndIf
+
  :Else
      ⎕←'Link.WSLoaded: Unable to clear links (',⎕DMX.(Message{⍵,⍺,⍨': '/⍨×≢⍺}EM),')'
  :EndTrap

@@ -7,8 +7,8 @@
 
 ## Arguments
 
-- `namespace` is either a reference to, or a simple character containing the name of, a namespace.  
-	In the user command `<ns>` is simply the name of the namespace.
+- `namespace` is either a reference to, or a simple character containing the name of a namespace.  
+	In the user command `<ns>` is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing `[namespace]` or similar segments).
 - `directory` is a simple character vector containing the path to a file system directory without any trailing slash or backslash.  
 	In the user command, `<dir>` is the path to the file system directory.
 
@@ -30,29 +30,40 @@ The **source** option specifies whether to consider the namespace in the active 
 - **auto** will use whichever of ns or dir that is not empty. If both are empty, it will use **dir** on a subsequent [Refresh](Link.Refresh.md).
 
 ### **watch**
-Default: **both** where supported, else **ns**
+Default: **both** if a file system watcher can be created, else **ns**
 
 The **watch** option specifies which sides of the link to watch for changes (and synchronise). Watching a **dir** (or **both**) is currently only supported using the .NET Framework or .NET Core.
 
-`watch` is a simple character vector, one of `'none'`, `'ns'`m `'dir'` or `'both'`.
+`watch` is a simple character vector, one of `'none'`, `'ns'`, `'dir'` or `'both'`.
 
-- **none**: Changes are not automatically reflected across the link. However, linked files can be updated from definitions in the active workspace using [Link.Add](Link.Add.md) and names in the active workspace can be updated from linked files using [Link.Refresh](Link.Refresh.md).
-- **ns** will mirror namespace changes (done with the editor) to files. Note that it will **not** reflect changes made using other mechanisms, such as assignment, `⎕FX`, `⎕FIX`, `⎕CY`,  or `⎕NS`. If you want to programmatically change an item so that the change is reflected to files, you should use [⎕SE.Link.Fix](Link.Fix.md).
-- **dir** will mirror changes made to files (using any mechanism) into the namespace. Note that there is a chance that massive file changes (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes. It is recommended to [Link.Pause](Link.Pause.md) the link before doing massive changes to files, then [Link.Resync](Link.Resync.md) to resume file watching.
-- **both** will do both.
-
-### **caseCode**
-Default: **off**
-
-The **caseCode** flag adds a suffix to file names on write.
-
-If your application contains items with names that differ only in case (for example `Debug` and `DEBUG`), and your file system is case-insensitive (for example, under Microsoft Windows), then enabling **caseCode** will cause a suffix to be added to file names, containing an octal encoding of the location of uppercase letters in the name.
-
-For example, with caseCode on, two functions named `Debug` and `DEBUG` will be written to files named
-`Debug-1.aplf` and `DEBUG-37.aplf`.
+- **none:** changes are not automatically propagated across the link in either direction.
+- **ns:** changes made in a linked namespace changes (made with the editor) will be copied to files. Note that it will **not** reflect changes made using other mechanisms, such as assignment, `⎕FX`, `⎕FIX`, `⎕CY`,  or `⎕NS`. If you want to programmatically change an item so that the change is reflected to files, you should use [⎕SE.Link.Fix](Link.Fix.md).
+- **dir** will mirror changes made to files (using any mechanism) into the linked namespace. Note that there is a chance that updating a large number of files (e.g. git checkout, git pull or an unzip) may cause the file system watcher to miss changes and not report them to Link. If the source files are on a network drive, the file system watcher may be even more unreliable. Use [⎕SE.Link.Resync](Link.Resync.md) if you suspect something is wrong.
+- **both** will synchronise changes in both directions. This is the default, and is recommended except in very special circumstances.
 
 !!! Note
-	Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. You will probably want to enable **forceFilenames** if you enable **caseCode**.
+	[Link.Refresh](Link.Refresh.md) can be used to force a wholesale update of everything based on the setting of the `-source`option, and [Link.Resync](Link.Resync.md) can always be used to generate a list of differences between the workspace and linked directories if you are in doubt about the current state.
+
+### **arrays**
+
+Default: **off**
+
+The **arrays** flag will export arrays on link creation.
+
+- if simply set (`options.arrays←1` for the function or `-arrays` for the user command), then all arrays are exported.
+- if set to a comma-separated list of names (`options.arrays←'name1,name2,...'` for the function or `-arrays=name1,name2,...` for the user command) then arrays with specified names are exported.
+
+This option takes effect only when **source** is **ns**, and only when the link is initially created.
+
+### **sysVars**
+
+Default: **off**
+
+The **sysVars** flag will export namespace-scoped system variables to file.
+
+The exhaustive list of exported variables is: `⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX`. They will be exported for all unscripted namespaces.
+
+This option takes effect only when **source** is **ns**.
 
 ### **forceExtensions**
 Default: **off**
@@ -65,31 +76,12 @@ If enabled, file extensions will be adjusted (if necessary), when an item is def
 Default: **off**
 
 The **forceFilenames** flag will force correct file names.
-  
+
 If enabled, file names will be adjusted so that they match the item name, when an item is defined in the workspace from an external file, so that the file name matches the name of the item.
 
 By default, Link will always create new files with the same name as items created in the active workspace. However, it will not insist that file names match item names when importing items from a directory.
 
 If **forceFilenames** is not set.  Link will update to the same file that an item was loaded from, even though the file name does not match the item name.
-
-### **arrays**
-Default: **off**
-
-The **arrays** flag will export arrays on link creation.
-
-- if simply set (`options.arrays←1` for the function or `-arrays` for the user command), then all arrays are exported.
-- if set to a comma-separated list of names (`options.arrays←'name1,name2,...'` for the function or `-arrays=name1,name2,...` for the user command) then arrays with specified names are exported.
-
-This option takes effect only when **source** is **ns**, and only when the link is initially created. Arrays will not be monitored for changes during operation of the application.
-
-### **sysVars**
-Default: **off**
-
-The **sysVars** flag will export namespace-scoped system variables to file.
-
-The exhaustive list of exported variables is: `⎕AVU  ⎕CT  ⎕DCT  ⎕DIV  ⎕FR  ⎕IO  ⎕ML  ⎕PP  ⎕RL  ⎕RTL  ⎕USING  ⎕WX`. They will be exported for all unscripted namespaces.
-
-This option takes effect only when **source** is **ns**.
 
 ## Advanced Options
 
@@ -100,10 +92,10 @@ The **flatten** flag prevents the creation of sub-namespaces in the active works
 
 The **flatten** option will load all items into the root of the linked namespace, even if the source code is arranged into sub-directories. This is typically used for applications that have source which is divided into modules, but still expects to run in a "flat" workspace.
 
-Note that if **flatten** is set, new items need special treatment:
+Note that if **flatten** is set, newly created items need special treatment:
 
 - If a function or operator is renamed in the editor, the new item will be placed in the
-ame folder as the original item.
+same folder as the original item.
 - If a new item is created, it will be placed in the root of the linked directory.
 - It is also possible to use the **getFilename** setting to add application-specific logic to determine the file name to be used (or prompt the user for a decision).
 
@@ -111,7 +103,22 @@ A suggested workflow is to always create a stub source file in the correct direc
 
 This option takes effect only when **source** is **dir**.
 
+### **caseCode**
+
+Default: **off**
+
+The **caseCode** flag adds a suffix to file names on write.
+
+If your application contains items with names that differ only in case (for example `Debug` and `DEBUG`), and your file system is case-insensitive (for example, under Microsoft Windows), then enabling **caseCode** will cause a suffix to be added to file names, containing an octal encoding of the location of uppercase letters in the name.
+
+For example, with caseCode on, two functions named `Debug` and `DEBUG` will be written to files named
+`Debug-1.aplf` and `DEBUG-37.aplf`.
+
+!!! Note
+	Dyalog recommends that you avoid creating systems with names that differ only in case. This feature primarily exists to support the import of applications which already use such names. You will probably also want to enable **forceFilenames** if you enable **caseCode**.
+
 ### **beforeWrite**
+
 If you specify a **beforeWrite** function, it will be called before Link updates a file or directory, allowing support of custom code or data formats. 
 
 `beforeWrite` is a simple character vector containing the name of a function relative to the linked namespace.
@@ -212,7 +219,7 @@ From a user command, the syntax is `-customExtensions=var` where `var` holds the
 If you have specified a **beforeRead** handler function, and your code supports the use of custom file extensions to store source data in application-specific formats, you need to set **customExtensions** so that Link does not ignore changes to these file types.
 
 The reason for splitting the list of extensions into two parts ([**codeExtensions**](#code-extensions) and **customExtensions**) is to avoid your code having to repeat the list of standard extensions, or update this list if it should be extended in the future.
-  
+
 ### **typeExtensions**
 Default: `6 2⍴2 'apla' 3 'aplf' 4 'aplo' 9.1 'apln' 9.4 'aplc' 9.5 'apli'`
 

@@ -12,7 +12,7 @@ SALT includes basic version control features, such as storing multiple versions 
 
 ## Different API
 
-Obviously, you need to replace all calls to SALT functions like `⎕SE.SALT.Load` with calls to `⎕SE.Link.Create` or `⎕SE.Link.Import`.
+You need to replace all calls to SALT functions like `⎕SE.SALT.Load` with calls to `⎕SE.Link.Create` or `⎕SE.Link.Import`.
 
 ## File Name Extensions
 

@@ -268,7 +268,6 @@
       :ElseIf (warn=0)∨(LOGCRAWLER∧warn=¯1) ⋄ title ##.U.Log msg
       :EndIf
     ∇
-    ErrorCrawler←'⎕SE.Link.Crawler'∘##.U.Error
 
     ∇ AddCrawler link;args
       :Hold '⎕SE.Link.Crawler'
@@ -351,15 +350,15 @@
 
     ∇ (link items active warned)←GetCrawlerLink link;inx
       :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
-          ErrorCrawler'Link not found: ',⍕link
+          'Crawler' ##.U.Error 'Link not found: ',⍕link
       :EndIf
       (link items active warned)←LINKS[L_LINK L_ITEMS L_ACTIVE L_WARNED;inx]
     ∇
     ∇ SetCrawlerLink(link items active warned);inx
       :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
-          ErrorCrawler'Link not found: ',⍕link
+          'Crawler' ##.U.Error 'Link not found: ',⍕link
       :ElseIf {(≢¨∪¨⍵)≢(≢¨⍵)}(↓2↑items)~¨⊂⊂''
-          ErrorCrawler'Internal error: non-unique items'
+          'Crawler' ##.U.Error 'Internal error: non-unique items'
       :EndIf
       LINKS[L_LINK L_ITEMS L_ACTIVE L_WARNED;inx]←(link items active warned)
     ∇

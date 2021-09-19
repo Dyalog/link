@@ -6,10 +6,10 @@ Returns the name of the fully qualified APL item that is linked to a file. See a
 
 #### Arguments
 
-- file name(s)
+- A simple vector containing a file name, or a vector of enclosed names. The result will have the same structure as the argument.
 
 #### Result
 
-- for each file name:
+- For each file name:
   - if file does not exist or does not belong to a linked directory: empty vector
   - otherwise : item name that the file is linked to

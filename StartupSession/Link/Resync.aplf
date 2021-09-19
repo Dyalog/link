@@ -1,9 +1,10 @@
- msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name
+ msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name;restored
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     restored←⍬
      opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
      :If 0∊⍴links←U.GetLinks ⋄ →0⊣msg←'No active links' ⋄ :EndIf
      diff←0 4⍴⊂''
@@ -16,7 +17,7 @@
          msg←'No action required'
 
      :ElseIf ~opts.{0::0 ⋄ proceed}⍬   ⍝ Do not proceed with changes
-         msg←⊂(⍕≢diff),' update',(1<≢diff)↓'s required',(~∨/manual)/': use -proceed option to synchronise'
+         msg←⊂(⍕≢diff),' update',(1=≢diff)↓'s required',(~∨/manual)/': use -proceed option to synchronise'
          msg,←(∨/manual)/⊂'NOTE: ',(⍕+/manual),' change',(1<+/manual)↓'s must be resolved by hand before -proceed is possible'
          msg,←(⊂''),↓⍕('Direction' 'Name' 'File' 'Comments'⍪diff)[;2 1 3 4]
          msg←↑msg
@@ -24,18 +25,20 @@
 
      :ElseIf ∧/mask←2≥type←'←→'⍳diff[;1]   ⍝ Can proceed with changes
          msg←''
+         restored←links.restored
+         links.restored←0   ⍝ turn this off now or update operations will fail
          :If ∨/mask←type=1  ⍝ some APL objects to update from file
              z←{Notify'changed'⍵}¨diff[⍸mask;3]
-             msg,←,(⍕+/mask),' file',(1<+/mask)↓'s read, '
+             msg,←,(⍕+/mask),' file',(1=+/mask)↓'s read, '
          :EndIf
          :If ∨/mask←type=2  ⍝ some files to update from APL source
              z←Add names←diff[⍸mask;2]
-             msg,←,(⍕+/mask),' file',(1<+/mask)↓'s updated, '
+             msg,←,(⍕+/mask),' file',(1=+/mask)↓'s updated, '
          :EndIf
          msg←¯2↓msg
 
      :Else  ⍝ cannot perform changes automatically
-         U.Error'Some differences require manual resolution:',U.FmtLines↓⍕(~mask)⌿diff
+         U.Error'Manual resolution required:',U.FmtLines↓⍕(~mask)⌿diff
      :EndIf
 
      ⍝ Resync was successful
@@ -45,5 +48,8 @@
      :EndIf
 
  :Else
+     :If restored≢⍬
+         links.restored←restored ⍝ Restore recorded state on any failure
+     :EndIf
      U.Resignal 1
  :EndTrap

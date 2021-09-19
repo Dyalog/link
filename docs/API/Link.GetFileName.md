@@ -6,10 +6,10 @@ Returns the fully qualified name of the file containing the source of the given 
 
 #### Arguments
 
-- APL item name(s)
+- A simple vector with an APL item name, or a vector enclosed names. The result will have the same structure as the argument.
 
 #### Result
 
-- for each APL item name: 
+- For each APL item name: 
   - if item does not exist or does not belong to a linked namespace: empty vector
   - otherwise: file name that the item is linked to

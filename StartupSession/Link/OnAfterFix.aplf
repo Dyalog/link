@@ -15,7 +15,11 @@
          :EndIf
      :Until linked∨z≡z⍎'##'
      :If linked
-         {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
+         :Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error
+             {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
+         :Else
+             U.Warn⊃⎕DMX.DM
+         :EndTrap
      :EndIf
  :Else
      linked←0 ⍝ Let SALT try

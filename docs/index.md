@@ -1,17 +1,14 @@
 # Introduction
-This is the documentation for Link Version 3.0, which will be released in the autumn of 2021 and included with the next release of Dyalog APL. Link version 2.0, which was distributed with Dyalog APL versions 17.1 and 18.0 [has separate documentation](https://github.com/Dyalog/link/blob/master/help/Home.md).
+*Link* enables users of Dyalog to store their APL source code in text files. This is the documentation for Link Version 3.0, which will be released in the autumn of 2021 and included with the next release of Dyalog APL. If you have an earlier version of APL or Link, you might want to read one or more of the following pages before continuing: 
 
-*Link* enables users of Dyalog to store their APL source code in text files. Link version 3.0 is 
-included with Dyalog version 18.2. If you have an earlier version of APL or Link, you might want to 
-read one or more of the following pages before continuing: 
-
-* [Migrating to Link 3.0 from Link 2.0:](Upgradeto30.md) If you are already using an earlier version of Link.
+* [Link version 2.0](https://github.com/Dyalog/link/blob/master/help/Home.md) If you are actually looking for documentation of the version which was distributed with Dyalog APL versions 17.1 and 18.0.
+* [Migrating to Link 3.0 from Link 2.0:](Upgradeto30.md) Dyalog recommends migrating to version 3.0 at your earliest convenience.
 * [Migrating to Link 3.0 from SALT:](Usage/SALTtoLink.md) If you have APL source in text files managed by SALT that you want to migrate to Link.
 * [Installation instructions:](Usage/Installation.md) If you want to download and install Link from the GitHub repository rather than use the version installed with APL, for example if you want to use Link 3.0 with Dyalog version 18.0.
 * [The historical perspective:](Discussion/History.md) Link is a step on a journey which begins more than a decade ago with the introduction of SALT for managing source code in text files, as an alternative to binary workspaces and files, and will hopefully end with the interpreter handling everything itself.
 
 ## Audience
-It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces, namespaces and nameclasses.
+It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces, and namespaces.
 
 ## What is Link?
 
@@ -34,8 +31,8 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 
 ## Link is NOT...
 
-- **A source code management system**: we recommend using Git to manage the text files that Link will help you create and edit using Dyalog.
-- **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, arrays are only written to source files upon request using [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
+- **A source code management system**: unlike it's [predecessor SALT](../Usage/SALTtoLink.md), Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.
+- **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, source files are only created for arrays by explicit calls to [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
 
 ## Link fundamentals
 
@@ -43,6 +40,12 @@ Link establishes ***links*** between one or more **namespaces** in the active AP
 
 ```      apl
       ]LINK.Create myapp /home/sally/myapp
+```
+
+A set of API functions is available in the session namespace `⎕SE`, for performing Link operations under programme control. Using the API, the above would be written:
+
+```apl
+      ⎕SE.Link.Create 'myapp' '/home/sally/myapp'
 ```
 
 If `myapp` contains sub-directories, a namespace hierarchy corresponding to the directory structure will be created within the `myapp` namespace. By default, the link is bi-directional, which means that Link will:
@@ -70,7 +73,7 @@ For a list of installed user commands, type:
 
 
 ```apl
-     ]LINK .?
+     ]LINK -?
 ```
 
 ### API functions
@@ -83,7 +86,13 @@ The API is designed for use under program control, and options are provided in a
 
 where `options` is a namespace with variables, named according to the option they set, containing their corresponding values. The `-name=value` option can be set by `options.name←value`, and switches with values (e.g. `-name`) can be set by `options.name←1`. Unset options will assume their default value.
 
-The details of the arguments to the functions and the user commands can be found in the [API Reference](API/index.md).
+Options can also be provided as a character vector with the literal array representation of the option workspace, for example:
+
+```apl
+     '(name: 1)' FnName arguments
+```
+
+The details of the arguments and options can be found in the [API Reference](API/index.md).
 
 ## Further reading
 
@@ -103,3 +112,4 @@ If you have an existing APL application that you want to move to Link, you might
 * [What happens if I save a workspace after creating Links?](Discussion/Workspaces.md#saving-workspaces-containing-links)
 * [Are workspaces dead now?](Discussion/Workspaces.md#are-workspaces-dead-now)
 * [How is Link implemented?](Discussion/TechDetails.md#how-does-link-work)
+
