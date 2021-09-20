@@ -236,11 +236,13 @@
               DEBUG:⍺ ExecuteEach ⍵           ⍝ force going through the hard code
               10::⍺ ExecuteEach ⍵ ⋄ ⍺⍎⍵       ⍝ attempt simple ⍎ and catch LIMIT ERROR
           }
-     
-          w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ mat?
-          w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ vtv?
-          w←'''[^'']*''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
-     
+          
+          ⍝ Make normalised simple vector:
+          w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ if mat, make nested
+          w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ if nested, make simple
+          w←'''[^'']*''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments  
+          w/⍨←33(∨\⍤<∧∘⌽∨\⍤<∘⌽)⎕UCS w    ⍝ strip leading/trailing non-printables
+
           pl←ParenLev w
           (0≠⊢/pl)∨(∨/0>pl):'Unmatched brackets'⎕SIGNAL 2
           ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
