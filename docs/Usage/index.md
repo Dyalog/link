@@ -68,7 +68,7 @@ If your existing code is in a workspace rather than in text files, you should re
 ## Saving your work
 Once a link is set up using [Link.Create](../API/Link.Create.md), you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the `stats` namespace are instantly copied to the corresponding source file.
 
-The use of a source code management system like Git is recommended. I you do that, then you effectively save your work by doing a commit.
+The use of a source code management system like Git is recommended. If you do that, then you effectively save your work by doing a commit.
 
 !!! Note
 	In the context of this document, the term *Dyalog IDE* includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.
