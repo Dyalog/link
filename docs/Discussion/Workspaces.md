@@ -32,4 +32,7 @@ In other words, you should **NOT** continue working without a Resync, unless you
 
 If you want to distribute a workspace created using Link to import code, note that if the workspace is loaded on a machine where the recorded source file names are not valid, this will lead to confusion. Application workspaces should always be built using [Link.Import](../API/Link.Import.md). Alternatively, use [Link.Break](../API/Link.Break.md) to remove the links before you `)SAVE` the workspace.
 
+!!! Note
+	If you automate a build process using Link.Create rather than Link.Import, immediately followed by a `⎕SAVE`, there is a significant chance that a File System Watcher callback will be running in a separate thread, which will cause the `⎕SAVE` to fail.
+
 See the discussion about [setting up your environment](../Usage/Setup.md) for more tips on creating development and runtime environments.
