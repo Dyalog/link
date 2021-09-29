@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -12,6 +12,7 @@
              nsrefs←⍎¨links.ns
          :EndIf
 
+         dircreated←0
          msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
          (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
 
@@ -71,7 +72,7 @@
              U.Error'Cannot link to scripted namespaces: ',ns
          :ElseIf nsref∊nsrefs
              U.Error'Already linked: ',U.Arrow links⊃⍨nsrefs⍳nsref
-         :ElseIf ~hasdir ⋄ :AndIf ~3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
+         :ElseIf ~hasdir ⋄ :AndIf ~dircreated←3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
              U.Error'Directory not found: ',dir
          :ElseIf U.Slash⊃⌽dir
              U.Error'Trailing slash reserved for future extension'
@@ -110,7 +111,7 @@
          opts.⎕DF 1⌽'][',arrow
          Watcher.Watch opts  ⍝ first crawler may call Notify
          U.SetLinks links,opts  ⍝ set links after setting FileSystemWatcher
-         ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
+         ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow,dircreated/⊂'[directory was created]'),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
      :EndHold
  :Else
      U.Resignal 1
