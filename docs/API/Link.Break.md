@@ -6,6 +6,9 @@
 
 Breaks an existing link: Does not affect the contents of the active workspace except to remove all traces of the link, preventing any further synchronisation from taking place.
 
+!!! Note
+	If you have enabled Pause Threads on Error and you have an application thread running which encounters an error, Link.Break can hang when the thread which is created to shut down the file system watcher becomes paused. If this happens, use IDE menu items to resume execution.
+
 ## Arguments
 `namespace` is a list of namespace names as character vectors or references
 

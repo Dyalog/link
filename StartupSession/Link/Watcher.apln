@@ -20,17 +20,29 @@
     CloseEvent←7778
     Timeout←5000       ⍝ Length of timeout waiting for WatcherThread actions
 
-    ∇ (dotnet dotnetcore)←HasDotNet;⎕USING
+    ∇ (dotnet dotnetcore)←HasDotNet;⎕USING;ok;msg;type
     ⍝ FileSystemWatcher usable only with v18.0 and later
       :If ~IS180    ⍝ Executed at ⎕FIX time, so can't rely on ##.U
           dotnet←dotnetcore←0
       :Else
-    ⍝ Assumptions :
-    ⍝ Dyalog only allows .Net Framework v4 (v1 v2 and v3.x are not supported anymore)
-    ⍝ Therefore v3 and v5 must mean .Net Core
-          :Trap 0 ⍝ ⎕USING← has been known to fail
+          ⍝ /// Tidy this up when 2250⌶ is available in all supported versions
+          :Trap 0
+              (type ok msg)←2250⌶⍬ ⍝ Load .NET Bridge I-Beam available from 18.2.44543
+              dotnetcore←1=type ⍝ 2=Framework, 0=Not configured
+              →(ok∧type>0)/INITIALISED
+              :If type≠0 ⍝ If .NET configured but failed to load
+                  ##.U.Warn 'Error loading .NET Bridge: ',msg,(0=≢msg)/'(no message returned)'
+              :EndIf
+              →0
+          :EndTrap
+
+          :Trap 0 ⍝ No I-Beam available, so try setting ⎕USING and trap errors
               ⎕USING←''        ⍝ Ensure that System is present if at all possible
               dotnetcore←4≠System.Environment.Version.Major
+          :EndTrap
+
+     INITIALISED:
+          :Trap 0 
               ⎕USING←',System',(~dotnetcore)/'.dll'
               dotnet←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
           :Else
