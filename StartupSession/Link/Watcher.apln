@@ -31,7 +31,7 @@
               dotnetcore←1=type ⍝ 2=Framework, 0=Not configured
               →(ok∧type>0)/INITIALISED
               :If type≠0 ⍝ If .NET configured but failed to load
-                  ##.U.Warn 'Error loading .NET Bridge: ',msg
+                  ##.U.Warn 'Error loading .NET Bridge: ',msg,(0=≢msg)/'(no message returned)'
               :EndIf
               →0
           :EndTrap
