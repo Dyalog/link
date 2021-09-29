@@ -838,7 +838,7 @@ IMPORTANT: Link.Resync is required to use anything other than Link.Status and Li
 <p>If you want to distribute a workspace created using Link to import code, note that if the workspace is loaded on a machine where the recorded source file names are not valid, this will lead to confusion. Application workspaces should always be built using <a href="../../API/Link.Import/">Link.Import</a>. Alternatively, use <a href="../../API/Link.Break/">Link.Break</a> to remove the links before you <code>)SAVE</code> the workspace.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you try to automate a build process using <code>⎕SAVE</code> immediately following one or more calls to Link.Create, there is a significant chance that a File System Watcher callback will fire at the wrong time, which will make <code>⎕SAVE</code> fail.</p>
+<p>If you automate a build process using Link.Create rather than Link.Import, immediately followed by a <code>⎕SAVE</code>, there is a significant chance that a File System Watcher callback will be running in a separate thread, which will cause the <code>⎕SAVE</code> to fail.</p>
 </div>
 <p>See the discussion about <a href="../../Usage/Setup/">setting up your environment</a> for more tips on creating development and runtime environments.</p>
                 
