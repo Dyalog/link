@@ -819,7 +819,7 @@
           
       ⍝ try variables too
           z←opts ⎕SE.Link.Create name folder
-          assert'z≡''Linked: ',name,' ←→ ',winfolder,''''
+          assert'z≡''Linked: ',name,' ←→ ',winfolder,' [directory was created] '''
           actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
           'link issue #43'assert'actfiles≡expfiles'
           {}⎕SE.Link.Add name,'.var'
