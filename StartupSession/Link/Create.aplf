@@ -32,6 +32,7 @@
          :EndIf
 
          :If hasns←¯9.1=nc←U.NameClass ns
+         :AndIf ~opts.preloaded
              :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
              :AndIf ~emptydir                       ⍝ some dir/files defined
              :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
