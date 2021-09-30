@@ -123,7 +123,7 @@
           core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
           aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
           aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
-          opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', USE_NQ: ',(⍕⎕SE.Link.Watcher.USE_NQ),')'
+          opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),')'
           oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
           Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
         ∇
