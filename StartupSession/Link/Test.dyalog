@@ -1083,6 +1083,12 @@
     ⍝ Github issues
           name ⎕NS''
           ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
+
+          ⍝ link issue #335
+          z←name 'abc'⎕SE.Link.Fix,⊂'[1 2 3]'
+          'link issue #335' assert 'z≡,⊂''abc'''
+          'link issue #335' assert '(name⍎''abc'')≡(3 1⍴1 2 3)'
+          ⎕EX name,'.abc'          
           
       ⍝ link issue #112 : cannot break an empty link
           z←⎕SE.Link.Create name folder

@@ -33,6 +33,7 @@
          :EndIf
 
          :If hasns←¯9.1=nc←U.NameClass ns
+         :AndIf ~opts.preloaded
              :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
              :AndIf ~emptydir                       ⍝ some dir/files defined
              :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
@@ -44,8 +45,10 @@
 
          :If emptydir⍱emptyns  ⍝ link issue #230
              opts.(ns dir)←(ns dir)
-         :AndIf 0∊⍴⎕SE.Link.U.Diff opts
-             emptydir←emptyns←1  ⍝ allow link creation
+             :If opts.preloaded
+             :OrIf 0∊⍴⎕SE.Link.U.Diff opts
+                 emptydir←emptyns←1  ⍝ allow link creation
+             :EndIf
          :EndIf
 
          :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir' ⋄ :AndIf ⎕SE.Link.Test≢⊃⎕RSI  ⍝ ⎕SE.Link.Test is allowed to toy with file watching/crawling
@@ -100,8 +103,10 @@
          :Case 'dir'
              :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
-             fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
-             :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
+             :If 1≢opts.preloaded
+                 fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
+                 :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
+             :EndIf
          :Else
              U.Error'Unknown source setting:'opts.source
          :EndSelect

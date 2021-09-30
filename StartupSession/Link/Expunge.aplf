@@ -1,5 +1,5 @@
-﻿ {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
-⍝ Use in place of ⎕EX for linked names - will delete source files where relevant
+﻿  {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
+⍝ Use in place of ⎕EX for linked names - will delete source files where relevant in addition to ⎕EX
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -10,9 +10,10 @@
          :If 0∊⍴links←U.GetLinks ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
          scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
          :For i :In ⍳≢names
-             nc←container U.NameClass name←(⍕container),'.',i⊃names
-             :If 0=nc  ⍝ does not exist
-                 r[i]←0 ⋄ :Continue
+             nc←container U.NameClass name←(⍕container){(1⊃⍵)∊'#⎕':⍵ ⋄ ⍺,'.',⍵}i⊃names
+             :If 0=nc
+                 r[i]←0 
+                 :Continue
              :EndIf
              :If ¯9.1=nc  ⍝ trad ns
              :AndIf (⊂U.NormNs name)∊links.ns  ⍝ is a link root
