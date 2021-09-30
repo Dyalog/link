@@ -12,7 +12,6 @@
 
     ⍝⍝⍝⍝⍝ .Net System.IO.FileSystemWatcher ⍝⍝⍝⍝⍝
 
-    USE_NQ←0                                ⍝ Set to 1 to enqueue calls to Notify via a Timer objecy
     FSWQ←'⎕SE.Link.Watcher.QUEUE'           ⍝ FSW Queue Object name prefix
 
     TimerEvent←140
@@ -79,12 +78,7 @@
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
-      :If USE_NQ ⍝ Minimise time in .NET callback, enqueue Notify work for later
-         ⍝ Do not split the following line into several lines: thread switch must NOT happen
-          :If 0≠≢timers←'Timer'⎕WN ⎕SE.Link.Watcher ⋄ ⎕NQ(⊃timers)NotifyEvent nargs ⋄ :EndIf
-      :Else      ⍝ Make direct calls to Notify
-          obj ##.Notify&nargs
-      :EndIf
+      obj ##.Notify&nargs
     ∇
 
     ∇ WatchError(obj args);link;msg
@@ -138,17 +132,8 @@
       :EndIf
       :If DOTNET
           args←link.dir(,'*')
-          :If USE_NQ ⍝ enqueue Notify work for later: Return NS containing QUEUE name and TID of ⎕DQ'ing thread
-              z←{0::0 ⋄ 2503⌶⍵}2 ⍝ Children of this thread should not take interrupts
-              q←FSWQ,⍕tid←WatcherThread&args
-              z←{0::0 ⋄ 2503⌶⍵}z ⍝ Restore thread interruption setting
-              end←Timeout+3⊃⎕AI
-              :While 0=⎕NC q ⋄ ⎕DL 0.05 ⋄ :EndWhile    ⍝ Wait for thread to create the Timer object
-              (r←⎕NS'').(QUEUE TID)←q tid ⍝ Return name of QUEUE object and TID ⎕NQ'ing it
-          :Else ⍝ Make direct calls to Notify: return the FSW object
-              r←MakeWatcher args
-              r.EnableRaisingEvents←1
-          :EndIf
+          r←MakeWatcher args
+          r.EnableRaisingEvents←1
           link.fsw←r
       :ElseIf CRAWLER
           AddCrawler link
@@ -189,39 +174,21 @@
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
       :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW
-          :If USE_NQ ⍝ Did we using indirection via a queue?
-              (timers tids)←↓⍉↑links.fsw.(QUEUE TID)
-              :If ~0∊⍴timers←(9=⌊⎕NC timers)/timers
-                  ⎕NQ¨timers{⍺ ⍵}¨CloseEvent  ⍝ tell timers to go away
-              :EndIf
-              end←Timeout+3⊃⎕AI
-              :While ∨/tids∊⎕TNUMS     ⍝ Wait for thread to create the Timer object
-                  ⍝:If end<3⊃⎕AI
-                  ⍝    ¯1 ##.U.Warn'WatcherThread ',(⍕⎕TNUMS∩tids),' did not die on request'
-                  ⍝:EndIf
-                  ⎕DL 0.1
-              :EndWhile
-              ⎕EX links.fsw.QUEUE
-          :Else ⍝ fsw should be a real FSW object
-              ⍝ pitfall: must not call Dispose while processing a callback, otherwise the interpreter freezes
-              {0::_←0 ⋄ ⍵.EnableRaisingEvents←0}¨links.fsw  ⍝ at )CLEAR time, .Net object might throw EXCEPTION: Object reference not set to an instance of an object.
-              ⎕DL 0.1 ⍝ Give any extant events time to be processed
-              {0::_←0 ⋄ _←⍵⍎'Dispose ⋄ 0'}¨links.fsw  ⍝ at )CLEAR time, .Net object might throw EXCEPTION: Object reference not set to an instance of an object.
-          :EndIf
-          links.fsw←⎕NULL
+        (⍕¨links.ns) DisposeFSW&¨links.fsw
+        links.fsw←⎕NULL
       :EndIf
     ∇
 
-
-
-
-
-
-
-
-
-
-
+    ∇ nsname DisposeFSW fsw
+      ⍝ Do not not call Dispose on thread 0, else if a callback fn is suspended
+      ⍝ everything will freeze
+    
+      :Trap 0
+         fsw.Dispose
+      :Else       
+         ##.U.Warn 'Trapped error disposing of FSW on ',nsname,' ',⊃⎕DMX.DM
+      :EndTrap
+    ∇
 
     ⍝⍝⍝⍝⍝ Crawler ⍝⍝⍝⍝⍝
     ⍝ Crawls BOTH the namespace and the directory
