@@ -113,6 +113,7 @@
 
          :Case 'changed'               ⍝ Update to existing file?
              :If dir ⋄ :AndIf ¯9.1=# U.NameClass affected ⋄ →END⊣msg,←⊂'ignoring change to directory' ⋄ :EndIf
+             :If dir ⋄ :AndIf link.flatten ⋄ :AndIf 0=# U.NameClass affected ⋄ →END⊣msg,←⊂'ignoring change to directory' ⋄ :EndIf
              :If path≡curfile      ⍝ name already tied to the same file
                  msg,←'updating previously linked 'affected   ⍝ checking if file is worth refix-ing (hash etc.) will be done in U.QFix
                  :If (0<≢curname)∧(curname≢affected)   ⍝ name changed
