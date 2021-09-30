@@ -85,6 +85,11 @@ NOHOLD:
              :EndIf
          :EndIf
 
+         :If 1∊⊃ns.⎕STATE name ⍝ Is name localised on stack?
+             U.Warn 'Ignoring edit of localised name ',nsname,'.',name
+             :Return
+         :EndIf
+
          :If nosrc    ⍝ Source not provided - find it
              :If 1=≡src←ns U.GetAplSource name  ⍝ string source means error
                  U.Error src  ⍝ failed to get source
