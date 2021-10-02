@@ -184,8 +184,10 @@
       ⍝ everything will freeze
     
       :Trap 0
-         fsw.Dispose
-      :Else       
+         :If 0≠⎕NC ⊂'fsw.Dispose' ⍝ Don't bother if it is already gone
+             fsw.Dispose
+         :EndIf
+      :Else                                                            
          ##.U.Warn 'Trapped error disposing of FSW on ',nsname,' ',⊃⎕DMX.DM
       :EndTrap
     ∇
