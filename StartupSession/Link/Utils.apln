@@ -295,13 +295,23 @@
           :EndIf
         ∇
         
-        ∇ {r}←to Relocate from;i;nextfrom;nextto
+        ∇ {r}←to Relocate from;i;nextfrom;nextto;tmpfile
     ⍝ move list of files, updating file names as we go through the list
           r←⍬
           :While ~0∊⍴to
               (nextto nextfrom)←⊃¨(to from) ⋄ (to from)↓⍨←1
               :If nextto≢nextfrom
-                  r,←nextto ⎕NMOVE nextfrom
+                  :Trap 22
+                      r,←nextto ⎕NMOVE nextfrom
+                  :Else ⍝ Suspect issue with case sensitive file system
+                      :If (⎕C nextto)≡⎕C nextfrom ⍝ Names differ only in case
+                         tmpfile←(739⌶0),'/Utils.Relocate_',(' '~⍨⍕⎕TS),'.linktmp'
+                         tmpfile ⎕NMOVE nextfrom  ⍝ Must move file out of current folder
+                         r,←nextto ⎕NMOVE tmpfile ⍝ And then recreate with new casing
+                      :Else
+                         ⎕DMX.Message ⎕SIGNAL ⎕EN
+                      :EndIf
+                  :EndTrap
                   from←(nextfrom ⎕R nextto)from  ⍝ update directories in particular
               :Else ⋄ r,←1   ⍝ no need to copy
               :EndIf

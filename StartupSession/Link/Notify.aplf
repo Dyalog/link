@@ -119,7 +119,7 @@
                  :If (0<≢curname)∧(curname≢affected)   ⍝ name changed
                      ⎕EX curname ⋄ msg,←' deleting previously defined 'curname
                  :EndIf
-             :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)      ⍝ name was tied to a different file
+             :ElseIf (0≠⎕NC affected)∧(0≠≢curfile)∧(⎕C curfile)≢⎕C path ⍝ name was tied to a different file
                  warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected' which is linked to 'curfile
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name
                  ⎕EX curname  ⍝ delete name in case the name defined by source has changed
@@ -193,10 +193,12 @@
          :If link.fastLoad<(link.forceFilenames∨link.forceExtensions) ⍝ fastLoad is disabled in Notify
          :AndIf path≢exppath←expfile(link.forceFilenames U.MergeFileName link.forceExtensions)path
              :If ⎕NEXISTS exppath  ⍝ would clash with existing file - do not dare fixing
+             :AndIf (⎕C path)≢⎕C exppath ⍝ Not just a case change
                  warn←1 ⋄ name←'' ⋄ →END⊣msg,←' - file clash: cannot move file to existing 'exppath' - cannot fix 'affected
              :Else
                  msg,←' - moving to 'exppath
-                 exppath ⎕NMOVE path ⋄ path←exppath
+                 (,⊂exppath) U.Relocate ,⊂path
+                 path←exppath
                  ⍝ If we do the line below, then occasionally the watcher fails to callback on move, making the new file definition not fixed
                  ⍝→END U.If 'dir' 'both'∊⍨⊂link.watch      ⍝ file watcher will take care of the rest
                  :While ~⎕NEXISTS exppath ⋄ ⎕DL 0.000001 ⋄ :EndWhile    ⍝ ensure file effectively moved before fixing
