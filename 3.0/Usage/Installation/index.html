@@ -720,35 +720,35 @@
                 
                 
                 <h1 id="installation">Installation</h1>
-<p>The fully supported version of Link 3.0 is included with Dyalog version 18.1 or later; no installation is required. The instructions on this page only apply if you want to:</p>
+<p>Link 3.0 is included with Dyalog version 18.1 or later; no installation is required. The instructions on this page only apply if you want to:</p>
 <ul>
-<li>Use Link 3.0 in place of Link 2.0 with Dyalog version 18.0</li>
-<li>Participate in testing pre-releases of Link</li>
-<li>Have some other reason for wanting to use a different version than that which is distributed with Dyalog.</li>
+<li>Use Link 3.0 with Dyalog version 18.0 (in place of Link 2.0).</li>
+<li>Participate in testing pre-releases of Link.</li>
+<li>Have some other reason for wanting to use a different version than that which is distributed with Dyalog APL.</li>
 </ul>
-<p>Link is maintained as an open source project at <a href="https://github.com/dyalog/link">github.com/dyalog/link</a>. Start by cloning or downloading aa particular release of Link to a folder on your machine. After that:</p>
-<p><strong>If you only rarely expect to update Link</strong> and you have the necessary permissions, you can <strong>OVERWRITE the installed version of Link</strong> by copying the contents of the StartupSession folder that you have downloaded into <strong>$DYALOG/StartupSession</strong>.</p>
-<p><strong>If you want to regularly update Link using Git</strong>, you should either:</p>
+<p>Link is maintained as an open source project at <a href="https://github.com/dyalog/link">github.com/dyalog/link</a>. Start by downloading (or cloning) the latest release of Link and locating the subfolder called <code>StartupSession</code>. This folder contains the code required to run Link.</p>
+<p><strong>If you only rarely expect to update Link</strong> and you have the necessary permissions, you can <strong>OVERWRITE the installed version of Link</strong> by replacing the StartupSession folder that already exists in the main Dyalog program folder with the downloaded folder.</p>
+<p><strong>If you want to regularly update Link as new versions are made available</strong>, or you do not have permission to partially overwrite the Dyalog installation, you can keep the code outside the main program folder, so it can easily be updated with a <code>git pull</code>, or a copy operation that does not require special permissions. You will need to declare the location of the folder by setting the <code>DYALOGSTARTUPSE</code> parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:</p>
 <ul>
 <li>
-<p><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder in your checkout or download.</p>
+<p><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder.</p>
 </li>
 <li>
-<p><strong>Update the configuration file (or under Windows the registry) </strong>, to set the parameter there. Typically, you would edit <code>~/.dyalog/dyalog.config</code> to make the change for all versions, or a specific file such as <code>~/.dyalog/dyalog.180U64.dcfg</code> for a specific version, to include a line:</p>
+<p><strong>Update the configuration file (or the Windows registry) </strong>, to set the parameter there. Typically, you would edit <code>~/.dyalog/dyalog.config</code> to make the change for all versions, or a specific file such as <code>~/.dyalog/dyalog.180U64.dcfg</code> for a specific version, to include a line:</p>
 </li>
 </ul>
 <p><code>DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"</code></p>
-<p><strong>If you are using Dyalog version 18.0</strong>, you will also need to update the user command file used to invoke Links user commands. This should only need to be done once, even if you subsequently download new versions of Link. You can either:</p>
+<p><strong>If you are using Dyalog version 18.0</strong>, you will also need to update the user command file used to invoke Link user commands. This only needs to be done once, because the new user command file is designed to pick user command definitions up from the current copy of Link.</p>
+<p>The user command file is <strong>SALT/spice/Link.dyalog</strong>. If you have not done a complete checkout or clone of the repository, you will need to download this file from GitHub, as it is not included in the normal release package file.</p>
 <ul>
 <li>
-<p>Overwrite the installed version of the Link user commands by copying <strong>SALT/spice/Link.dyalog</strong>, from the downloaded repository, into <strong>$DYALOG/SALT/spice/Link.dyalog</strong> (assuming you have the necessary permissions).</p>
+<p>If you have permission, you can overwrite the installed version of the Link user commands by copying the file into <strong>$DYALOG/SALT/spice/Link.dyalog</strong>.</p>
 </li>
 <li>
-<p>Place the copy of <strong>SALT/spice/Link.dyalog</strong>, from the downloaded repository, into your <strong>MyUCMDs</strong> folder. This will cause it to take priority over the installed copy. Under Linux or Mac, you would typically achieve this with the command like the following (assuming you checked Link out to ~/link):</p>
+<p>Alternatively you can place a copy of the file in your <strong>MyUCMDs</strong> folder. This will cause it to take priority over the installed copy. Under Linux or Mac, you may need to create the folder yourself, under Windows the installation of Dyalog APL should have created it for you.</p>
 </li>
 </ul>
-<p><code>cp ~/link/SALT/spice/Link.dyalog ~/MyUCMDs</code></p>
-<p>You will need to restart Dyalog APL each time you update these files.</p>
+<p>You will need to restart Dyalog APL each time you update any of the files mentioned above.</p>
                 
               
               
