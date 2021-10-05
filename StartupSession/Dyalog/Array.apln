@@ -200,14 +200,14 @@
               '('=⊃⍵:Paren{⍵,'⎕NS⍬'/⍨0=≢⍵}a Parse w ⍝ vector/empty ns
               ⍵ ⍝ dfn
           }
-           
+     
           SysVar←(L sysVars)∊⍨' '~¨⍨L∘⊆
-
+     
           ParseLine←{
               c←⍵⍳':'
               1≥≢(c↓⍵)~' ':'Missing value'⎕SIGNAL 6
               name←c↑⍵
-              (SysVar⍱¯1≠⎕NC) name:'Invalid name'⎕SIGNAL 2
+              (SysVar⍱¯1≠⎕NC)name:'Invalid name'⎕SIGNAL 2
               name(name,'←',⍺ Parse Over((c+1)↓⊢)⍵)
           }
      
@@ -237,9 +237,11 @@
               10::⍺ ExecuteEach ⍵ ⋄ ⍺⍎⍵       ⍝ attempt simple ⍎ and catch LIMIT ERROR
           }
      
-          w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ mat?
-          w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ vtv?
+          ⍝ Make normalised simple vector:
+          w←↓⍣(2=≢⍴⍵)⊢⍵                  ⍝ if mat, make nested
+          w←{¯1↓∊⍵,¨⎕UCS 13}⍣(2=|≡w)⊢w   ⍝ if nested, make simple
           w←'''[^'']*''' '⍝.*'⎕R'&' ''⊢w ⍝ strip comments
+          w/⍨←{(∨\⍵)∧⌽∨\⌽⍵}33≤⎕UCS w     ⍝ strip leading/trailing non-printables
      
           pl←ParenLev w
           (0≠⊢/pl)∨(∨/0>pl):'Unmatched brackets'⎕SIGNAL 2
