@@ -27,9 +27,9 @@
           ⍝ /// Tidy this up when 2250⌶ is available in all supported versions
           :Trap 0
               (type ok msg)←2250⌶⍬ ⍝ Load .NET Bridge I-Beam available from 18.2.44543
-              dotnetcore←1=type ⍝ 2=Framework, 0=Not configured
+              dotnetcore←1=type ⍝ 2=Framework, 0=Not configured. ¯1= not supported
               →(ok∧type>0)/INITIALISED
-              :If type≠0 ⍝ If .NET configured but failed to load
+              :If type>0 ⍝ If .NET configured but failed to load, output a warning
                   ⎕←'Error loading .NET Bridge: ',msg,(0=≢msg)/'(no message returned)'
               :EndIf
               →0
