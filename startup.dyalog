@@ -1,4 +1,4 @@
- {ok}←startup
+ {ok}←startup;dir
 ⍝ This is a boot strapping function run when APL starts.
 ⍝ At this point, it only loads Link from text files into ⎕SE, but will be the basis for much more functionality in the future.
 ⍝ Please do not rely on the current behaviour of this function, as it may change without warning.
@@ -6,7 +6,7 @@
 
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
- ;win;dirs;root;dir;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl ⍝ vars
+ ;win;dirs;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -43,7 +43,7 @@
          ⍵,⍨⍺,'/'↓⍨∧/tail∊'/',win/'\:'
      }
 
-     (os ver)←2↑# ⎕WG'APLVersion'
+     (os ver type exe)←# ⎕WG'APLVersion'
      win←'Windows'≡7↑os
      envVars←Env¨'DYALOGSTARTUPSE' 'DYALOGSTARTUPWS'
 
@@ -91,6 +91,27 @@
              :EndFor
          :EndFor
      :EndFor
+
+     :If 0≠≢dir←Env'LINK_DIR' ⍝ LINK_DIR allows linking/importing one dir into # at startup
+         :Select exe
+         :CaseList 'Development' 'DLL'
+             :Trap 0
+                 ⍞←⎕SE.Link.Create # dir
+             :Else
+                 ⍞←'Couldn''t link "',dir,'" with #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
+             :EndTrap
+         :CaseList 'Runtime' 'DLLRT'
+             :Trap 0
+                 ⍞←⎕SE.Link.Import # dir
+             :Else
+                 ⍞←'Couldn''t import "',dir,'" to #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
+             :EndTrap
+         :Else
+             ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version ─ LINK_DIR ignored!'
+         :EndSelect
+         ⍞←⎕UCS 13
+     :EndIf
+
      {}AutoStatus as
      ok←1
      :Trap 0 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ flush association tables

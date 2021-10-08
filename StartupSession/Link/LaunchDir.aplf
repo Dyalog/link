@@ -4,4 +4,4 @@ dir←LaunchDir;Env;Parent;s
 
  Env←{2 ⎕NQ'.' 'GetEnvironment'⍵}
  Parent←{¯1↓⊃1 ⎕NPARTS ⍵}
- dir←Parent ⊃s/⍨×≢¨s←Env¨'LOAD' 'CONFIGFILE'
+ dir←Parent ⊃s/⍨×≢¨s←Env¨'LOAD' 'LINK_DIR' 'CONFIGFILE'
