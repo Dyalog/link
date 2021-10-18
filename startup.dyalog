@@ -1,12 +1,16 @@
- {ok}←startup;dir
+ {ok}←startup
 ⍝ This is a boot strapping function run when APL starts.
-⍝ At this point, it only loads Link from text files into ⎕SE, but will be the basis for much more functionality in the future.
-⍝ Please do not rely on the current behaviour of this function, as it may change without warning.
-⍝ For more information about Link, see https://github.com/dyalog/link/wiki
+⍝ It loads Link and possibly other user-specified things for directories of text files into namespaces in ⎕SE.
+⍝ Then it optionally uses Link to load a directory structure of text files into #.
+⍝ Please do not rely on any other current behaviour of this function, as it may change without warning.
+⍝ For more information about...
+⍝ ∘ Session Initialisation: https://help.dyalog.com/latest/#UserGuide/The%20APL%20Environment/Session%20Initialisation.htm
+⍝ ∘ Linking into #: https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/LINK_DIR.htm
+⍝ ∘ Link: https://github.com/dyalog/link
 
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
- ;win;dirs;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe ⍝ vars
+ ;win;dirs;dir;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -93,22 +97,33 @@
      :EndFor
 
      :If 0≠≢dir←Env'LINK_DIR' ⍝ LINK_DIR allows linking/importing one dir into # at startup
-         :Select exe
-         :CaseList 'Development' 'DLL'
-             :Trap 0
-                 ⍞←⎕SE.Link.Create # dir
+         :If 0≠⎕NC'⎕SE.Link'
+             :Select exe
+             :CaseList 'Development' 'DLL'
+                 :Trap 0
+                     ⍞←⎕SE.Link.Create # dir
+                 :Else
+                     ⍞←'Could not link "',dir,'" with #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
+                 :EndTrap
+             :CaseList 'Runtime' 'DLLRT'
+                 :Trap 0
+                     ⍞←⎕SE.Link.Import # dir
+                 :Else
+                     ⍞←'Could not import "',dir,'" to #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
+                 :EndTrap
              :Else
-                 ⍞←'Couldn''t link "',dir,'" with #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
-             :EndTrap
-         :CaseList 'Runtime' 'DLLRT'
-             :Trap 0
-                 ⍞←⎕SE.Link.Import # dir
-             :Else
-                 ⍞←'Couldn''t import "',dir,'" to #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
-             :EndTrap
+                 ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version ─ LINK_DIR ignored!'
+             :EndSelect
          :Else
-             ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version ─ LINK_DIR ignored!'
-         :EndSelect
+             :Select exe
+             :CaseList 'Development' 'DLL'
+                 ⍞←'Could not link "',dir,'" with # because ⎕SE.Link does not exist ─ LINK_DIR ignored!'
+             :CaseList 'Runtime' 'DLLRT'
+                 ⍞←'Could not import "',dir,'" to # because ⎕SE.Link does not exist ─ LINK_DIR ignored!'
+             :Else
+                 ⍞←'Could not bring in "',dir,'" to # because ⎕SE.Link does not exist ─ LINK_DIR ignored!'
+             :EndSelect
+         :EndIf
          ⍞←⎕UCS 13
      :EndIf
 
