@@ -1008,14 +1008,17 @@
           :EndIf
         ∇
         
-        ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order
+        ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order;parts;g
           list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+          parts←⎕NPARTS¨list[1;]
+          list←list[;g←⍋'⎕'≠⊃¨list[3;]]                 ⍝ System names first
           
           mask←1=list[3;]                               ⍝ mask for hidden items
-          hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
+          hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders  
+          parts←parts[(~mask)/g]
           hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
           hidden←hidden,¨'/'                            ⍝ protect against similarly named files
-          hidden,←('.'=⊃¨∊¨1↓¨⎕NPARTS¨list[1;])/list[1;]⍝ files and directories that start with a '.' are considered hidden too
+          hidden,←('.'=⊃¨∊¨1↓¨parts)/list[1;]           ⍝ files and directories that start with a '.' are considered hidden too
           list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
           
           dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
