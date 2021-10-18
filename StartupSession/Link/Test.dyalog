@@ -1518,6 +1518,17 @@
           assert'∨/''Unlinked''⍷z'
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           ⎕EX name ⋄ 3 ⎕NDELETE folder
+
+      ⍝ test system variable inheritance
+          assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+          3 ⎕NDELETE folder ⋄ ⎕EX name
+          2 ⎕MKDIR subfolder
+          (⊂,'0') ⎕NPUT folder,'/⎕IO.apla'
+          z←opts ⎕SE.Link.Create name folder
+          'system variables not inherited' assert '0=subname⍎''⎕IO'''
+          {}⎕SE.Link.Break name
+          ⎕EX name ⋄ 3 ⎕NDELETE folder
+          assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           
       ⍝ test failing creations
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
