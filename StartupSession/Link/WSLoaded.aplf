@@ -1,4 +1,4 @@
- {ok}←WSLoaded;i;keep;links;msg;wslinks;link;diff;allOK
+ {ok}←WSLoaded;i;keep;links;msg;wslinks;link;diff;allOK;link_dir
 ⍝ Action to be taken upon )LOAD or )CLEAR
  ok←0
  :Trap 0  ⍝ can't afford to error
@@ -39,8 +39,15 @@
 
      :If allOK
          links.restored←0 ⍝ No resync required
-         msg←(⍕≢wslinks),' link',('s '/⍨1≠≢wslinks),' restored: '
-         U.Warn(⊂msg),(⍕¨wslinks.ns)
+         :If 1=≢wslinks                                        ⍝ LINK_DIR might provide 1 link:
+         :AndIf ''≢link_dir←2 ⎕NQ #'GetEnvironment' 'LINK_DIR' ⍝ must be set
+         :AndIf link_dir≡⍥(1∘⎕NPARTS)⊃⎕SE.Link.Links.dir       ⍝ must match the requested dir when normalised
+         :AndIf (,'#')≡⊃⎕SE.Link.Links.ns                      ⍝ must go to hash
+             ¯1 U.Log'Ignoring existing link to # caused by LINK_DIR=',link_dir
+         :Else
+             msg←(⍕≢wslinks),' link',('s '/⍨1≠≢wslinks),' restored: '
+             U.Warn(⊂msg),(⍕¨wslinks.ns)
+         :EndIf
      :ElseIf 0≠≢wslinks
          msg←(⍕≢wslinks),' namespaces',('s '/⍨1≠≢wslinks),' linked in this workspace: '
          'IMPORTANT'U.Warn(⊂msg),⍕¨wslinks.ns
