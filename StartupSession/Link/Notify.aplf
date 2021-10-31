@@ -1,4 +1,4 @@
- {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
@@ -9,6 +9,8 @@
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
  :Trap DEBUG↓0
+
+     :If 0=⎕NC 'NOTIFY' ⋄ NOTIFY←0 ⋄ :EndIf ⍝ Does user want confirmation of notifications?
 
      links←U.ErrorIfRestored U.GetLinks ⍝ never allow file notifications
 
@@ -135,6 +137,10 @@
              :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
                  warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
              :EndIf
+             :If NOTIFY
+                 U.Notify oldpath,' renamed as ',path
+             :EndIf
+
              (oldnsname oldexpname)←2↑link U.DetermineAplName oldpath  ⍝ cannot determine actual name and nameclass because file is gone
              oldname←oldnsname,'.',oldexpname
              :If 9=⎕NC oldnsname
@@ -181,6 +187,9 @@
                  msg,←'expunging 'affected
              :EndIf
              ⎕EX affected
+             :If NOTIFY
+                 U.Notify 'Deleted ',affected,' (',path,')'
+             :EndIf
              →END
 
          :Else
@@ -202,15 +211,27 @@
                  ⍝ If we do the line below, then occasionally the watcher fails to callback on move, making the new file definition not fixed
                  ⍝→END U.If 'dir' 'both'∊⍨⊂link.watch      ⍝ file watcher will take care of the rest
                  :While ~⎕NEXISTS exppath ⋄ ⎕DL 0.000001 ⋄ :EndWhile    ⍝ ensure file effectively moved before fixing
+                 :If NOTIFY
+                     U.Notify 'Renaming ',path,' to ',exppath
+                 :EndIf
              :EndIf
          :EndIf
 
          ⍝ fix file
-         :Select nsref U.QFix path actname(U.FixTie link)1
+         :Select fixrc←nsref U.QFix path actname(U.FixTie link)1
          :Case 1 ⋄ msg,←⊂' - fixed from file'
          :Case 0 ⋄ msg,←⊂' - APL already up to date'
          :Case ¯1 ⋄ warn←1 ⋄ msg,←⊂'- failed to fix file'
          :EndSelect
+
+         :If NOTIFY∧fixrc≠¯1
+             src←⊃⎕NGET path
+             :If 0=⎕NC 'LASTFIX'
+             :OrIf LASTFIX≢(⍕nsref) actname src
+                 U.Notify 'Updated ',affected,' (',path,')'
+             :EndIf
+             LASTFIX←(⍕nsref) actname src
+         :EndIf
 
          END:
          :If warn ⋄ 1 U.Warn msg
