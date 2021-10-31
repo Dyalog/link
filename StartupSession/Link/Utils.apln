@@ -10,11 +10,13 @@
         Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
         HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
+
         ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
           :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
           :Else ⋄ d←##.DEBUG
           :EndIf
         ∇
+        ##.NOTIFY←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\NOTIFY'
         LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
     
@@ -1652,7 +1654,11 @@
           DEBUGLOG,←⊂TimeStamp msg←caller(1 FormatMessage)msg
           DEBUGLOG↑⍨←-LOGSIZE⌊≢DEBUGLOG
           :If SHOWMSG ⋄ ⎕←'Link Debug: ',msg ⋄ :EndIf
+        ∇  
+        ∇ Notify msg
+          ⎕←'Link @ ',(,'ZI2,<:>,ZI2'⎕FMT 1 2⍴3↓⎕TS),': ',msg
         ∇
+
         
     :EndSection
     
