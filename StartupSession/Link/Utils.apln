@@ -16,6 +16,7 @@
           :Else ⋄ d←##.DEBUG
           :EndIf
         ∇
+        ##.NOTIFY←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\NOTIFY'
         LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
     
