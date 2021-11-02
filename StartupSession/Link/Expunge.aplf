@@ -8,11 +8,11 @@
      :Hold '⎕SE.Link.Links'
          container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
          :If 0∊⍴links←U.GetLinks ⋄ r←container.⎕EX names ⋄ :Return ⋄ :EndIf
-         scal←1=≡,names ⋄ shape←⍴names←⊆names ⋄ r←(≢names←,names)⍴0
+         scal←1=≡,names ⋄ shape←⍴names←,¨⊆names ⋄ r←(≢names←,names)⍴0
          :For i :In ⍳≢names
              nc←container U.NameClass name←(⍕container){(1⊃⍵)∊'#⎕':⍵ ⋄ ⍺,'.',⍵}i⊃names
              :If 0=nc
-                 r[i]←0 
+                 r[i]←0
                  :Continue
              :EndIf
              :If ¯9.1=nc  ⍝ trad ns
