@@ -1,7 +1,6 @@
 dir←LaunchDir;Env;Parent;s
 ⍝ Return the folder that APL was launched on
-⍝ Use LOAD if it was provided, else CONFIGFILE, else pwd
 
  Env←{2 ⎕NQ'.' 'GetEnvironment'⍵}
  Parent←{¯1↓⊃1 ⎕NPARTS ⍵}
- dir←Parent ⊃s/⍨×≢¨s←Env¨'LOAD' 'LINK_DIR' 'CONFIGFILE'
+ dir←Parent ⊃s/⍨×≢¨s←Env¨'LOAD' 'LINK_RUN' 'LINK_DIR' 'CONFIGFILE' ⍝ current directory if nothing else

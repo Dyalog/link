@@ -1,4 +1,4 @@
- {ok}←startup;parent
+ {ok}←startup
 ⍝ This is a boot strapping function run when APL starts.
 ⍝ It loads Link and possibly other user-specified things for directories of text files into namespaces in ⎕SE.
 ⍝ Then it optionally uses Link to load a directory structure of text files into #.
@@ -9,8 +9,8 @@
 ⍝ ∘ Link: https://github.com/dyalog/link
 
  ;⎕IO;⎕ML ⍝ sysvars
- ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut ⍝ fns
- ;win;dirs;dir;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe ⍝ vars
+ ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut;FullMsg ⍝ fns
+ ;win;dirs;dir;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe;parent;run;msg ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -19,11 +19,12 @@
      Env←{2 ⎕NQ #'GetEnvironment'⍵}
      NoSlash←{⍵↓⍨-'/\'∊⍨⊃⌽⍵} ⍝ remove trailing (back)slash
      Cut←{⎕ML←3 ⋄ ⍵⊂⍨⍺≠⍵}
+     FullMsg←{⍵.(OSError{⍵,2⌽(×≢⊃⍬⍴2⌽⍺,⊂'')/'") ("',⊃⍬⍴2⌽⊆⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃⍬⍴DM,⊂'')}
      FixEach←{ ⍝ cover for ⎕FIX
          0=≢⍵:⍬⊤⍬
          ⍬⊤⍺{
              0::⍺{
-                 Fail←{⎕←⎕DMX.('*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',(⊃DM),(''≢Message)/' (',Message,')')} ⍝ msg on fail
+                 Fail←{⎕←'*** Fixing "',⍵,'" into ',(⍕⍺),' caused a ',FullMsg ⎕DMX} ⍝ msg on fail
                  0::⍺ Fail ⍵
                  ⎕DMX.(EN ENX)≡11 121:⍺.⎕FIX'file://',⍵ ⍝ re-try anonymous ns
                  ⍺ Fail ⍵
@@ -98,32 +99,39 @@
          :EndFor
      :EndFor
 
-     :If 0≠≢dir←Env'LINK_DIR' ⍝ LINK_DIR allows linking/importing one dir into # at startup
+     (dir run)←Env¨'LINK_DIR' 'LINK_RUN'
+     :If ∧/0≠≢¨dir run
+         ⍞←'LINK_DIR is "',dir,'" and LINK_RUN is "',run,'" but only one may be set. Press Enter.'
+         {}⍞ ⋄ ⎕OFF 1
+     :EndIf
+     dir,←run
+     :If 0≠≢dir ⍝ LINK_DIR/LINK_RUN allows linking/importing one dir into # at startup
+         msg←' ─ LINK_',(⊃'DIR' 'RUN'⌽⍨0≠≢run),' ignored!'
          :If 0≠⎕NC'⎕SE.Link'
              :Select exe
              :CaseList 'Development' 'DLL'
                  :Trap 0
                      ⍞←⎕SE.Link.Create # dir
                  :Else
-                     ⍞←'Could not link "',dir,'" with #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
+                     ⍞←'Could not link "',dir,'" with #: ',FullMsg ⎕DMX
                  :EndTrap
              :CaseList 'Runtime' 'DLLRT'
                  :Trap 0
                      ⍞←⎕SE.Link.Import # dir
                  :Else
-                     ⍞←'Could not import "',dir,'" to #: ',⎕DMX.(OSError{⍵,(×≢⍺)/2⌽'") ("',⎕IO⊃2⌽⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⎕IO⊃DM)
+                     ⍞←'Could not import "',dir,'" to #: ',FullMsg ⎕DMX
                  :EndTrap
              :Else
-                 ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version ─ LINK_DIR ignored!'
+                 ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version',msg
              :EndSelect
          :Else
              :Select exe
              :CaseList 'Development' 'DLL'
-                 ⍞←'Could not link "',dir,'" with # because ⎕SE.Link does not exist ─ LINK_DIR ignored!'
+                 ⍞←'Could not link "',dir,'" with # because ⎕SE.Link does not exist',msg
              :CaseList 'Runtime' 'DLLRT'
-                 ⍞←'Could not import "',dir,'" to # because ⎕SE.Link does not exist ─ LINK_DIR ignored!'
+                 ⍞←'Could not import "',dir,'" to # because ⎕SE.Link does not exist',msg
              :Else
-                 ⍞←'Could not bring in "',dir,'" to # because ⎕SE.Link does not exist ─ LINK_DIR ignored!'
+                 ⍞←'Could not bring in "',dir,'" to # because ⎕SE.Link does not exist',msg
              :EndSelect
          :EndIf
          ⍞←⎕UCS 13
