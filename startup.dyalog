@@ -1,4 +1,4 @@
- {ok}←startup
+ {ok}←startup;parent
 ⍝ This is a boot strapping function run when APL starts.
 ⍝ It loads Link and possibly other user-specified things for directories of text files into namespaces in ⎕SE.
 ⍝ Then it optionally uses Link to load a directory structure of text files into #.
@@ -86,8 +86,10 @@
                  :Select dskl←Env'DYALOGSTARTUPKEEPLINK' ⍝ proper link or just import?
                  :Case ,'1'
                  :CaseList ''(,'0')
-                     new←(5177⌶⍬)~oldlinks    ⍝ list new links
-                     z←5178(2⊃¨new).⌶1⊃¨new ⍝ remove all newly created links
+                     new←(5177⌶⍬)~oldlinks  ⍝ list new links
+                     :For ref parent :In 2↑¨new
+                         z←5178 parent.⌶ref ⍝ remove all newly created links
+                     :EndFor
                  :Else
                      ⍞←'Configuration parameter DYALOGSTARTUPKEEPLINK is "',dskl,'" but must be "0" or "1". Press Enter.'
                      {}⍞ ⋄ ⎕OFF 1
