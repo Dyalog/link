@@ -1,7 +1,15 @@
- {ok}←WSLoaded;i;keep;links;msg;wslinks;link;diff;allOK;link_dir
+ {ok}←WSLoaded;i;keep;links;msg;wslinks;link;diff;allOK;link_dir;is_link_dir;IsLink_dir
 ⍝ Action to be taken upon )LOAD or )CLEAR
  ok←0
  :Trap 0  ⍝ can't afford to error
+     link_dir←{2 ⎕NQ #'GetEnvironment'⍵}¨'LINK_DIR' 'LINK_RUN'
+     IsLink_dir←link_dir∘{⍵.dir∊⍥(1 ⎕NPARTS⊆)⍺}
+     :If ∧/0≠≢¨link_dir
+         ¯1 U.Log'Ignoring LINK_DIR and LINK_RUN because both are set:',⍕link_dir
+         link_dir←''
+     :Else
+         link_dir←∊link_dir
+     :EndIf
      :Hold '⎕SE.Link.Links'
 
          ⍝ retrieve saved workspace links before the GetLinks which may overwrite Store 0
@@ -11,7 +19,8 @@
 
          ⍝ preserve old links to ⎕SE - drop the rest
          :If ~0∊⍴links←U.GetLinks
-         :AndIf 0∊keep←⎕SE=U.RootOf⍎¨links.ns
+         ⍝ keep links in ⎕SE, but also LINK_DIR/LINK_RUN iff we're just starting now
+         :AndIf 0∊keep←(⎕SE=U.RootOf⍎¨links.ns)∨(IsLink_dir links)∧~2∊⎕NC'⎕SE.Dyalog.Callbacks.loaded'
              ¯1 U.Log'Clearing # links:'(⍕(~keep)/links)
              Watcher.Break(~keep)/links
              links←keep/links
@@ -21,7 +30,10 @@
 
          ⍝ restore saved workspace links
          :If ~0∊⍴wslinks
-             links,←wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
+             wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
+             wslinks/⍨←~IsLink_dir wslinks  ⍝ ignore LINK_DIR
+         :AndIf ~0∊⍴wslinks
+             links,←wslinks
              wslinks.restored←1 ⋄ wslinks.fsw←⎕NULL  ⍝ fsw re-instancited by Resync
          :EndIf
 
@@ -39,10 +51,10 @@
 
      :If allOK
          links.restored←0 ⍝ No resync required
-         :If 1=≢wslinks                                        ⍝ LINK_DIR might provide 1 link:
-         :AndIf ''≢link_dir←2 ⎕NQ #'GetEnvironment' 'LINK_DIR' ⍝ must be set
-         :AndIf link_dir≡⍥(1∘⎕NPARTS)⊃⎕SE.Link.Links.dir       ⍝ must match the requested dir when normalised
-         :AndIf (,'#')≡⊃⎕SE.Link.Links.ns                      ⍝ must go to hash
+         :If 1=≢wslinks                    ⍝ LINK_DIR might provide 1 link:
+         :AndIf ''≢link_dir                ⍝ must be set
+         :AndIf IsLink_dir⊃⎕SE.Link.Links  ⍝ must match the requested dir when normalised
+         :AndIf (,'#')≡⊃⎕SE.Link.Links.ns  ⍝ must go to hash
              ¯1 U.Log'Ignoring existing link to # caused by LINK_DIR=',link_dir
          :Else
              msg←(⍕≢wslinks),' link',('s '/⍨1≠≢wslinks),' restored: '
