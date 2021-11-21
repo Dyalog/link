@@ -10,7 +10,7 @@
 
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut;FullMsg ⍝ fns
- ;win;dirs;dir;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe;parent;run;msg ⍝ vars
+ ;win;dirs;dir;root;subdir;ref;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe;parent;load;msg ⍝ vars
 
  :Trap 0
      ⎕IO←⎕ML←1
@@ -99,27 +99,25 @@
          :EndFor
      :EndFor
 
-     (dir run)←Env¨'LINK_DIR' 'LINK_RUN'
-     :If ∧/0≠≢¨dir run
-         ⍞←'LINK_DIR is "',dir,'" and LINK_RUN is "',run,'" but only one may be set. Press Enter.'
-         {}⍞ ⋄ ⎕OFF 1
-     :EndIf
-     dir,←run
-     :If 0≠≢dir ⍝ LINK_DIR/LINK_RUN allows linking/importing one dir into # at startup
-         msg←' ─ LINK_',(⊃'DIR' 'RUN'⌽⍨0≠≢run),' ignored!'
+     load←Env'LOAD'
+     msg←' ─ LOAD ignored!'
+     load↓⍨←-'/\'∊⍨⊃⌽load ⍝ trim trailing slash
+     :If 0≠≢load ⍝ LOAD allows linking/importing one dir into # at startup
+     :AndIf ⎕NEXISTS load
+     :AndIf 1=1 ⎕NINFO load ⍝ handle if dir (file is handled by interpreter)
          :If 0≠⎕NC'⎕SE.Link'
              :Select exe
              :CaseList 'Development' 'DLL'
                  :Trap 0
-                     ⍞←⎕SE.Link.Create # dir
+                     ⍞←⎕SE.Link.Create # load
                  :Else
-                     ⍞←'Could not link "',dir,'" with #: ',FullMsg ⎕DMX
+                     ⍞←'Could not link "',load,'" with #: ',FullMsg ⎕DMX
                  :EndTrap
              :CaseList 'Runtime' 'DLLRT'
                  :Trap 0
-                     ⍞←⎕SE.Link.Import # dir
+                     ⍞←⎕SE.Link.Import # load
                  :Else
-                     ⍞←'Could not import "',dir,'" to #: ',FullMsg ⎕DMX
+                     ⍞←'Could not import "',load,'" to #: ',FullMsg ⎕DMX
                  :EndTrap
              :Else
                  ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version',msg
@@ -127,11 +125,11 @@
          :Else
              :Select exe
              :CaseList 'Development' 'DLL'
-                 ⍞←'Could not link "',dir,'" with # because ⎕SE.Link does not exist',msg
+                 ⍞←'Could not link "',load,'" with # because ⎕SE.Link does not exist',msg
              :CaseList 'Runtime' 'DLLRT'
-                 ⍞←'Could not import "',dir,'" to # because ⎕SE.Link does not exist',msg
+                 ⍞←'Could not import "',load,'" to # because ⎕SE.Link does not exist',msg
              :Else
-                 ⍞←'Could not bring in "',dir,'" to # because ⎕SE.Link does not exist',msg
+                 ⍞←'Could not bring in "',load,'" to # because ⎕SE.Link does not exist',msg
              :EndSelect
          :EndIf
          ⍞←⎕UCS 13
