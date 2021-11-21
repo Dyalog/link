@@ -1,4 +1,4 @@
-﻿:Namespace U ⍝ Utilities
+:Namespace U ⍝ Utilities
     ⎕IO ⎕ML←1 1
     
     :Section Constants
@@ -514,12 +514,16 @@
         ∇ SetLinks links;fsw;mask
           :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
           ⎕SE.Link.Links←links
-          :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
+          :If HASSTORE ⍝ update # links in secret # area - they will be read by WSLoaded
+              :If ~0∊⍴links
           :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
-              fsw←links.fsw  ⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
-              links.fsw←⎕NULL  ⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
-              {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
+                  fsw←links.fsw   
+                  links.fsw←⎕NULL 
+                  {}(#.⎕NS¨links)Store 0 ⍝ ⎕NS to avoid cross-ref between # and ⎕SE
               links.fsw←fsw
+              :Else
+                  {}⍬ Store 0 ⍝ Special-case empty list to avoid SYNTAX ERRORs etc in block above
+              :EndIf
           :EndIf
         ∇
         
