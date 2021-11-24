@@ -8,7 +8,7 @@
 * [The historical perspective:](Discussion/History.md) Link is a step on a journey which begins more than a decade ago with the introduction of SALT for managing source code in text files, as an alternative to binary workspaces and files, and will hopefully end with the interpreter handling everything itself.
 
 ## Audience
-It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces, and namespaces.
+It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces and namespaces.
 
 ## What is Link?
 
@@ -53,7 +53,7 @@ If `myapp` contains sub-directories, a namespace hierarchy corresponding to the 
 * **Keep source files up-to-date:** 
 Any changes made to code in the active workspace using the tracer and editor are immediately replicated in the corresponding text files.
 * **Keep the workspace up-to-date:**
-Any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
+If .NET Framework or .NET Core is available, then any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
 
 You can invoke [Link.Create](API/Link.Create.md) several times to create multiple links, and you can also use [Link.Import](API/Link.Import.md) or [Link.Export](API/Link.Export.md) to import source code into the workspace or export code to external files *without* creating links that will respond to subsequent changes. 
 
