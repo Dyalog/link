@@ -1,6 +1,6 @@
 # Installation
 
-Link 3.0 is included with Dyalog version 18.1 or later; no installation is required. The instructions on this page only apply if you want to:
+Link 3.0 is included with Dyalog version 18.2 or later; no installation is required. The instructions on this page only apply if you want to:
 
 - Use Link 3.0 with Dyalog version 18.0 (in place of Link 2.0).
 - Participate in testing pre-releases of Link.
