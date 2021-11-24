@@ -23,7 +23,7 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 
 * Changes to your code are **immediately** written to file: there is no need to remember to save your work. The assumption is that you will make the record permanent with a *commit* to your source code management system, when the time is right.
   
-* Unlike binary workspaces, text source can be shared between different versions of APL - or even with human readers or writers don't have APL installed at all.
+* Unlike binary workspaces, text source can be shared between different versions of APL - or even with human readers or writers who don't have APL installed at all.
 
 * Source code stored in external files is preserved exactly as typed, rather than being reconstructed from the tokenised form.
 
