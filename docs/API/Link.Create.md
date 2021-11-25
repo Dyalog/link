@@ -7,7 +7,7 @@
 
 ## Arguments
 
-- `namespace` is either a reference to, or a simple character containing the name of a namespace.  
+- `namespace` is either a reference to, or a simple character vector containing the name of a namespace.  
 	In the user command `<ns>` is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing `[namespace]` or similar segments).
 - `directory` is a simple character vector containing the path to a file system directory without any trailing slash or backslash.  
 	In the user command, `<dir>` is the path to the file system directory.

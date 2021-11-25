@@ -8,7 +8,7 @@
 * [The historical perspective:](Discussion/History.md) Link is a step on a journey which begins more than a decade ago with the introduction of SALT for managing source code in text files, as an alternative to binary workspaces and files, and will hopefully end with the interpreter handling everything itself.
 
 ## Audience
-It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces, and namespaces.
+It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces and namespaces.
 
 ## What is Link?
 
@@ -23,7 +23,7 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 
 * Changes to your code are **immediately** written to file: there is no need to remember to save your work. The assumption is that you will make the record permanent with a *commit* to your source code management system, when the time is right.
   
-* Unlike binary workspaces, text source can be shared between different versions of APL - or even with human readers or writers don't have APL installed at all.
+* Unlike binary workspaces, text source can be shared between different versions of APL - or even with human readers or writers who don't have APL installed at all.
 
 * Source code stored in external files is preserved exactly as typed, rather than being reconstructed from the tokenised form.
 
@@ -32,7 +32,7 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 ## Link is NOT...
 
 - **A source code management system**: unlike it's [predecessor SALT](Usage/SALTtoLink.md), Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.
-- **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define will be written to source files by default, source files are only created for arrays by explicit calls to [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
+- **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define using the editor will be written to source files by default, source files are only created for arrays by explicit calls to [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
 
 ## Link fundamentals
 
@@ -53,7 +53,7 @@ If `myapp` contains sub-directories, a namespace hierarchy corresponding to the 
 * **Keep source files up-to-date:** 
 Any changes made to code in the active workspace using the tracer and editor are immediately replicated in the corresponding text files.
 * **Keep the workspace up-to-date:**
-Any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
+If .NET Framework or .NET Core is available, then any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
 
 You can invoke [Link.Create](API/Link.Create.md) several times to create multiple links, and you can also use [Link.Import](API/Link.Import.md) or [Link.Export](API/Link.Export.md) to import source code into the workspace or export code to external files *without* creating links that will respond to subsequent changes. 
 
