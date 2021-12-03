@@ -144,12 +144,12 @@ zip $F -r SALT StartupSession
 echo "Created release with id: $RELEASE_ID"
 
 echo "Uploading $F to GitHub"
-url=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
-echo $url
+URL=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
+echo $URL
 curl -o /dev/null -H "Authorization: token $GHTOKEN" \
 	-H 'Accept: application/vnd.github.manifold-preview' \
 	-H 'Content-Type: application/zip' \
 	--data-binary @"./$F" \
-	url
+	$URL
 	
 rm -f $TMP_RESPONSE $TMP_JSON $F
