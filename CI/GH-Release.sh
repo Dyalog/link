@@ -5,10 +5,10 @@ WORKSPACE=${WORKSPACE-$PWD}
 cd ${WORKSPACE}
 
 REPO_URL=`git ls-remote --get-url origin`
-GIT_USER=`git config user.name`
-REPO=`echo $REPO_URL | grep -oi "${GIT_USER}/[^.]\+"`
-LENGTH=`echo $GIT_USER | awk '{print length}'`
-PROJECT=`echo $REPO | cut -c ${LENGTH}-`
+REPO=`echo $REPO_URL | grep -o "github.com:\?/\?\w\+/\w\+" | cut -c 12-`
+ORG=`echo $REPO | grep -o "\w\+/" | rev | cut -c 2- | rev`
+LENGTH=`echo $ORG | awk '{print length}'`
+PROJECT=`echo $REPO | cut -c $((2+${LENGTH}))-`
 
 echo $REPO_URL
 echo $GIT_USER
