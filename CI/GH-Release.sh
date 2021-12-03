@@ -151,7 +151,7 @@ url=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
 echo $url
 curl -i /dev/null -H "Authorization: token $GHTOKEN" \
 	-H 'Accept: application/vnd.github.manifold-preview' \
-	-H 'Content-Type: text/json' \
+	-H 'Content-Type: application/zip' \
 	--data-binary @"./$F" \
 	url
 rm -f $TMP_RESPONSE $TMP_JSON
