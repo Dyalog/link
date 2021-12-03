@@ -138,11 +138,11 @@ curl -o $TMP_RESPONSE --data @$TMP_JSON -H "Authorization: token $GHTOKEN" -i ht
 
 RELEASE_ID=`grep '"id"' $TMP_RESPONSE | head -1 | sed 's/.*: //;s/,//'`
 
-zip Link-${VERSION}.zip -r SALT StartupSession
+F=${PROJECT}-${VERSION}.zip
+zip $F -r SALT StartupSession
 
 echo "Created release with id: $RELEASE_ID"
 
-F=${PROJECT}-${VERSION}.zip
 echo "Uploading $F to GitHub"
 url=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
 echo $url
