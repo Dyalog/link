@@ -5,7 +5,8 @@ WORKSPACE=${WORKSPACE-$PWD}
 cd ${WORKSPACE}
 
 REPO_URL=`git ls-remote --get-url origin`
-REPO=`echo $REPO_URL | grep -o "Dyalog/[^.]\+"`
+GIT_USER=`git config user.name`
+REPO=`echo $REPO_URL | grep -o "${GIT_USER}/[^.]\+"`
 PROJECT=`echo $REPO | cut -c 8-`
 
 echo "Running from ${REPO_URL}"
@@ -135,7 +136,7 @@ zip ./Link-${VERSION}.zip -r SALT StartupSession
 
 echo "Created release with id: $RELEASE_ID"
 
-F=Link-${VERSION}.zip
+F=${PROJECT}-${VERSION}.zip
 echo "Uploading $F to GitHub"
 url=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
 echo $url
