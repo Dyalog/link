@@ -7,7 +7,14 @@ cd ${WORKSPACE}
 REPO_URL=`git ls-remote --get-url origin`
 GIT_USER=`git config user.name`
 REPO=`echo $REPO_URL | grep -oi "${GIT_USER}/[^.]\+"`
-PROJECT=`echo $REPO | cut -c 8-`
+LENGTH=`echo $GIT_USER | awk '{print length}'`
+PROJECT=`echo $REPO | cut -c ${LENGTH}-`
+
+echo $REPO_URL
+echo $GIT_USER
+echo $REPO
+echo $LENGTH
+echo $PROJECT
 
 echo "Running from ${REPO_URL}"
 
