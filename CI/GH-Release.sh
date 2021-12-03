@@ -11,7 +11,6 @@ LENGTH=`echo $ORG | awk '{print length}'`
 PROJECT=`echo $REPO | cut -c $((2+${LENGTH}))-`
 
 echo $REPO_URL
-echo $GIT_USER
 echo $REPO
 echo $LENGTH
 echo $PROJECT
@@ -139,7 +138,10 @@ curl -o $TMP_RESPONSE --data @$TMP_JSON -H "Authorization: token $GHTOKEN" -i ht
 
 RELEASE_ID=`grep '"id"' $TMP_RESPONSE | head -1 | sed 's/.*: //;s/,//'`
 
-zip ./Link-${VERSION}.zip -r SALT StartupSession
+zip Link-${VERSION}.zip -r SALT StartupSession
+
+echo `ls`
+echo $PWD
 
 echo "Created release with id: $RELEASE_ID"
 
