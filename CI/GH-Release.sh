@@ -6,7 +6,7 @@ cd ${WORKSPACE}
 
 REPO_URL=`git ls-remote --get-url origin`
 GIT_USER=`git config user.name`
-REPO=`echo $REPO_URL | grep -o "${GIT_USER}/[^.]\+"`
+REPO=`echo $REPO_URL | grep -oi "${GIT_USER}/[^.]\+"`
 PROJECT=`echo $REPO | cut -c 8-`
 
 echo "Running from ${REPO_URL}"
