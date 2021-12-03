@@ -115,7 +115,7 @@ else                                     # New patch version
 	if [ "{$PRERELEASE}" = "false" ]; then
 		MSG_TEXT="Release ${PROJECT} ${VERSION_AB}\n\n"
 	else
-		MSG_TEXT="Pre-Release of $PROJECT ${VERSION_AB}\n\nWARNING: This is a pre-release version of RIDE ${VERSION_AB}: it is possible that functionality may be added, removed or altered; we do not recommend using pre-release versions of $PROJECT in production environments.\n\n"
+		MSG_TEXT="Pre-Release of $PROJECT ${VERSION_AB}\n\nWARNING: This is a pre-release version of $PROJECT ${VERSION_AB}: it is possible that functionality may be added, removed or altered; we do not recommend using pre-release versions of $PROJECT in production environments.\n\n"
 	fi
 	JSON_BODY=$( ( echo -e "${MSG_TEXT}Changelog:"; git log --format='%s' ${COMMIT_SHA}.. ) | grep -v -i todo | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
 fi
