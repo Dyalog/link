@@ -60,6 +60,8 @@ if which jq >/dev/null 2>&1 && [ 1 = $DELETE_DRAFTS ]; then
 	--silent -H "Authorization: token $GHTOKEN" \
 	https://api.github.com/repos/${REPO}/releases
 
+	echo $GH_RELEASES
+
 	RELEASE_COUNT=`cat $GH_RELEASES | jq ". | length"`
 	echo "Release Count: ${RELEASE_COUNT}"
 
@@ -135,9 +137,11 @@ echo "Created release with id: $RELEASE_ID"
 
 F=Link-${VERSION}.zip
 echo "Uploading $F to GitHub"
+url=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
+echo $url
 curl -i /dev/null -H "Authorization: token $GHTOKEN" \
 	-H 'Accept: application/vnd.github.manifold-preview' \
 	-H 'Content-Type: text/json' \
 	--data-binary @"./$F" \
-	https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
+	url
 rm -f $TMP_RESPONSE $TMP_JSON
