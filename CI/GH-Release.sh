@@ -140,18 +140,16 @@ RELEASE_ID=`grep '"id"' $TMP_RESPONSE | head -1 | sed 's/.*: //;s/,//'`
 
 zip Link-${VERSION}.zip -r SALT StartupSession
 
-echo `ls`
-echo $PWD
-
 echo "Created release with id: $RELEASE_ID"
 
 F=${PROJECT}-${VERSION}.zip
 echo "Uploading $F to GitHub"
 url=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
 echo $url
-curl -i /dev/null -H "Authorization: token $GHTOKEN" \
+curl -o /dev/null -H "Authorization: token $GHTOKEN" \
 	-H 'Accept: application/vnd.github.manifold-preview' \
 	-H 'Content-Type: application/zip' \
 	--data-binary @"./$F" \
 	url
-rm -f $TMP_RESPONSE $TMP_JSON
+	
+rm -f $TMP_RESPONSE $TMP_JSON $F
