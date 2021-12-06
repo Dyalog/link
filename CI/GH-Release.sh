@@ -5,8 +5,10 @@ WORKSPACE=${WORKSPACE-$PWD}
 cd ${WORKSPACE}
 
 REPO_URL=`git ls-remote --get-url origin`
-REPO=`echo $REPO_URL | grep -o "Dyalog/[^.]\+"`
-PROJECT=`echo $REPO | cut -c 8-`
+REPO=`echo $REPO_URL | grep -o "github.com:\?/\?\w\+/\w\+" | cut -c 12-`
+ORG=`echo $REPO | grep -o "\w\+/" | rev | cut -c 2- | rev`
+LENGTH=`echo $ORG | awk '{print length}'`
+PROJECT=`echo $REPO | cut -c $((2+${LENGTH}))-`
 
 echo "Running from ${REPO_URL}"
 
@@ -60,6 +62,8 @@ if which jq >/dev/null 2>&1 && [ 1 = $DELETE_DRAFTS ]; then
 	--silent -H "Authorization: token $GHTOKEN" \
 	https://api.github.com/repos/${REPO}/releases
 
+	echo $GH_RELEASES
+
 	RELEASE_COUNT=`cat $GH_RELEASES | jq ". | length"`
 	echo "Release Count: ${RELEASE_COUNT}"
 
@@ -106,7 +110,7 @@ else                                     # New patch version
 	if [ "{$PRERELEASE}" = "false" ]; then
 		MSG_TEXT="Release ${PROJECT} ${VERSION_AB}\n\n"
 	else
-		MSG_TEXT="Pre-Release of $PROJECT ${VERSION_AB}\n\nWARNING: This is a pre-release version of RIDE ${VERSION_AB}: it is possible that functionality may be added, removed or altered; we do not recommend using pre-release versions of $PROJECT in production environments.\n\n"
+		MSG_TEXT="Pre-Release of $PROJECT ${VERSION_AB}\n\nWARNING: This is a pre-release version of $PROJECT ${VERSION_AB}: it is possible that functionality may be added, removed or altered; we do not recommend using pre-release versions of $PROJECT in production environments.\n\n"
 	fi
 	JSON_BODY=$( ( echo -e "${MSG_TEXT}Changelog:"; git log --format='%s' ${COMMIT_SHA}.. ) | grep -v -i todo | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
 fi
@@ -129,15 +133,18 @@ curl -o $TMP_RESPONSE --data @$TMP_JSON -H "Authorization: token $GHTOKEN" -i ht
 
 RELEASE_ID=`grep '"id"' $TMP_RESPONSE | head -1 | sed 's/.*: //;s/,//'`
 
-zip ./Link-${VERSION}.zip -r SALT StartupSession
+F=${PROJECT}-${VERSION}.zip
+zip $F -r SALT StartupSession
 
 echo "Created release with id: $RELEASE_ID"
 
-F=Link-${VERSION}.zip
 echo "Uploading $F to GitHub"
-curl -i /dev/null -H "Authorization: token $GHTOKEN" \
+URL=https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
+echo $URL
+curl -o /dev/null -H "Authorization: token $GHTOKEN" \
 	-H 'Accept: application/vnd.github.manifold-preview' \
-	-H 'Content-Type: text/json' \
+	-H 'Content-Type: application/zip' \
 	--data-binary @"./$F" \
-	https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$F
-rm -f $TMP_RESPONSE $TMP_JSON
+	$URL
+	
+rm -f $TMP_RESPONSE $TMP_JSON $F
