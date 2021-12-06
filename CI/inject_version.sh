@@ -1,6 +1,6 @@
 #!/bin/bash
 # Link inject_version.sh
-raw_version=`cat StartupSession/Link/Version.aplf | grep -o "^version\s\?←\s\?'[0-9]\+\.[0-9]\+\.0-\?\w\+\?" | grep -o "[0-9]\+\.[0-9]\+\.0-\?\w\+\?"`
+raw_version=`cat StartupSession/Link/Version.aplf | grep -o "^version\s\?←\s\?'[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?"`
 
 major_minor=`echo ${raw_version} | grep -o "[0-9]\+\.[0-9]\+"`
 special=`echo ${raw_version} | grep -o "\-\w\+$"`
@@ -11,6 +11,6 @@ full_version=${major_minor}.${patch}${special}
 
 echo ${full_version}
 
-sed -i "s/^version\s\?←\s\?'[0-9]\+\.[0-9]\+\.0-\?\w\+\?/version←'${full_version}/" StartupSession/Link/Version.aplf
+sed -i "s/^version\s\?←\s\?'[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?/version←'${full_version}/" StartupSession/Link/Version.aplf
 
 exit 0

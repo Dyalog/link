@@ -10,11 +10,6 @@ ORG=`echo $REPO | grep -o "\w\+/" | rev | cut -c 2- | rev`
 LENGTH=`echo $ORG | awk '{print length}'`
 PROJECT=`echo $REPO | cut -c $((2+${LENGTH}))-`
 
-echo $REPO_URL
-echo $REPO
-echo $LENGTH
-echo $PROJECT
-
 echo "Running from ${REPO_URL}"
 
 GIT_BRANCH=${JOB_NAME#*/*/}
