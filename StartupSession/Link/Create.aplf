@@ -28,7 +28,11 @@
          :EndIf  ⍝ otherwise watch defaults to 'both'
          opts←U.DefaultOpts opts
 
-         :If hasdir←⎕NEXISTS dir ⋄ emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
+         :If hasdir←⎕NEXISTS dir
+             :If 2=⊃1 ⎕NINFO dir
+                 U.Error 'Link must target a directory, not a file'
+             :EndIf
+             emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
          :Else ⋄ emptydir←1
          :EndIf
 
