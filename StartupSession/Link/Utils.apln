@@ -514,12 +514,16 @@
         ∇ SetLinks links;fsw;mask
           :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
           ⎕SE.Link.Links←links
-          :If HASSTORE ⋄ :AndIf ~0∊⍴links  ⍝ update # links in secret # area - they will be read by WSLoaded
-          :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
-              fsw←links.fsw  ⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
-              links.fsw←⎕NULL  ⍝ nasty bug with ⎕NS and fsw which changes ⎕SE.Link.Links.fsw.##
-              {}(#.⎕NS¨links)Store 0   ⍝ avoid cross-ref between # and ⎕SE
-              links.fsw←fsw
+          :If HASSTORE ⍝ update # links in secret # area - they will be read by WSLoaded
+              :If ~0∊⍴links
+              :AndIf ~0∊⍴links←(#=RootOf⍎¨links.ns)/links
+                  fsw←links.fsw   
+                  links.fsw←⎕NULL 
+                  {}(#.⎕NS¨links)Store 0 ⍝ ⎕NS to avoid cross-ref between # and ⎕SE
+                  links.fsw←fsw
+              :Else
+                  {}⍬ Store 0 ⍝ Special-case empty list to avoid SYNTAX ERRORs etc in block above
+              :EndIf
           :EndIf
         ∇
         
@@ -1689,7 +1693,7 @@
           r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
           r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-          r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir both -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+          r,←'{"Name":"Create",      "args":"ns dir",  "Parse":"2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
           r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -sysvars -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
           r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
           r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
