@@ -234,10 +234,10 @@
         
         Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
             22::_←0                  ⍝ no file access
-            ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR ⍵  ⍝ writing traditional ns : just create directory
-            _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵ ⍝ create dir if needed
-            11::_←1⊣(⊂⍺)⎕NPUT⊢⍵ 1        ⍝ overwrite - Dyalog v17.0 Unicode
-            1:_←1⊣(⊂⍺)⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1        ⍝ overwrite - Dyalog v17.1+ Classic
+            ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR ⍵   ⍝ writing traditional ns : just create directory
+            _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵   ⍝ create dir if needed
+            1:_←1⊣(⊂⍺)⍺⍺.⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1
+            ⍝ ⍺⍺.⎕NPUT in order to use the right ⎕AVU under Classic
         }
         
         ∇ name←CaseCodePart name;bin;digits;len;⎕IO
@@ -797,7 +797,7 @@
           :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
           :EndIf
         ∇
-        ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
+        ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through NormNs
@@ -805,6 +805,9 @@
           (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
           :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
           :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+          :EndIf
+          :If 82=⎕DR 'A' ⍝ Classic
+              ⎕AVU←(⍎ns).⎕AVU
           :EndIf
           file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
           :If 0∊⍴src  ⍝ no information about item - item must exist
@@ -874,7 +877,7 @@
           cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
           (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
         ∇
-        ∇ (where expname actname nc)←opts DetermineAplNameSub file;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions
+        ∇ (where expname actname nc)←opts DetermineAplNameSub file;⎕AVU;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
@@ -887,8 +890,12 @@
           (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
           :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
           :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
-      ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
-          :Else ⋄ (actname nc)←Sniff expname file       ⍝ inspect source
+      ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer    
+          :Else 
+              :If 82=⎕DR 'A' ⍝ Classic
+                 ⎕AVU←(⍎opts.ns).⎕AVU ⍝ ⎕NGET in Sniff may depend on it
+              :EndIf
+              (actname nc)←Sniff expname file       ⍝ inspect source
           :EndIf
           :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
           :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
@@ -1005,7 +1012,7 @@
                       failed,←(ns,'.')∘,¨(~mask)/names
                       (files oldfiles names src)/⍨←⊂mask
                   :EndIf
-                  mask←src Into¨files  ⍝ failed to write
+                  mask←src (nsref Into)¨files  ⍝ failed to write
                   written,←mask/files ⋄ failed,←(ns,'.')∘,¨(~mask)/names
                   :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                       ⎕NDELETE¨mask/oldfiles
@@ -1048,7 +1055,7 @@
           :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
         ∇
         
-        ∇ (fixed failed)←opts FixFiles(target source overwrite);FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
+        ∇ (fixed failed)←opts FixFiles(target source overwrite);⎕AVU;FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
@@ -1056,6 +1063,15 @@
           fixed←fixedfiles←failed←0⍴⊂''
           :If 1≠1 ⎕NINFO source ⋄ allfiles←,⊂,source ⍝ single filename
           :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
+          :EndIf
+          
+          :If 82=⎕DR 'A' ⍝ Classic
+          :AndIf (≢allfiles)≥i←(¯9↑¨allfiles)⍳⊂'⎕AVU.apla' ⍝ Source contains ⎕AVU
+              :Trap 0 ⍝ Try to set ⎕AVU so that all ⎕NGET/⎕FIX operations will use saved ⎕AVU
+                  ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET i⊃allfiles
+              :Else  
+                  Warn 'Unable to set ⎕AVU from ',i⊃allfiles
+              :EndTrap
           :EndIf
           
           (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
