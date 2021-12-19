@@ -1809,7 +1809,11 @@
           opts.source←'ns' ⋄ opts.watch←'dir' ⋄ opts.arrays←name,'.var,',name,'.sub.var'
           name⍎'derived←∧.∧'
           name⍎'array←1 2 3'
-          z←opts ⎕SE.Link.Create name folder
+          :If ⎕SE.Link.Watcher.DOTNET ⍝ Test #397: Inject a .NET namespace
+              name⍎'⎕USING←''''' ⋄ z←name⍎'System'
+          :EndIf
+          z←opts ⎕SE.Link.Create name folder                
+          'link issue #397'assert'~⎕NEXISTS folder,''/System'''
           'link issue #186'assert'∨/''',name,'.derived''⍷z'   ⍝ must warn about unsupported names
           'link issue #186'assert'~∨/''',name,'.array''⍷z'    ⍝ arrays must be silently ignored
           'link issue #186'assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/derived.*'''

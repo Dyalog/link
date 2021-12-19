@@ -913,7 +913,11 @@
           :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
               refs←ref⍎¨subns
           :AndIf 1∊mask←~refs∊allrefs
-              (refs subns)/⍨←⊂mask
+              (refs subns)/⍨←⊂mask        
+              :If ∨/mask←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL}¨refs
+                  names~←pre∘,¨mask/subns
+                  (refs subns)/⍨←⊂~mask
+              :EndIf
           :AndIf 1∊mask←~IsScripted¨refs  ⍝ trad ns
               allrefs,←mask/refs
               tradns←pre∘,¨mask/subns
