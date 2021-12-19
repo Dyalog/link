@@ -1,4 +1,4 @@
- {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
@@ -19,7 +19,7 @@
      ⍝ :Hold '⎕SE.Link.Notify' is for functions that may modify files and file associations
      ⍝ :Hold '⎕SE.Link.Links' is just to get the link - we won't modify it - can't really hold it separately because Break/Expunge may have it too which could cause a deadlock
 
-         (type path oldpath)←{⍵,(≢⍵)↓'' '' ''},⊆args
+         (type path oldpath forcefix)←{⍵,(≢⍵)↓'' '' '' 0},⊆args ⍝ forcefix used by resync to force a refix of the file
          (path oldpath)←0 U.NormFile¨path oldpath
          deleted←type≡'deleted'
 
@@ -218,7 +218,7 @@
          :EndIf
 
          ⍝ fix file
-         :Select fixrc←nsref U.QFix path actname(U.FixTie link)1
+         :Select fixrc←nsref U.QFix path actname(U.FixTie link) 1 forcefix
          :Case 1 ⋄ msg,←⊂' - fixed from file'
          :Case 0 ⋄ msg,←⊂' - APL already up to date'
          :Case ¯1 ⋄ warn←1 ⋄ msg,←⊂'- failed to fix file'

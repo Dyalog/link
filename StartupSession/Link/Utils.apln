@@ -140,7 +140,7 @@
           :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly
           :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
           :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
-          :EndIf
+          :EndIf                                         
           :If compsrc ⋄ ⍝ need a closer look
               :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
               aplsrc←ns GetAplSource name
@@ -741,7 +741,7 @@
               name←'' ⋄ nc←0  ⍝ unknown
           :EndTrap
         ∇
-        ∇ fixed←target QFix(file name tie force);changed;nc;src;tie;value
+        ∇ fixed←target QFix(file name tie force forcefix);changed;nc;src;tie;value
     ⍝ fixed=1: fixed source
     ⍝ fixed=0: source already up to date - not fixed
     ⍝ fixed=¯1: failed to fix source
@@ -768,8 +768,8 @@
           :If src≡⍬ ⋄ fixed←¯1 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
           :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
           :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
-          :If changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
-              (name nc)←target Fix(name src force)
+          :If forcefix∨changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+              (name nc)←target Fix name src force ⍝ 1=fixwitherrors
               fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
           :Else ⋄ fixed←0 ⋄ :EndIf
         ∇
@@ -1124,7 +1124,7 @@
           :EndSelect
           
           (alldirs _ allexts)←↓⍉↑⎕NPARTS allfiles
-          FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺}  ⍝ ⍺ is force, ⍵ is (target file name)
+          FixFile←(FixTie opts){(target file name)←⍵ ⋄ 0≤target QFix file name ⍺⍺ ⍺ 0}  ⍝ ⍺ is force, ⍵ is (target file name)
           flatten←opts.flatten
           :If ~hasnc←~opts.fastLoad  ⍝ fastLoad produces (actnc∊¯1 0) - so must rely on file extension to classify order
               actncs+←¯9.1×(allfiles∊alldirs)∧(actncs=0)  ⍝ that's how we detect tradns/dirs - actnc=¯1 must remain so
@@ -1211,6 +1211,9 @@
           :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
           :Else
               filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
+          :EndIf                        
+          :If link.flatten
+              (filesrc file)←((file∊⊂link.dir,'/')∨2=1 ⎕NINFO file)∘/¨filesrc file
           :EndIf
           :If 0∊⍴nsref←(0 GetRefTo)link.ns ⋄ name←0⍴⊂'' ⋄ namesrc←0⍴⊂⍬
           :Else
@@ -1229,7 +1232,7 @@
           (filemask namemask)←0<(nameifile fileiname)←name file{(0<≢¨⍵)×(0@((1+≢⍺)∘=)⍺⍳⍵)}¨expname expfile  ⍝ 0 for not found
           filemask∧←filemask\(⍸filemask)=fileiname[filemask/nameifile]  ⍝ link must be both ways
           namemask∧←namemask\(⍸namemask)=nameifile[namemask/fileiname]  ⍝ link must be both ways
-          :If ##.DEBUG ⋄ :AndIf (+/filemask)≠(+/namemask) ⋄ Error'Internal error' ⋄ :EndIf
+          :If ##.DEBUG≠0 ⋄ :AndIf (+/filemask)≠(+/namemask) ⋄ Error'Internal error' ⋄ :EndIf
           :Select link.arrays
           :Case 0 ⋄ linkmask←(namenc≠2.1)∨(namemask\filemask[namemask/fileiname])  ⍝ diff arrays that have a file
           :Case 1 ⋄ linkmask←(⍴name)⍴1      ⍝ diff all apl arrays
@@ -1265,7 +1268,7 @@
           tocheck∨←(~tocheck)\~mask←aplfiles≡¨files  ⍝ files must be correctly associated
           changed←(mask/filets)≢¨(mask/aplts)  ⍝ file has changed
           txt←TSFmtNice 1 ⎕DT changed/mask/aplts
-          txt←txt,⍨¨'File now dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂', WS copy is dated '
+          txt←txt,⍨¨'File is dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂', WS copy is dated '
           diff←'←',(changed/mask/names),(changed/mask/files),⍪txt
         ∇
         
