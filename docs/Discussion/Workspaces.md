@@ -18,10 +18,10 @@ If you `)SAVE` a workspace which has active links in it, this creates a potentia
 
 ```
 IMPORTANT: 1 namespace linked in this workspace: #.myapp
-IMPORTANT: Link.Resync is required to use anything other than Link.Status and Link.Diff
+IMPORTANT: Link.Resync is required
 ```
 
-In other words, most link user commands and API functions will be disabled, until you run [Link.Resync](../API/Link.Resync.md), which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.
+Except for a few reporting tools like [Link.Status](../API/Link.Status.md), link user commands and API functions will be disabled, until you run [Link.Resync](../API/Link.Resync.md), which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.
 
 !!! Note
 	**Beware: If you continue working without doing a Resync, strange things may happen:** Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.

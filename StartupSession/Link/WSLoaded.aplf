@@ -60,7 +60,7 @@
      :ElseIf 0≠≢wslinks
          msg←(⍕≢wslinks),' namespaces',('s '/⍨1≠≢wslinks),' linked in this workspace: '
          'IMPORTANT'U.Warn(⊂msg),⍕¨wslinks.ns
-         'IMPORTANT'U.Warn'Link.Resync is required to use anything other than Link.Status and Link.Diff'
+         'IMPORTANT'U.Warn'Link.Resync is required'
      :Else
          ¯1 U.Log'No links found'
      :EndIf
