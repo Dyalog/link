@@ -50,7 +50,8 @@
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests   
           :If ⎕SE.Link.NOTIFY≢0
-              'Unable to run Link.Tests with NOTIFY set' ⎕SIGNAL 11
+              ⎕SE.Link.NOTIFY←0
+              ⎕←'NB: NOTIFY set to 0'
           :EndIf
           :If (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
               rep←⊃test_filter ⋄ test_filter↓⍨←1
