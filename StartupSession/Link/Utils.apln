@@ -1,4 +1,4 @@
-﻿:Namespace U ⍝ Utilities
+:Namespace U ⍝ Utilities
     ⎕IO ⎕ML←1 1
     
     :Section Constants
@@ -1265,7 +1265,7 @@
           tocheck∨←(~tocheck)\~mask←aplfiles≡¨files  ⍝ files must be correctly associated
           changed←(mask/filets)≢¨(mask/aplts)  ⍝ file has changed
           txt←TSFmtNice 1 ⎕DT changed/mask/aplts
-          txt←txt,⍨¨'File now dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂', WS copy is dated '
+          txt←txt,⍨¨'File is dated '∘,¨(TSFmtNice 1 ⎕DT changed/mask/filets),¨⊂', WS copy is dated '
           diff←'←',(changed/mask/names),(changed/mask/files),⍪txt
         ∇
         

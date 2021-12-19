@@ -17,7 +17,7 @@ By default, Resync takes no action, but outputs a list of differences found, wit
 2 updates required: use -proceed option to synchronise
  Name          Direction  File             Comments
  #.badapp.Foo  →                           Item has no corresponding file
- #.badapp.Goo  ←          /myapp/Goo.aplf  File now dated 08:17 yesterday,
+ #.badapp.Goo  ←          /myapp/Goo.aplf  File is dated 08:17 yesterday,
                                            WS copy is dated 03 Sep 2021 
 ```
 
