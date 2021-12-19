@@ -60,7 +60,7 @@ NOHOLD:
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
              (⊃U.LASTFIX)(nsref U.Into) oldfile   ⍝ editor overwrites oldfile with new definition
-             :If 0>ns U.QFix oldfile oldname tie 1 ⍝ fix must succeed ! FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
+             :If 0>ns U.QFix oldfile oldname tie 1 0 ⍝ FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
          :ElseIf callback∧(~tie)∧(0=≢oldfile)∧(oldname≢name)   ⍝ untied rename
