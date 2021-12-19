@@ -507,7 +507,7 @@
     ⍝ chicken out if ANY link is restored
           :If (0≠≢links)
           :AndIf ∨/links.restored
-              'Link.Resync is required to access other functions than Link.Status and Link.Diff'⎕SIGNAL ERRNO
+              'Link.Resync is required'⎕SIGNAL ERRNO
           :EndIf
         ∇
         
