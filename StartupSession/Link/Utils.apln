@@ -86,6 +86,7 @@
             11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
             ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
         }
+        IsDotNetSpace←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL} ⍝ /// Replace as soon as ⎕ATX allows
         ∇ {ok}←ns Untie name;nc;src
           :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
               Error src
@@ -741,10 +742,12 @@
               name←'' ⋄ nc←0  ⍝ unknown
           :EndTrap
         ∇
-        ∇ fixed←target QFix(file name tie force forcefix);changed;nc;src;tie;value
+        ∇ fixed←target QFix(file name tie ignoreErrors ignoreSame);changed;nc;src;tie;value
     ⍝ fixed=1: fixed source
     ⍝ fixed=0: source already up to date - not fixed
     ⍝ fixed=¯1: failed to fix source
+    ⍝ ignoreErrors: 1 to fix scripts containing errors
+    ⍝ ignoreSame  : 1 to refix unchanged source files (used by Resync)
           
           :If '.apla'≡⎕C⊃⌽⎕NPARTS file ⍝ If it is an array, do not try to ⎕FIX
               :Trap 0 ⍝ Trap any failue in Deserialise
@@ -768,8 +771,8 @@
           :If src≡⍬ ⋄ fixed←¯1 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
           :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
           :Else ⋄ changed←0 ⋄ :EndIf  ⍝ need to detect whether file has changed
-          :If forcefix∨changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
-              (name nc)←target Fix name src force ⍝ 1=fixwitherrors
+          :If ignoreSame∨changed ⋄ :OrIf FileHasChanged target name file((~tie)/src)  ⍝ pay the price of not generating a spurious refix when source is already in sync
+              (name nc)←target Fix name src ignoreErrors
               fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
           :Else ⋄ fixed←0 ⋄ :EndIf
         ∇
@@ -806,8 +809,8 @@
           :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
           :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
           :EndIf
-          :If 82=⎕DR 'A' ⍝ Classic
-              ⎕AVU←(⍎ns).⎕AVU
+          :If 82=⎕DR '' ⍝ Classic
+              ⎕AVU←ns⍎'⎕AVU'
           :EndIf
           file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
           :If 0∊⍴src  ⍝ no information about item - item must exist
@@ -892,8 +895,8 @@
           :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer    
           :Else 
-              :If 82=⎕DR 'A' ⍝ Classic
-                 ⎕AVU←(⍎opts.ns).⎕AVU ⍝ ⎕NGET in Sniff may depend on it
+              :If 82=⎕DR '' ⍝ Classic
+                 ⎕AVU←opts.ns⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
               :EndIf
               (actname nc)←Sniff expname file       ⍝ inspect source
           :EndIf
@@ -914,7 +917,7 @@
               refs←ref⍎¨subns
           :AndIf 1∊mask←~refs∊allrefs
               (refs subns)/⍨←⊂mask        
-              :If ∨/mask←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL}¨refs
+              :If ∨/mask←IsDotNetSpace¨refs
                   names~←pre∘,¨mask/subns
                   (refs subns)/⍨←⊂~mask
               :EndIf
@@ -1069,8 +1072,8 @@
           :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
           :EndIf
           
-          :If 82=⎕DR 'A' ⍝ Classic
-          :AndIf (≢allfiles)≥i←(¯9↑¨allfiles)⍳⊂'⎕AVU.apla' ⍝ Source contains ⎕AVU
+          :If 82=⎕DR '' ⍝ Classic
+          :AndIf (≢allfiles)≥i←(¯10↑¨allfiles)⍳⍥⎕C⊂'/⎕AVU.apla' ⍝ Source contains ⎕AVU
               :Trap 0 ⍝ Try to set ⎕AVU so that all ⎕NGET/⎕FIX operations will use saved ⎕AVU
                   ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET i⊃allfiles
               :Else  
@@ -1217,7 +1220,9 @@
               filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
           :EndIf                        
           :If link.flatten
-              (filesrc file)←((file∊⊂link.dir,'/')∨2=1 ⎕NINFO file)∘/¨filesrc file
+              mask←2=1 ⎕NINFO file     ⍝ Keep ordinary files
+              mask∨←file∊⊂link.dir,'/' ⍝ Keep the root directory
+              (file filesrc)/⍨←⊂mask
           :EndIf
           :If 0∊⍴nsref←(0 GetRefTo)link.ns ⋄ name←0⍴⊂'' ⋄ namesrc←0⍴⊂⍬
           :Else

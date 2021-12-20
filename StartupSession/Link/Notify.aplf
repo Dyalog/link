@@ -19,7 +19,7 @@
      ⍝ :Hold '⎕SE.Link.Notify' is for functions that may modify files and file associations
      ⍝ :Hold '⎕SE.Link.Links' is just to get the link - we won't modify it - can't really hold it separately because Break/Expunge may have it too which could cause a deadlock
 
-         (type path oldpath forcefix)←{⍵,(≢⍵)↓'' '' '' 0},⊆args ⍝ forcefix used by resync to force a refix of the file
+         (type path oldpath forcefix)←{4↑⍵,(≢⍵)↓'' '' '' 0},⊆args ⍝ forcefix used by resync to force a refix of the file
          (path oldpath)←0 U.NormFile¨path oldpath
          deleted←type≡'deleted'
 

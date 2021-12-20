@@ -44,7 +44,7 @@
 
      ⍝ Resync was successful
      :If ~0∊⍴links←(links.restored)/links
-         Watcher.Watch¨links        ⍝ re-instanciated FileSystemWatcher
+         Watcher.Watch¨links
          links.restored←0
      :EndIf
 
