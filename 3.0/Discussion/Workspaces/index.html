@@ -829,9 +829,9 @@
 <h3 id="saving-workspaces-containing-links">Saving workspaces containing Links</h3>
 <p>If you <code>)SAVE</code> a workspace which has active links in it, this creates a potential conflict between the source code embedded in the workspace and any changes that may have been made to external source since the workspace was saved. If you <code>)LOAD</code> a saved workspace, Link will issue a warning along the lines of:</p>
 <pre><code>IMPORTANT: 1 namespace linked in this workspace: #.myapp
-IMPORTANT: Link.Resync is required to use anything other than Link.Status and Link.Diff
+IMPORTANT: Link.Resync is required
 </code></pre>
-<p>In other words, most link user commands and API functions will be disabled, until you run <a href="../../API/Link.Resync/">Link.Resync</a>, which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.</p>
+<p>Except for a few reporting tools like <a href="../../API/Link.Status/">Link.Status</a>, link user commands and API functions will be disabled, until you run <a href="../../API/Link.Resync/">Link.Resync</a>, which will compare the contents of the workspace and the source directories, list the differences and propose actions to take in order to bring the contents of the workspace in line with the source folders.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Beware: If you continue working without doing a Resync, strange things may happen:</strong> Link user commands and API functions will refuse to perform any actions, but names defined in the linked namespace contain references to external source files that the interpreter and editor will still honour. Using the built-in editor will read the external source file at the start of an editing session, and any changes made will be written to file, even though Link itself remains disabled.</p>
