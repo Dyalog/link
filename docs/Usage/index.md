@@ -75,6 +75,12 @@ The use of a source code management system like Git is recommended. If you do th
 
 Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).
 
+!!! Note
+      The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
+      to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is *NOT* a reliable mechanism 
+      for deployment of new code to running systems. For example, running a server
+      with an active link and patching it simply by modifying linked source files IS *NOT RECOMMENDED*.
+
 If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a `Median` function to the namespace we created earlier:
 
 ```apl
