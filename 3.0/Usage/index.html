@@ -946,6 +946,13 @@ Linked: stats ←→ users/sally/stats
 <p>In the context of this document, the term <em>Dyalog IDE</em> includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.</p>
 </div>
 <p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
+  to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is <em>NOT</em> a reliable mechanism 
+  for deployment of new code to running systems. For example, running a server
+  with an active link and patching it simply by modifying linked source files IS <em>NOT RECOMMENDED</em>.</p>
+</div>
 <p>If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a <code>Median</code> function to the namespace we created earlier:</p>
 <pre><code class="language-apl">      )ED stats.Median
 </code></pre>
