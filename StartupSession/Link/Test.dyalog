@@ -170,7 +170,7 @@
           
           goofile←folder,'/app/goo.aplf'
           
-          ns'goo'⎕SE.Link.Fix goo←' r←goo x' ' r←x x x'  ⍝ Add a new function
+          ns'goo'⎕SE.Link.Fix ↑goo←' r←goo x' ' r←x x x'  ⍝ Add a new function, this time using a matrix
           assert'goo≡⊃⎕NGET goofile 1'
           assert'goofile≡4⊃5179⌶''ns.goo'''             ⍝   ... await callback & link established
           

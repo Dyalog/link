@@ -13,7 +13,7 @@
      XSI←⎕XSI ⋄ RSI←⎕RSI
      :If 900⌶⍬ ⋄ where←'' ⋄ :EndIf  ⍝ fix into calling space by default
 
-     :If 2=≢⍴ src ⋄ src←↓src ⋄ :EndIf
+     :If 2=≢⍴src ⋄ src←{(+/∨\' '≠⌽⍵)↑¨↓⍵}src ⋄ :EndIf
      nosrc←0=≢src
      :If 9≠⎕NC'where' ⋄ where←⊆,where ⋄ :EndIf  ⍝ do not ravel reference
      (ns name oldname)←3↑where,'' '' ''
