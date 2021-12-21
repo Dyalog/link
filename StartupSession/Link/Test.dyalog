@@ -50,7 +50,8 @@
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests   
           :If ⎕SE.Link.NOTIFY≢0
-              'Unable to run Link.Tests with NOTIFY set' ⎕SIGNAL 11
+              ⎕SE.Link.NOTIFY←0
+              ⎕←'NB: NOTIFY set to 0'
           :EndIf
           :If (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
               rep←⊃test_filter ⋄ test_filter↓⍨←1
@@ -1808,7 +1809,11 @@
           opts.source←'ns' ⋄ opts.watch←'dir' ⋄ opts.arrays←name,'.var,',name,'.sub.var'
           name⍎'derived←∧.∧'
           name⍎'array←1 2 3'
-          z←opts ⎕SE.Link.Create name folder
+          :If ⎕SE.Link.Watcher.DOTNET ⍝ Test #397: Inject a .NET namespace
+              name⍎'⎕USING←''''' ⋄ z←name⍎'System'
+          :EndIf
+          z←opts ⎕SE.Link.Create name folder                
+          'link issue #397'assert'~⎕NEXISTS folder,''/System'''
           'link issue #186'assert'∨/''',name,'.derived''⍷z'   ⍝ must warn about unsupported names
           'link issue #186'assert'~∨/''',name,'.array''⍷z'    ⍝ arrays must be silently ignored
           'link issue #186'assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/derived.*'''

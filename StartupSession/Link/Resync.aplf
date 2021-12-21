@@ -28,7 +28,7 @@
          restored←links.restored
          links.restored←0   ⍝ turn this off now or update operations will fail
          :If ∨/mask←type=1  ⍝ some APL objects to update from file
-             z←{Notify'changed'⍵}¨diff[⍸mask;3]
+             z←{Notify'changed' ⍵ '' 1}¨diff[⍸mask;3]
              msg,←,(⍕+/mask),' file',(1=+/mask)↓'s read, '
          :EndIf
          :If ∨/mask←type=2  ⍝ some files to update from APL source
@@ -36,6 +36,7 @@
              msg,←,(⍕+/mask),' file',(1=+/mask)↓'s updated, '
          :EndIf
          msg←¯2↓msg
+         links.restored←restored
 
      :Else  ⍝ cannot perform changes automatically
          U.Error'Manual resolution required:',U.FmtLines↓⍕(~mask)⌿diff
@@ -43,7 +44,7 @@
 
      ⍝ Resync was successful
      :If ~0∊⍴links←(links.restored)/links
-         Watcher.Watch¨links        ⍝ re-instanciated FileSystemWatcher
+         Watcher.Watch¨links
          links.restored←0
      :EndIf
 
