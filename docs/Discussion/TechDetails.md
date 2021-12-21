@@ -20,6 +20,9 @@ It is likely that this restriction will be lifted in a future version of Link.
 
 **Unsupported:** Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).
 
+!!! Note
+    GUI objects with KeepOnClose have nameclass 9.2 when the object is active and 9.1 when closed. This will cause erratic behaviour; the use of KeepOnClose is not supported by Link.
+    
 ## Other Limitations
 
 - Namespaces must be named. To be precise, it must be true that `ns≡(⎕NS⍬)⍎⍕ns`. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using `⎕NS` dyadically to name the created namespace (for example `'myproject' ⎕NS ⍬` rather than `myproject←⎕NS ⍬`). This allows retrieving namespace reference from its display form (for example `#.myproject` rather than `#.[namespace]`).
