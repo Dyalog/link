@@ -6,13 +6,15 @@ Link 3.0 is included with Dyalog version 18.2 or later.
 	Automatic detection of file changes requires .NET Framework or .NET Core. These can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
 	
 	To find out which versions are supported, see [section 2.1 of the .NET Core Interface Guide](https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf) and under the heading "Prerequisites" in [chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide](https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf).
-	
+
 
 The instructions on this page only apply if you want to:
 
 - Use Link 3.0 with Dyalog version 18.0 (in place of Link 2.0).
 - Participate in testing pre-releases of Link.
 - Have some other reason for wanting to use a different version than that which is distributed with Dyalog APL.
+
+If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.
 
 Link is maintained as an open source project at [github.com/dyalog/link](https://github.com/dyalog/link). Start by downloading (or cloning) the latest release of Link and locating the subfolder called `StartupSession`. This folder contains the code required to run Link.
 
