@@ -8,6 +8,9 @@ In the following, for want of a better word, the term *object* will be used to r
 
 **Supported:** Link supports objects of name class 2.1 (array), 3.1 (traditional function), 3.2 (d-function), 4.1 (traditional operator), 4.2 (d-operator), 9.1 (namespace), 9.4 (class) and 9.5 (interface).
 
+!!! Note
+    GUI objects with KeepOnClose have nameclass 9.2 when the object is active and 9.1 when closed. This will cause erratic behaviour; the use of KeepOnClose is not supported by Link.
+
 **Unscripted Namespaces:** Namespaces created with `⎕NS` or `)NS` have no source code of their own and are mapped to directories. In Link version 3.0, one endpoint of a link is always an unscripted namespace and the other endpoint of the link is a directory.
 
 **Scripted Namespaces:** So-called scripted namespaces, created using the editor or `⎕FIX`, have textual source and are treated the same way as functions and other "code objects". Link 3.0 does not support scripted namespaces, or any other objects that map to a single source file, as ***endpoints*** for a link, although they are supported as objects *within* a linked namespace.
@@ -19,9 +22,6 @@ It is likely that this restriction will be lifted in a future version of Link.
 **Functions and Operators:** Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.
 
 **Unsupported:** Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).
-
-!!! Note
-    GUI objects with KeepOnClose have nameclass 9.2 when the object is active and 9.1 when closed. This will cause erratic behaviour; the use of KeepOnClose is not supported by Link.
     
 ## Other Limitations
 
