@@ -1,1 +1,0 @@
-**Quick links:** [Home](Home.md) [API Reference](API.md) [Email us](mailto:support@dyalog.com)
