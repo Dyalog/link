@@ -734,6 +734,7 @@
 <li>Participate in testing pre-releases of Link.</li>
 <li>Have some other reason for wanting to use a different version than that which is distributed with Dyalog APL.</li>
 </ul>
+<p>If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.</p>
 <p>Link is maintained as an open source project at <a href="https://github.com/dyalog/link">github.com/dyalog/link</a>. Start by downloading (or cloning) the latest release of Link and locating the subfolder called <code>StartupSession</code>. This folder contains the code required to run Link.</p>
 <p><strong>If you only rarely expect to update Link</strong> and you have the necessary permissions, you can <strong>OVERWRITE the installed version of Link</strong> by replacing the StartupSession folder that already exists in the main Dyalog program folder with the downloaded folder.</p>
 <p><strong>If you want to regularly update Link as new versions are made available</strong>, or you do not have permission to partially overwrite the Dyalog installation, you can keep the code outside the main program folder, so it can easily be updated with a <code>git pull</code>, or a copy operation that does not require special permissions. You will need to declare the location of the folder by setting the <code>DYALOGSTARTUPSE</code> parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:</p>
