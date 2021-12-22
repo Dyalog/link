@@ -1267,7 +1267,7 @@
       ⍝ remaining files are not associated - compare source directly
           mask←~CompareSource¨↓⍉↑(namemask/namesrc)(filesrc[namemask/fileiname])(namemask/namenc)(filenc[namemask/fileiname])     
           changed←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'Sources differ'
-          i←changed[;3]∊tsdiff[;3]                      ⍝ tsdiff may have inferred direction
+          i←⍸changed[;3]∊tsdiff[;3]                      ⍝ tsdiff may have inferred direction
           changed[i;]←tsdiff[tsdiff[;3]⍳changed[i;3];]  ⍝   use that information
           diff⍪←changed          
         ∇
