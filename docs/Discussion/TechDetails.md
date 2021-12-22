@@ -19,9 +19,6 @@ It is likely that this restriction will be lifted in a future version of Link.
 **Functions and Operators:** Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.
 
 **Unsupported:** Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).
-
-!!! Note
-    GUI objects with KeepOnClose have nameclass 9.2 when the object is active and 9.1 when closed. This will cause erratic behaviour; the use of KeepOnClose is not supported by Link.
     
 ## Other Limitations
 

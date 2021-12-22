@@ -1213,7 +1213,7 @@
           :EndIf
         ∇
         
-        ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where
+        ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i
     ⍝ uses link.arrays to determine which APL arrays to compare
           :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
           :Else
@@ -1258,13 +1258,18 @@
           filemask∧←(⍳⍴file)∊(linkmask/fileiname) ⋄ namemask∧←linkmask ⍝ compare only declared arrays
           :If FixTie link  ⍝ functions and scripts are associated to files - cannot compare source
               mask←namemask∧(~arrays←namenc∊2.1 ¯9.1)  ⍝ avoid arrays and unscripted namespaces
-              (tsdiff tocheck)←(mask/name)TSDiff file[mask/fileiname]
-              diff⍪←tsdiff
-              namemask∧←arrays∨mask\tocheck  ⍝ arrays, unscripted namespaces and directories remain to be compared by source
+              (tsdiff tocheck)←(mask/name)TSDiff file[mask/fileiname]  
+              tocheck∨←file[mask/fileiname]∊tsdiff[;3] ⍝ compare source of files with changed ts
+              namemask∧←arrays∨mask\tocheck            ⍝   and arrays, unscripted namespaces and directories
+          :Else
+              tsdiff←0 4⍴0
           :EndIf ⍝
       ⍝ remaining files are not associated - compare source directly
-          mask←~CompareSource¨↓⍉↑(namemask/namesrc)(filesrc[namemask/fileiname])(namemask/namenc)(filenc[namemask/fileiname])
-          diff⍪←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'Sources differ'
+          mask←~CompareSource¨↓⍉↑(namemask/namesrc)(filesrc[namemask/fileiname])(namemask/namenc)(filenc[namemask/fileiname])     
+          changed←'?',(mask/namemask/name),(file[mask/namemask/fileiname]),[1.5]⊂'Sources differ'
+          i←changed[;3]∊tsdiff[;3]                      ⍝ tsdiff may have inferred direction
+          changed[i;]←tsdiff[tsdiff[;3]⍳changed[i;3];]  ⍝   use that information
+          diff⍪←changed          
         ∇
         
         ∇ (diff tocheck)←names TSDiff files;aplfiles;aplnames;aplparents;aplts;changed;filets;filetype;mask;txt
