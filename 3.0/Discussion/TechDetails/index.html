@@ -927,10 +927,6 @@
 <p><strong>Variables</strong> are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with <a href="../../API/Link.Add/">Link.Add</a>, or with the <code>-arrays</code> modifier of <a href="../../API/Link.Create/">Link.Create</a> and <a href="../../API/Link.Export/">Link.Export</a>.</p>
 <p><strong>Functions and Operators:</strong> Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.</p>
 <p><strong>Unsupported:</strong> Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>GUI objects with KeepOnClose have nameclass 9.2 when the object is active and 9.1 when closed. This will cause erratic behaviour; the use of KeepOnClose is not supported by Link.</p>
-</div>
 <h2 id="other-limitations">Other Limitations</h2>
 <ul>
 <li>Namespaces must be named. To be precise, it must be true that <code>ns≡(⎕NS⍬)⍎⍕ns</code>. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using <code>⎕NS</code> dyadically to name the created namespace (for example <code>'myproject' ⎕NS ⍬</code> rather than <code>myproject←⎕NS ⍬</code>). This allows retrieving namespace reference from its display form (for example <code>#.myproject</code> rather than <code>#.[namespace]</code>).</li>
