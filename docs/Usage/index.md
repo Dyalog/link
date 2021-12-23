@@ -76,10 +76,16 @@ The use of a source code management system like Git is recommended. If you do th
 Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).
 
 !!! Note
-      The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
-      to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is *NOT* a reliable mechanism 
-      for deployment of new code to running systems. For example, running a server
-      with an active link and patching it simply by modifying linked source files IS *NOT RECOMMENDED*.
+	For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.
+	
+	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
+	
+	To find out which versions are supported, see [section 2.1 of the .NET Core Interface Guide](https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf) and under the heading "Prerequisites" in [chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide](https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf).
+	
+	The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
+	to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is *NOT* a reliable mechanism 
+	for deployment of new code to running systems. For example, running a server
+	with an active link and patching it simply by modifying linked source files IS *NOT RECOMMENDED*.
 
 If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a `Median` function to the namespace we created earlier:
 
