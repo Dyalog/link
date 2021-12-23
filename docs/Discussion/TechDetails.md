@@ -31,7 +31,13 @@ It is likely that this restriction will be lifted in a future version of Link.
 - Link does not support source files that define multiple names, even though `2∘⎕FIX` does support this.
 - The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor *will* detect changes to source files on all platforms, when it opens an editor window.
 - Source code must not have embedded newlines within character constants. Although `⎕FX` does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
-- Although Link 3.0 will work with Dyalog version 18.0, Dyalog v18.1 or later is recommended if it is important that all source be preserved as typed. Earlier versions of APL may occasionally lose the source as typed under certain circumstances (and revert of source code generated from tokens, which may be formatted slightly differently).
+- Although Link 3.0 will work with Dyalog version 18.0, Dyalog v18.2 or later is recommended if it is important that all source be preserved as typed. Earlier versions of APL may occasionally lose the source as typed under certain circumstances (and revert of source code generated from tokens, which may be formatted slightly differently).
+
+!!! Note
+    If you are still using the pre-Unicode version of Dyalog known as "Classic": Link 3.0 will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
+    cause Link to create strange file names. For example `]add ⎕IO` will cause
+    the creation of a file named `ŒIO.apla`. Depending on the names of your objects, 
+    this may make it difficult to share source files between Classic and Unicode interpreters.
 
 ## How does Link work?
 
