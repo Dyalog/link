@@ -76,7 +76,9 @@ The use of a source code management system like Git is recommended. If you do th
 Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).
 
 !!! Note
-	For Dyalog to automatically update workspace contents due to file changes requires .NET Framework or .NET Core. These can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
+	For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.
+	
+	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
 	
 	To find out which versions are supported, see [section 2.1 of the .NET Core Interface Guide](https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf) and under the heading "Prerequisites" in [chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide](https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf).
 	
