@@ -948,10 +948,13 @@ Linked: stats ←→ users/sally/stats
 <p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
+<p>For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.</p>
+<p>The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
+<p>To find out which versions are supported, see <a href="https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf">section 2.1 of the .NET Core Interface Guide</a> and under the heading "Prerequisites" in <a href="https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf">chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide</a>.</p>
 <p>The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
-  to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is <em>NOT</em> a reliable mechanism 
-  for deployment of new code to running systems. For example, running a server
-  with an active link and patching it simply by modifying linked source files IS <em>NOT RECOMMENDED</em>.</p>
+to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is <em>NOT</em> a reliable mechanism 
+for deployment of new code to running systems. For example, running a server
+with an active link and patching it simply by modifying linked source files IS <em>NOT RECOMMENDED</em>.</p>
 </div>
 <p>If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a <code>Median</code> function to the namespace we created earlier:</p>
 <pre><code class="language-apl">      )ED stats.Median

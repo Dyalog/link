@@ -941,6 +941,12 @@ Any changes made to code in the active workspace using the tracer and editor are
 <li><strong>Keep the workspace up-to-date:</strong>
 If .NET Framework or .NET Core is available, then any changes made to the external files using a text editor, or resulting from an <abbr title="Source Code Manager">SCM</abbr> action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.</p>
+<p>The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
+<p>To find out which versions are supported, see <a href="https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf">section 2.1 of the .NET Core Interface Guide</a> and under the heading "Prerequisites" in <a href="https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf">chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide</a>.</p>
+</div>
 <p>You can invoke <a href="API/Link.Create/">Link.Create</a> several times to create multiple links, and you can also use <a href="API/Link.Import/">Link.Import</a> or <a href="API/Link.Export/">Link.Export</a> to import source code into the workspace or export code to external files <em>without</em> creating links that will respond to subsequent changes. </p>
 <h2 id="functions-vs-user-commands">Functions vs. User Commands</h2>
 <p>With a few exceptions, each <a href="API/">Link API function</a> has a corresponding User Command, designed to make the functionality slightly easier to use interactively in the session.</p>
