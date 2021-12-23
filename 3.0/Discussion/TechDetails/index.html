@@ -938,8 +938,15 @@
 <li>Link does not support source files that define multiple names, even though <code>2∘⎕FIX</code> does support this.</li>
 <li>The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor <em>will</em> detect changes to source files on all platforms, when it opens an editor window.</li>
 <li>Source code must not have embedded newlines within character constants. Although <code>⎕FX</code> does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to <code>⎕UCS</code> e.g. <code>newline←⎕UCS 13 10  ⍝ carriage-return + line-feed</code></li>
-<li>Although Link 3.0 will work with Dyalog version 18.0, Dyalog v18.1 or later is recommended if it is important that all source be preserved as typed. Earlier versions of APL may occasionally lose the source as typed under certain circumstances (and revert of source code generated from tokens, which may be formatted slightly differently).</li>
+<li>Although Link 3.0 will work with Dyalog version 18.0, Dyalog v18.2 or later is recommended if it is important that all source be preserved as typed. Earlier versions of APL may occasionally lose the source as typed under certain circumstances (and revert of source code generated from tokens, which may be formatted slightly differently).</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are still using the pre-Unicode version of Dyalog known as "Classic": Link 3.0 will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
+cause Link to create strange file names. For example <code>]add ⎕IO</code> will cause
+the creation of a file named <code>ŒIO.apla</code>. Depending on the names of your objects, 
+this may make it difficult to share source files between Classic and Unicode interpreters.</p>
+</div>
 <h2 id="how-does-link-work">How does Link work?</h2>
 <p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of September 2021.</p>
 <p><strong>Terminology:</strong> In the following, the term <em>object</em> is used very loosely to refer to functions, operators, namespaces, classes and arrays.</p>
