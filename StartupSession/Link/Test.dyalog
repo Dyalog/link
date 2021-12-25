@@ -1812,8 +1812,13 @@
           :If ⎕SE.Link.Watcher.DOTNET ⍝ Test #397: Inject a .NET namespace
               name⍎'⎕USING←''''' ⋄ z←name⍎'System'
           :EndIf
+          '#.ignoreme' ⎕NS ''         ⍝ Test #442: Ignore "refs"
+          #.ignoreme.⎕FX 'goo' '3+3'  ⍝ Create a namespace with a function in it
+          name⍎'ignoreme←#.ignoreme'  ⍝ Embed a ref to it in our namespace
+
           z←opts ⎕SE.Link.Create name folder                
           'link issue #397'assert'~⎕NEXISTS folder,''/System'''
+          'link issue #442'assert'~⎕NEXISTS folder,''/ignoreme'''
           'link issue #186'assert'∨/''',name,'.derived''⍷z'   ⍝ must warn about unsupported names
           'link issue #186'assert'~∨/''',name,'.array''⍷z'    ⍝ arrays must be silently ignored
           'link issue #186'assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/derived.*'''
@@ -1831,6 +1836,7 @@
           Breathe
           0 assert_create 1
           {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+          ⎕EX '#.ignoreme'
           
       ⍝ now try source=ns watch=ns
           opts.source←'ns' ⋄ opts.watch←'ns'

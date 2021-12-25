@@ -86,7 +86,7 @@
             11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
             ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
         }
-        IsDotNetSpace←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL} ⍝ /// Replace as soon as ⎕ATX allows
+        IsDotNetSpace←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL} ⍝ /// Replace as soon as ⎕ATX allows  
         ∇ {ok}←ns Untie name;nc;src
           :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
               Error src
@@ -916,12 +916,13 @@
           :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
               refs←ref⍎¨subns
           :AndIf 1∊mask←~refs∊allrefs
-              (refs subns)/⍨←⊂mask        
-              :If ∨/mask←IsDotNetSpace¨refs
-                  names~←pre∘,¨mask/subns
-                  (refs subns)/⍨←⊂~mask
-              :EndIf
-          :AndIf 1∊mask←~IsScripted¨refs  ⍝ trad ns
+              (refs subns)/⍨←⊂mask             
+              ⍝ Now eliminate some unwanted namespaces:
+              mask←(⍕¨refs)≢¨pre∘,¨subns     ⍝ "refs" to other namespaces
+              mask∨←IsDotNetSpace¨refs  ⍝ namespaces created to host .NET objects
+              names~←pre∘,¨mask/subns
+              (refs subns)/⍨←⊂~mask
+          :AndIf 1∊mask←~{0=≢⍵: ⍬ ⋄ IsScripted¨⍵}refs  ⍝ trad ns
               allrefs,←mask/refs
               tradns←pre∘,¨mask/subns
               :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
