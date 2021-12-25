@@ -86,7 +86,7 @@
             11::⊃⎕NGET ⍵ 1                     ⍝ 17.0 Unicode
             ⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1 ⍝ 17.1+ Classic
         }
-        IsDotNetSpace←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL} ⍝ /// Replace as soon as ⎕ATX allows  
+        IsDotNetSpace←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL} ⍝ /// Replace as soon as ⎕ATX allows
         ∇ {ok}←ns Untie name;nc;src
           :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
               Error src
