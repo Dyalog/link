@@ -47,6 +47,7 @@ Link 3.0 is the first major revision of Link. It adds:
 
 * Support for saving workspaces containing links and resuming work after a break.
 * Support for names which differ only in case (for example, `FOO` vs `Foo`) in case-insensitive file systems, by adding "case coding" information to the file name.
-* A new `Link.LaunchDir` API function, that makes it straightforward to replace the old SALT `.dyapp` files with new features in the interpreter, that make it possible to launch the interpreter using a configuration file or single APL source file.
+* The `Link.LaunchDir` API function, makes it straightforward to determine the folder that APL was launched on, simplifying the task of  launching the interpreter using a configuration file or single APL source file.
+* Dyalog version 18.2, released at the same time as Link 3.0, supports identifying a directory with the `LOAD=` parameter - as an alternative to a workspace, APL source file, or a configuration file. When `LOAD` identifies a directory, a link will be created on startup (and the function `Run` invoked, if it exists).
 
 A more complete description of the differences between Link 2.0 and 3.0 are described in the guide on [upgrading from 2.0 to 3.0](../Upgradeto30.md).
