@@ -916,12 +916,13 @@
           :If ~0∊⍴subns←ref.(⎕NL ¯9.1)   ⍝ sub-namespaces
               refs←ref⍎¨subns
           :AndIf 1∊mask←~refs∊allrefs
-              (refs subns)/⍨←⊂mask        
-              :If ∨/mask←IsDotNetSpace¨refs
-                  names~←pre∘,¨mask/subns
-                  (refs subns)/⍨←⊂~mask
-              :EndIf
-          :AndIf 1∊mask←~IsScripted¨refs  ⍝ trad ns
+              (refs subns)/⍨←⊂mask             
+              ⍝ Now eliminate some unwanted namespaces:
+              mask←(⍕¨refs)≢¨pre∘,¨subns     ⍝ "refs" to other namespaces
+              mask∨←IsDotNetSpace¨refs  ⍝ namespaces created to host .NET objects
+              names~←pre∘,¨mask/subns
+              (refs subns)/⍨←⊂~mask
+          :AndIf 1∊mask←~{0=≢⍵: ⍬ ⋄ IsScripted¨⍵}refs  ⍝ trad ns
               allrefs,←mask/refs
               tradns←pre∘,¨mask/subns
               :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces

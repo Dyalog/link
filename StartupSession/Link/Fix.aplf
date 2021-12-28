@@ -123,6 +123,10 @@ NOHOLD:
                  :Else  ⍝ file
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                      src (nsref U.Into) file
+                     :If NOTIFY∧callback∧link.watch≡'ns'
+                         ⍝ If watching files, notification happens on FSW event
+                         U.Notify nsname,'.',name,' written to ',file
+                     :EndIf
                  :EndIf
              :Else  ⍝ do not error yet - we still want to attempt to fix the source in the workspace
                  error←'Unable to write ',nsname,'.',name,' to file: ',file
