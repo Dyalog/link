@@ -16,7 +16,7 @@ For every day use in the session, it might be more convenient to use the user co
 ```
 
 ## Linking a directory on startup
-If you are using Dyalog version 18.2 or later, you can cause a link to be created to the root of your workspace (`#`) as APL starts, by setting the `LOAD` parameter on the command line or as an environment variable. If a function `Run` exists after the link has been created, it will be called with a right argument containing the name of the directory. You can disable the call to `Run`by including the `-q` switch on the command line (in the same way that the `-q` switch inhibits the execution of the latent expression when loading a workspace).
+If you are using Dyalog version 18.2 or later, you can cause a link to be created to the root of your workspace (`#`) as APL starts, by setting the `LOAD` parameter on the command line or as an environment variable. After establishing the link, the system will call the function `Run` with a right argument containing the name of the directory (resulting in a `VALUE ERROR` if there is no such function. You can disable the call to `Run`by including the `-x` switch on the command line (in the same way that the `-x` switch inhibits the execution of the latent expression when loading a workspace).
 
 With a standard Dyalog 18.2 installation under Microsoft Windows, you can also right click on a directory and select "Open with Dyalog" or "Run with Dyalog" to create a link on startup and optionally call `Run`.
 
