@@ -2054,7 +2054,7 @@
         ∇
         
         
-        ∇ ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes
+        ∇ ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes;nsref
           :If 82≠⎕DR''  ⍝ Classic interpreter required for classic QA !
               Log'Not a classic interpreter - not running ',⊃⎕SI
               ok←1 ⋄ :Return
@@ -2064,7 +2064,7 @@
       ⍝ check that key and friends are correctly translated in classic edition
           {}⎕SE.Link.Create name folder
           name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⎕U2338 arg'
-          read←{tie←⍵ ⎕NTIE 0 ⋄ r←⎕NREAD tie 83 ¯1 0 ⋄ _←⎕NUNTIE tie ⋄ r}folder,'/foo.aplf'
+          read←NREADALL folder,'/foo.aplf'
           foobytes←32 114 101 115 ¯30 ¯122 ¯112 102 111 111 32 97 114 103 13 10 32 114 101 115 ¯30 ¯122 ¯112 123 ¯30 ¯115 ¯70 32 ¯30 ¯115 ¯75 125 ¯30 ¯116 ¯72 32 97 114 103 13 10
           assert'(read~13)≡(foobytes~13)'
           
@@ -2074,7 +2074,33 @@
           assert'goosrc≡⎕NR ''',name,'.goo'''
           
           {}⎕SE.Link.Break name
-          CleanUp folder name
+          CleanUp folder name  
+          
+          ⍝ test handling of non-default ⎕AVU
+          nsref←⍎name ⎕NS ''⊣⎕EX name
+          assert 'nsref.⎕AVU[60]=8866'       ⍝ Default: right tack
+          nsref.⎕FX foosrc←' foo' '⍝⊢'
+          {}⎕SE.Link.Create name folder    
+          read←NREADALL folder,'/foo.aplf'
+          assert '(3↑¯5↑read)≡¯30 ¯118 ¯94'  ⍝ UTF-8 U+22A2 right tack (ignore CRLF)
+
+          nsref.⎕AVU[60]←164                 ⍝ Now change to map to currency symbol
+          {}⎕SE.Link.Add name,'.⎕AVU'        ⍝ Record ⎕AVU
+          name 'foo' ⎕SE.Link.Fix foosrc     ⍝ Refix the function, this should write the file
+
+          read←NREADALL folder,'/foo.aplf'
+          assert '(2↑¯4↑read)≡¯62 ¯92'       ⍝ UTF-8 U+00A4 currency symbol
+          {}⎕SE.Link.Break name
+          ⎕EX name
+
+          {}⎕SE.Link.Create name folder
+          assert'foosrc≡⎕NR ''',name,'.foo'''
+          assert 'nsref.⎕AVU[60]=164'        ⍝ Check ⎕AVU has been set to non-default
+          assert '⎕AVU[60]=8866'             ⍝ Check ⎕AVU has not been affected
+          assert '#.⎕AVU[60]=8866'           ⍝ Check #.⎕AVU also unchanged
+
+          CleanUp folder name  
+                    
           ok←1
         ∇
         
@@ -2715,8 +2741,7 @@
           :EndIf
         ∇
         
-        
-        
+        NREADALL←{tie←⍵ ⎕NTIE 0 ⋄ r←⎕NREAD tie 83 ¯1 0 ⋄ _←⎕NUNTIE tie ⋄ r}        
         
         ∇ {r}←{flag}NDELETE file;type;name;names;types;n;t
      ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
