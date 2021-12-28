@@ -57,7 +57,9 @@ Enter some numbers:
 
 ### Automating Startup
 
-Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). Configuration files allow you to both set a startup expression and include other configuration options for the interpreter. For example, if we were to define a file `dev.dcfg` in the `linkdemo` folder with the following contents:
+Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). From version 18.2, `LOAD` can also indentify a directory, in which case APL will create a link to the directory on startup, and attempt to call the function `#.Run`, with the enclosed name of the directory as the right argument. You can skip the call to `Run` by adding a `-x` to your command line.
+
+Using `LOAD` to link to a directory on startup is simple way to handle very simple applications or ad-hoc development. However, configuration files allow you to both set a startup expression and include other configuration options for the interpreter and are probably a better solution for applications consisting of more than one source directory. For example, we could start our example application by creating a file `dev.dcfg` in the `linkdemo` folder with the following contents:
 
 ```json
 {
@@ -120,4 +122,3 @@ Recent versions of Dyalog APL support running APL from a script either by redire
 `(⎕NS⍬).({}enableSALT⊣⎕CY'salt')`
 
 Note that this depends on the interpreter being able to find the salt workspace (`salt.dws`). You may need to provide a full path name to that file, if you don't have a standard installation.
-

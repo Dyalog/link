@@ -15,7 +15,13 @@ For every day use in the session, it might be more convenient to use the user co
       ]LINK.Create myapp /users/sally/myapp
 ```
 
+## Linking a directory on startup
+If you are using Dyalog version 18.2 or later, you can cause a link to be created to the root of your workspace (`#`) as APL starts, by setting the `LOAD` parameter on the command line or as an environment variable. After establishing the link, the system will call the function `Run` with a right argument containing the name of the directory. You can disable the call to `Run` by including the `-x` switch on the command line (in the same way that the `-x` switch inhibits the execution of the latent expression when loading a workspace).
+
+With a standard Dyalog 18.2 installation under Microsoft Windows, you can also right click on a directory and select "Open with Dyalog" or "Run with Dyalog" to create a link on startup and optionally call `Run`.
+
 ## Importing code without creating a link
+
 Sometimes you want to experiment and make modifications to your code without saving those changes. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:
 
 ```apl
