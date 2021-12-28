@@ -859,7 +859,8 @@
 <ul>
 <li>Support for saving workspaces containing links and resuming work after a break.</li>
 <li>Support for names which differ only in case (for example, <code>FOO</code> vs <code>Foo</code>) in case-insensitive file systems, by adding "case coding" information to the file name.</li>
-<li>A new <code>Link.LaunchDir</code> API function, that makes it straightforward to replace the old SALT <code>.dyapp</code> files with new features in the interpreter, that make it possible to launch the interpreter using a configuration file or single APL source file.</li>
+<li>The <code>Link.LaunchDir</code> API function, makes it straightforward to determine the folder that APL was launched on, simplifying the task of  launching the interpreter using a configuration file or single APL source file.</li>
+<li>Dyalog version 18.2, released at the same time as Link 3.0, supports identifying a directory with the <code>LOAD=</code> parameter - as an alternative to a workspace, APL source file, or a configuration file. When <code>LOAD</code> identifies a directory, a link will be created on startup (and the function <code>Run</code> invoked, if it exists).</li>
 </ul>
 <p>A more complete description of the differences between Link 2.0 and 3.0 are described in the guide on <a href="../../Upgradeto30/">upgrading from 2.0 to 3.0</a>.</p>
                 

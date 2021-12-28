@@ -408,6 +408,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#linking-a-directory-on-startup" class="md-nav__link">
+    Linking a directory on startup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#importing-code-without-creating-a-link" class="md-nav__link">
     Importing code without creating a link
   </a>
@@ -813,6 +820,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#linking-a-directory-on-startup" class="md-nav__link">
+    Linking a directory on startup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#importing-code-without-creating-a-link" class="md-nav__link">
     Importing code without creating a link
   </a>
@@ -902,6 +916,9 @@
 <p>For every day use in the session, it might be more convenient to use the user command:</p>
 <pre><code class="language-APL">      ]LINK.Create myapp /users/sally/myapp
 </code></pre>
+<h2 id="linking-a-directory-on-startup">Linking a directory on startup</h2>
+<p>If you are using Dyalog version 18.2 or later, you can cause a link to be created to the root of your workspace (<code>#</code>) as APL starts, by setting the <code>LOAD</code> parameter on the command line or as an environment variable. After establishing the link, the system will call the function <code>Run</code> with a right argument containing the name of the directory. You can disable the call to <code>Run</code> by including the <code>-x</code> switch on the command line (in the same way that the <code>-x</code> switch inhibits the execution of the latent expression when loading a workspace).</p>
+<p>With a standard Dyalog 18.2 installation under Microsoft Windows, you can also right click on a directory and select "Open with Dyalog" or "Run with Dyalog" to create a link on startup and optionally call <code>Run</code>.</p>
 <h2 id="importing-code-without-creating-a-link">Importing code without creating a link</h2>
 <p>Sometimes you want to experiment and make modifications to your code without saving those changes. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:</p>
 <pre><code class="language-apl">      ]LINK.Import myapp /users/sally/myapp
