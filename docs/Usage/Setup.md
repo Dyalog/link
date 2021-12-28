@@ -121,4 +121,4 @@ Recent versions of Dyalog APL support running APL from a script either by redire
 
 `(⎕NS⍬).({}enableSALT⊣⎕CY'salt')`
 
-Note that this depends on the interpreter being able to find the salt workspace (`salt.dws`). You may need to provide a full path name to that file, if you don't have a standard installation
+Note that this depends on the interpreter being able to find the salt workspace (`salt.dws`). You may need to provide a full path name to that file, if you don't have a standard installation.
