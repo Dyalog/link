@@ -1017,7 +1017,7 @@
               :EndIf
               :If 0≠≢files
                   :If 0∊mask←~HasNewlines¨∊¨src  ⍝ cannot write newlines
-                      failed,←(,∘' (contains new lines)')¨(ns,'.')∘,¨(~mask)/names
+                      failed,←{ns,'.',⍵,' (contains newline characters)'}¨(~mask)/names
                       (files oldfiles names src)/⍨←⊂mask
                   :EndIf
               :AndIf 0≠≢files                  
