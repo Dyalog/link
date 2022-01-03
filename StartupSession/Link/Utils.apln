@@ -1017,9 +1017,10 @@
               :EndIf
               :If 0≠≢files
                   :If 0∊mask←~HasNewlines¨∊¨src  ⍝ cannot write newlines
-                      failed,←(ns,'.')∘,¨(~mask)/names
+                      failed,←{ns,'.',⍵,' (contains newline characters)'}¨(~mask)/names
                       (files oldfiles names src)/⍨←⊂mask
                   :EndIf
+              :AndIf 0≠≢files                  
                   mask←src (nsref Into)¨files  ⍝ failed to write
                   written,←mask/files ⋄ failed,←(ns,'.')∘,¨(~mask)/names
                   :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
