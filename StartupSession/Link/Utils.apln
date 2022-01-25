@@ -63,12 +63,13 @@
         NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
         Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
         WinSlash←'\'@Slash⍣ISWIN                ⍝ force windows slashes only on windows machines
+        FmtPath←WinSlash 1∘⎕JSON                ⍝ Quote and escape quotes, then fix slashes
         DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
         Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
         List←{∊{' ',⍕⍵}¨⍵}
         Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
             lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
-            ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
+            ⍵.ns,' ',lr,' ',FmtPath ⍵.dir
         }
         HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
         FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
@@ -976,7 +977,7 @@
       ⍝ Create directory for namespace
           3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
           :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)opts.dir  ⍝ exclude root dir
-              Error'Destination not empty: "',(WinSlash⍕dir),'"'
+              Error'Destination not empty: "',(FmtPath⍕dir),'"'
           :EndIf
       ⍝ Write files
           :If 0≠≢names←∪names
@@ -996,7 +997,7 @@
                   Error'File name case clash - try using caseCode←1:',FmtLines(ns,'.')∘,¨names[,(mask/inx),[1.5]⍸mask]
               :EndIf
               :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS files
-                  Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/files
+                  Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines FmtPath¨mask/files
               :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE files
               :EndIf
               
@@ -1095,7 +1096,7 @@
               (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
               allnames←parents JoinNames actnames  ⍝ fully qualified names
               :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
-                  Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
+                  Error'Files produce clashing APL names:',FmtLines↓⍕((FmtPath¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
               :EndIf
           :EndIf
           

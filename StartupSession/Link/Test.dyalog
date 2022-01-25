@@ -377,7 +377,7 @@
           'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
           2 ref.⎕FIX foosrc2
-          assertError'⎕SE.Link.Export(name,''.foo'')(folder,''/foo2.aplf'')'(⎕SE.Link.U.WinSlash folder,'/foo2.aplf')
+          assertError'⎕SE.Link.Export(name,''.foo'')(folder,''/foo2.aplf'')'(⎕SE.Link.U.FmtPath folder,'/foo2.aplf')
           opts.overwrite←1
           z←opts ⎕SE.Link.Export(name,'.foo')(folder,'/foo2.aplf')
           'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
@@ -796,7 +796,7 @@
         ∇ ok←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;sub;var;var2;varfile;winfolder;z
           
       ⍝ Test creating a folder from a namespace with Case Conflicts
-          winfolder←⎕SE.Link.U.WinSlash folder
+          winfolder←⎕SE.Link.U.FmtPath folder
           
           ns←⍎name ⎕NS''
           ns.('sub'⎕NS'')
@@ -1228,7 +1228,7 @@
           opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
           (⊂newbody)⎕NPUT unlikelyfile 1  ⍝ make it invalid source
           z←opts ⎕SE.Link.Create name folder
-          assert'∧/∨/¨''ERRORS ENCOUNTERED'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
+          assert'∧/∨/¨''ERRORS ENCOUNTERED'' (⎕SE.Link.U.FmtPath unlikelyfile)⍷¨⊂z'
           name⍎'var←1 2 3'
           {}⎕SE.Link.Add name,'.var'
           'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'

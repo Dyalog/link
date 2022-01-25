@@ -39,10 +39,10 @@
          (fixed failed)←opts U.FixFiles nsref src opts.overwrite
 
          :If ~single
-             msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
-             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' import(s) failed:'),U.WinSlash¨failed ⋄ :EndIf
-         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Import failed: ',⊃U.WinSlash failed
-         :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.WinSlash src
+             msg←⊂'Imported: ',ns,' ← ',U.FmtPath dir
+             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' import(s) failed:'),U.FmtPath¨failed ⋄ :EndIf
+         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Import failed: ',⊃U.FmtPath failed
+         :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.FmtPath src
          :EndIf
          msg←1↓U.FmtLines msg
      :EndIf

@@ -109,7 +109,7 @@
              :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 1≢opts.preloaded
                  fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
-                 :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
+                 :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.FmtPath¨fail ⋄ :EndIf
              :EndIf
          :Else
              U.Error'Unknown source setting:'opts.source
