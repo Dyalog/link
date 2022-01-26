@@ -60,17 +60,17 @@
          :ElseIf ¯1=nc   ⍝ invalid namespace
              U.Error'Not a properly named namespace: ',,⍕rawns
          :ElseIf ~hasdir ⋄ :AndIf opts.source≡'dir'
-             U.Error'Source directory not found: ',dir
+             U.Error'Source directory not found: ',U.FmtPath dir
          :ElseIf ~hasns ⋄ :AndIf opts.source≡'ns'
              U.Error'Source namespace not found: ',ns
          :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
              U.Error'Destination namespace not empty: ',ns
          :ElseIf ~emptydir ⋄ :AndIf opts.source≡'ns'
-             U.Error'Destination directory not empty: ',dir
+             U.Error'Destination directory not empty: ',U.FmtPath dir
          :ElseIf emptydir⍱emptyns ⋄ :AndIf opts.source≡'auto'
-             U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
+             U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',U.FmtPath dir
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
-             U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',dir
+             U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',U.FmtPath dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
              U.Error'Not a namespace: ',ns
          :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace
@@ -80,7 +80,7 @@
          :ElseIf nsref∊nsrefs
              U.Error'Already linked: ',U.Arrow links⊃⍨nsrefs⍳nsref
          :ElseIf ~hasdir ⋄ :AndIf ~dircreated←3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
-             U.Error'Directory not found: ',dir
+             U.Error'Directory not found: ',U.FmtPath dir
          :ElseIf U.Slash⊃⌽dir
              U.Error'Trailing slash reserved for future extension'
          :EndIf

@@ -13,7 +13,7 @@
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
          U.Error'Not a properly named namespace: ',,⍕rawsrc
      :ElseIf 0=nc
-         U.Error'Source not found: ',src
+         U.Error'Source not found: ',U.FmtPath src
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else

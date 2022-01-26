@@ -15,9 +15,9 @@
 
      files←opts U.FindFile src  ⍝ candidates for source file
      :If 0=≢files
-         U.Error'Source not found: ',src
+         U.Error'Source not found: ',U.FmtPath src
      :ElseIf 1<≢files
-         U.Error'More than one source found for ',src,': ',U.FmtLines files
+         U.Error'More than one source found for ',src,': ',U.FmtLines U.FmtPath¨files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          :If ¯1=U.NameClass ns  ⍝ either invalid name or ref to unnamed namespace
              U.Error'Not a properly named namespace: ',,⍕rawns

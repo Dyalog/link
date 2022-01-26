@@ -140,7 +140,7 @@ NOHOLD:
              :If (0∊⍴error)∧(update∧tie) ⋄ src←file ⋄ :EndIf  ⍝ unless there was an error updating the file
              (fixedname nc)←ns U.Fix name src 1   ⍝ do not call QFix because file may be out-of-sync
              :If nc∊¯1 0
-                 U.Error'Unable to fix ',nsname,'.',name,' from source: ',⍕src
+                 U.Error'Unable to fix ',nsname,'.',name,' from source: ',U.FmtPath⍕src
              :EndIf
              names←,⊂fixedname
          :Else
