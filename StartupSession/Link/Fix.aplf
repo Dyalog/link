@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -46,6 +46,18 @@ NOHOLD:
          :ElseIf callback∧(2.1=nc)∧~⎕NEXISTS file  ⍝ only update array if file already exists
              ¯1 U.Log'ignoring editing of array: 'nsname'.'name
              :Return
+         :EndIf
+
+         :If (name≢oldname)∧0≠≢oldname ⍝ Renamed
+         :AndIf ⎕NEXISTS file          ⍝ And the target file already exists
+             U.Warn 'Cannot write ',name,' to file "',file,'" - file already exists!'
+             parts←⎕NPARTS file
+             file←⊃{(~⎕NEXISTS ⍵)/⍵}parts∘{a←⍺ ⋄ (2⊃a),←⍵ ⋄ ∊a}¨'_',¨⍕¨1+⍳9
+             :If file∧.=' '
+                 U.Error 'Unable to generate file name for ',name
+             :Else
+                 U.Warn 'Writing ',name,' to file "',file,'"'
+             :EndIf
          :EndIf
 
          update←1  ⍝ explicit call always updates file
