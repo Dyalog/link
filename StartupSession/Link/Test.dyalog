@@ -1523,13 +1523,17 @@
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           ⎕EX name ⋄ 3 ⎕NDELETE folder
 
-      ⍝ test system variable inheritance
+      ⍝ test system variable inheritance  
+      ⍝ also test use of name which is not a valid identifier
+
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           3 ⎕NDELETE folder ⋄ ⎕EX name
           2 ⎕MKDIR subfolder
           (⊂,'0') ⎕NPUT folder,'/⎕IO.apla'
+          (⊂'foo' '2+2') ⎕NPUT folder,'/foo~2.aplf' ⍝ foo~2 is not a valid APL name
           z←opts ⎕SE.Link.Create name folder
-          'system variables not inherited' assert '0=subname⍎''⎕IO'''
+          'system variables not inherited' assert '0=subname⍎''⎕IO'''  
+          'foo not defined from foo~2.aplf' assert '3=⎕NC ''',name,'.foo''' 
           {}⎕SE.Link.Break name
           ⎕EX name ⋄ 3 ⎕NDELETE folder
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
