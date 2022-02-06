@@ -52,7 +52,7 @@ NOHOLD:
          :AndIf ⎕NEXISTS file          ⍝ And the target file already exists
              U.Warn 'Cannot write ',name,' to file "',file,'" - file already exists!'
              parts←⎕NPARTS file
-             file←⊃{(~⎕NEXISTS ⍵)/⍵}parts∘{a←⍺ ⋄ (2⊃a),←⍵ ⋄ ∊a}¨'_',¨⍕¨1+⍳9
+             file←⊃{(~⎕NEXISTS ⍵)/⍵}parts∘{a←⍺ ⋄ (2⊃a),←⍵ ⋄ ∊a}¨'~',¨⍕¨1+⍳9
              :If file∧.=' '
                  U.Error 'Unable to generate file name for ',name
              :Else
