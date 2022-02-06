@@ -807,24 +807,25 @@
                 
                 
                 <h1 id="linkcasecode">Link.CaseCode</h1>
-<pre><code>names ← {options} ⎕SE.Link.CaseCode names
+<pre><code>names ← {options} ⎕SE.Link.CaseCode filenames
 </code></pre>
-<p>If case codes is on (default is off), each file name will have a case code (see below). </p>
-<p>If you set up a <code>getFilename</code> hook when <a href="../Link.Create/">creating a Link</a>, Link will prompt your hook for a file name whenever a new source file needs
-to be created. If case coding is also enabled, the file name should be correctly case coded. The <em>CaseCode</em> function is provided to add case coding to any file name. </p>
+<p>The <em>CaseCode</em> function adds case coding to any file name. It is intended for use in functions which implement <code>getFilename</code> callbacks, which you can set up when you <a href="../Link.Create/">create a Link</a>, to allow your code to generate file names. If case coding is enabled for the repository, the file name should be correctly case coded. For example, if <code>/tmp</code> is a currently linked folder:</p>
+<pre><code class="language-apl">      ⎕SE.Link.CaseCode 'c:\tmp\HelloWorld.apln' 'c:\tmp\FOO.aplf'
+ c:/tmp/HelloWorld-41.apln  c:/tmp/FOO-7.aplf 
+</code></pre>
 <h3 id="what-is-a-case-code">What is a "case code"?</h3>
 <p>A reverse binary indication of the letter cases in the main part of the name, encoded in octal. For example</p>
 <p><code>HelloWorld</code> has the uppercase indication<br />
 <code>1000010000</code> which when reversed is<br />
 <code>0000100001</code> which is binary for<br />
-<code>           33<sub>10</sub></code> which in octal is<br />
-<code>           41<sub>8</sub></code> so the full name including case code is<br />
+<code>        33<sub>10</sub></code> which in octal is<br />
+<code>        41<sub>8</sub></code> so the full name including case code is<br />
 <code>HelloWorld-41</code></p>
 <h4 id="arguments">Arguments</h4>
-<p><code>names</code> is a simple character vector or nested vector of character vectors giving the names of items for which to generate case coded results.</p>
+<p><code>filenames</code> is a simple character vector or vector of character vectors containing file names which do not contain case codes. The file names do not need to exist, but they need to reference a currently linked folder.</p>
 <h4 id="result">Result</h4>
 <ul>
-<li>file name(s) with case code</li>
+<li>Case coded file name(s)</li>
 </ul>
                 
               
