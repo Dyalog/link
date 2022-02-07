@@ -1,11 +1,13 @@
 # Link.CaseCode
 
-    names ← {options} ⎕SE.Link.CaseCode names
+    names ← {options} ⎕SE.Link.CaseCode filenames
 
-If case codes is on (default is off), each file name will have a case code (see below). 
+The *CaseCode* function adds case coding to any file name. It is intended for use in functions which implement `getFilename` callbacks, which you can set up when you [create a Link](Link.Create.md), to allow your code to generate file names. If case coding is enabled for the repository, the file name should be correctly case coded. For example, if `/tmp` is a currently linked folder:
 
-If you set up a `getFilename` hook when [creating a Link](Link.Create.md), Link will prompt your hook for a file name whenever a new source file needs
-to be created. If case coding is also enabled, the file name should be correctly case coded. The *CaseCode* function is provided to add case coding to any file name. 
+```apl
+      ⎕SE.Link.CaseCode 'c:\tmp\HelloWorld.apln' 'c:\tmp\FOO.aplf'
+ c:/tmp/HelloWorld-41.apln  c:/tmp/FOO-7.aplf 
+```
 
 ### What is a "case code"?
 A reverse binary indication of the letter cases in the main part of the name, encoded in octal. For example
@@ -13,13 +15,13 @@ A reverse binary indication of the letter cases in the main part of the name, en
 `HelloWorld` has the uppercase indication  
 `1000010000` which when reversed is  
 `0000100001` which is binary for  
-<code>           33<sub>10</sub></code> which in octal is  
-<code>           41<sub>8</sub></code> so the full name including case code is  
+<code>        33<sub>10</sub></code> which in octal is  
+<code>        41<sub>8</sub></code> so the full name including case code is  
 `HelloWorld-41`
 
 #### Arguments
-`names` is a simple character vector or nested vector of character vectors giving the names of items for which to generate case coded results.
+`filenames` is a simple character vector or vector of character vectors containing file names which do not contain case codes. The file names do not need to exist, but they need to reference a currently linked folder.
 
 #### Result
 
-- file name(s) with case code
+- Case coded file name(s)
