@@ -154,9 +154,8 @@
           spaces←⌊|num+2×0=num
           code←'''[^'']+'''⎕R''⊢code                   ⍝ remove quoted text first
           fmt←⎕FMT'\[[^][]+\]' '\([^)(]+\)'⎕R''⍣≡code  ⍝ remove bracket contents
-          delta←¯1⌽+/fmt∊'(['
-          delta-←+/fmt∊')]'
-          ind←spaces×+\delta
+          delta←(+/'(['∊⍨fmt)-(+/fmt∊')]')
+          ind←+\0(⌊+0,¯1↓⌈)delta
           ind{⍵,⍨⍺⍴''}¨split
       }
 
