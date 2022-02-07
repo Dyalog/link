@@ -903,7 +903,7 @@
           :If '.'∊subfile ⋄ nc←¯1      ⍝ invalid APL name, which would otherwise go unnoticed because ⎕NC would interpret it as namespace separator
           :ElseIf (0∊⍴where)∧(fastLoad∨nc=¯9.1) ⋄ :AndIf # IsRootName actname ⋄ where←actname  ⍝ file is linked dir and ns is a root - where≡expname≡actname≡ns
           :ElseIf fastLoad ⋄ :AndIf ¯1∊# NameClass¨where actname ⋄ nc←¯1  ⍝ fastLoad: actname≡expname
-          :ElseIf 9=⌊|nc ⋄ :AndIf ¯1∊# NameClass¨where expname actname ⋄ nc←¯1  ⍝ invalid namespace path - avoid costy IsRootName if possible
+          :ElseIf nc≠0 ⋄ :AndIf ¯1∊# NameClass¨where actname,((⌊|nc)∊2 9)/⊂expname ⋄ nc←¯1 ⍝ variable and namespace names must be valid
           :EndIf
         ∇
         
