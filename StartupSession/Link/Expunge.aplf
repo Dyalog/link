@@ -1,4 +1,4 @@
-﻿  {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
+﻿ {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant in addition to ⎕EX
  ⎕IO ⎕ML←1 1
  :If U.debug=2
@@ -27,10 +27,12 @@
                          U.ErrorIfRestored links ⍝ error only in linked namespaces
                          (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)name name nc  ⍝ U.NormNs parent
                          r[i]←parent.⎕EX name  ⍝ do it before the watcher kicks in
-                         :If 0<≢oldfile  ⍝ tied to file
-                             2 ⎕NDELETE oldfile
-                         :ElseIf ⎕NEXISTS file  ⍝ guess file name
-                             2 ⎕NDELETE file
+                         :If (⊂link.watch)∊'ns' 'both'
+                             :If 0<≢oldfile  ⍝ tied to file
+                                 2 ⎕NDELETE oldfile
+                             :ElseIf ⎕NEXISTS file ⍝ guess file name
+                                 2 ⎕NDELETE file
+                             :EndIf
                          :EndIf
                      :Else
                          r[i]←parent.⎕EX name

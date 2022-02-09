@@ -1230,11 +1230,10 @@
           z←opts ⎕SE.Link.Create name folder
           assert'∧/∨/¨''ERRORS ENCOUNTERED'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
           name⍎'var←1 2 3'
-          {}⎕SE.Link.Add name,'.var'
-          'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'
+          z←⎕SE.Link.Add name,'.var'
+          'link issue #458' assert '~⎕NEXISTS folder,''/var.myapla'''
           z←⎕SE.Link.Expunge name,'.var'
           assert'(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
-          'link issue #89 and #104'assert'~⎕NEXISTS folder,''/var.myapla'''
           {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
           
       ⍝ link issue #207
@@ -1740,16 +1739,16 @@
           {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
           1 assert_create 1 ⍝ assert we have new ws items and new file contents
       ⍝ watch=dir must not reflect changes from APL to files
-      ⍝  ⎕SE.Link.Fix updates files independently of watch setting
+      ⍝  ⎕SE.Link.Fix should NOT updates files when watch=dir
           subname'var'⎕SE.Link.Fix varsrc
           subname'foo'⎕SE.Link.Fix foosrc
           subname'ns'⎕SE.Link.Fix nssrc
-          0 assert_create 0 ⋄ Breathe   ⍝ breathe so that file watcher can kick in before we change the APL definition
+          0 assert_create 1 ⋄ Breathe ⍝ Breathe should be unnecessary, no FSW activity expected
       ⍝ emulate a proper editor fix
           subname'var'EdFix newvarsrc
           subname'foo'EdFix newfoosrc
           subname'ns'EdFix newnssrc
-          Breathe ⋄ 1 assert_create 0   ⍝ breathe to ensure it's not reflected
+          Breathe ⋄ 1 assert_create 1 ⍝ Breathe should be unnecessary, no FSW activity expected
           {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
           {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
           {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
