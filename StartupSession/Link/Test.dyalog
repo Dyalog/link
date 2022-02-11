@@ -1524,15 +1524,23 @@
 
       ⍝ test system variable inheritance  
       ⍝ also test use of name which is not a valid identifier
+      ⍝ and "redirection" of conflicting file names (Issue #454)
 
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           3 ⎕NDELETE folder ⋄ ⎕EX name
           2 ⎕MKDIR subfolder
           (⊂,'0') ⎕NPUT folder,'/⎕IO.apla'
-          (⊂'foo' '2+2') ⎕NPUT folder,'/foo~2.aplf' ⍝ foo~2 is not a valid APL name
+          (⊂'foo' '2+2') ⎕NPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place     
+          (⊂'goo' '2+2') ⎕NPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
+          (⊂'bar' '2+2') ⎕NPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
           z←opts ⎕SE.Link.Create name folder
           'system variables not inherited' assert '0=subname⍎''⎕IO'''  
-          'foo not defined from foo~2.aplf' assert '3=⎕NC ''',name,'.foo''' 
+          'expected functions not found' assert '3.1=',name,'.⎕NC ''foo'' ''goo'' ''bar''' 
+          z←(⍎name) ⎕SE.Link.Fix 'baz' '3+3'        ⍝ must NOT overwrite baz.aplf
+          assert '''bar''≡3↑⊃⎕NGET folder,''/baz.aplf'''               ⍝ bar is in baz
+          assert '''baz''≡3↑⊃⎕NGET folder,''/baz~2.aplf'''             ⍝ baz is in baz~2
+          assert '''/baz.aplf''≡¯9↑⎕SE.Link.GetFileName name,''.bar''' ⍝ baz also linked to bar
+          assert '''/baz~2.aplf''≡¯11↑⎕SE.Link.GetFileName name,''.baz''' ⍝ baz linked to baz~2
           {}⎕SE.Link.Break name
           ⎕EX name ⋄ 3 ⎕NDELETE folder
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
