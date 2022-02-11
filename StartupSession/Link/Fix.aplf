@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;displayname
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -20,9 +20,13 @@
      :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
      oldname,←(0=≢oldname)/name ⍝ oldname not specified
      name,←(0=≢name)/oldname ⍝ name not specified
+     :If 0=≢name ⍝ no names provided at all
+         name←oldname←⊃U.Sniff '' src
+     :EndIf
      this←⊃RSI XSI U.ContainerNs ns
      nsname←⍕nsref←this(0 U.GetRefTo)ns
      :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
+
 
      callback←'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
      add←'⎕SE.Link.Add'≡⊃1↓XSI
@@ -39,9 +43,6 @@ NOHOLD:
          U.ErrorIfRestored links  ⍝ now that we know we're dealing with a linked namespace, allow error
 
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src
-         :If 0=≢name
-             name←⊃U.Sniff name src
-         :EndIf
 
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
          :ElseIf (0=nc)∧(~nosrc) ⋄ U.Error'Invalid source for ',nsname,'.',name ⍝ ,': ',⍕src
@@ -66,7 +67,7 @@ NOHOLD:
          :AndIf renamed∨new∧nc≠2.1
          :AndIf ⎕NEXISTS file          ⍝ And the target file already exists
          :AndIf (name nc)≢z←U.Sniff name file ⍝ And seems to contain something different
-             U.Warn 'Cannot write ',name,' to "',file,'" - that file defines "',⊃z
+             U.Warn 'Cannot write ',name,' to "',file,'" - that file defines ',⊃z
              parts←⎕NPARTS file ⋄ n←1
              :Repeat ⋄ n+←1 ⍝ Add ~2, ~3, ~4 ... to file name until free name found
              :Until ~⎕NEXISTS file←∊parts,¨'' ('~',⍕n) ''
