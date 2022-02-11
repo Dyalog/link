@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -20,6 +20,9 @@
      :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
      oldname,←(0=≢oldname)/name ⍝ oldname not specified
      name,←(0=≢name)/oldname ⍝ name not specified
+     :If 0=≢name ⍝ no names provided at all
+         name←oldname←⊃U.Sniff '' src
+     :EndIf
      this←⊃RSI XSI U.ContainerNs ns
      nsname←⍕nsref←this(0 U.GetRefTo)ns
      :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
@@ -48,12 +51,28 @@ NOHOLD:
              :Return
          :EndIf
 
-         update←1  ⍝ explicit call always updates file
-         :If callback
-             update←(⊂link.watch)∊'ns' 'both'   ⍝ callback must watch ns
-             ⍝update>←(2.1=nc)∧(~⎕NEXISTS file)   ⍝ never create file on new array unless was explicitly added
+         update←(⊂link.watch)∊'ns' 'both'
+         :If ~update
+         :AndIf '⎕SE.Link.Add'≡2⊃2↑⎕XSI
+            U.Warn 'Add will not update files when watch=',link.watch
          :EndIf
+
          tie←U.FixTie link  ⍝ should we tie files when fixing
+
+         :If update
+            renamed←(name≢oldname)∧0≠≢oldname
+            new←(link.watch≡'dir')∨0=≢nsref U.CurrentFileName name  ⍝ not currently associated
+         :AndIf ~link.forceFilenames
+         :AndIf renamed∨new∧nc≠2.1
+         :AndIf ⎕NEXISTS file          ⍝ And the target file already exists
+         :AndIf (name nc)≢z←U.Sniff name file ⍝ And seems to contain something different
+             U.Warn 'Cannot write ',name,' to "',file,'" - that file defines ',⊃z
+             parts←⎕NPARTS file ⋄ n←1
+             :Repeat ⋄ n+←1 ⍝ Add ~2, ~3, ~4 ... to file name until free name found
+             :Until ~⎕NEXISTS file←∊parts,¨'' ('~',⍕n) ''
+             U.Warn 'Writing ',name,' to file "',file,'"'
+         :EndIf
+
 
          delete←(0≠≢oldfile)∧(file≢oldfile)∧(name≡oldname)  ⍝ old file must be removed : file name was changed by beforeWrite or forceFilename or forceExtensions
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename - won't happen if oldname is undefined (link issue #190) because oldfile must then be empty

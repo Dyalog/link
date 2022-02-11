@@ -1230,11 +1230,10 @@
           z←opts ⎕SE.Link.Create name folder
           assert'∧/∨/¨''ERRORS ENCOUNTERED'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
           name⍎'var←1 2 3'
-          {}⎕SE.Link.Add name,'.var'
-          'link issue #104 and #97'assert'(,⊂''1 2 3'')≡⊃⎕NGET (folder,''/var.myapla'') 1'
+          z←⎕SE.Link.Add name,'.var'
+          'link issue #458' assert '~⎕NEXISTS folder,''/var.myapla'''
           z←⎕SE.Link.Expunge name,'.var'
           assert'(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
-          'link issue #89 and #104'assert'~⎕NEXISTS folder,''/var.myapla'''
           {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
           
       ⍝ link issue #207
@@ -1523,13 +1522,25 @@
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           ⎕EX name ⋄ 3 ⎕NDELETE folder
 
-      ⍝ test system variable inheritance
+      ⍝ test system variable inheritance  
+      ⍝ also test use of name which is not a valid identifier
+      ⍝ and "redirection" of conflicting file names (Issue #454)
+
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           3 ⎕NDELETE folder ⋄ ⎕EX name
           2 ⎕MKDIR subfolder
           (⊂,'0') ⎕NPUT folder,'/⎕IO.apla'
+          (⊂'foo' '2+2') ⎕NPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place     
+          (⊂'goo' '2+2') ⎕NPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
+          (⊂'bar' '2+2') ⎕NPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
           z←opts ⎕SE.Link.Create name folder
-          'system variables not inherited' assert '0=subname⍎''⎕IO'''
+          'system variables not inherited' assert '0=subname⍎''⎕IO'''  
+          'expected functions not found' assert '3.1=',name,'.⎕NC ''foo'' ''goo'' ''bar''' 
+          z←(⍎name) ⎕SE.Link.Fix 'baz' '3+3'        ⍝ must NOT overwrite baz.aplf
+          assert '''bar''≡3↑⊃⎕NGET folder,''/baz.aplf'''               ⍝ bar is in baz
+          assert '''baz''≡3↑⊃⎕NGET folder,''/baz~2.aplf'''             ⍝ baz is in baz~2
+          assert '''/baz.aplf''≡¯9↑⎕SE.Link.GetFileName name,''.bar''' ⍝ baz also linked to bar
+          assert '''/baz~2.aplf''≡¯11↑⎕SE.Link.GetFileName name,''.baz''' ⍝ baz linked to baz~2
           {}⎕SE.Link.Break name
           ⎕EX name ⋄ 3 ⎕NDELETE folder
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
@@ -1736,16 +1747,16 @@
           {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
           1 assert_create 1 ⍝ assert we have new ws items and new file contents
       ⍝ watch=dir must not reflect changes from APL to files
-      ⍝  ⎕SE.Link.Fix updates files independently of watch setting
+      ⍝  ⎕SE.Link.Fix should NOT updates files when watch=dir
           subname'var'⎕SE.Link.Fix varsrc
           subname'foo'⎕SE.Link.Fix foosrc
           subname'ns'⎕SE.Link.Fix nssrc
-          0 assert_create 0 ⋄ Breathe   ⍝ breathe so that file watcher can kick in before we change the APL definition
+          0 assert_create 1 ⋄ Breathe ⍝ Breathe should be unnecessary, no FSW activity expected
       ⍝ emulate a proper editor fix
           subname'var'EdFix newvarsrc
           subname'foo'EdFix newfoosrc
           subname'ns'EdFix newnssrc
-          Breathe ⋄ 1 assert_create 0   ⍝ breathe to ensure it's not reflected
+          Breathe ⋄ 1 assert_create 1 ⍝ Breathe should be unnecessary, no FSW activity expected
           {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
           {}(⊂foosrc)QNPUT(subfolder,'/foo.aplf')1
           {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
