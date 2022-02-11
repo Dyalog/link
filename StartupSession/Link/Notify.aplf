@@ -140,10 +140,10 @@
              :If NOTIFY
                  U.Notify oldpath,' renamed as ',path
              :EndIf
-
+             
              (oldnsname oldexpname)←2↑link U.DetermineAplName oldpath  ⍝ cannot determine actual name and nameclass because file is gone
              oldname←oldnsname,'.',oldexpname
-             :If 9=⎕NC oldnsname
+             :If (9=⎕NC oldnsname)∨(⊂oldnsname)∊,¨'#' '⎕SE'
                  oldnsref←(⍎oldnsname) ⋄ oldnc←oldnsref.⎕NC oldexpname
                  oldfile←oldnsref U.CurrentFileName oldexpname
              :Else ⋄ oldnsref←⎕NULL ⋄ oldnc←¯1 ⋄ oldfile←''
@@ -158,7 +158,7 @@
                      msg,←'namespace rename 'oldname' → 'affected
                      Notify¨{'changed'⍵}¨children
                  :Else ⋄ warn←1                                    ⍝ no old ns
-                     msg,←'not found namespace 'oldname' - loading 'affected' from 'path
+                     msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
                      :If 0<≢inFail←2⊃link U.FixFiles nsref path 1  ⍝ always overwrite
                          msg,←' - failed to load: '(U.FmtLines inFail)
                      :EndIf
