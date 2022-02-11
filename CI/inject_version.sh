@@ -1,6 +1,16 @@
 #!/bin/bash
 # Link inject_version.sh
+
 set -e
+
+# The default grep on AIX does not support the -o flag; so prepend /opt/freeware/bin to ▒$PATH
+
+case $(uname) in
+        AIX)    PATH=/opt/freeware/bin:$PATH ;;
+esac
+
+
+
 # A local or jenkins builder will call this script from the root of the checked out git repo
 # Another build mechanism might copy files to another directory before modifying them
 if [ $# -eq 0 ];
@@ -44,4 +54,3 @@ echo ${full_version}
 
 sed -i "s/^version\s\?←\s\?'[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?/version←'${full_version}/" ${D}/StartupSession/Link/Version.aplf
 
-exit 0
