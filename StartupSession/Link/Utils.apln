@@ -880,7 +880,7 @@
           cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
           (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
         ∇
-        ∇ (where expname actname nc)←opts DetermineAplNameSub file;⎕AVU;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions;parts
+        ∇ (where expname actname nc)←opts DetermineAplNameSub file;⎕AVU;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions;subext
     ⍝ ns is the target namespace
     ⍝ expname is apl name expected from file name
     ⍝ actname is actual list of names fixed from file
@@ -888,8 +888,11 @@
     ⍝ opts cached for performance on ns lookup
           (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
           subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
-          (subdir subfile)←2↑parts←⎕NPARTS subfile      ⍝ drop extension
-          subfile,←(1={0::0 ⋄ 1 ⎕NINFO ⍵}file)/3⊃parts        ⍝   ... unless it is a directory
+          (subdir subfile subext)←⎕NPARTS subfile       
+          :If ⎕NEXISTS file
+              subfile,←(1={0::0 ⋄ 1 ⎕NINFO ⍵}file)/subext ⍝ Include extension if a DIRECTORY was renamed  
+              ⍝ ↑↑ Trap required to avoid timing hole between ⎕NEXISTS and ⎕NINFO
+          :EndIf
           :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
           (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
           :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
@@ -1092,7 +1095,7 @@
               allnames←parents JoinNames expnames  ⍝ do not infer true apl name from source
           :Else
               mask←actncs∊¯1 0    ⍝ invalid names or source
-              failed,←(mask∧mask\1≠1 ⎕NINFO mask/allfiles)/allfiles   ⍝ do not report failed directories
+              failed,←(mask∧mask\1≠1 ⎕NINFO mask/allfiles)/allfiles   ⍝ report invalid file names, except directories
               (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
               allnames←parents JoinNames actnames  ⍝ fully qualified names
               :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
