@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;displayname
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -26,7 +26,6 @@
      this←⊃RSI XSI U.ContainerNs ns
      nsname←⍕nsref←this(0 U.GetRefTo)ns
      :If 0∊⍴nsref ⋄ U.Error'Not a namespace: ',ns ⋄ :EndIf
-
 
      callback←'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
      add←'⎕SE.Link.Add'≡⊃1↓XSI
