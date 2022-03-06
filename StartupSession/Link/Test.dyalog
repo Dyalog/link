@@ -1177,9 +1177,9 @@
           z←⎕SE.Link.Create'#.unlikelyname'folder
           z←⎕SE.Link.Create'#.unlikelyname.sub'folder
           assert'3=≢⎕SE.Link.Links'
-          props←'Namespace' 'Directory' 'Files'
-          'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 2⍴folder 1)≡⎕SE.Link.Status '''''
-          'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
+          props←'Namespace' 'Watch' 'Directory' 'Files'
+          'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 3⍴''←→'' folder 1)≡⎕SE.Link.Status '''''
+          'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' ''←→'' folder 1 )≡⎕SE.Link.Status ⎕SE'
           
           {}'{all:1}'⎕SE.Link.Break ⍬
           'link issue #284'assert'{6::1 ⋄ ⎕SE.Link.Links.ns≡,⊂''⎕SE.unlikelyname''}⍬'
@@ -1290,7 +1290,7 @@
           Breathe
           {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
           Breathe
-          'link issue #142'assert'(props,[.5]name folder 7)≡⎕SE.Link.Status name'
+          'link issue #142'assert'(props,[.5]name ''←→'' folder 7)≡⎕SE.Link.Status name'
           
       ⍝ attempt to create invalid directory
           (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
