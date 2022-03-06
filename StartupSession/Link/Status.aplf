@@ -22,9 +22,10 @@
          ⍝ items←+/¨~3⊃¨U.GetFileTiesIn¨nss    ⍝ tied files (not script items, nor arrays)
          ⍝ items+←¯1+≢¨dirs←U.ListNamespaces¨⍎¨nss  ⍝ directories (excluding self)
          ⍝ status,←items
-         status←↑links.(ns dir)
-         status,←≢¨⊃¨links(0 U.ListFiles 0)¨status[;2]  ⍝ exclude root
-         status⍪⍨←'Namespace' 'Directory' 'Files'
+         status←↑links.(ns watch dir)
+         status,←≢¨⊃¨links(0 U.ListFiles 0)¨status[;3]  ⍝ exclude root
+         status[;2]←U.Arrows¨links.watch
+         status⍪⍨←'Namespace' 'Watch' 'Directory' 'Files'
 
          (defopts←⎕NS ⍬).(extended)←0
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
