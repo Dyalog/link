@@ -25,7 +25,7 @@
          status←↑links.(ns watch dir)
          status,←≢¨⊃¨links(0 U.ListFiles 0)¨status[;3]  ⍝ exclude root
          status[;2]←U.Arrows¨links.watch
-         status⍪⍨←'Namespace' 'Watch' 'Directory' 'Files'
+         status⍪⍨←'Namespace' '' 'Directory' 'Files'
 
          (defopts←⎕NS ⍬).(extended)←0
          opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
