@@ -66,9 +66,9 @@
         DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
         Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
         List←{∊{' ',⍕⍵}¨⍵}
-        Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
-            lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
-            ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
+        Arrows←{'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵} ⍝ Watch arrow display
+        LinkDisplay←{                           ⍝ Display form of ns-dir connection
+            ⍵.ns,' ',(Arrows ⍵.watch),' ',WinSlash ⍵.dir
         }
         HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
         FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
