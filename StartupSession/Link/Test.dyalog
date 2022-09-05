@@ -683,9 +683,11 @@
           assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
           assert'goofile≡4⊃5179⌶''ns.goo''' ⍝ Ensure link registered
           
-          ⎕SE.Link.Expunge'ns.goo' ⍝ Test "expunge"
+          assert '1=⎕SE.Link.Expunge''ns.goo''' ⍝ Test "expunge"
           assert'0=⎕NEXISTS goofile'
-          assert'0=⎕NC''ns.goo'''
+          assert'0=⎕NC''ns.goo'''      
+          
+          assert '0=⎕SE.Link.Expunge ''''' ⍝ Text fix for #479
           
       ⍝ Now test the Notify function - and verify the System Variable setting trick
           name Watch 0  ⍝ pause file watching

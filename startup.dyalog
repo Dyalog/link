@@ -5,8 +5,8 @@
 ⍝ Please do not rely on any other current behaviour of this function, as it may change without warning.
 ⍝ For more information about...
 ⍝ ∘ Session Initialisation: https://help.dyalog.com/latest/#UserGuide/The%20APL%20Environment/Session%20Initialisation.htm
-⍝ ∘ Linking into #: https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/LINK_DIR.htm
-⍝ ∘ Link: https://github.com/dyalog/link
+⍝ ∘ Linking into #: https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm
+⍝ ∘ Link: https://dyalog.github.io/link/latest
 
  ;⎕IO;⎕ML ⍝ sysvars
  ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut;FullMsg ⍝ fns
