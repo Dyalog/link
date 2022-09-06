@@ -38,6 +38,8 @@
     
       <link rel="stylesheet" href="../../style/main.css">
     
+      <link rel="stylesheet" href="../../style/admonition-ucmdhelp.css">
+    
     
       
     
@@ -799,6 +801,9 @@
 
 msg ← {opts} ⎕SE.Link.Resync ⍬
 </code></pre>
+<div class="admonition ucmdhelp">
+<p class="admonition-title">Show User Command information in the session with <code>]LINK.Resync -?</code></p>
+</div>
 <p><code>Link.Resync</code> will re-synchronise the contents of linked namespaces and the corresponding source directories. It is useful when:</p>
 <ul>
 <li>You know that you have made changes of a type which will not trigger updates, such as function assignments or the <code>)COPY</code> system command</li>

@@ -38,6 +38,8 @@
     
       <link rel="stylesheet" href="../../style/main.css">
     
+      <link rel="stylesheet" href="../../style/admonition-ucmdhelp.css">
+    
     
       
     
@@ -799,6 +801,9 @@
 
 msg ← {opts} ⎕SE.Link.Export (ns dir)
 </code></pre>
+<div class="admonition ucmdhelp">
+<p class="admonition-title">Show User Command information in the session with <code>]LINK.Export -?</code></p>
+</div>
 <p>This function takes the same arguments as <a href="../Link.Create/">Link.Create</a> but saves the contents of a namespace to directory without creating a Link.</p>
 <p>If the source is an unscripted namespace, then the destination is interpreted as a directory.</p>
 <p>If the source is anything else, then the destination is interpreted as a directory (and a correctly named file will be created there), <em>unless</em> it ends with a recognised extension (like <code>.aplf</code>), in which case it is interpreted as a file name.</p>

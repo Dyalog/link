@@ -38,6 +38,8 @@
     
       <link rel="stylesheet" href="../style/main.css">
     
+      <link rel="stylesheet" href="../style/admonition-ucmdhelp.css">
+    
     
       
     
@@ -485,12 +487,18 @@
     API function syntax
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
+    <nav class="md-nav" aria-label="API function syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#option-namespaces" class="md-nav__link">
     Option Namespaces
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -775,12 +783,18 @@
     API function syntax
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
+    <nav class="md-nav" aria-label="API function syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#option-namespaces" class="md-nav__link">
     Option Namespaces
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -835,7 +849,7 @@
 <li><code>FnName</code> is the name of the API function</li>
 <li><code>args</code> is either a character vector or a nested vector as described in the help section for that API function.</li>
 </ul>
-<h2 id="option-namespaces">Option Namespaces</h2>
+<h3 id="option-namespaces">Option Namespaces</h3>
 <p>Some API functions accept an option namespace as the left argument. For example, to create a link with non-default <code>source</code> and <code>flatten</code> options,
 you would write:</p>
 <pre><code class="language-apl">      options←⎕NS ⍬                                     ⍝ create empty namespace
@@ -851,6 +865,7 @@ you would write:</p>
 </code></pre>
 <p><strong><em>Lowercase option names:</em></strong> Although option names are case sensitive and some of them contain uppercase letters when provided to API functions via option namespaces, the user command option names are entirely lowercase, to make interactive use more convenient.</p>
 <p><strong><em>Specifying extensions:</em></strong> Two options require arrays identifying file extensions: <code>codeExtensions</code>, <code>customExtensions</code> and <code>typeExtensions</code>. For convenience, the <code>]LINK.Create</code> user command accepts the <em>name</em> of a variable containing the array, rather than the array values. </p>
+<p>A list of available user commands can be viewed in the session with <code>]LINK -?</code>. Help for a particular user command <code>Cmd</code> is displayed using <code>]LINK.Cmd -?</code>.</p>
 <h2 id="basic-api-function-reference">Basic API Function reference</h2>
 <p>The following functions cover the vast majority of normal use-cases:</p>
 <table>

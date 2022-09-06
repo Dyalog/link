@@ -38,6 +38,8 @@
     
       <link rel="stylesheet" href="../../style/main.css">
     
+      <link rel="stylesheet" href="../../style/admonition-ucmdhelp.css">
+    
     
       
     
@@ -799,6 +801,9 @@
 
 msg ← {opts} ⎕SE.Link.Import (ns dir)
 </code></pre>
+<div class="admonition ucmdhelp">
+<p class="admonition-title">Show User Command information in the session with <code>]LINK.Import -?</code></p>
+</div>
 <p>This function takes the same arguments as <a href="../Link.Create/">Link.Create</a>, but loads a directory containing source files into a namespace without creating an active link.</p>
 <p>If source is a directory, then its contents are imported into the destination namespace.</p>
 <p>If source is a single file, then the corresponding APL name is created in the destination namespace.</p>
