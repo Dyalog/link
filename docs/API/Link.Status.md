@@ -4,6 +4,8 @@
     
     status ← {opts} ⎕SE.Link.Status ns 
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Status -?`"
+
 This function provides information about existing links.
 
 #### Arguments

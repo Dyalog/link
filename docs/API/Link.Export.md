@@ -4,6 +4,8 @@
     
     msg ← {opts} ⎕SE.Link.Export (ns dir) 
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Export -?`"
+
 This function takes the same arguments as [Link.Create](Link.Create.md) but saves the contents of a namespace to directory without creating a Link.
 
 If the source is an unscripted namespace, then the destination is interpreted as a directory.
