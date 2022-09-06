@@ -4,6 +4,8 @@
     
     msg ← {opts} ⎕SE.Link.Resync ⍬
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Resync -?`"
+
 `Link.Resync` will re-synchronise the contents of linked namespaces and the corresponding source directories. It is useful when:
 
 * You know that you have made changes of a type which will not trigger updates, such as function assignments or the `)COPY` system command

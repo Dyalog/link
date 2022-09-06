@@ -4,6 +4,8 @@
     
     message ← {options} ⎕SE.Link.Break namespace
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Break -?`"
+
 Breaks an existing link: Does not affect the contents of the active workspace except to remove all traces of the link, preventing any further synchronisation from taking place.
 
 !!! Note

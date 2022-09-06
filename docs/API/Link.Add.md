@@ -7,6 +7,8 @@
 message ← ⎕SE.Link.Add items
 ```
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Add -?`"
+
 This function allows you to add one or more existing APL items to the link, creating the appropriate representation in the linked directory. Note that a source file will only be created or updated if the item is in a linked namespace.
 
 This is useful to write a new or modified array to a source file: [arrays are normally not written to file by Link](Link.Create.md#arrays).

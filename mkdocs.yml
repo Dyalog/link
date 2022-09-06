@@ -50,6 +50,7 @@ theme:
 
 extra_css:
   - style/main.css
+  - style/admonition-ucmdhelp.css
 
 plugins:
   - search

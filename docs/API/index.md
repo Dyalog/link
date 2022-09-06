@@ -14,7 +14,7 @@ where:
 - `FnName` is the name of the API function
 - `args` is either a character vector or a nested vector as described in the help section for that API function.
 
-## Option Namespaces
+### Option Namespaces
 Some API functions accept an option namespace as the left argument. For example, to create a link with non-default `source` and `flatten` options,
 you would write:
 
@@ -34,9 +34,12 @@ Most API functions have a corresponding user command, to make them a little easi
 ```apl
       ]LINK.Create myapp /sources/myapp -source=dir -flatten
 ```
+
 ***Lowercase option names:*** Although option names are case sensitive and some of them contain uppercase letters when provided to API functions via option namespaces, the user command option names are entirely lowercase, to make interactive use more convenient.
 
 ***Specifying extensions:*** Two options require arrays identifying file extensions: `codeExtensions`, `customExtensions` and `typeExtensions`. For convenience, the `]LINK.Create` user command accepts the *name* of a variable containing the array, rather than the array values. 
+
+A list of available user commands can be viewed in the session with `]LINK -?`. Help for a particular user command `Cmd` is displayed using `]LINK.Cmd -?`.
 
 ## Basic API Function reference
 

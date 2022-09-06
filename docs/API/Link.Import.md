@@ -4,6 +4,8 @@
     
     msg ← {opts} ⎕SE.Link.Import (ns dir)
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Import -?`"
+
 This function takes the same arguments as [Link.Create](Link.Create.md), but loads a directory containing source files into a namespace without creating an active link.
 
 If source is a directory, then its contents are imported into the destination namespace.
