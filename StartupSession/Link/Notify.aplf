@@ -140,7 +140,7 @@
              :If NOTIFY
                  U.Notify oldpath,' renamed as ',path
              :EndIf
-             
+
              (oldnsname oldexpname)←2↑link U.DetermineAplName oldpath  ⍝ cannot determine actual name and nameclass because file is gone
              oldname←oldnsname,'.',oldexpname
              :If (9=⎕NC oldnsname)∨(⊂oldnsname)∊,¨'#' '⎕SE'
@@ -178,6 +178,8 @@
          :Case 'deleted'
              :If 0=⎕NC affected  ⍝ object didn't exist
                  msg,←'not found: 'affected
+             :ElseIf ⎕NEXISTS curfile  ⍝ file still exists - don't expunge
+                 name←'' ⋄ →END⊣msg,←'not expunging 'affected' because 'curfile 'still exists'
              :ElseIf (0<≢curfile)∧(path≢curfile)  ⍝ name tied to another file - don't expunge
                  name←'' ⋄ →END⊣msg,←'not expunging 'affected' linked to 'curfile
              :ElseIf (~curnc∊0 ¯1)∧(curname≢affected)     ⍝ a different file was tied to a name
