@@ -1,0 +1,201 @@
+ {ok}←StartupSession;ns;fn
+⍝ This is a boot strapping function run when APL starts.
+⍝ It loads Link and uses that to load other Dyalog and/or user-specified things into  ⎕SE.
+⍝ Then it optionally uses Link to load a directory structure of text files into #.
+⍝ Please do not rely on any other current behaviour of this function, as it may change without warning.
+⍝ For more information about...
+⍝ ∘ Session Initialisation: https://help.dyalog.com/latest/#UserGuide/The%20APL%20Environment/Session%20Initialisation.htm
+⍝ ∘ Linking into #: https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm
+⍝ ∘ Link: https://dyalog.github.io/link/latest
+
+ ;⎕IO;⎕ML ⍝ sysvars
+ ;Env;Dir;Path;NoSlash;FixEach;AutoStatus;Cut;FullMsg;NJoin ⍝ fns
+ ;win;dirs;dir;root;subdir;files;paths;path;roots;os;ver;envVars;defaults;as;oldlinks;new;z;fulldir;dskl;type;exe;parent;load;msg;dl;ref;fullns;runs;run;linkFiles;pre;opts;dsx ⍝ vars
+ :Trap 0
+     ⎕IO←⎕ML←1
+
+     AutoStatus←2036⌶
+     Env←{2 ⎕NQ #'GetEnvironment'⍵}
+
+     :If 0=≢dl←Env'DYALOGLINK'
+         dl←(Env'DYALOG'),'/StartupSession/Link'
+     :EndIf
+     :If ~(⊂dskl←Env'DYALOGSTARTUPKEEPLINK')∊,¨'' '0' '1'
+         ⍞←'Configuration parameter DYALOGSTARTUPKEEPLINK is "',dskl,'" but must be "0" or "1". Press Enter.'
+         {}⍞ ⋄ ⎕OFF 1
+     :Else
+         dskl∊⍨←'1'
+     :EndIf
+
+     :For pre :In 'Link' 'Dyalog'
+         dir←dl,'/StartupSession/',pre
+         ref←⍎ns←⍬ ⎕NS⍨'⎕SE.',pre
+         linkFiles←⊃⎕NINFO⍠1⊢dir,'/*.apl?'
+         :If dskl
+             {2 ref.⎕FIX'file://',⍵}¨linkFiles
+             opts←⎕SE.Link.U.DefaultOpts ⍬
+             'opts'⎕NS'dir' 'ns'
+             opts.⎕DF 1⌽'][',⎕SE.Link.U.LinkDisplay opts
+             ⎕SE.Link.(U.SetLinks Links,Watcher.Watch)opts
+         :Else
+             {2 ref.⎕FIX⊃⎕NGET⍠'ContentType' 'APLCode'⊢⍵ 1}¨linkFiles
+         :EndIf
+     :EndFor
+
+     NoSlash←{⍵↓⍨-'/\'∊⍨⊃⌽⍵} ⍝ remove trailing (back)slash
+     Cut←≠⊆⊢
+     FullMsg←{⍵.(OSError{⍵,2⌽(×≢⊃⍬⍴2⌽⍺,⊂'')/'") ("',⊃⍬⍴2⌽⊆⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃⍬⍴DM,⊂'')}
+     FixEach←{ ⍝ cover for ⎕FIX
+         0=≢⍵:⍬⊤⍬
+         ⍬⊤⍺{
+             0::⍺{
+                 Fail←{⎕←'Fixing "',⍵,'" into ',(⍕⍺),' caused a ',FullMsg ⎕DMX} ⍝ msg on fail
+                 0::⍺ Fail ⍵
+                 ⎕DMX.(EN ENX)≡11 121:⍺.⎕FIX'file://',⍵ ⍝ re-try anonymous ns
+                 ⍺ Fail ⍵
+             }⍵
+             ×≢⍵:2 ⍺.⎕FIX'file://',⍵ ⍝ fix there
+         }¨⍵
+     }
+     Path←{
+         ×≢⍵:⍵ Cut⍨':;'⊃⍨1+win ⍝ split on OS separator
+         defaults,¨⊂⍺
+     }
+     Dir←{ ⍝ ⍺=1:dirs; ⍺=2:files
+         pats←⍺⊃(,⊂'/*')('/*.dyalog' '/*.apl?')
+         pats,¨⍨←⊂NoSlash ⍵
+         ~∨/⎕NEXISTS ⎕OPT 1⊢pats:0⍴⊂''
+         (names types)←⊃,¨/0 1 ⎕NINFO ⎕OPT 1⊢pats
+         {(⊂⍋⍵)⌷⍵}names/⍨types=⍺
+     }
+     NJoin←{
+         tail←⍺↑⍨-1⌊≢⍺
+         ⍵,⍨⍺,'/'↓⍨∧/tail∊'/',win/'\:'
+     }
+
+     (os ver type exe)←# ⎕WG'APLVersion'
+     win←'Windows'≡7↑os
+     envVars←Env¨'DYALOGSTARTUPSE' 'DYALOGSTARTUPWS'
+
+     :If 0∊≢¨envVars
+         defaults←{
+             dyalog←NoSlash Env'DYALOG'
+             verSpec←{
+                 ⍵:NoSlash 2⊃4070⌶⍬ ⍝ win only: version specific folder in user docs folder
+                 home←NoSlash Env'HOME'
+                 num←∊2↑'.'Cut ver
+                 uc←'UC'/⍨80 82=⎕DR'' ⍝ unicode/classic
+                 bits←¯2↑'32',{⍵↓⍨⍵⍳'-'}os
+                 home,'/dyalog.',num,uc,bits,'.files'
+             }⍵
+             user←⊃⎕NPARTS verSpec ⍝ /../
+             verAgno←user,'dyalog.files' 'Dyalog APL Files'⊃⍨1+⍵
+             ∊¨1 ⎕NPARTS dyalog verAgno verSpec ⍝ normalise
+         }win
+     :EndIf
+
+     paths←1⍴'/StartupSession/' '/StartupWorkspace/'Path¨envVars ⍝ "1⍴" disables ws
+     roots←1⍴⎕SE #                                               ⍝ "1⍴" disables #
+
+     as←AutoStatus 0
+     run←0⍴⊂''
+     :For path root :InEach paths roots
+         :For dir :In path
+             ⍝ files←2 Dir dir      ⍝ disabled non-dir items in root
+             ⍝ {}root FixEach files ⍝ disabled non-dir items in root
+             dirs←1 Dir dir
+             :For subdir :In 2⊃¨⎕NPARTS dirs
+                 :Select fullns←root,⍥⍕'.',subdir
+                 :Case '⎕SE.Link' ⍝ already loaded
+                 :Case '⎕SE.Dyalog'
+
+                 :Else
+                     fulldir←dir NJoin subdir
+                     :If dskl ⍝ proper link or just import?
+                         :Trap 0
+                             {}⎕SE.Link.Create fullns fulldir
+                             run,←⊂fullns fulldir
+                         :Else
+                             ⍞←'Could not link "',fulldir,'" with ',fullns,': ',FullMsg ⎕DMX
+                         :EndTrap
+                     :Else
+                         :Trap 0
+                             {}⎕SE.Link.Import fullns fulldir
+                             run,←⊂fullns fulldir
+                         :Else
+                             ⍞←'Could not import "',fulldir,'" to ',fullns,': ',FullMsg ⎕DMX
+                         :EndTrap
+                     :EndIf
+                 :EndSelect
+             :EndFor
+         :EndFor
+     :EndFor
+⍝     :If dskl
+⍝        z (⎕SE.Link.Links⊃⍨⎕SE.Link.Links.ns⍳⊂'⎕SE.Dyalog_Link_Startup_Tmp_NS').ns←'⎕SE.Link'
+⍝     :EndIf
+⍝     '⎕SE.Dyalog_Link_Startup_Tmp_NS'⎕NS'⎕SE.Link.Links'
+⍝     ⎕SE.Link←⎕SE.Dyalog_Link_Startup_Tmp_NS
+⍝     ⎕EX'⎕SE.Dyalog_Link_Startup_Tmp_NS'
+     :If ~(⊂dsx←Env'DYALOGSTARTUP_X')∊,¨'' '0' '1'
+         ⍞←'Configuration parameter DYALOGSTARTUP_X is "',dskl,'" but must be "0" or "1". Press Enter.'
+         {}⍞ ⋄ ⎕OFF 1
+     :Else
+         dsx∊⍨←'1'
+     :EndIf
+     :If ~dsx
+         run/⍨←3=40 ⎕ATX(⊃,'.Run'⍨)¨run ⍝ which ns.Run functions exist?
+         :For ns dir :In run
+             :Trap 0
+                 :If 0≠11 ⎕ATX fn←ns,'.Run'
+                     (⍎fn),⊂dir
+                 :Else
+                     ⍎fn
+                 :EndIf
+             :Else
+                 ⎕←'Calling ',fn,' caused a ',FullMsg ⎕DMX
+             :EndTrap
+         :EndFor
+     :EndIf
+
+     load←Env'LOAD'
+     msg←' ─ LOAD ignored!'
+     load↓⍨←-'/\'∊⍨⊃⌽load ⍝ trim trailing slash
+     :If 0≠≢load ⍝ LOAD allows linking/importing one dir into # at startup
+     :AndIf ⎕NEXISTS load
+     :AndIf 1=1 ⎕NINFO load ⍝ handle if dir (file is handled by interpreter)
+         :If 0≠⎕NC'⎕SE.Link'
+             :Select exe
+             :CaseList 'Development' 'DLL'
+                 :Trap 0
+                     ⍞←⎕SE.Link.Create # load
+                 :Else
+                     ⍞←'Could not link "',load,'" with #: ',FullMsg ⎕DMX
+                 :EndTrap
+             :CaseList 'Runtime' 'DLLRT'
+                 :Trap 0
+                     ⍞←⎕SE.Link.Import # load
+                 :Else
+                     ⍞←'Could not import "',load,'" to #: ',FullMsg ⎕DMX
+                 :EndTrap
+             :Else
+                 ⍞←'Could not determine if interpreter (',exe,') is Development or Runtime version',msg
+             :EndSelect
+         :Else
+             :Select exe
+             :CaseList 'Development' 'DLL'
+                 ⍞←'Could not link "',load,'" with # because ⎕SE.Link does not exist',msg
+             :CaseList 'Runtime' 'DLLRT'
+                 ⍞←'Could not import "',load,'" to # because ⎕SE.Link does not exist',msg
+             :Else
+                 ⍞←'Could not bring in "',load,'" to # because ⎕SE.Link does not exist',msg
+             :EndSelect
+         :EndIf
+         ⍞←⎕UCS 13
+     :EndIf
+
+     {}AutoStatus as
+     ok←1
+     :Trap 0 ⋄ {⎕SIGNAL ⍵}517 ⋄ :EndTrap ⍝ flush association tables
+ :Else
+     ok←0
+ :EndTrap
