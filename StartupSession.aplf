@@ -42,6 +42,11 @@
          :EndIf
      :EndFor
 
+     :If 2=⎕NC'⎕SE.Dyalog.SALT.List' ⍝ new ucmd system has no cache
+     :AndIf ~1∊'link' 'add'⍷⎕SE.Dyalog.SALT.List ⍝ already refreshed?
+         ⎕SE.SALTUtils.ResetUCMDcache ¯1 ⍝ force
+     :EndIf
+
      NoSlash←{⍵↓⍨-'/\'∊⍨⊃⌽⍵} ⍝ remove trailing (back)slash
      Cut←≠⊆⊢
      FullMsg←{⍵.(OSError{⍵,2⌽(×≢⊃⍬⍴2⌽⍺,⊂'')/'") ("',⊃⍬⍴2⌽⊆⍺}Message{⍵,⍺,⍨': '/⍨×≢⍺}⊃⍬⍴DM,⊂'')}
