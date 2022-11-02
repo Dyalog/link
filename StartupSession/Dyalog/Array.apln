@@ -55,7 +55,7 @@
           :If 900⌶⍬
               caller←⊃⎕RSI
           :Else
-              caller←FirstNs caller,⊃⎕RSI
+              caller←serialise.FirstNs caller,⊃⎕RSI
           :EndIf
           :Select nc←⎕NC⊂'ref'
           :CaseList 9.1 9.4 9.5
@@ -146,7 +146,7 @@
       Serialise←{
           ⍺←⍬
           num←serialise.FirstNum ⍺,0
-          caller←FirstNs ⍺,⊃⎕RSI
+          caller←serialise.FirstNs ⍺,⊃⎕RSI
      
           Bad←{(caller code)←⍵
               '+'∊⍺:0
@@ -158,7 +158,7 @@
      
           split←{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT code
      
-          1=⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
+          1∊⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
      
           spaces←⌊|num+2×0=num
           code←'''[^'']+'''⎕R''⊢code                   ⍝ remove quoted text first
