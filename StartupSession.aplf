@@ -18,7 +18,7 @@
      Env←{2 ⎕NQ #'GetEnvironment'⍵}
 
      :If 0=≢dl←Env'DYALOGLINK'
-         dl←(Env'DYALOG'),'/StartupSession/Link'
+         dl←Env'DYALOG'
      :EndIf
      :If ~(⊂dskl←Env'DYALOGSTARTUPKEEPLINK')∊,¨'' '0' '1'
          ⍞←'Configuration parameter DYALOGSTARTUPKEEPLINK is "',dskl,'" but must be "0" or "1". Press Enter.'
