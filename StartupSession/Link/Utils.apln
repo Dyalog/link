@@ -234,7 +234,7 @@
         IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
         
         Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
-            22::_←0                  ⍝ no file access
+            0::_←0                   ⍝ FAIL: e.g. no file access, or src is for derv
             ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR ⍵   ⍝ writing traditional ns : just create directory
             _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵   ⍝ create dir if needed
             1:_←1⊣(⊂⍺)⍺⍺.⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1
