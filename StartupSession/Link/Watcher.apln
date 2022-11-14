@@ -22,7 +22,7 @@
     ∇ (dotnet dotnetcore)←HasDotNet;⎕USING;ok;msg;type
     ⍝ FileSystemWatcher usable only with v18.0 and later
       dotnet←dotnetcore←0
-
+     
       :If IS180 ⍝ Executed at ⎕FIX time, so can't rely on ##.U
           ⍝ /// Tidy this up when 2250⌶ is available in all supported versions
           :Trap 0
@@ -35,24 +35,24 @@
               :EndIf
               →0
           :EndTrap
-
+     
           :Trap 0 ⍝ No I-Beam available, so try setting ⎕USING and trap errors
               ⎕USING←''        ⍝ Ensure that System is present if at all possible
               dotnetcore←4≠System.Environment.Version.Major
           :EndTrap
-
+     
      INITIALISED:
-          :Trap 0 
+          :Trap 0
               ⎕USING←',System',(~dotnetcore)/'.dll'
               dotnet←9.6=⎕NC⊂'System.IO.FileSystemWatcher'
           :Else
               dotnet←dotnetcore←0
           :EndTrap
       :EndIf
-    ∇                                
+    ∇
 
-    (DOTNET DOTNETCORE)←HasDotNet ⍝ cache result 
-    
+    (DOTNET DOTNETCORE)←HasDotNet ⍝ cache result
+
     ∇ canwatch←CanWatch         ⍝ FileSystemWatcher or Crawler
       canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
     ∇
@@ -125,7 +125,7 @@
 
    ⍝⍝⍝⍝⍝ MAIN API ⍝⍝⍝⍝⍝⍝⍝⍝
 
-    ∇ Watch link;args;end;q;r;tid;z
+    ∇ {link}←Watch link;args;end;q;r;tid;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       link.fsw←⎕NULL
       :If ~'dir' 'both'∊⍨⊂link.watch
@@ -143,8 +143,9 @@
       :EndIf
     ∇
 
-    ∇ watch Pause link;fsw;link
+    ∇ {was_paused}←watch Pause link;fsw;link
     ⍝ pause/resume file watching
+    ⍝ returns previous pause state
       :If 9=⎕NC'link.fsw.QUEUE'
           fsw←(⍕link.fsw.QUEUE)⎕WG'Data'
       :Else
@@ -152,8 +153,10 @@
       :EndIf
       :If fsw≢⎕NULL
           fsw.EnableRaisingEvents←watch
+          was_paused←1
       :ElseIf CRAWLER
           watch PauseCrawler link  ⍝ can't hurt if non-crawled link
+          was_paused←0
       :EndIf
     ∇
     ∇ paused←Paused link;fsw
@@ -169,27 +172,29 @@
       :EndIf
     ∇
 
-    ∇ Break links;end;tids;timer;timers
+    ∇ {links}←Break links;end;tids;timer;timers
     ⍝ Cleanly shut down a file system watcher
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
       :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW
-        (⍕¨links.ns) DisposeFSW&¨links.fsw
-        links.fsw←⎕NULL
+          (⍕¨links.ns)DisposeFSW&¨links.fsw
+          links.fsw←⎕NULL
       :EndIf
     ∇
 
-    ∇ nsname DisposeFSW fsw
+    ∇ {disposed}←nsname DisposeFSW fsw
       ⍝ Do not not call Dispose on thread 0, else if a callback fn is suspended
       ⍝ everything will freeze
-    
+     
+      disposed←0
       :Trap 0
-         :If 0≠⎕NC ⊂'fsw.Dispose' ⍝ Don't bother if it is already gone
-             fsw.Dispose
-         :EndIf
-      :Else                                                            
-         ##.U.Warn 'Trapped error disposing of FSW on ',nsname,' ',⊃⎕DMX.DM
+          :If 0≠⎕NC⊂'fsw.Dispose' ⍝ Don't bother if it is already gone
+              fsw.Dispose
+              disposed←1
+          :EndIf
+      :Else
+          ##.U.Warn'Trapped error disposing of FSW on ',nsname,' ',⊃⎕DMX.DM
       :EndTrap
     ∇
 
@@ -245,7 +250,7 @@
     ⍝ - its thread is running ⎕DQ
 
 
-    ∇ warn LogCrawler msg;title
+    ∇ {msg}←warn LogCrawler msg;title
     ⍝ Use 1 to warn, 0 to log link-specific events, ¯1 to log crawler-specific events
       title←'⎕SE.Link.Crawler'
       :If (warn=1) ⋄ title ##.U.Warn msg
@@ -253,7 +258,7 @@
       :EndIf
     ∇
 
-    ∇ AddCrawler link;args
+    ∇ {link}←AddCrawler link;args
       :Hold '⎕SE.Link.Crawler'
           ¯1 LogCrawler'Adding link: 'link' to ',LINKS[L_LINK;]
           LINKS,←link NO_ITEMS 1 0
@@ -265,7 +270,7 @@
           :EndIf
       :EndHold
     ∇
-    ∇ active PauseCrawler links;inx;mask
+    ∇ {links}←active PauseCrawler links;inx;mask
       :Hold '⎕SE.Link.Crawler'
           :If ∨/mask←LINKS[L_LINK;]∊links
               LINKS[L_ACTIVE;⍸mask]←1 ⍝ update all states when pausing or unpausing
@@ -282,7 +287,7 @@
      
       :EndHold
     ∇
-    ∇ RemoveCrawler links;msg
+    ∇ {links}←RemoveCrawler links;msg
       :Hold '⎕SE.Link.Crawler'
           LINKS/⍨←~LINKS[L_LINK;]∊links
           ¯1 LogCrawler(⊂'Removing link: '),links,(⊂' - Remaining links: '),(LINKS[L_LINK;])
@@ -334,15 +339,15 @@
 
     ∇ (link items active warned)←GetCrawlerLink link;inx
       :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
-          'Crawler' ##.U.Error 'Link not found: ',⍕link
+          'Crawler'##.U.Error'Link not found: ',⍕link
       :EndIf
       (link items active warned)←LINKS[L_LINK L_ITEMS L_ACTIVE L_WARNED;inx]
     ∇
-    ∇ SetCrawlerLink(link items active warned);inx
+    ∇ {link}←SetCrawlerLink(link items active warned);inx
       :If (⊃⌽⍴LINKS)<inx←LINKS[L_LINK;]⍳link
-          'Crawler' ##.U.Error 'Link not found: ',⍕link
+          'Crawler'##.U.Error'Link not found: ',⍕link
       :ElseIf {(≢¨∪¨⍵)≢(≢¨⍵)}(↓2↑items)~¨⊂⊂''
-          'Crawler' ##.U.Error 'Internal error: non-unique items'
+          'Crawler'##.U.Error'Internal error: non-unique items'
       :EndIf
       LINKS[L_LINK L_ITEMS L_ACTIVE L_WARNED;inx]←(link items active warned)
     ∇

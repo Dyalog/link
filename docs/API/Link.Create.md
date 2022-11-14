@@ -5,6 +5,8 @@
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Create -?`"
+
 ## Arguments
 
 - `namespace` is either a reference to, or a simple character vector containing the name of a namespace.  

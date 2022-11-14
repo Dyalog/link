@@ -51,7 +51,12 @@
               ~Scal ⍵:⎕SIGNAL 999
               Ns ⍵
           }
-        ∇ repr←Ns ref;name;names;code;ser;ind;xr;nr;nc
+        ∇ repr←{caller}Ns ref;name;names;code;ser;ind;xr;nr;nc
+          :If 900⌶⍬
+              caller←⊃⎕RSI
+          :Else
+              caller←serialise.FirstNs caller,⊃⎕RSI
+          :EndIf
           :Select nc←⎕NC⊂'ref'
           :CaseList 9.1 9.4 9.5
               :Trap 0
@@ -73,9 +78,9 @@
                       :CaseList 3.3 4.3
                           xr←183 ref.⌶name
                           nr←ref.⎕NR name
-                          repr,←name,':',{1↓¯1↓⍵}⍣(⍬≢⍴xr)⊢xr Tacit nr
+                          repr,←name,':',{1↓¯1↓⍵}⍣(⍬≢⍴xr)⊢xr(caller Tacit)nr
                       :Else
-                          repr,←name,':',Ser ref⍎name
+                          repr,←name,':',caller Ser ref⍎name
                       :EndSelect
                       repr,←nl
                   :EndFor
@@ -87,7 +92,7 @@
           :EndSelect
         ∇
           Tacit←{
-              2 9∊⍨⊂⍺:Ser ⍵        ⍝ array
+              2 9∊⍨⊂⍺:⍺⍺ Ser ⍵        ⍝ array
               ⍬≢⍴⍺:∊or,(⍺ ∇¨⍵),(']'/⍨'['≡2⊃⍵),cr  ⍝ derv
               (3 1)(4 1)∊⍨⊂⍺,≢⍵:⍵  ⍝ primitive
               0=≢⍵:11 ⎕SIGNAL⍨'Cannot represent external or locked functions'
@@ -98,10 +103,12 @@
         :EndSection
         :Section TYPE
         Char←0 2∊⍨10|⎕DR
-        Num←~0 2 6∊⍨10|⎕DR
+        Num←2|⎕DR
         Null←∧/⎕NULL≡¨⊢  ⍝ can't use ∧.= because = is pervasive on deep arrays
         Ptr←6=10|⎕DR
         Basic←Char∨Num∨Null
+        FirstNum←Num¨⊃⍤/⊢
+        FirstNs←{9∊⎕NC'⍵'}¨⊃⍤/⊢
         :EndSection
         :Section PROP
         Simple←{1=≡,⍵}
@@ -117,17 +124,18 @@
         Any0←0∊⍴
         :EndSection
           Ser←{
+              ⍺←⊃⎕RSI
               (Simple∧Scal)⍵:Repr ⍵
-              Scal ⍵:ec,∇⊃⍵
+              Scal ⍵:ec,⍺ ∇⊃⍵
          
               Self←⊂nl,⍨∇
          
               (Any0<Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
-              (Any0<Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ Ser¨⍵
+              (Any0<Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ ⍺ ∇¨⍵
               HiRank ⍵:Self⍤¯1 _Sub_ os cs⊢⍵
               Nested ⍵:Self¨_Sub_ or cr⊢⍵
          
-              Vec1 ⍵:or,(∇⊃⍵),di cr
+              Vec1 ⍵:or,(⍺ ∇⊃⍵),di cr
          
               (Basic∨Scal)⍵:Repr ⍵
               ∧/Basic¨⍵:sp Join(6≤≢)_Paren_ Repr¨⍵
@@ -136,20 +144,21 @@
           }
     :EndNamespace
       Serialise←{
-          ⍺←0
-          num←⊃⍺/⍨2|⎕DR¨⍺
+          ⍺←⍬
+          num←serialise.FirstNum ⍺,0
+          caller←serialise.FirstNs ⍺,⊃⎕RSI
      
           Bad←{(caller code)←⍵
               '+'∊⍺:0
               value←Deserialise caller.{⍺⍺ ⍵}code ⍝ deserialise in caller namespace to have proper ⎕FR
-              code≢serialise.Ser value  ⍝ serialisation must round-trip
+              code≢caller serialise.Ser value  ⍝ serialisation must round-trip
           }
-          code←serialise.Ser ⍵
-          ⍺ Bad(⊃⎕RSI)code:'It would not be possible to deserialise the generated array notation'⎕SIGNAL 16
+          code←caller serialise.Ser ⍵
+          ⍺ Bad caller code:'It would not be possible to deserialise the generated array notation'⎕SIGNAL 16
      
           split←{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT code
      
-          1=⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
+          1∊⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
      
           spaces←⌊|num+2×0=num
           code←'''[^'']+'''⎕R''⊢code                   ⍝ remove quoted text first
@@ -162,7 +171,10 @@
 
 
       Deserialise←{ ⍝ Convert text to array
-          ⍺←1 ⍝ 1=execute expression; 0=return expression
+          ⍺←⍬ ⍝ 1=execute expression; 0=return expression
+          execute←serialise.FirstNum ⍺,1
+          caller←serialise.FirstNs ⍺,⊃⎕RSI
+
           q←''''
           ⎕IO←0
           SEP←'⋄',⎕UCS 10 13
@@ -245,13 +257,14 @@
           pl←ParenLev w
           (0≠⊢/pl)∨(∨/0>pl):'Unmatched brackets'⎕SIGNAL 2
           ∨/(pl=0)×SepMask w:'Multi-line input'⎕SIGNAL 11
-          (⊃⎕RSI)Execute⍣⍺⊢pl Parse w    ⍝ materialise namespace as child of calling namespace
+          (⊃⎕RSI)Execute⍣execute⊢pl Parse w    ⍝ materialise namespace as child of calling namespace
       }
 
 
       Inline←{
+          caller←serialise.FirstNs ⍵,⊃⎕RSI
           aa←⍺⍺
-          (1≡⊃⍵,1)Deserialise 1↓∊(⎕UCS 13),¨'^( *[\w∆⍙]+ *← *)?{( |\R)*|( |\R)*}\R*$'⎕R''⍠'Mode' 'D'⎕NR'aa'
+          caller Deserialise 1↓∊(⎕UCS 13),¨'^( *[\w∆⍙]+ *← *)?{( |\R)*|( |\R)*}\R*$'⎕R''⍠'Mode' 'D'⎕NR'aa'
       }
 
 

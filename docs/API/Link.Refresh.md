@@ -4,6 +4,8 @@
     
     msg ← {opts} ⎕SE.Link.Refresh ns
 
+!!! ucmdhelp "Show User Command information in the session with `]LINK.Refresh -?`"
+
 Refresh will break and re-create a link by using one one side of the link as source, and bringing the other side into line.
 
 !!! Note
