@@ -122,6 +122,7 @@
         Table←Mat>0∊(String∨Simple∧Scal∧Num∨Null)¨
         Lead0←0=≢
         Any0←0∊⍴
+        Col1←{1=⊃⌽⍴⍵}
         :EndSection
           Ser←{
               ⍺←⊃⎕RSI
@@ -131,7 +132,7 @@
               Self←⊂nl,⍨∇
          
               (Any0<Num∧Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}⎕FMT ⍵
-              (Any0<Table)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_ ⍺ ∇¨⍵
+              (Any0<Table>Col1)⍵:Join os,cs,⍨{(+/∨\' '≠⌽⍵)↑¨↓⍵}0 1↓⊃,/' ',¨↑¨↓⍉(∨/'⎕UCS'⍷'''[^'']+'''⎕R'')_Paren_(⍺∘∇)¨⍵
               HiRank ⍵:Self⍤¯1 _Sub_ os cs⊢⍵
               Nested ⍵:Self¨_Sub_ or cr⊢⍵
          
@@ -344,6 +345,15 @@
           }Is 42
       :EndSection
       :Section vectors
+          {
+            (
+             '<>'
+             ''''
+             '"'
+             '$'
+            )
+          }Is (⊂'<>') , '''"$'
+
           {(42 ⋄ )}Is,42
      
           {(42
@@ -367,12 +377,31 @@
               ('Three'
               'Blind'
               'Mice')
-          }Is'Three' 'Blind' 'Mice'
+          }Is 'Three' 'Blind' 'Mice'
       :EndSection
       :Section Matrices
+          {
+            [
+            1 ''
+            ¯1 ('-'⋄)
+            ]
+          }Is 2 2⍴1 '' ¯1 (,'-')
+
           {[0 1 2
               3 4 5]
           }Is 2 3⍴⍳6
+
+          {[
+            (
+             'short'
+            )
+            (
+             'longer text'
+            )
+            (
+             'longest test text'
+            )]
+          }Is ⍪'short' 'longer text' 'longest test text'
      
           {[ ⋄ 0 1 2 3]
           }Is⍉⍪⍳4
