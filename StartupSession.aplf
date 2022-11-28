@@ -208,7 +208,7 @@
                  :EndSelect
              :EndIf
              ⍞←⎕UCS 13
-             ⎕LX←'#.Run',(0≠1 2⊃⎕AT'#.Run')/',⊂''',(load/⍨1+''''=load),'''' ⍝ interpreter will run this now
+             2060⌶'#.Run',(0≠1 2⊃⎕AT'#.Run')/',⊂''',(load/⍨1+''''=load),'''' ⍝ make interpreter ⎕LX-style run before 6-space prompt (undocumented)
          :EndIf
      :EndSection
 
