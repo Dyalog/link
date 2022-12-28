@@ -78,7 +78,7 @@
          :ElseIf U.IsScripted nsref
              U.Error'Cannot link to scripted namespaces: ',ns
          :ElseIf nsref∊nsrefs
-             U.Error'Already linked: ',U.Arrow links⊃⍨nsrefs⍳nsref
+             U.Error'Already linked: ',ns
          :ElseIf ~hasdir ⋄ :AndIf ~dircreated←3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
              U.Error'Directory not found: ',dir
          :ElseIf U.Slash⊃⌽dir
