@@ -36,7 +36,7 @@
          :EndIf
          opts.dir←dir
 
-         (fixed failed)←opts U.FixFiles nsref src opts.overwrite
+         (fixed failed)←2↑opts U.FixFiles nsref src opts.overwrite
 
          :If ~single
              msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir

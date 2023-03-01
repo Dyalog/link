@@ -1,5 +1,6 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fixed;fail;fixedfiles;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;mask;timestamps;Env;git
  ⎕IO ⎕ML←1 1
+ Env←{2 ⎕NQ'.' 'GetEnvironment'⍵}
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -30,7 +31,7 @@
 
          :If hasdir←⎕NEXISTS dir
              :If 2=⊃1 ⎕NINFO dir
-                 U.Error 'Link must target a directory, not a file'
+                 U.Error'Link must target a directory, not a file'
              :EndIf
              emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
          :Else ⋄ emptydir←1
@@ -108,7 +109,24 @@
              :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 1≢opts.preloaded
-                 fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
+                 fixed fail fixedfiles←opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
+
+                 mask←{(42 ⎕ATX ⍵)∊3.1 4.1}¨fixed
+
+                 git←'git'
+
+                 :If ⎕NEXISTS Env'LINKGITPATH' ⋄ git←Env'LINKGITPATH' ⋄ :EndIf
+
+                 :If (⎕NEXISTS'.git')∧{11::0 ⋄ 1⊣⎕CMD git,' -v'}⍬
+                     :Trap 0
+                         timestamps←⎕CMD{git,' log -1 --format="',((3×≢⍵)⍴'%at'),'" -- ',∊1↓,' ',⍪⍵}mask/fixedfiles ⍝ git modified dates
+                     :Else
+                         U.Warn'fetching git information failed'
+                     :EndTrap
+                 :EndIf
+
+                 (mask/fixed){⍺(1159⌶)⍨(⊂⍵)@2 ⎕AT ⍺}¨20 ¯1 ⎕DT⍎⍕timestamps
+
                  :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
              :EndIf
          :Else
