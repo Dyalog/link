@@ -119,13 +119,16 @@
 
                  :If (⎕NEXISTS'.git')∧{11::0 ⋄ 1⊣⎕CMD git,' -v'}⍬
                      :Trap 0
-                         timestamps←⎕CMD{git,' log -1 --format="',((3×≢⍵)⍴'%at'),'" -- ',∊1↓,' ',⍪⍵}mask/fixedfiles ⍝ git modified dates
+                         timestamps←20 ¯1 ⎕DT⍎⍕⎕CMD{git,' log -1 --format="',((3×≢⍵)⍴'%at'),'" -- ',∊1↓,' ',⍪⍵}mask/fixedfiles ⍝ git modified dates
                      :Else
                          U.Warn'fetching git information failed'
+                         timestamps←⊃¨3 ⎕NINFO mask/fixedfiles
                      :EndTrap
+                 :Else
+                     timestamps←⊃¨3 ⎕NINFO mask/fixedfiles
                  :EndIf
 
-                 (mask/fixed){⍺(1159⌶)⍨(⊂⍵)@2 ⎕AT ⍺}¨20 ¯1 ⎕DT⍎⍕timestamps
+                 (mask/fixed){⍺(1159⌶)⍨(⊂⍵)@2 ⎕AT ⍺}¨timestamps
 
                  :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
              :EndIf
