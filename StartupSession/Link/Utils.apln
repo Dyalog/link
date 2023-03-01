@@ -373,8 +373,8 @@
     ⍝ safe name class (avoid clash with our stuff)
     ⍝ return ¯9.1 for trad ns that map to directories and not files
           :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
-          :If this←∨/'⎕THIS'⍷name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-              name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')name
+          :If this←∨/'⎕THIS'⍷1⎕C name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
+              name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')1⎕C name
               this←name≡'⎕THIS'
           :EndIf
           :If this ⋄ nc←⎕NC⊂'nsref'
