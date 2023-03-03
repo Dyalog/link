@@ -1,11 +1,16 @@
- msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML
+ msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;def
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      items←(⊆,items)~¨' '
-     items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨items        ⍝ fully qualified name
+     :If ('←'∊⊃items)∧1=≢items ⋄ items def←'←'{(~<\⍺=⍵)⊆⍵}⊃items ⋄ :EndIf
+     items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨⊆items        ⍝ fully qualified name
+     :If 0≠⎕NC'def'
+         ns name←'.'(≠⊆⊢)⊃items
+         (⍎ns)⍎name,'←',def
+     :EndIf
      added←unlinked←unfound←0⍴⊂''
      :For item :In items
          :If ~(# U.NameClass item)∊0 ¯1
