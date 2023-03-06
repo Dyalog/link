@@ -162,7 +162,7 @@
           1∊⍺:'''[^'']+''' '([[(]) ⋄ ' ' ⋄ ([])])' '  +'⎕R'&' '\1' ' ⋄\1' ' '⊢3↓∊' ⋄ '∘,¨split
      
           spaces←⌊|num+2×0=num
-          code←'''[^'']+'''⎕R''⊢code                   ⍝ remove quoted text first
+          code←{⍵/⍨(⊢⍱≠\)''''=⍵}code                   ⍝ remove quoted text first
           fmt←⎕FMT'\[[^][]+\]' '\([^)(]+\)'⎕R''⍣≡code  ⍝ remove bracket contents
           delta←(+/'(['∊⍨fmt)-(+/fmt∊')]')
           ind←+\0(⌊+0,¯1↓⌈)delta
@@ -692,6 +692,10 @@
           {
               ['(' ⋄ ]
           }Is 1 1⍴'('   ⍝ link issue #271
+
+          {
+              ['aa'(' ' ⋄ )'' 'bb'(' ' ⋄ )]
+          }Is,[0.5]'aa'(,' ')'' 'bb'(,' ')
      
       :EndSection
       :Section Combo
