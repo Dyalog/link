@@ -820,8 +820,8 @@
               ⎕NDELETE⍠1⊢folder
           :Else
               'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
-          ⍝assert'~⎕NEXISTS folder'        ⍝ folder must not exist
-              assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
+              assert'~⎕NEXISTS folder'        ⍝ folder must not exist
+              ⍝ assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
           :EndTrap
           3 ⎕NDELETE folder
           :Trap ⎕SE.Link.U.ERRNO
@@ -830,8 +830,8 @@
               ⎕SE.Link.Break name
           :Else
               'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
-          ⍝assert'~⎕NEXISTS folder'        ⍝ folder must not exist
-              assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
+              assert'~⎕NEXISTS folder'        ⍝ folder must not exist
+              ⍝ assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
           :EndTrap
           3 ⎕NDELETE folder
           

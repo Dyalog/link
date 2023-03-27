@@ -45,5 +45,9 @@
          msg←1↓U.FmtLines msg
      :EndIf
  :Else
+     :If (~opts U.HasExtn dest) ∧ ⎕NEXISTS dest
+     :AndIf 0∊⍴⊃0⎕NINFO⍠1⊢dest,'/*'
+        ⎕NDELETE dest
+     :EndIf
      U.Resignal 1
  :EndTrap
