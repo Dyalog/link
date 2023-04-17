@@ -118,7 +118,7 @@
         HiRank←{1<≢⍴⍵}
         Vec←{1=≢⍴⍵}
         Mat←{2=≢⍴⍵}
-        String←Simple∧Char∧Vec
+        String←Simple∧Char∧Vec∨Scal
         Table←Mat>0∊(String∨Simple∧Scal∧Num∨Null)¨
         Lead0←0=≢
         Any0←0∊⍴
