@@ -14,7 +14,8 @@ fi
 
 REPO_DIR="$(dirname $0)/../"
 
-VERSION_SOURCE="${D}/StartupSession/Link/Version.aplf"
+VERSION_SOURCE="StartupSession/Link/Version.aplf"
+VERSION_FULLPATH="${D}/${VERSION_SOURCE}"
 
 FILES="$VERSION_SOURCE"
 MISSING=""
