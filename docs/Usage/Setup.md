@@ -64,7 +64,7 @@ Using `LOAD` to link to a directory on startup is simple way to handle very simp
 ```json
 {
   Settings: {
-      MAXWS: 100M,
+      MAXWS: "100M",
       LX: "linkdemo.Start 0 ⊣ ⎕←⎕SE.Link.Create 'linkdemo' ⎕SE.Link.LaunchDir"
   }
 }
@@ -99,7 +99,7 @@ This allows us to create a second configuration file, `linkdemo/run.dcfg`, which
 ```json
 {
   Settings: {
-      MAXWS: 1G,
+      MAXWS: "1G",
       LX: "linkdemo.Start 1 ⊣ ⎕←⎕SE.Link.Import 'linkdemo' ⎕SE.Link.LaunchDir"
   }
 }

@@ -1,23 +1,26 @@
 # Installation
 
-Link 3.0 is included with Dyalog version 18.2 or later.
+Link 4.0 is included with Dyalog version 19.0 or later, and is supported under version 18.2.
 
 !!!Note
 	For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.
 	
 	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
 	
-	To find out which versions are supported, see [section 2.1 of the .NET Core Interface Guide](https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf) and under the heading "Prerequisites" in [chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide](https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf).
+	Link 4.0 has been tested with the .NET Framework v4.0 and .NET 6.0, and is expected to work with any later version of .NET.
 
-The instructions on this page only apply if you want to:
-
-- Use Link 3.0 with Dyalog version 18.0 (in place of Link 2.0).
-- Participate in testing pre-releases of Link.
-- Use a different version than that which is distributed with Dyalog APL.
+The instructions on this page only apply if you want to work with a different version that which is distributed with your version of Dyalog APL, for example to test a pre-release.
 
 If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.
 
 Link is maintained as an open source project at [github.com/dyalog/link](https://github.com/dyalog/link).
+
+!!!Note
+    The installation instructions below have not been updated for Link 4.0.
+
+	DO NOT try to use the instructions below, they WILL NOT WORK.
+
+	Please come back soon!
 
 **Start by downloading** the latest release from [github.com/Dyalog/link/releases](https://github.com/Dyalog/link/releases) and extracting the subfolder called `StartupSession`. This folder contains the code required to run Link.
 
