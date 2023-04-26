@@ -1,5 +1,10 @@
+!!! Note
+     This documentation needs to be revised for Link version 4.0! 
+     
+     At the moment it is primarily the unmodified documentation for version 3.0.
+
 # Introduction
-*Link* enables users of Dyalog to store their APL source code in text files. This is the documentation for Link Version 3.0, which will be released in the autumn of 2021 and included with the next release of Dyalog APL. If you have an earlier version of APL or Link, you might want to read one or more of the following pages before continuing: 
+*Link* enables users of Dyalog to store their APL source code in text files. If you have an earlier version of APL or Link, you might want to read one or more of the following pages before continuing: 
 
 * [Link version 2.0](https://github.com/Dyalog/link/blob/master/help/Home.md) If you are actually looking for documentation of the version which was distributed with Dyalog APL versions 17.1 and 18.0.
 * [Migrating to Link 3.0 from Link 2.0:](Upgradeto30.md) Dyalog recommends migrating to version 3.0 at your earliest convenience.
