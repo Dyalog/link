@@ -128,5 +128,9 @@
          :EndIf
      :EndHold
  :Else
+     :If dircreated
+     :AndIf 0∊⍴⊃0⎕NINFO⍠1⊢dir,'/*'
+        ⎕NDELETE dir
+     :EndIf
      U.Resignal 1
  :EndTrap
