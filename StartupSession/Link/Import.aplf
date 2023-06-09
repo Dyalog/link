@@ -25,7 +25,7 @@
              U.Error'Not a namespace: ',ns
          :EndIf
      :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace
-             U.Error'Not a properly named namespace: ',ns
+         U.Error'Not a properly named namespace: ',ns
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else
@@ -45,6 +45,11 @@
          :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.WinSlash src
          :EndIf
          msg←1↓U.FmtLines msg
+     :EndIf
+
+     :If ⎕WSID≡'CLEAR WS'
+     :AndIf #=nsref
+         ⎕WSID←⎕SE.Link.U.(WinSlash Enslash)opts.dir
      :EndIf
  :Else
      U.Resignal 1
