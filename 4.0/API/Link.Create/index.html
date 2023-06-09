@@ -1076,7 +1076,12 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 </ul>
 <h2 id="result">Result</h2>
 <ul>
-<li><code>message</code> is a simple character vector describing the established link, along with possible failures</li>
+<li>
+<p><code>message</code> is a simple character vector describing the established link, along with possible failures</p>
+</li>
+<li>
+<p>If <code>namespace</code> is <code>#</code> and the current workspace is isn't associated with a file (<code>⎕WSID≡'CLEAR WS'</code>) then <code>⎕WSID</code> will be set to <code>directory</code>. The value will be <em>with</em> a trailing slash or backslash to prevent being mistaken for a file name. The default titlebar caption of RIDE and the Windows IDE can then be used to keep track of which session is linked to which directory and a custom titlebar captions can use the <code>{WSID}</code> tag to include the value.</p>
+</li>
 </ul>
 <h2 id="common-options">Common options</h2>
 <h3 id="source"><strong>source</strong></h3>
