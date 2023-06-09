@@ -18,6 +18,7 @@
 
 - `message` is a simple character vector describing the established link, along with possible failures
 
+- If `namespace` is `#` and the current workspace is isn't associated with a file (`⎕WSID≡'CLEAR WS'`) then `⎕WSID` will be set to `directory`. The value will be *with* a trailing slash or backslash to prevent being mistaken for a file name. The default titlebar caption of RIDE and the Windows IDE can then be used to keep track of which session is linked to which directory and a custom titlebar captions can use the `{WSID}` tag to include the value.
 ## Common options
 
 ### **source**
