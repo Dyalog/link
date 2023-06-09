@@ -11,8 +11,8 @@
         HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
 
-        ∇ d←debug   ⍝ should use another name ! otherwise bug when fixing code in ⎕SE.Link.U while debugging code in ⎕SE.Link.U that uses a local named debug
-          :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←0
+        ∇ d←debug   ⍝ should use another name than DEBUG, otherwise state resets when fixing code in ⎕SE.Link.U
+          :If 0=⎕NC'##.DEBUG' ⋄ d←##.DEBUG←'1'∊2 ⎕NQ #'GetEnvironment' 'LINK\DEBUG'
           :Else ⋄ d←##.DEBUG
           :EndIf
         ∇
