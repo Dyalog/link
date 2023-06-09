@@ -30,7 +30,7 @@
 
          :If hasdir←⎕NEXISTS dir
              :If 2=⊃1 ⎕NINFO dir
-                 U.Error 'Link must target a directory, not a file'
+                 U.Error'Link must target a directory, not a file'
              :EndIf
              emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
          :Else ⋄ emptydir←1
@@ -121,6 +121,11 @@
          Watcher.Watch opts  ⍝ first crawler may call Notify
          U.SetLinks links,opts  ⍝ set links after setting FileSystemWatcher
          ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow,dircreated/⊂'[directory was created]'),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
+
+         :If ⎕WSID≡'CLEAR WS'
+         :AndIf #=nsref
+             ⎕WSID←⎕SE.Link.U.(WinSlash Enslash)opts.dir
+         :EndIf
      :EndHold
  :Else
      U.Resignal 1
