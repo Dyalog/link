@@ -1,0 +1,10 @@
+ CleanUp(folder name);z;m
+    ⍝ Tidy up after test
+ z←⎕SE.Link.Break name
+ assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared
+ :If ∨/m←((≢folder)↑¨z)∊⊂folder
+     Log'Links not cleared:'(⍪m/z)
+ :EndIf
+ 3 ⎕NDELETE folder
+ #.⎕EX name

@@ -1,10 +1,13 @@
 ﻿:Namespace Test
-⍝ Put the Link system and FileSystemWatcher through it's paces
-⍝ Call Run with a right argument containing a folder name which can be used for the test
-⍝ For example:
-⍝   Run 'c:\tmp\linktest'
     
-    ⍝ TODO
+    ∇ Describe
+    ⍝ This function exists in order to record comments from the single script version of the Test namespace 
+
+    ⍝ Put the Link system and FileSystemWatcher through it's paces
+    ⍝ Call Run with a right argument containing a folder name which can be used for the test
+    ⍝ For example:
+    ⍝   Run 'c:\tmp\linktest'
+
     ⍝ - test quadVars.apln produced by Acre
     ⍝   ':Namespace quadVars'  '##.(⎕IO ⎕ML ⎕WX)←0 1 3'  ':EndNamespace'
     ⍝ - test ⎕SE.Link.Add '⎕IO', and that subsequent script fix observed it (⎕SIGNAL (⎕IO≠0)/11)
@@ -25,11 +28,12 @@
     ⍝ - updating a function with stops
     ⍝ - changing valid source to invalid source (e.g. 'r←foo;')
     ⍝ - editiing a new name and giving it invalid source
-    
+    ∇
     
     
     :Section Main entry point and global settings
         
+        ∇InitGlobals dummy
         ⎕IO←1 ⋄ ⎕ML←1
         
         USE_ISOLATES←1     ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
@@ -45,10 +49,15 @@
         ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided
         ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
         STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action
+        ∇
         
         ∇ {ok}←{debug}Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests   
+          :If 0=⎕NC 'NAME'
+              InitGlobals ''
+          :EndIf
+
           :If ⎕SE.Link.NOTIFY≢0
               ⎕SE.Link.NOTIFY←0
               ⎕←'NB: NOTIFY set to 0'
@@ -263,7 +272,8 @@
           'Mantis 18638'assert'(∨/''ERRORS ENCOUNTERED''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
           (⍎name).⎕EX'lostclass'
           'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
-          ⎕SE.Link.U.WARN←warn
+          ⎕SE.Link.U.WARN←warn 
+          ⎕TRAP←0 'S' ⋄ ∘∘∘
           assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
           assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
           assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
@@ -2609,7 +2619,7 @@
           :AndIf 0≠≢⎕SE.Link.Links
               Log'Please break all links and try again.'
               ⎕←⎕SE.UCMD']Link.Status'
-              ⎕←'      ]Link.Break -all    ⍝ to break all links'
+              ⎕←'      ]Link.Break -all=*    ⍝ to break all links'
               :Return
           :EndIf
           :If 0≠⎕NC name

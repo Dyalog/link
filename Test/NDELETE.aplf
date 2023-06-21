@@ -1,0 +1,22 @@
+ {r}←{flag}NDELETE file;type;name;names;types;n;t
+     ⍝ Cover for ⎕NERASE / ⎕NDELETE while we try to find out why it makes callbacks fail
+     ⍝ Superseeded by #.SLAVE.⎕NDELETE
+     ⍝ re-superseeded by QNDELETE
+ r←1
+ :If 0=⎕NC'flag' ⋄ flag←0 ⋄ :EndIf
+
+ :Select flag
+ :Case 0 ⋄ ⎕NDELETE file
+ :Case 2 ⍝ Recursive
+     (name type)←0 1 ⎕NINFO file
+     :If type=1 ⍝ Directory
+         (names types)←0 1(⎕NINFO⍠1)file,'/*'
+         :For (n t) :InEach names types
+             :If t=1 ⋄ 2 NDELETE n          ⍝ Subdirectory
+             :Else ⋄ ⎕NDELETE n ⋄ ⎕DL 0.01 ⍝ Better be a file
+             :EndIf
+         :EndFor
+     :EndIf
+     ⎕NDELETE name ⋄ ⎕DL 0.01
+ :Else ⋄ 'Larg must be 0 or 2'⎕SIGNAL 11
+ :EndSelect

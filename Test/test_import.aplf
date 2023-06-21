@@ -1,0 +1,119 @@
+ ok←test_import(folder name);foo;cm;cv;ns;z;opts;_;bc;ac
+
+ 3 ⎕MKDIR Retry⊢folder∘,¨'/sub/sub1' '/sub/sub2'
+
+      ⍝ make some content
+ (⊂foo←' r←foo x' ' x x')⎕NPUT folder,'/foo.dyalog'
+ (⊂⊂cv←'Line 1' 'Line two')⎕NPUT¨folder∘,¨'/cm.charmat' '/cv.charvec'
+ cm←↑cv
+ (⊂'[''one'' 1' '''two'' 2]')⎕NPUT folder,'/sub/sub2/one2.apla'
+ (⊂bc←':Class bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/bClass.dyalog'
+ (⊂ac←':Class aClass : bClass' ':EndClass')⎕NPUT folder,'/sub/sub2/aClass.dyalog'
+ (⊂,⊂,'0')⎕NPUT folder,'/sub/⎕IO.dyalog'
+
+ opts←⎕NS''
+ opts.beforeRead←TESTNS,'.onBasicRead'
+ opts.beforeWrite←TESTNS,'.onBasicWrite'
+      ⍝opts.customExtensions←'charmat' 'charvec'
+
+      ⍝ link issue #174
+ ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
+ opts.overwrite←0
+ name⍎'foo←''this seat is taken'' ⋄ sub←{''this one is too''}'
+ 'link issue #174'assertError'opts ⎕SE.Link.Import name folder' 'Names already exist'
+ 'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.foo')
+ 'link issue #174'assertError'opts ⎕SE.Link.Import name folder'(name,'.sub')
+ opts.overwrite←1
+ z←opts ⎕SE.Link.Import name folder
+ 'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''ERRORS ENCOUNTERED''⍷z)'
+ 'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
+ 'link issue #174'assert'foo≡',name,'.⎕NR ''foo'''
+ 'link issue #174'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.sub.sub2.one2'
+ 'link issue #184'assert'1 0≡',name,'.(⎕IO sub.⎕IO)'
+ ⎕EX name ⋄ name ⎕NS ⍬ ⋄ name⍎'oldvar←342 ⋄ oldfoo←{''oldfoo''}'
+ opts.overwrite←0
+ z←opts ⎕SE.Link.Import name folder
+ 'link issue #174'assert'(⊃''Imported: ''⍷z)∧(~∨/''ERRORS ENCOUNTERED''⍷z)'
+ 'link issue #174'assert'2.1 3.2≡',name,'.⎕NC''oldvar'' ''oldfoo'' '
+ ⎕EX name
+
+ z←opts ⎕SE.Link.Import name folder
+ assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+
+ ns←#⍎name
+
+ assert'foo≡ns.⎕NR''foo'''
+⍝ Import does not support custom types at this time
+⍝      assert'cm≡ns.cm'
+⍝      assert'cv≡ns.cv'
+
+ assert'9.1=ns.⎕NC''sub'' ''sub.sub1'' ''sub.sub2'''
+ assert'ns.sub.sub2.one2≡2 2⍴''one'' 1 ''two'' 2'
+
+ assert'9.4=ns.sub.sub2.⎕NC''aClass'' ''bClass'''
+ assert'ac≡⎕SRC ns.sub.sub2.aClass'
+ assert'bc≡⎕SRC ns.sub.sub2.bClass'
+ ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.sub.sub2.aClass'
+
+      ⍝ make sure there is no link
+ ns'foo'⎕SE.Link.Fix' r←foo x' ' r←x x x'
+ assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
+
+ _←(⊂' r←foo x' ' r←x x x x')QNPUT(folder,'/foo.dyalog')1
+ assert'(ns.⎕NR''foo'')≢⊃#.SLAVE.⎕NGET folder,''/foo.dyalog'''
+
+ ⎕SE.Link.Expunge'ns.sub.sub1'
+ assert'⎕NEXISTS folder,''/sub/sub1'''
+
+ ⎕EX'ns' ⋄ #.⎕EX name
+
+ opts.flatten←1
+ z←opts ⎕SE.Link.Import name folder
+ ns←#⍎name
+ assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ assert'0=≢ns.⎕NL-9.1'
+
+⍝ Import does not support custom types at this time
+⍝      assert'cm≡ns.cm'
+⍝      assert'cv≡ns.cv'
+
+ assert'ns.one2≡2 2⍴''one'' 1 ''two'' 2'
+
+ assert'9.4=ns.⎕NC''aClass'' ''bClass'''
+ assert'ac≡⎕SRC ns.aClass'
+ assert'bc≡⎕SRC ns.bClass'
+ ('Unable to instantiate aClass (',(⊃⎕DM),')')assert'≢⎕NEW ns.aClass'
+
+ ⎕EX name ⋄ name ⎕NS''
+ assertError'z←⎕SE.Link.Import name(folder,''/not_there.dyalog'')' 'Source not found'
+
+ z←⎕SE.Link.Import name(folder,'/foo.dyalog')
+ 'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #79'assert'3.1=⎕NC⊂''',name,'.foo'''
+ ⎕EX name,'.foo'
+ z←⎕SE.Link.Import name(folder,'/foo')  ⍝ automatic file extension
+ 'link issue #81'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #81'assert'3.1=⎕NC⊂''',name,'.foo'''
+ (⊂'foo')⎕NPUT(folder,'/foo.aplf')1  ⍝ two files with extensions
+ 'link issue #81'assertError'z←⎕SE.Link.Import name(folder,''/foo'')' 'More than one source'
+
+ name⍎'one2←1 2'
+ assertError'⎕SE.Link.Import name(folder,''/sub/sub2/one2.apla'')'(name,'.one2')
+ opts.overwrite←1
+ z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2.apla')
+ 'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #79'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
+ name⍎'one2←1 2'
+ (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.ini')1  ⍝ must be ignored, leaving one2.apla as sole candidate for one2.*
+ z←opts ⎕SE.Link.Import name(folder,'/sub/sub2/one2')
+ 'link issue #81'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #81'assert'(2 2⍴''one'' 1 ''two'' 2)≡',name,'.one2'
+ (⊂'foo')⎕NPUT(folder,'/sub/sub2/one2.dyalog')1  ⍝ will clash
+ 'link issue #81'assertError'z←opts ⎕SE.Link.Import name(folder,''/sub/sub2/one2'')' 'More than one source'
+
+
+      ⍝ Now tear it all down again:
+ _←2 QNDELETE folder
+ assert'9=⎕NC ''ns'''
+ #.⎕EX name
+ ok←1

@@ -1,0 +1,35 @@
+ ok←break_tests(name folder);z;folder2;se_name;opts;case;old;islinked
+    ⍝ Test variations of Break, with special focus on -all[=]
+    ⍝ Called from test_basic
+    ⍝ Assumes that both name and folder currently exist
+
+ z←⎕SE.Link.Create name folder
+ islinked←{2::0 ⋄ ∧/(⊆⍵)∊(⎕SE.Link.U.GetLinks).ns}
+ 'Create failed'assert'islinked name'
+ z←⎕SE.Link.Break name                         ⍝ Test explicit break of a link
+ 'Break failed'assert'~islinked name'
+
+ 3 ⎕NDELETE folder2←folder,'_folder2'
+ folder2 ⎕NCOPY folder
+ se_name←'⎕SE',1↓name
+
+ z←⎕SE.Link.Create name folder
+ z←⎕SE.Link.Create se_name folder2
+ 'Create failed'assert'islinked name se_name'
+
+ opts←⎕NS''
+ z←opts ⎕SE.Link.Break''⊣opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
+ 'Break -all=⎕SE failed'assert'~islinked se_name'
+
+ z←opts ⎕SE.Link.Break''⊣opts.all←'#'       ⍝ Break all children of #
+ 'Break -all=* failed'assert'~islinked name'
+
+ :For case :In '*'(,'*')                      ⍝ Test all alternatives of "all"
+     z←⎕SE.Link.Create name folder
+     z←⎕SE.Link.Create se_name folder2
+     'Create failed'assert'islinked name se_name'
+     z←opts ⎕SE.Link.Break''⊣opts.all←case
+     ('Break -all=',(⍕case),' failed')assert'0=≢⎕SE.Link.U.GetLinks'
+ :EndFor
+
+ 3 ⎕NDELETE folder2

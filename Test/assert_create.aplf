@@ -1,0 +1,11 @@
+ assert_create←{
+          ⍝ subroutine of test_create, verify that ws and file are updated according to opts.watch
+          ⍝ ⍺=1 if ws should contain "new" defs, 0 for old
+          ⍝ ⍵=1 files should contain "new" defs...
+     _←assert(⍺/'new'),'var≡⍎subname,''.var'''
+     _←assert(⍺/'new'),'foosrc≡NR subname,''.foo'''
+     _←assert(⍺/'new'),'nssrc≡⎕SRC ⍎subname,''.ns'''   ⍝ problem is that ⎕SRC reads directly from file !
+     _←assert(⍵/'new'),'varsrc≡⊃⎕NGET (subfolder,''/var.apla'') 1'
+     _←assert(⍵/'new'),'foosrc≡⊃⎕NGET (subfolder,''/foo.aplf'') 1'
+     _←assert(⍵/'new'),'nssrc≡⊃⎕NGET (subfolder,''/ns.apln'') 1'
+ }

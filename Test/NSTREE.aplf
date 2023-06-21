@@ -1,0 +1,2 @@
+ names←trad NSTREE ns;mask;pre;ref;refs;subns;tradns
+ names←trad ⎕SE.Link.U.ListNs ns

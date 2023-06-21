@@ -1,0 +1,69 @@
+ res←bench_crawler(name folder);ALPHABET;FileName;Function;Name;Time;cmpx;cols;crawler;dotnet;files;fns;link;names;new;news;old;olds;opts;rows
+ ALPHABET←'⍺⍵⍬⊢⊣⌷¨⍨/⌿\⍀<≤=≥>≠∨∧-+÷×?∊⍴~↑↓⍳○*⌈⌊∘⊂⊃∩∪⊥⊤|,⍱⍲⍒⍋⍉⌽⊖⍟⌹!⍕⍎⍪≡≢#&@:⋄←→⍝⎕⍞⍣'
+ ALPHABET,←⎕A,10⍴' '
+ Function←{(⊂'res←',⍵,' arg'),↓ALPHABET[?10 50⍴≢ALPHABET]}
+ FileName←{folder,'/',⍵,'.aplf'}
+ Name←{⎕A[?⍵⍴26]}
+ Time←{
+     start←3⊃⎕AI ⋄ _←⎕SE.Link.Watcher.Crawl link ⋄ end←3⊃⎕AI
+     res[⍵;olds⍳old;news⍳new]+←end-start
+ }
+
+ opts←⎕NS ⍬ ⋄ opts.watch←'both'  ⍝ force tying to files so that DetermineFileName is fast
+ (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
+ ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0  ⍝ disable file watching
+
+ olds←,100⊣0 1000 100000
+ news←,100⊣1 1000
+ res←(6,≢¨olds news)⍴0
+ :For old :In olds   ⍝ items already linked before operations
+     ⎕EX name
+     3 ⎕NDELETE folder
+     3 ⎕MKDIR folder
+     fns←Function¨names←Name¨old⍴10 ⋄ files←FileName¨names
+     fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+     assert'0∊⍴⎕SE.Link.U.GetLinks'
+     {}opts ⎕SE.Link.Create name folder
+     ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer
+     assert'1=≢⎕SE.Link.Links'
+     link←⊃⎕SE.Link.Links
+     :For new :In news
+              ⍝ 1 = create files
+         fns←Function¨names←Name¨new⍴10
+         files←FileName¨names
+         fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+         Time 1
+              ⍝ 2 = modify files
+         fns←Function¨names
+         fns{(⊂⍺)⎕NPUT ⍵ 1}¨files
+         Time 2
+              ⍝ 3 = delete files
+         3 ⎕NDELETE¨files
+         Time 3
+              ⍝ 4 = create apl items
+         fns←Function¨names←Name¨new⍴10
+         2(⍎name).⎕FIX¨fns
+         Time 4
+              ⍝ 5 = modify apl items
+         fns←Function¨names
+         2(⍎name).⎕FIX¨fns
+         Time 5
+              ⍝ 6 = delete apl items
+         (⍎name).⎕EX names
+         Time 6
+     :EndFor
+     {}⎕SE.Link.Expunge name
+     3 ⎕NDELETE folder
+ :EndFor
+ :If 0
+     cols←(≢news)/'create_files' 'mod_files' 'del_files' 'create_apl' 'mod_apl' 'del_apl'
+     cols←cols,[0.5],{(6×⍴⍵)⍴⍵}⍕¨news
+     rows←('linked_items' ''),⍕¨olds
+     res←rows,cols⍪{(⍕⍵),'ms'}¨,[2 3]2 1 3⍉res
+ :Else
+     rows←'create_files' 'mod_files' 'del_files' 'create_apl' 'mod_apl' 'del_apl'
+     rows←,rows∘.{'_'⎕R(' ',(⍕⍵),' ')⊢⍺}news
+     cols←(⊂'pre-linked items'),⍕¨olds
+     res←cols⍪rows,{⍵⊣(⍕⍵),'ms'}¨,[1 2]1 3 2⍉res
+ :EndIf
+ ⎕SE.Link.Watcher.(CRAWLER DOTNET)←(crawler dotnet)

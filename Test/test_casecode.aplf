@@ -1,0 +1,266 @@
+ ok←test_casecode(folder name);DummyFn;FixFn;actfiles;actnames;expfiles;expnames;files;fn;fn2;fnfile;fns;goo;mat;name;nl;nl3;ns;opts;sub;var;var2;varfile;winfolder;z
+
+      ⍝ Test creating a folder from a namespace with Case Conflicts
+ winfolder←⎕SE.Link.U.WinSlash folder
+
+ ns←⍎name ⎕NS''
+ ns.('sub'⎕NS'')
+ ns.sub.⎕FX'r←dup x' 'r←x x'  ⍝ ns.sub.dup
+ ns.('SUB'⎕NS'')
+ ns.SUB.⎕FX'r←DUP x' 'r←x x'  ⍝ ns.SUB.DUP
+ ns.SUB.('SUBSUB'⎕NS'')
+ ns.SUB.SUBSUB.⎕FX'r←DUPDUP x' 'r←x x'
+ ns.var←42 42
+
+ opts←⎕NS''
+ opts.caseCode←0  ⍝ No case coding
+ opts.source←'ns' ⍝ Create folder from
+
+      ⍝ Try saving namespace without case coding
+ :Trap ⎕SE.Link.U.ERRNO
+     z←opts ⎕SE.Link.Export name folder
+     'Link issue #113'assert'0'
+     ⎕NDELETE⍠1⊢folder
+ :Else
+     'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
+          ⍝assert'~⎕NEXISTS folder'        ⍝ folder must not exist
+     assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
+ :EndTrap
+ 3 ⎕NDELETE folder
+ :Trap ⎕SE.Link.U.ERRNO
+     z←opts ⎕SE.Link.Create name folder
+     'Link issue #113'assert'0'
+     ⎕SE.Link.Break name
+ :Else
+     'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
+          ⍝assert'~⎕NEXISTS folder'        ⍝ folder must not exist
+     assert'0∊⍴⊃⎕NINFO⍠1⊢folder,''/*'''  ⍝ folder must remain empty
+ :EndTrap
+ 3 ⎕NDELETE folder
+
+      ⍝ now do it properly
+ opts.caseCode←1
+ z←opts ⎕SE.Link.Export name folder
+ assert'z≡''Exported: ',name,' → ',winfolder,''''
+ actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder    ⍝ NB sorting is different in classic VS unicode
+ expfiles←{⍵[⍋⍵]}'SUB-7/DUP-7.aplf' 'SUB-7/SUBSUB-77/DUPDUP-77.aplf' 'sub-0/dup-0.aplf'
+ 'link issue #43'assert'actfiles≡expfiles'
+      ⍝ TODO : export cannot export arrays ? (ns.var)
+ 3 ⎕NDELETE folder
+
+      ⍝ try variables too
+ z←opts ⎕SE.Link.Create name folder
+ assert'z≡''Linked: ',name,' ←→ ',winfolder,' [directory was created] '''
+ actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
+ 'link issue #43'assert'actfiles≡expfiles'
+ {}⎕SE.Link.Add name,'.var'
+ actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
+ expfiles←{⍵[⍋⍵]}expfiles,⊂'var-0.apla'
+ assert'actfiles≡expfiles'
+
+ {}⎕SE.Link.Break name ⋄ ⎕EX name
+
+      ⍝ now open it back without case coding
+ opts.caseCode←0
+ opts.source←'dir'
+ z←opts ⎕SE.Link.Import name folder
+ assert'z≡''Imported: ',name,' ← ',winfolder,''''
+ actnames←{⍵[⍋⍵]}0 NSTREE name
+ expnames←{⍵[⍋⍵]}(name,'.')∘,¨'SUB.DUP' 'SUB.SUBSUB.DUPDUP' 'sub.dup' 'var'
+ assert'actnames≡expnames'
+ ⎕EX name
+
+      ⍝ open it back without case coding and with forcefilenames - must fail
+ opts.forceFilenames←1
+ assertError'opts ⎕SE.Link.Import name folder' 'clashing file names'
+
+ opts.caseCode←1
+ {}⎕SE.Link.Create name folder
+ {}⎕SE.Link.Break name ⋄ ⎕EX name
+
+      ⍝ survive clashing apl definitions despite different filenames
+ {}(⊂'r←foo x' 'r←''foo'' x')∘QNPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
+ assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
+ {}QNDELETE¨1↓files
+
+      ⍝ forcefilename will rename file with proper casecoding
+ assert'1 0≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
+ {}opts ⎕SE.Link.Create name folder
+ assert'0 1≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
+
+      ⍝ check forcefilename on-the-fly
+ fn←' r←Dup x' ' r←x x'  ⍝ whitespace not preserved because of ⎕NR
+ {}(⊂fn)QNPUT folder,'/NotDup.aplf'
+ assert'fn≡⎕NR name,''.Dup'''
+ assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
+
+      ⍝ check file rename on-the-fly
+ Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
+ {}(folder,'/NotDup.aplf')#.SLAVE.⎕NMOVE(folder,'/Dup-1.aplf')
+ assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
+
+      ⍝ check apl rename on-the-fly
+ Breathe
+ fn←' r←DupduP x' ' r←x x x'
+ {}(⊂fn)QNPUT(folder,'/Dup-1.aplf')1
+ assert'0=⎕NC name,''.Dup'''  ⍝ old definition should be expunged
+ assert'fn≡⎕NR name,''.DupduP'''
+ assert'0 1≡⎕NEXISTS folder∘,¨''/Dup-1.aplf'' ''/DupduP-41.aplf'''
+ nl←(⍎name).⎕NL-⍳10
+
+      ⍝ can't rename because it would clash
+ Breathe
+ fn2←' r←DupduP x' 'r←x x x x'
+ {}(⊂fn2)QNPUT folder,'/NotDupduP.aplf'
+ assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
+ assert'fn≡⎕NR name,''.DupduP'''
+ assert'1 1≡⎕NEXISTS folder∘,¨''/NotDupduP.aplf'' ''/DupduP-41.aplf'''
+
+      ⍝ very that delete that supplementary file has no effect
+ Breathe
+ {}QNDELETE folder,'/NotDupduP.aplf'  ⍝ delete
+ assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
+ assert'fn≡⎕NR name,''.DupduP'''
+
+ {}⎕SE.Link.Break name ⋄ ⎕EX name
+
+ opts.forceFilenames←0
+ opts.forceExtensions←1
+
+      ⍝ survive clashing apl definitions despite different filenames
+ {}(⊂'r←goo x' 'r←''goo'' x')∘QNPUT¨files←folder∘,¨'/goo.apla' '/goo.apln'
+ {}(⊂'r←hoo x' 'r←''hoo'' x')QNPUT folder,'/hoo.aplf'  ⍝ this one should remain as is
+ assertError'{}opts ⎕SE.Link.Create name folder' 'clashing APL names'
+ {}QNDELETE¨1↓files
+
+      ⍝ check forceextensions - should not enforce casecoding
+ assert'1 0 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
+ assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
+ {}opts ⎕SE.Link.Create name folder
+ assert'0 1 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
+ assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
+
+      ⍝ check forceextensions on-the-fly
+      ⍝fn←'  ∇  r  ←  Dup  x' 'r  ←  x  x  ' '  ∇  '  ⍝ whitespace preserved (TODO : not for now)
+ fn←' r←DupDup1 x' ' r←x x 1'  ⍝ whitespace not preserved because of ⎕NR
+ {}(⊂fn)QNPUT folder,'/NotDupDup1.apla'
+ assert'fn≡⎕NR name,''.DupDup1'''
+ assert'0=⎕NC name,''.NotDupDup1'''
+ assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
+
+      ⍝ check file rename on-the-fly
+ Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
+ {}(folder,'/NotDupDup1.apla')#.SLAVE.⎕NMOVE(folder,'/NotDupDup1.aplf')
+ assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
+ assert'fn≡⎕NR name,''.DupDup1'''
+ assert'0=⎕NC name,''.NotDupDup1'''
+
+      ⍝ check apl rename on-the-fly
+ Breathe
+ var←⎕SE.Dyalog.Array.Serialise⍳2 3
+ {}(⊂var)QNPUT(folder,'/NotDupDup1.aplf')1
+ assert'0=⎕NC name,''.DupDup1'''     ⍝ ideal
+      ⍝assert'fn≡⎕NR name,''.DupDup1'''   ⍝ arguable
+ assert'(⍳2 3)≡',name,'.NotDupDup1'
+ assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.aplf'' ''/NotDupDup1.apla'''
+ nl←(⍎name).⎕NL-⍳10
+
+      ⍝ can't rename because it would clash
+ Breathe
+ var2←⎕SE.Dyalog.Array.Serialise⍳3 2
+ {}(⊂var2)QNPUT(folder,'/NotDupDup1.aplf')1
+ assert'nl≡(⍎name).⎕NL -⍳10'  ⍝ no change in APL
+ assert'(⍳2 3)≡',name,'.NotDupDup1'
+ assert'1 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
+
+      ⍝ check that delete the supplementary file has no effect
+⍝ BUG : doesn't work because link doesn't remember which files arrays were tied to
+⍝      Breathe
+⍝      {}QNDELETE folder,'/NotDupDup1.aplf'  ⍝ delete
+⍝      assert'nl≡(⍎name).⎕NL -⍳10'
+⍝      assert'(⍳2 3)≡',name,'.NotDupDup1'
+      ⍝ but the bug isn't present if the first one is a function
+ fn←' r←YetAnother' ' r←YetAnother'
+ {}(⊂fn)QNPUT folder,'/YetAnother.aplf'
+ assert'fn≡⎕NR name,''.YetAnother'''
+ var←⎕SE.Dyalog.Array.Serialise⍳3 4
+ {}(⊂var)QNPUT folder,'/YetAnother.apla'
+ Breathe
+ assert'fn≡⎕NR name,''.YetAnother'''
+ {}QNDELETE folder,'/YetAnother.apla'
+ Breathe
+ assert'fn≡⎕NR name,''.YetAnother'''
+
+      ⍝ Test that CaseCode and StripCaseCode functions work correctly
+ var←⍳4 5 7
+ varfile←⎕SE.Link.CaseCode folder,'/HeLLo.apla'
+
+ assert'varfile≡folder,''/HeLLo-15.apla'''
+ assert'(folder,''/HeLLo.apla'')≡⎕SE.Link.StripCaseCode varfile'
+ :If ⎕SE.Link.U.IS181 ⋄ fn←'   r   ← OhMyOhMy  ( oh   my  )' 'r←  oh my   oh my'
+ :Else ⋄ fn←' r←OhMyOhMy(oh my)' ' r←oh my oh my'
+ :EndIf
+ fnfile←⎕SE.Link.CaseCode folder,'/OhMyOhMy.aplf'
+ assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
+ assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
+ :If ⎕SE.Link.U.ISWIN
+     fnfile←⎕SE.Link.CaseCode'\'@{⍵='/'}folder,'/OhMyOhMy.aplf'
+     'link issue #270'assert'fnfile≡folder,''/OhMyOhMy-125.aplf'''
+     fnfile←'\'@{⍵='/'}fnfile
+     'link issue #270'assert'(folder,''/OhMyOhMy.aplf'')≡⎕SE.Link.StripCaseCode fnfile'
+     fnfile←'/'@{⍵='\'}fnfile
+ :EndIf
+
+      ⍝ Test that explicit Fix updates the right file
+ assert'0 0≡⎕NEXISTS varfile fnfile'
+ name'HeLLo'⎕SE.Link.Fix ⎕SE.Dyalog.Array.Serialise var
+ name'OhMyOhMy'⎕SE.Link.Fix fn
+ assert'var≡',name,'.HeLLo'
+ assert'fn≡NR''',name,'.OhMyOhMy'''
+ assert'1 1≡⎕NEXISTS varfile fnfile'
+
+      ⍝ Test that explicit Notify update the right name
+ name Watch 0
+ {}(⊂⎕SE.Dyalog.Array.Serialise var←⍳6 7)QNPUT varfile 1
+ {}(⊂fn←' r←OhMyOhMy(oh my)' ' r←(oh my)(oh my)')QNPUT fnfile 1
+ ⎕SE.Link.Notify'changed'varfile
+ ⎕SE.Link.Notify'changed'fnfile
+ assert'var≡',name,'.HeLLo'
+ assert'fn≡⎕NR''',name,'.OhMyOhMy'''
+ name Watch 1
+
+      ⍝ Ditto for GetFileName and GetItemname
+ assert'fnfile≡⎕SE.Link.GetFileName name,''.OhMyOhMy'''
+ assert'(name,''.OhMyOhMy'')≡⎕SE.Link.GetItemName fnfile'
+ assert'varfile≡⎕SE.Link.GetFileName name,''.HeLLo'''
+ assert'(name,''.HeLLo'')≡⎕SE.Link.GetItemName varfile'
+
+      ⍝ Test that Expunge deletes the right file
+ assert'1 1≡⎕NEXISTS varfile fnfile'
+ assert'0∧.≠⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
+
+ z←⎕SE.Link.Expunge name∘,¨'.HeLLo' '.OhMyOhMy'
+ assert'1 1≡z'
+ assert'0 0≡⎕NEXISTS varfile fnfile'
+ assert'0∧.=⎕NC''',name,'.HeLLo'' ''',name,'.OhMyOhMy'''
+ z←⎕SE.UCMD']Link.Expunge ',⍕name∘,¨'.HeLLo' '.OhMyOhMy'
+ 'link issue #256'assert'0 0≡z'
+
+ {}⎕SE.Link.Break name
+ ⎕EX name ⋄ 3 ⎕NDELETE folder
+
+      ⍝ https://github.com/Dyalog/link/issues/231
+ sub←⍎(name,'.Sub')⎕NS ⍬
+ sub.⎕FX'res←SubFoo arg' 'res←arg'
+ {}⎕SE.UCMD']Link.Create ',name,' ',folder,' -source=ns -casecode -forcefilenames'
+ {}⎕SE.UCMD']Link.Expunge ',name
+ 'link issue #231'assert'0=⎕NC name'
+ opts←⎕NS ⍬ ⋄ opts.(caseCode forceFilenames)←1
+ z←opts ⎕SE.Link.Create name folder
+ 'link issue #231'assert'~''ERRORS ENCOUNTERED''⍷z'
+ (name,'.Sub')⎕SE.Link.Fix'res←SubFoo arg' 'res←arg arg'
+ 'link issue #231'assert'(,⊂folder,''/Sub-1/SubFoo-11.aplf'')≡(0 NTREE folder)'
+ ⎕SE.Link.Expunge name
+
+ CleanUp folder name
+ ok←1

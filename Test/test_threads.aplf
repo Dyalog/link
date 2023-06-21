@@ -1,0 +1,12 @@
+ ok←test_threads(folder name);dir1;dir2;folders;loops;names;threads;warn
+ loops←10 ⋄ threads←10
+      ⍝ disable warnings which happen because the Notify caused the Add or the Expunge may happen after the Break - which is ok because it would do nothing anyways
+ (⎕SE.Link.U.WARN warn)←(0 ⎕SE.Link.U.WARN)
+      ⍝ run once to avoid triggering lots of errors for failures not related to multithreading
+ 1 RunTestThread folder name
+      ⍝ run many times
+ folders←(folder,'/link')∘,¨⍕¨⍳threads
+ names←(name,'.link')∘,¨⍕¨⍳threads
+ ⎕TSYNC loops∘RunTestThread&¨↓⍉↑folders names
+ ⎕SE.Link.U.WARN←warn
+ ok←1

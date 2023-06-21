@@ -1,0 +1,6 @@
+ on←AutoFormat
+ :Trap 0  ⍝ Dyalog v17.1 doesn't have ⎕SE.Dyalog.Utils.Config
+     on←⍎⎕SE.Dyalog.Utils.Config'AUTOFORMAT'  ⍝ should be (,'1') or (,'0')
+ :Else
+     on←1  ⍝ assume 1, the default
+ :EndTrap

@@ -1,0 +1,326 @@
+ ok←test_gui(folder name);NL;NO_ERROR;NO_WIN;class;class2;classbad;ed;errors;foo;foo2;foobad;foowin;func1;func2;goo;mat;new;newdfn;ns;ns1;output;prompt;res;ride;start;tracer;ts;var;varsrc;windows;z
+    ⍝ Test editor and tracer
+
+ :If 0=DO_GUI_TESTS
+     Log'Skipping  GUI (GhostRider) tests - set DO_GUI_TESTS←1 to enable'
+     ok←1 ⋄ :Return
+ :ElseIf 82=⎕DR''  ⍝ GhostRider requires Unicode
+     Log'Not a unicode interpreter - not running ',⊃⎕SI
+     ok←1 ⋄ :Return
+ :EndIf
+
+ :Trap 0  ⍝ Link issue #219
+     ride←NewGhostRider
+ :Else
+     Log'ERROR: Could not start GhostRider - not running ',(⊃⎕SI),' (',⎕DMX.(Message{⍵,⍺,⍨':'/⍨×≢⍺}EM),')'
+     ok←0 ⋄ :Return
+ :EndTrap
+ (NL NO_WIN NO_ERROR)←ride.(NL NO_WIN NO_ERROR)
+
+      ⍝ride.TRACE←1
+      ⍝ride.MULTITHREADING←1 ⋄ ride.Execute'⎕SE.Link.U.SHOWMSG←1'     ⍝ display link messages - will make QA fails because of spurious Link messages in AppendSessionOutput
+
+ ⎕MKDIR Retry⊢folder
+ varsrc←⎕SE.Dyalog.Array.Serialise var←'hello' 'world' '!!!'
+ foo←' res←foo arg' '⍝ this is foo[1]' ' res←arg' ' res←''foo''res'
+ foo2←' res←foo arg' '⍝ this is foo[2]' ' res←arg' ' res←''foo2''res'
+ foobad←' res←foo arg;' '⍝ this is foobad[1]' ' res←arg' ' res←''foobad''res'
+ goo←' res←goo arg' '⍝ this is goo[1]' ' res←arg' ' res←''goo''res'
+ class←':Class class' '    :Field Public Shared    var   ←    4 5 6' '    ∇ res   ←   dup    arg' '      :Access Public Shared' '      res←arg arg' '    ∇' ':EndClass'
+ classbad←(¯1↓class),⊂':EndNamespace'
+ class2←(1↑class),(⊂':Field Public Shared class2←1'),(1↓class)
+ ns←':Namespace ns' '    var← 4 5 6' '    ∇ res←dup arg' '      res←arg arg' '    ∇' ':EndNamespace'
+
+      ⍝ start with flattened repository
+ ⎕MKDIR folder,'/sub'
+ {}(⊂varsrc)QNPUT(folder,'/sub/var.apla')1
+ {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
+ {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
+ output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+ assert'(∨/''Linked:''⍷output)'
+
+      ⍝ https://github.com/Dyalog/link/issues/48
+      ⍝:If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ because of Mantis 18655 - linux + 18.1
+ ride.Edit(name,'.new')(new←' res←new arg' ' res←''new''arg')
+ 'link issue #48'assert'new≡⊃⎕NGET ''',folder,'/new.aplf'' 1'  ⍝ with flatten, new objects should go into the root
+ output←ride.APL' +⎕SE.Link.Expunge ''',name,'.new'' '
+ 'link issue #48'assert'(output≡''1'',NL)∧(0≡⎕NEXISTS ''',folder,'/new.aplf'')'  ⍝ with flatten, new objects should go into the root
+      ⍝:EndIf
+
+      ⍝ https://github.com/Dyalog/link/issues/49
+ ride.Edit(name,'.foo')(goo)  ⍝ edit foo and type goo in it
+ 'link issue #49'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is untouched
+ 'link issue #49'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
+ 'link issue #49'assert' foo≡⊃⎕NGET (folder,''/sub/foo.aplf'') 1 '   ⍝ foo is untouched
+ 'link issue #49'assert' goo≡⊃⎕NGET (folder,''/sub/goo.aplf'') 1 '   ⍝ goo is defined in the same directory as foo
+ RideBreathe 2
+ {}QNDELETE folder,'/sub/goo.aplf'
+ RideBreathe 2
+ 'link issue #49'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
+
+      ⍝ now copy files in the root to have two namespace (root and root.sub)
+ output←ride.APL' ⎕SE.Link.Break ',(Stringify name),' ⋄ ⎕EX ',(Stringify name)
+ assert'(⊃''Unlinked''⍷output)'
+ {}(⊂varsrc)QNPUT(folder,'/var.apla')1
+ {}(⊂foo)QNPUT(folder,'/foo.aplf')1
+ {}(⊂class)QNPUT(folder,'/class.aplc')1
+ output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+ assert'(⊃''Linked:''⍷output)'
+
+     ⍝ link issue #190: edit a non-existing name, and change its name before fixing
+ ride.Edit(name,'.doesntexist')('res←exists arg' 'res←arg')
+ 'link issue #190'assert'(''1'',NL)≡ride.APL ''0 3.1≡',name,'.⎕NC''''doesntexist'''' ''''exists'''' '' '
+ 'link issue #190'assert'0=≢⊃⎕NINFO⍠1⊢''',folder,'/doesntexist.*'' '
+ 'link issue #190'assert'1=≢⊃⎕NINFO⍠1⊢''',folder,'/exists.*'' '
+
+     ⍝ link issue #196: whitespace not preserved on first fix
+ ride.Edit(name,'.newdfn')(newdfn←,⊂'   newdfn   ←   {  ⍺ + ⍵  }   ')
+ 'link issue #196'assert'(¯3↓¨newdfn)≡⊃⎕NGET (folder,''/newdfn.aplf'') 1'  ⍝ Mantis 18758 trailing whitespaces are dropped
+
+     ⍝ https://github.com/Dyalog/link/issues/154
+ z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']link.status'
+ 'link issue #154'assert'2=≢z'
+ Breathe  ⍝ allow FileSystemWatcher to kick in after the edit and before the )CLEAR
+ {}ride.APL')CLEAR'
+ z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']Link.Status'
+ 'link issue #154'assert'(1=≢z)∧(∨/''No active links''⍷∊z)'
+ 'link issue #154'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ output←ride.APL']Link.Create ',(Stringify name),' ',(Stringify folder)
+ assert'(⊃''Linked:''⍷output)'
+
+     ⍝ https://github.com/Dyalog/link/issues/30
+ tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
+ {}(⊂goo)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
+ start←RideWait ⍬ ⋄ RideBreathe 2
+ 'link issue #30'assert'('''')≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
+ 'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ⎕CR ''''goo'''' '' '  ⍝ goo is there
+ (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
+ 'link issue #30'assert'1 ('' foo  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ traced code has NOT changed - sounds reasonable
+ 'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo has disappeared
+ 'link issue #30'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is there
+ RideWait start ⋄ RideBreathe 2
+      ⍝ do the same thing without modifying the name of the function
+ {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
+ start←RideWait ⍬ ⋄ RideBreathe 2
+ 'link issue #30'assert'('''')≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is gone
+ 'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
+ tracer←⊃3⊃(prompt output windows errors)←ride.Trace name,'.foo 123.456'  ⍝ (prompt output windows errors) ← {wait} Trace expr
+ RideWait start ⋄ RideBreathe 2
+ {}(⊂foo2)QNPUT(folder,'/foo.aplf')1  ⍝ change name of object in file
+ start←RideWait ⍬ ⋄ RideBreathe 2
+ 'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ⎕CR ''''foo'''' '' '  ⍝ foo has changed
+ (prompt output windows errors)←ride.TraceResume tracer  ⍝ resume execution - not within assert to avoid calling TraceResume repeatedly
+ 'link issue #30'assert'1 ('' foo2  123.456'',NL)(,tracer)(NO_ERROR)≡prompt output windows errors'        ⍝ ⎕BUG? traced code HAS changed although the tracer window still displays the old code
+ 'link issue #30'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ goo is there
+ RideWait start ⋄ RideBreathe 2
+      ⍝ restore what we've done
+ {}(⊂foo)QNPUT(folder,'/foo.aplf')1  ⍝ put back original foo
+ RideBreathe 2
+ 'link issue #30'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is back
+ 'link issue #30'assert'(''0'',NL)≡ride.APL'' ⎕NC⊂''''foo2'''' '' '
+
+     ⍝ https://github.com/Dyalog/link/issues/35
+ ride.Edit(name,'.foo')goo   ⍝ change name in editor
+ 'link issue #35'assert'(,(↑goo),NL)≡ride.APL '' ',name,'.⎕CR ''''goo'''' '' '  ⍝ goo is defined
+ 'link issue #35'assert' goo≡⊃⎕NGET (folder,''/goo.aplf'') 1 '   ⍝ goo is correctly linked
+ 'link issue #35'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo hasn't changed
+ 'link issue #35'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo hasn't changed
+ ride.Edit(name,'.foo')foo2  ⍝ change original function
+ 'link issue #35'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '  ⍝ foo is foo2
+ 'link issue #35'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo is correctly linked
+ res←ride.APL'+⎕SE.Link.Expunge ''',name,'.goo'' '  ⍝ delete goo
+ 'link issue #35'assert'res≡''1'',NL'
+ ride.Edit(name,'.foo')foo  ⍝ put back original foo
+ 'link issue #35'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '  ⍝ foo is correctly linked
+ 'link issue #35'assert' ~⎕NEXISTS folder,''/goo.aplf'' '   ⍝ goo does not exist
+
+     ⍝ https://github.com/Dyalog/link/issues/83
+ '-'ride.Edit'mat'(mat←'first row' 'second row')
+ 'link issue #83'assert' (,(↑mat),NL) ≡ ride.APL''mat'' '
+
+     ⍝ https://github.com/Dyalog/link/issues/109
+ ed←ride.EditOpen name,'.foo'
+ res←ed ride.EditFix foobad
+ 'link issue #109'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡17↑res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
+ 100 ride.Reply res
+ res←ride.Wait ⍬ 1
+ 'link issue #109'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
+ res←⊃3⊃res
+ 'link issue #109'assert'(9=⎕NC''res'')∧(''Options''≡res.type)∧(''Can''''t Fix''≡res.text)'
+ ride.Reply res  ⍝ just close the error message
+ ed.saved←⍬
+ res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
+ 'link issue #109'assert'(1↓res)≡'''' (,ed) NO_ERROR'
+ 'link issue #109'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
+ ride.CloseWindow ed
+ 'link issue #109'assert'(,(↑foo),NL)≡ride.APL'' ',name,'.⎕CR''''foo'''' '' '  ⍝ Mantis 18412 foo has not changed within workspace because fix has failed
+ 'link issue #109'assert'foobad≡⊃⎕NGET(folder,''/foo.aplf'')1'  ⍝ but file correctly has new code
+      ⍝:If ⎕SE.Link.U.IS181≤⎕SE.Link.U.ISWIN  ⍝ Mantis 18762 applies to 18.1/Linux
+ ride.Edit(name,'.foo')foo2  ⍝ check that foo is still correctly linked
+ 'link issue #109'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+ 'link issue #109'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+ ride.Edit(name,'.foo')foo  ⍝ put back original foo
+ 'link issue #109'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+ 'link issue #109'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+      ⍝:EndIf
+
+      ⍝ https://github.com/Dyalog/link/issues/153
+ 'link issue #153'assert'~⎕NEXISTS folder,''/text.apla'' '
+ {}ride.APL name,'.text←''hello'''
+ ed←ride.EditOpen name,'.text'
+ res←ed ride.EditFix'hello world'
+ ride.CloseWindow ed
+ 'link issue #153'assert'1≡res'  ⍝ fix succeeded
+ 'link issue #153'assert' (''hello world'',NL) ≡ ride.APL name,''.text'' '
+ 'link issue #153'assert'~⎕NEXISTS folder,''/text.apla'' ' ⍝ file must NOT be created
+ {}ride.APL')ERASE ',name,'.text'
+ 'link issue #153'assert'~⎕NEXISTS folder,''/text.aplf'' '
+ {}ride.APL name,'.⎕FX ''text'' ''⎕←1 2 3'''
+ ed←ride.EditOpen name,'.text'
+ res←ed ride.EditFix'res←text' 'res←4 5 6'
+ ride.CloseWindow ed
+ 'link issue #153'assert'1≡res'  ⍝ fix succeeded
+ 'link issue #153'assert' (''4 5 6'',NL) ≡ ride.APL name,''.text'' '
+ 'link issue #153'assert' ''res←text'' ''res←4 5 6'' ≡ ⊃⎕NGET (folder,''/text.aplf'') 1 ' ⍝ file must be created
+
+       ⍝ link issue #139 and #86 - Fixed by replacing ⎕SE.Link.U.Fix by ⎕SE.Link.U.Sniff
+ {}ride.APL'#.FIXCOUNT←0'  ⍝ just write the file
+ {}(⊂':Namespace FixCount' '#.FIXCOUNT+←1' ':EndNamespace')QNPUT(folder,'/FixCount.apln')1  ⍝ could produce two Notify events (created + changed), where each one fix in U.DetermineAplName, plus the actual QFix
+ RideBreathe 2
+ 'link issue #139'assert' (''1'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
+ {}ride.APL'#.FIXCOUNT←0'  ⍝ force a Notify event
+ {}ride.APL'⎕SE.Link.Notify ''changed'' (''',folder,'/FixCount.apln'') '  ⍝ spurious notify when no change has happened
+ 'link issue #139'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
+ {}ride.APL'#.FIXCOUNT←0'    ⍝ change through editor
+ ed←ride.EditOpen name,'.FixCount'
+ res←ed ride.EditFix':Namespace FixCount' '#.FIXCOUNT+←1' '' ':EndNamespace'
+ 100 ride.Reply res
+ ed.saved←⍬
+ res←ride.Wait ⍬ 1
+ assert'res ≡ 1 '''' (,ed) (NO_ERROR)'
+ assert'ed.saved≡0'  ⍝ save OK
+ ride.CloseWindow ed
+ 'link issue #139'assert' (''1'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
+ {}ride.APL'#.FIXCOUNT←0'   ⍝ force a Refresh
+ {}ride.APL' ''{source:''''dir''''}'' ⎕SE.Link.Refresh ',name
+ 'link issue #86'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
+ {}ride.APL' ⎕SE.Link.Expunge ''',name,'.FixCount'' '
+ {}ride.APL' ⎕EX''#.FIXCOUNT'' '
+
+      ⍝ https://github.com/Dyalog/link/issues/129 https://github.com/Dyalog/link/issues/148
+ :If ⎕SE.Link.U.IS181 ⍝ requires fix to Mantis 18408
+     res←ride.APL' (+1 3 ⎕STOP ''',name,'.foo'')(+1 2⎕TRACE ''',name,'.foo'')(+2 3⎕MONITOR ''',name,'.foo'') '
+     'link issues #129 #148'assert'res≡'' 1 3  1 2  2 3 '',NL'
+     ride.Edit(name,'.foo')foo2
+     'link issues #129 #148'assert'(,(↑foo2),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+     'link issues #129 #148'assert' foo2≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+     res←ride.APL' (+ ⎕STOP ''',name,'.foo'')(+⎕TRACE ''',name,'.foo'')(+⊣/⎕MONITOR ''',name,'.foo'') '
+     'link issues #129 #148'assert'res≡'' 1 3  1 2  2 3 '',NL'
+     ride.Edit(name,'.foo')foo
+     'link issues #129 #148'assert'(,(↑foo),NL)≡ride.APL '' ',name,'.⎕CR ''''foo'''' '' '
+     'link issues #129 #148'assert' foo≡⊃⎕NGET (folder,''/foo.aplf'') 1 '
+     res←ride.APL' (+⍬ ⎕STOP ''',name,'.foo'')(+⍬ ⎕TRACE ''',name,'.foo'')(+⍬ ⎕MONITOR ''',name,'.foo'') '
+     'link issues #129 #148'assert'res≡''      '',NL'
+ :EndIf
+
+      ⍝ https://github.com/Dyalog/link/issues/143
+ :If ⎕SE.Link.U.IS181≥⎕SE.Link.U.ISWIN ⍝ requires fix to Mantis 18945 (18.0+Win), and also 18409, 18410 and 18411
+     ed←ride.EditOpen name,'.class'
+     res←ed ride.EditFix classbad
+     'link issue #143'assert'(9=⎕NC''res'')∧(''Task''≡res.type)∧(''Save file content''≡17↑res.text)∧(''Fix as code in the workspace''≡28↑(res.index⍳100)⊃res.options)'
+     100 ride.Reply res
+     res←ride.Wait ⍬ 1
+     'link issue #143'assert'(res[1 2 4]≡¯1 '''' NO_ERROR)∧(1=≢3⊃res)'
+     res←⊃3⊃res
+     'link issue #143'assert'(9=⎕NC''res'')∧(''Options''≡res.type)∧(''Can''''t Fix''≡res.text)'
+     ride.Reply res  ⍝ just close the error message
+     ed.saved←⍬
+     res←ride.Wait ⍬ 1  ⍝ should ReplySaveChanges with error
+     'link issue #143'assert'res≡¯1 '''' (,ed) NO_ERROR'
+     'link issue #143'assert'ed.saved≡1'  ⍝ fix failed (saved≠0)
+     ride.CloseWindow ed
+     'link issue #143'assert'(,(↑classbad),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '   ⍝ Mantis 18412 class has changed within workspace even though fix has failed
+     'link issue #143'assert'classbad≡⊃⎕NGET(folder,''/class.aplc'')1'  ⍝ file correctly has new code
+     ride.Edit(name,'.class')class  ⍝ put back original class
+     'link issue #143'assert'(,(↑class),NL)≡ride.APL'' ↑⎕SRC ',name,'.class '' '
+     'link issue #143'assert'class≡⊃⎕NGET(folder,''/class.aplc'')1'
+ :EndIf
+
+      ⍝ https://github.com/Dyalog/link/issues/152 - attempt to change the name and script type of a class in editor
+ ride.Edit(name,'.sub.class')(ns) ⍝ change name and script type
+ assert'(,(↑ns),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.ns '' '  ⍝ ns is defined
+ assert' ns≡⊃⎕NGET (folder,''/sub/ns.apln'') 1 '   ⍝ ns is correctly linked
+ assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class hasn't changed
+ assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class hasn't changed
+ ride.Edit(name,'.sub.class')(class2) ⍝ check that class is still linked
+ assert'(,(↑class2),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '  ⍝ class has changed
+ assert' class2≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '  ⍝ class has changed
+ RideBreathe 2
+ ⎕NDELETE folder,'/sub/ns.apln'
+ RideBreathe 2
+ assert' (''0'',NL)≡ride.APL '' ⎕NC ''''',name,'.sub.ns'''' '' '
+ ride.Edit(name,'.sub.class')(class) ⍝ put back original class
+ assert'(,(↑class),NL)≡ride.APL '' ↑⎕SRC ',name,'.sub.class '' '
+ assert' class≡⊃⎕NGET (folder,''/sub/class.aplc'') 1 '
+
+ output←ride.APL'⎕SE.Link.Break ',(Stringify name)
+ assert'(∨/''Unlinked''⍷output)'
+
+      ⍝ https://github.com/Dyalog/link/issues/225
+ 3 ⎕NDELETE folder ⋄ {}ride.APL'⎕EX ',Stringify name
+ 3 ⎕MKDIR folder,'/foo'
+ {}ride.APL']link.create ',name,' "',folder,'"'
+ ride.Edit(name,'.goo')('res←goo arg' 'res←arg')
+ Breathe  ⍝ can't )CLEAR if FileWatcher kicks in : Can't )CLEAR with external call on the stack - Can't )CLEAR with attachments to external threads
+ assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
+ {}ride.APL')CLEAR'
+ assert'(''1'',NL)≡ride.APL''{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'' '
+ {}ride.APL']link.create ',name,' "',folder,'/foo"'
+ assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
+ {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
+ {}'hoo←{⍺+⍵}'⎕NPUT folder,'/hoo.aplf'
+ Breathe
+ assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.U.WARNLOG'' '
+
+      ⍝ https://github.com/Dyalog/link/issues/246 ⍝ https://github.com/Dyalog/link/issues/247
+ 3 ⎕NDELETE folder ⋄ {}ride.APL'⎕EX ',Stringify name
+ 3 ⎕MKDIR folder
+ (⊂'res←Func1 arg' 'res←arg')⎕NPUT folder,'/Func1-1.aplf'
+ {}ride.APL']link.create ',name,' ',folder,' -casecode -source=dir -watch=both'
+ ride.Edit(name,'.Func1')(func1←' res←Func1 arg' ' res←arg arg')
+ 'link issue #246'assert'(,⊂folder,''/Func1-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
+ 'link issue #246'assert'func1≡⊃⎕NGET (folder,''/Func1-1.aplf'') 1'
+ {}ride.APL']link.break ',name
+ {}ride.APL' 3 ⎕NDELETE',Stringify folder
+ {}ride.APL']link.create ',name,' ',folder,' -casecode -source=ns -watch=ns'
+ assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.Diff ',name,''' '  ⍝ ensure ⎕SE.Link.Diff harmless when watch=ns
+ ride.Edit(name,'.Func1')(func2←' res←Func2 arg' ' res←arg arg arg')
+ 'link issue #247'assert'(folder∘,¨''/Func1-1.aplf'' ''/Func2-1.aplf'')≡(0 ⎕SE.Link.Test.NTREE folder)'
+ 'link issue #247'assert'func1≡⊃⎕NGET (folder,''/Func1-1.aplf'') 1'
+ 'link issue #247'assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1'
+ 'link issue #247'assert'(,(↑func1),NL)≡ride.APL''↑⎕NR ''''',name,'.Func1'''' ''  '
+ assert'(''1'',NL)≡ride.APL''0∊⍴⎕SE.Link.Diff ',name,''' '  ⍝ ensure ⎕SE.Link.Diff harmless when watch=ns
+
+ :If ⎕SE.Link.U.HASSTORE
+     {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
+     {}ride.APL')SAVE "',folder,'/linked_workspace.dws"'
+     res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
+     ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
+     assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
+     res←ride.APL'''{proceed:1}''⎕SE.Link.Resync ',name
+     assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
+     assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
+     {}(⊂ns1←'   :Namespace   ns1   ' '   :EndNamespace   ')QNPUT folder,'/ns1.aplf'
+     ride.Edit(name,'.Func2')(func2←¯2↓¨'  res  ←  Func2  arg2 ' '  res  ←  arg2  ')  ⍝ editor does not support trailing whitespace
+     assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
+     assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
+ :EndIf
+
+      ⍝ link issue #259
+ {}ride.APL')CLEAR'
+ {}ride.APL']Link.Create # ',folder
+ {}ride.APL']Link.Create ',name,' ',folder
+ res←ride.APL')CLEAR'
+ 'link issue #259'assert'res≡''clear ws'',NL'
+ CleanUp folder name
+ ok←1

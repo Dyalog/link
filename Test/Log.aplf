@@ -1,0 +1,3 @@
+ {title}Log msg
+ :If 900⌶⍬ ⋄ title←⊃1↓⎕XSI ⋄ :EndIf
+ ⎕←1↓⍤1⊢⍕(title,':')msg ⍝ This might get more sophisticated someday

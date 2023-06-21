@@ -1,0 +1,24 @@
+ ok←test_forcefilenames(folder name);z;ns;foo;goo;goofile
+         ⍝ Test that forceFilenames is handled
+
+ name ⎕NS''
+ z←'{forceFilenames:1}'⎕SE.Link.Create name folder
+ ns←#⍎name
+
+      ⍝ Create a monadic function
+ _←(⊂foo←' r←foo x' ' x x')QNPUT folder,'/foo.aplf'
+ assert'foo≡ns.⎕NR ''foo''' 'ns.⎕FX ↑foo'
+
+      ⍝ Rename the function to goo
+ _←(⊂goo←' r←goo x' ' x x')QNPUT(folder,'/foo.aplf')1
+ assert'⎕NEXISTS folder,''//goo.aplf'''
+ assert'goo≡ns.⎕NR ''goo''' 'ns.⎕FX ↑goo'
+
+      ⍝ Rename case ONLY (see issue #369)
+ _←(⊂goo←' r←Goo x' ' x x')QNPUT(folder,'/goo.aplf')1
+ goofile←folder,'/Goo.aplf'
+ assert'goofile≡⊃⊃0 (⎕NINFO⍠1) folder,''/Goo.*'''
+ assert'goo≡ns.⎕NR ''Goo''' 'ns.⎕FX ↑goo'
+
+ CleanUp folder name
+ ok←1

@@ -1,0 +1,8 @@
+ r←onBasicRead args;data;event;extn;file;link;name;nc;parts
+ (event link file name nc)←5↑args
+ r←1 ⍝ Link should carry on; we're not handling this one
+ :If (⊂extn←3⊃parts←⎕NPARTS file)∊'.charmat' '.charvec'
+     data←↑⍣(extn≡'.charmat')⎕SE.Link.U.GetFile file
+     ⍎name,'←data'
+     r←0 ⍝ We're done; Link doesn't need to do any more
+ :EndIf

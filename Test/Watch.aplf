@@ -1,0 +1,6 @@
+ nsname Watch watch;link
+    ⍝ pause/resume file watching
+ :If 0∊⍴link←⎕SE.Link.U.LookupRef(⍎nsname)
+     ⎕SIGNAL 11
+ :EndIf
+ watch ⎕SE.Link.Watcher.Pause link

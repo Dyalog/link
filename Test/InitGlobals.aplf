@@ -1,0 +1,18 @@
+ InitGlobals dummy
+ ⎕IO←1 ⋄ ⎕ML←1
+
+ USE_ISOLATES←1     ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
+    ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
+    ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
+    ⍝ unfortunately isolates have to be put in # because they copy DRC into #, and therefore hold references to #, and can't be held in ⎕SE at the cost of preventing )CLEAR.
+
+ DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
+
+ NAME←'#.linktest'  ⍝ namespace used by link tests
+ TESTNS←⍕⎕THIS
+ APLVERSION←10÷⍨10⊥2↑2⊃'.' ⎕VFI 2⊃'.' ⎕WG 'APLVersion'
+ FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
+
+ ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided
+ ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
+ STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action

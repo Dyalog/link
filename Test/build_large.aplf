@@ -1,0 +1,30 @@
+ clear build_large folder;Body;Constants;Lines;Names;Primitives;body;depth;dirs;files;i;maxdepth;names;ndirs;nfiles;nlines;primitives
+    ⍝ A large company has about 1e5 files in about 1e4 directories - file sizes unknown
+    ⍝ that correspondings roughly to ndirs←nfiles←10 and maxdepth←4
+    ⍝ use small number of lines to increase the link overhead and measure it more accurately
+ :If clear ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder   ⍝ clear folder
+ :ElseIf ⎕NEXISTS folder ⋄ 'folder exists'⎕SIGNAL 22   ⍝ folder must not exist
+ :EndIf
+ ndirs←10 ⋄ maxdepth←3 ⍝ number of subdirs per depth level - maximum depth level
+ nfiles←10     ⍝ number of files per subdir
+ nlines←0    ⍝ number of lines per file
+ Names←{↓⎕A[?⍵ 10⍴26]}  ⍝ random names
+ Constants←{⍕¨↓?⍵ 10⍴100}  ⍝ random constants
+ primitives←'¨<≤=≥>≠∨∧×÷?⍵∊⍴~↑↓⍳○*←→⊢⍺⌈⌊∘⎕⍎⍕⊂⊃∩∪⊥⊤|⍀⌿⌺⌶⍒⍋⌽⍉⊖⍟⍱⍲!⌹⍷⍨↑↓⍸⍣⍞⍬⊣⍺⌊⍤⌸⌷≡≢⊆∩⍪⍠()[]@-'
+ Primitives←primitives∘{⍺[?⍵⍴≢⍺]}   ⍝ random primitives
+ Lines←{   ⍝ ⍵ random lines
+     ,/(Primitives ⍵),(Names ⍵),(Primitives ⍵),(Constants ⍵),'⍝',[1.5](Names ⍵)
+ }
+ body←Lines nlines
+ Body←body∘{(⊂⍵),⍺} ⍝ ⍵ is list of names
+ dirs←⊂folder ⋄ files←⍬
+ :For depth :In ⍳maxdepth
+          ⍝ create subdirs
+     dirs←(ndirs/dirs,¨'/'),¨Names ndirs×≢dirs
+          ⍝ create files
+     files,←(nfiles/dirs,¨'/'),¨Names nfiles×≢dirs
+ :EndFor
+ files,¨←⊂'.aplf'
+ names←{2⊃⎕NPARTS ⍵}¨files
+ {}3 ⎕MKDIR dirs
+ {}names{(⊂Body ⍺)⎕NPUT ⍵ 1}¨files

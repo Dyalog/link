@@ -1,0 +1,7 @@
+ r←beforeWriteAdd args
+      ⍝[1] Event name ('beforeRead')
+      ⍝[2] Reference to a namespace containing link options for the active link.
+      ⍝[3] Fully qualified filename that Link intends to read from
+      ⍝[4] Fully qualified APL name of the item that Link intends to update
+      ⍝[5] Name class of the APL item to be read
+ r←1 ⋄ WRFILES,←args[3] ⋄ WRNAMES,←args[4]

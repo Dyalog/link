@@ -1,0 +1,12 @@
+ {txt}←{msg}assertError args;errmsg;errno;expr;ok
+ :If 900⌶⍬ ⋄ msg←⊢ ⋄ :EndIf
+ (expr errmsg errno)←(⊆args),(≢⊆args)↓'' ''⎕SE.Link.U.ERRNO
+ :Trap errno
+     {}⍎expr
+     ok←1
+ :Else
+
+     ok←0
+     txt←msg assert'∨/errmsg⍷⎕DMX.EM'  ⍝ always true if errmsg≡''
+ :EndTrap
+ :If ok ⋄ txt←msg assert'0' ⋄ :EndIf

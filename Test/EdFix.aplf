@@ -1,0 +1,7 @@
+ where EdFix src;evt;file;name;ns;obj;oldname
+    ⍝ Emulate editor fix - better use GhostRider, but more complex and unicode only
+    ⍝ Can't call ⎕SE.Link.Fix directly because it would always update the file
+ (ns name)←where ⋄ obj←⎕NULL ⋄ evt←'AfterFix' ⋄ oldname←name ⋄ file←''
+ ⎕SE.Link.OnFix(obj evt src ns oldname name file)  ⍝ for OnAfterFix to work
+ {}(⍎ns)⎕SE.Link.U.Fix name src 1  ⍝ update APL side like editor would
+ ⎕SE.Link.OnAfterFix(obj evt src ns oldname name file)  ⍝ calls ⎕SE.Link.Fix with the watch setting

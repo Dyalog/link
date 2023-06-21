@@ -1,0 +1,88 @@
+ {ok}←{debug}Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z
+    ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
+    ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
+ :If 0=⎕NC'NAME'
+     InitGlobals''
+ :EndIf
+
+ :If ⎕SE.Link.NOTIFY≢0
+     ⎕SE.Link.NOTIFY←0
+     ⎕←'NB: NOTIFY set to 0'
+ :EndIf
+ :If (~0∊⍴test_filter)∧(⍬≡0⍴test_filter)  ⍝ right arg prepended with a number
+     rep←⊃test_filter ⋄ test_filter↓⍨←1
+ :Else ⋄ rep←1
+ :EndIf
+ test_filter←,⊆,test_filter
+ tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
+ slow←'test_threads' 'test_watcherror'  ⍝ slow tests
+ :If all←(⊂'all')∊test_filter  ⍝ all tests - nothing to do
+ :ElseIf (0∊⍴test_filter)∨(test_filter≡,⊂'') ⋄ tests~←slow  ⍝ basic tests
+     Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),'& ''all'') to run all tests'  ⍝ remove slow tests
+ :Else ⋄ tests/⍨←∨⌿1∊¨(test_filter)∘.⍷tests  ⍝ selected tests
+ :EndIf
+ tests←⊃,/rep⍴⊂tests    ⍝ repeat tests if requested
+      ⍝ check file system
+ :If 0=≢folder←Setup FOLDER NAME
+     :Return
+ :EndIf
+      ⍝ set up watcher/crawler
+ (canwatch cancrawl interval)←⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)
+ :If canwatch⍱cancrawl
+     Log'FileSystemWatcher or Crawler required to run tests'
+     :Return
+ :EndIf
+      ⍝:If (canwatch⍲cancrawl)
+      ⍝    notused←∊(~canwatch cancrawl)/'FileSystemWatcher' 'Crawler'
+      ⍝    Log'Not running tests with ',notused,' - use (',(⊃⎕XSI),'& ''all'') to run all tests'
+      ⍝:EndIf
+ :If ~⎕SE.Link.U.IS181 ⋄ Log'Not running Dyalog v18.1 or later - some tests will be skipped' ⋄ :EndIf
+      ⍝:If all ⋄ canwatch←cancrawl←1  ⍝ all : do both
+      ⍝:ElseIf canwatch ⋄ cancrawl←0  ⍝ do FileSystemWatcher if present
+      ⍝:ElseIf cancrawl ⋄ canwatch←0  ⍝ do Crawler if no FileSystemWatcher
+      ⍝:EndIf
+ :If cancrawl∧⎕TID=0
+     Log(⊃⎕XSI),'&',(⍕''''{⍺,((1+⍵=⍺)/⍵),⍺}¨⊆test_filter),'   ⍝ Crawler QA''s must be run in a non-zero thread'
+     :Return
+ :EndIf
+      ⍝ touch ⎕SE.Link settings
+ :If 0=⎕NC'⎕SE.Link.DEBUG' ⋄ ⎕SE.Link.DEBUG←0 ⋄ :EndIf
+ :If 0=⎕NC'debug' ⋄ debug←⎕SE.Link.DEBUG ⋄ :EndIf
+ (⎕SE.Link.DEBUG olddebug)←(debug ⎕SE.Link.DEBUG)
+ udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨1+×debug
+ (showmsg ⎕SE.Link.U.SHOWMSG)←(⎕SE.Link.U.SHOWMSG)(×debug)  ⍝ do not show messages if not debugging
+ ⎕SE.Link.Watcher.INTERVAL←0.1 1⊃⍨1+(×debug)∧⎕SE.Link.Watcher.LOGCRAWLER  ⍝ force watching a lot - can't go below 100ms because windows may have granularity of 20ms
+      ⍝ run tests
+ time←⎕AI[3] ⋄ ok←1
+ :If ~×debug ⋄ Log'Running:',⍕tests ⋄ :EndIf
+ :For test :In tests
+     :If ×debug ⋄ Log'Running: ',test ⋄ :EndIf
+     :If canwatch ⍝ test with file watcher
+         ⎕SE.Link.Watcher.(CRAWLER DOTNET)←0 1
+⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
+         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
+⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
+     :EndIf
+     :If cancrawl ⍝ test with crawler
+     :AndIf ~(canwatch∧test≡'test_watcherrors')  ⍝ already done with file watcher - no need to do it with file crawler
+         ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
+⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
+         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
+⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
+     :EndIf
+ :EndFor
+ time←⎕AI[3]-time
+ UnSetup
+      ⍝ restore ⎕SE.Link settings
+ {}⎕SE.UCMD']udebug ',udebug
+ ⎕SE.Link.DEBUG←olddebug
+ ⎕SE.Link.U.SHOWMSG←showmsg
+ ⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←(canwatch cancrawl interval)
+      ⍝ display results
+ dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
+ core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
+ aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
+ aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
+ opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),')'
+ oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
+ Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts

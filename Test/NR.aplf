@@ -1,0 +1,1 @@
+ NR←{⍺←⊢ ⋄ ⍺ ⎕SE.Link.U.GetAplSource ⍵}

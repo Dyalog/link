@@ -1,0 +1,102 @@
+ {debug}try_crawler(name folder);Crawl;NS;NS2;crawler;debug;dop;dop2;dotnet;folders;link;mat;mat2;matsrc;matsrc2;opts;sub2;sub6;subs;tradfn;tradfn2
+ :If 0=⎕NC'debug' ⋄ debug←0⊣×⎕SE.Link.U.debug ⋄ :EndIf
+      ⍝:If (0≠⎕NC name)∨(⎕NEXISTS folder)∨(0≠≢⎕SE.Link.Links) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
+
+ assert'0∊⍴⎕SE.Link.U.GetLinks'
+ (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
+ ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
+ ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+ opts←⎕NS ⍬ ⋄ opts.watch←'none'  ⍝ not only to disable watcher, but also to prevent tying source to files
+ {}opts ⎕SE.Link.Create name folder
+ assert'1=≢⎕SE.Link.Links'
+ link←⊃⎕SE.Link.Links
+ ⎕SE.Link.Watcher.AddCrawler link  ⍝ because we have set watch←'none'
+ ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer
+ Crawl←{
+     ⎕←0 0⍴⍣(~⍵)⊢'before'{⍺ ⍵}before←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃LINKS[L_ITEMS;])
+     ⎕←0⍴⍣(⍵)⊢'====================================='
+     _←⎕SE.Link.Watcher.Crawl link
+     ⎕←0 0⍴⍣(~⍵)⊢'after'{⍺ ⍵}after←⎕SE.Link.Watcher.({⍵[I_FILE I_NAME;]}⊃LINKS[L_ITEMS;])
+ }
+ assert'0∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ create files
+ 3 ⎕MKDIR¨(folder,'/')∘,¨'sub1' 'sub1/subsub1'
+ (⊂matsrc←⎕SE.Dyalog.Array.Serialise mat←⍳3 4)⎕NPUT folder,'/sub1/mat.apla'
+ (⊂tradfn←'   res ← tradfn (arg1 arg2)   ' '   res ← arg1 arg2   ')⎕NPUT folder,'/sub1/tradfn.aplf'
+ (⊂dop←,⊂'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}')⎕NPUT folder,'/sub1/dop.aplo'
+ NS←{(':Namespace ',⍵)'mat←⍳3 4' '∇   res ← tradfn (arg1 arg2)   ' '   res ← arg1 arg2   ' '∇' 'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}' ':EndNamespace'}
+ (⊂NS'ns1')⎕NPUT folder,'/ns1.apln'
+ (⊂'this is total garbage !!!!;;;;')⎕NPUT folder,'/garbage.ini'
+ (⊂'res←Hidden arg' 'res←arg')⎕NPUT folder,'/.hidden.aplf'
+ Crawl debug
+ assert'6 8≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ create apl items
+ sub2←⍎(name,'.sub2')⎕NS'' ⋄ (name,'.sub2.subsub2')⎕NS''
+ sub2.mat←mat
+ sub2.⎕FX¨tradfn dop
+ (⍎name).⎕FIX NS'ns2'
+ Crawl debug
+ assert'12 14≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ modify files
+ (⊂matsrc2←⎕SE.Dyalog.Array.Serialise mat2←⍳2 3 4)⎕NPUT(folder,'/sub1/mat.apla')1
+ (⊂tradfn2←'   res2 ← tradfn (arg1 arg2)   ' '   res2 ← arg1 arg2   ')⎕NPUT(folder,'/sub1/tradfn.aplf')1
+ (⊂dop2←,⊂'dop←{⍵ ⍵⍵ ⍺⍺ ⍺}')⎕NPUT(folder,'/sub1/dop.aplo')1
+ NS2←{(':Namespace ',⍵)'mat←⍳2 3 4' '∇   res2 ← tradfn (arg1 arg2)   ' '   res2 ← arg1 arg2   ' '∇' 'dop←{⍵ ⍵⍵ ⍺⍺ ⍺}' ':EndNamespace'}
+ (⊂NS2'ns1')⎕NPUT(folder,'/ns1.apln')1
+ Crawl debug
+ assert'12 14≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ modify apl items
+ sub2.mat←mat2
+ sub2.⎕FX¨tradfn2 dop2
+ (⍎name).⎕FIX NS2'ns2'
+ Crawl debug
+ assert'12 14≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ delete files
+ 3 ⎕NDELETE¨(folder,'/')∘,¨'sub1' 'ns1.apln'
+ Crawl debug
+ assert'6 8≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ delete apl items
+ ⎕EX(name,'.')∘,¨'sub2' 'ns2'
+ Crawl debug
+      ⍝ check it worked
+ assert'0 2≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ create items on both sides
+ 3 ⎕MKDIR¨folders←(folder,'/')∘,¨'sub1' 'sub3' 'sub1/subsub1' 'sub3/subsub3'
+ folders←2↑folders
+ (⊂⊂matsrc)⎕NPUT¨folders,¨⊂'/mat.apla'
+ (⊂⊂tradfn)⎕NPUT¨folders,¨⊂'/tradfn.aplf'
+ (⊂⊂dop)⎕NPUT¨folders,¨⊂'/dop.aplo'
+ (⊂⊂NS'ns')⎕NPUT¨folders,¨⊂'/ns.apln'
+ subs←⍎¨(name∘,¨'.sub2' '.sub4')⎕NS¨'' ''
+ ((⍕¨subs),¨'.subsub2' '.subsub4')⎕NS¨'' ''
+ subs.mat←⊂mat
+ subs.⎕FX¨⊂¨tradfn dop
+ subs.⎕FIX⊂NS'ns'
+ Crawl debug
+ assert'24 26≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ do modifications + creations + deletions on both sides
+ (⊂matsrc2)⎕NPUT(folder,'/sub1/mat.apla')1
+ (⊂tradfn2)⎕NPUT(folder,'/sub1/tradfn.aplf')1
+ (⊂dop2)⎕NPUT(folder,'/sub1/dop.aplo')1
+ (⊂NS2'ns')⎕NPUT(folder,'/sub1/ns.apln')1
+ 3 ⎕NDELETE folder,'/sub3'
+ 3 ⎕MKDIR folder,'/sub5/subsub5'
+ (⊂matsrc2)⎕NPUT(folder,'/sub5/mat.apla')1
+ (⊂tradfn2)⎕NPUT(folder,'/sub5/tradfn.aplf')1
+ (⊂dop)⎕NPUT(folder,'/sub5/dop.aplo')1
+ (⊂NS'ns')⎕NPUT(folder,'/sub5/ns.apln')1
+ sub2←⍎name,'.sub2'
+ sub2.mat←mat2
+ sub2.⎕FX¨tradfn2 dop2
+ sub2.⎕FIX NS2'ns'
+ ⎕EX name,'.sub4'
+ sub6←⍎(name,'.sub6')⎕NS'' ⋄ (name,'.sub6.subsub6')⎕NS''
+ sub6.mat←mat
+ sub6.⎕FX¨tradfn dop
+ sub6.⎕FIX NS'ns'
+ Crawl debug
+ assert'24 26≡≢¨( 1 NSTREE name)(1 NTREE folder)'
+      ⍝ clean up
+ ⎕SE.Link.Expunge name
+ 3 ⎕NDELETE folder
+ ⎕SE.Link.Watcher.(CRAWLER DOTNET)←(crawler dotnet)

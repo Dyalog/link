@@ -1,0 +1,13 @@
+ {r}←{x}(F Retry)y;c;n
+ :If 900⌶⍬
+     x←⊢
+ :EndIf
+ :For n :In ⍳c←5  ⍝ number of retries
+     :Trap 0
+         r←x F y
+         :Return
+     :Else
+         ⎕SIGNAL(n=c)/⊂⎕DMX.(('EN'EN)('Message'Message))
+     :EndTrap
+     Breathe  ⍝ pause between retries
+ :EndFor
