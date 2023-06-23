@@ -1,6 +1,3 @@
-[submodule "StartupSession/Link/GhostRider"]
-	path = StartupSession/Link/GhostRider
-	url = https://github.com/Dyalog/GhostRider
 [submodule "Test/GhostRider"]
 	path = Test/GhostRider
 	url = https://github.com/Dyalog/GhostRider
