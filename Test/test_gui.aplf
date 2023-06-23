@@ -84,7 +84,7 @@
  {}ride.APL')CLEAR'
  z←{(~⍵∊⎕UCS 13 10)⊆⍵}ride.APL']Link.Status'
  'link issue #154'assert'(1=≢z)∧(∨/''No active links''⍷∊z)'
- 'link issue #154'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ 'link issue #154'assert'{6::1 ⋄ 0=CountLinks}⍬'
  output←ride.APL']Link.Create ',(Stringify name),' ',(Stringify folder)
  assert'(⊃''Linked:''⍷output)'
 
@@ -272,11 +272,11 @@
  {}ride.APL']link.create ',name,' "',folder,'"'
  ride.Edit(name,'.goo')('res←goo arg' 'res←arg')
  Breathe  ⍝ can't )CLEAR if FileWatcher kicks in : Can't )CLEAR with external call on the stack - Can't )CLEAR with attachments to external threads
- assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
+ assert'(''1'',NL)≡ride.APL''1=CountLinks'' '
  {}ride.APL')CLEAR'
- assert'(''1'',NL)≡ride.APL''{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'' '
+ assert'(''1'',NL)≡ride.APL''{6::1 ⋄ 0=CountLinks}⍬'' '
  {}ride.APL']link.create ',name,' "',folder,'/foo"'
- assert'(''1'',NL)≡ride.APL''1=≢⎕SE.Link.Links'' '
+ assert'(''1'',NL)≡ride.APL''1=CountLinks'' '
  {}ride.APL'⎕SE.Link.U.WARN←1 ⋄ ⎕SE.Link.U.WARNLOG/⍨←0'
  {}'hoo←{⍺+⍵}'⎕NPUT folder,'/hoo.aplf'
  Breathe

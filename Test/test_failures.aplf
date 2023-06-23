@@ -3,7 +3,7 @@
  assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
 
  z←⎕SE.Link.Break'#'
- assert'∨/''No active links''⍷z'
+ assert'∨/''Not linked: #''⍷z'
 
  opts←⎕NS''
  opts.source←'ns'
@@ -52,7 +52,7 @@
  :Else
     z←opts ⎕SE.Link.Create name folder
  :EndIf
-    
+
  assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
  assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
  assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
@@ -65,9 +65,9 @@
 
  z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
  assert'z≡,⊂''foo'''
- z←⎕THIS'foo'⎕SE.Link.Fix,⊂'unlikelyname←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
+ z←(⍎name) 'unlikelyname'⎕SE.Link.Fix,⊂'unlikelyname←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
  assert'z≡,⊂''unlikelyname'''
- assert'3=⊃⎕NC''unlikelyname'''
+ assert'3=⊃⎕NC name,''.unlikelyname'''
  Breathe ⍝ windows needs some time to clean up the file ties
 
  {}⎕SE.Link.Break name ⋄ ⎕EX name
@@ -80,7 +80,7 @@
  (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
  z←⎕SE.Link.Create name folder
  assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- names←'#.linktest.foo' '#.linktest.sub' '#.linktest.sub.goo'
+ names←'#.linktest.foo' '#.linktest.unlikelyname' '#.linktest.sub' '#.linktest.sub.goo'
  'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
 
  {}(⊂,⊂'foo2←{''foo2'' arg}')QNPUT(folder,'/foo2.aplf')1

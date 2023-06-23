@@ -18,7 +18,7 @@
  exp←(⊂''),[1.5]garbfiles  ⍝ these files will always differ
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  ⎕EX name
- assertError'⎕SE.Link.Diff name' 'Not Linked:'
+ assertError'⎕SE.Link.Diff name' 'Not linked:'
  {}'{watch:''none''}'⎕SE.Link.Create name folder
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  3 ⎕NDELETE folder

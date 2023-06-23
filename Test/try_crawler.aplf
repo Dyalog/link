@@ -1,6 +1,6 @@
  {debug}try_crawler(name folder);Crawl;NS;NS2;crawler;debug;dop;dop2;dotnet;folders;link;mat;mat2;matsrc;matsrc2;opts;sub2;sub6;subs;tradfn;tradfn2
  :If 0=⎕NC'debug' ⋄ debug←0⊣×⎕SE.Link.U.debug ⋄ :EndIf
-      ⍝:If (0≠⎕NC name)∨(⎕NEXISTS folder)∨(0≠≢⎕SE.Link.Links) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
+      ⍝:If (0≠⎕NC name)∨(⎕NEXISTS folder)∨(0≠CountLinks) ⋄ ⎕SIGNAL 11 ⋄ :EndIf
 
  assert'0∊⍴⎕SE.Link.U.GetLinks'
  (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
@@ -8,7 +8,7 @@
  ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
  opts←⎕NS ⍬ ⋄ opts.watch←'none'  ⍝ not only to disable watcher, but also to prevent tying source to files
  {}opts ⎕SE.Link.Create name folder
- assert'1=≢⎕SE.Link.Links'
+ assert'1=CountLinks'
  link←⊃⎕SE.Link.Links
  ⎕SE.Link.Watcher.AddCrawler link  ⍝ because we have set watch←'none'
  ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer

@@ -25,7 +25,7 @@
      assert'0∊⍴⎕SE.Link.U.GetLinks'
      {}opts ⎕SE.Link.Create name folder
      ⎕SE.Link.Watcher.TIMER.Active←0  ⍝ disable timer
-     assert'1=≢⎕SE.Link.Links'
+     assert'1=CountLinks'
      link←⊃⎕SE.Link.Links
      :For new :In news
               ⍝ 1 = create files

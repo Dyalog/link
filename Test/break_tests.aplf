@@ -17,9 +17,10 @@
  z←⎕SE.Link.Create se_name folder2
  'Create failed'assert'islinked name se_name'
 
- opts←⎕NS''
- z←opts ⎕SE.Link.Break''⊣opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
- 'Break -all=⎕SE failed'assert'~islinked se_name'
+:If ~(⊂⍕⎕THIS)∊⎕SE.Link.Links.ns
+   opts←⎕NS''
+   z←opts ⎕SE.Link.Break''⊣opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
+   'Break -all=⎕SE failed'assert'~islinked se_name'
 
  z←opts ⎕SE.Link.Break''⊣opts.all←'#'       ⍝ Break all children of #
  'Break -all=* failed'assert'~islinked name'
@@ -31,5 +32,10 @@
      z←opts ⎕SE.Link.Break''⊣opts.all←case
      ('Break -all=',(⍕case),' failed')assert'0=≢⎕SE.Link.U.GetLinks'
  :EndFor
+
+:Else
+   z←⎕SE.Link.Break se_name name
+   Log 'Not testing "]link.break -all=⎕SE" because ',(⍕⎕THIS),' is linked'
+:EndIf
 
  3 ⎕NDELETE folder2

@@ -38,7 +38,7 @@
  ⎕EX name
 
  z←opts ⎕SE.Link.Import name folder
- assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ assert'{6::1 ⋄ 0=CountLinks}⍬'
 
  ns←#⍎name
 
@@ -70,7 +70,7 @@
  opts.flatten←1
  z←opts ⎕SE.Link.Import name folder
  ns←#⍎name
- assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ assert'{6::1 ⋄ 0=CountLinks}⍬'
  assert'0=≢ns.⎕NL-9.1'
 
 ⍝ Import does not support custom types at this time

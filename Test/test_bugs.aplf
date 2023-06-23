@@ -23,21 +23,21 @@
  :If ~0.6∊1||#.⎕NC #.⎕NL-⍳10  ⍝ Options → Configure → Object Syntax → Expose Root Properties
      Log'"Expose Root Properties" not turned on - cannot QA issue #161'
  :EndIf
- 'link issue #118 or #161'assert'1=≢⎕SE.Link.Links'
+ 'link issue #118 or #161'assert'1=CountLinks'
  'link issue #161'assert'~∨/''not empty''⍷z'
  'link issue #118'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #118'assert'9.4=⎕NC⊂''#.unlikelyname'''
  z←⎕SE.Link.Break #
- assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX'#.unlikelyname'
  # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
 
  z←⎕SE.Link.Create(name,'.⎕THIS')folder
  'link issue #145'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #145'assert'1=≢⎕SE.Link.Links'
+ 'link issue #145'assert'1=CountLinks'
  z←⎕SE.Link.Create('⎕THIS.',name,'.sub')folder
  'link issue #145'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #145'assert'2=≢⎕SE.Link.Links'
+ 'link issue #145'assert'2=CountLinks'
  :Trap ⎕SE.Link.U.ERRNO
      {}⎕SE.Link.Break name  ⍝ must error because of linked children
      assert'0'
@@ -45,23 +45,23 @@
      assert'∨/''Cannot break children''⍷⊃⎕DM'
  :EndTrap
  {}'{recursive:''off''}'⎕SE.Link.Break name  ⍝ break only name and not children
- assert'1=≢⎕SE.Link.Links'  ⍝ children remains
+ assert'1=CountLinks'  ⍝ children remains
  z←'{recursive:''off''}'⎕SE.Link.Break name
- assert'1=≢⎕SE.Link.Links'
+ assert'1=CountLinks'
  z←'{recursive:''on''}'⎕SE.Link.Break name
- assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX name
 
       ⍝ link issue #204
  z←⎕SE.Link.Create name folder
  'link issue #204'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #204'assert'1=≢⎕SE.Link.Links'
+ 'link issue #204'assert'1=CountLinks'
  ⎕EX name
  z←⎕SE.Link.Create'#.unlikelyname'folder
  'link issue #204'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #204'assert'1=≢⎕SE.Link.Links'
+ 'link issue #204'assert'1=CountLinks'
  {}⎕SE.Link.Expunge'#.unlikelyname'
- 'link issue #204'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ 'link issue #204'assert'{6::1 ⋄ 0=CountLinks}⍬'
 
       ⍝ link issue #284 : ]link.break -all should close links under #
       ⍝ previously #111 stated it should close ALL links
@@ -69,34 +69,40 @@
  z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
  z←⎕SE.Link.Create'#.unlikelyname'folder
  z←⎕SE.Link.Create'#.unlikelyname.sub'folder
- assert'3=≢⎕SE.Link.Links'
+ assert'3=CountLinks'
  props←'Namespace' '' 'Directory' 'Files'
- 'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 3⍴''←→'' folder 1)≡⎕SE.Link.Status '''''
- 'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' ''←→'' folder 1 )≡⎕SE.Link.Status ⎕SE'
+ z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ''
+ 'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 3⍴''←→'' folder 1)≡z'
+ z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ⎕SE
+ 'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' ''←→'' folder 1 )≡z'
 
  {}'{all:1}'⎕SE.Link.Break ⍬
- 'link issue #284'assert'{6::1 ⋄ ⎕SE.Link.Links.ns≡,⊂''⎕SE.unlikelyname''}⍬'
- {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
- 'link issue #284'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ 'link issue #284'assert'{6::1 ⋄ (⎕SE.Link.Links.ns~IGNORE_LINKS)≡,⊂''⎕SE.unlikelyname''}⍬'
+ :If ~(⊂⍕⎕THIS)∊⎕SE.Link.Links.ns
+    {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
+    'link issue #284'assert'{6::1 ⋄ 0=CountLinks}⍬'
+ :Else
+    Log 'Not testing "]link.break -all=⎕SE" because ',(⍕⎕THIS),' is linked'
+ :EndIf
 
  ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
  z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
  z←⎕SE.Link.Create'#.unlikelyname'folder
  z←⎕SE.Link.Create'#.unlikelyname.sub'folder
- assert'3=≢⎕SE.Link.Links'
+ assert'3=CountLinks'
  {}'{recursive:''on''}'⎕SE.Link.Break'#.unlikelyname'
- 'link issue #111'assert'1=≢⎕SE.Link.Links'
+ 'link issue #111'assert'1=CountLinks'
  {}⎕SE.Link.Break'⎕SE.unlikelyname'
- 'link issue #111'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ 'link issue #111'assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
 
 
       ⍝ link issue #117 : leave trailing slash in dir
       ⍝ superseeded by issue #146 when trailing slash was disabled altogether
  'link issue #146'assertError'⎕SE.Link.Create name(folder,''/'')' 'Trailing slash reserved'
- 'link issue #146'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ 'link issue #146'assert'{6::1 ⋄ 0=CountLinks}⍬'
  z←⎕SE.Link.Create name folder
- 'link issue #117'assert'1=≢⎕SE.Link.Links'
+ 'link issue #117'assert'1=CountLinks'
  'link issue #117'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      ⍝ link issue #116 : ⎕SE.Link.Refresh should not error when given a dir
  z←⎕SE.Link.Refresh folder
@@ -277,7 +283,7 @@
  root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
  #.⎕FX'UnlikelyName' '⎕←''UnlikelyName'''
  ⎕SE.UCMD'z←link.create -casecode # "',folder,'"'
- 'link issue #159'assert'1=≢⎕SE.Link.Links'
+ 'link issue #159'assert'1=CountLinks'
  'link issue #159'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #159'assert'(,⊂folder,''/UnlikelyName-401.aplf'')≡0 NTREE folder'
  'link issue #177'assert'~⎕NEXISTS ''',folder,'/jsondict/list.apla'''
@@ -289,7 +295,7 @@
  z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
  'link issue #177'assert'⎕NEXISTS ''',folder,'/jsondict-0/list-0.apla'''
  z←⎕SE.Link.Break #
- assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
+ assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX'#.UnlikelyName' '#.jsondict'
  3 ⎕NDELETE folder,'/jsondict-0'
  # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
@@ -313,7 +319,7 @@
      {}(⊂master←':Require file://Slave.apln' ':Namespace  Master' ' dup ← ##.Slave.dup' ':EndNamespace')QNPUT(folder,'/Master.apln')1
      {}(⊂slave←':Namespace  Slave' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Slave.apln')1
      z←⎕SE.Link.Create name folder
-     'link issue #155'assert'1=≢⎕SE.Link.Links'
+     'link issue #155'assert'1=CountLinks'
      'link issue #155'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      'link issue #155'assert' ''Engine'' ''Master''  ''Server'' ''Slave'' ''UnlikelyName'' ≡ (⍎name).⎕NL -⍳10'
      'link issue #155'assert'(1↓server)≡⎕SRC ',name,'.Server'    ⍝ :Require statement missing from ⎕SRC but shown in editor

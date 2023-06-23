@@ -1,11 +1,10 @@
 ∇ RunTests arg;link;test
- :If 0=⎕NC '#.Test'
+ :If 0=⎕NC '⎕SE.LinkTest'
     :If 0≠≢link←+2 ⎕NQ '.' 'GetEnvironment' 'DYALOGLINK'
     :AndIf ⎕NEXISTS test←link,'/Test'
-    ⎕SE.Link.Import '#.Test' test
+    ⎕SE.Link.Create '⎕SE.LinkTest' test
     :EndIf
- :EndIf                          
-    
- '{all:''*''}' ⎕SE.Link.Break 0⍴⊂''
- #.Test.Run arg 
+ :EndIf
+
+ ⎕SE.LinkTest.Run arg
 ∇

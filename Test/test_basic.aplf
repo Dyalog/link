@@ -1,9 +1,11 @@
  ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
 
  'link issue #265'assert'0=⎕NC''unlikelyname'''
- ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
- 'link issue #265'assert'3=⎕NC''unlikelyname'''
- 'link issue #265'assert'''unlikelyname''≡unlikelyname'
+ name ⎕NS ''
+ (⍎name) ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
+ 'link issue #265'assert'3=⎕NC name,''.unlikelyname'''
+ 'link issue #265'assert'''unlikelyname''≡',name,'.unlikelyname'
+ ⎕EX name
 
  3 ⎕MKDIR Retry⊢folder
 
@@ -13,7 +15,7 @@
  opts.customExtensions←'charmat' 'charvec'
  opts.watch←'both'
  z←opts ⎕SE.Link.Create name folder
- assert'1=≢⎕SE.Link.Links'
+ assert'1=CountLinks'
  link←⊃⎕SE.Link.Links
  ns←#⍎name
 
