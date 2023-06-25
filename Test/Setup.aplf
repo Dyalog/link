@@ -1,0 +1,45 @@
+ r←Setup(folder name);udebug
+ r←'' ⍝ Run will abort if empty
+ :If 0≠⎕NC'⎕SE.Link.Links'
+ :AndIf 0≠CountLinks
+     Log'Please break all links and try again.'
+     ⎕←⎕SE.UCMD']Link.Status'
+     ⎕←'      ]Link.Break -all=*    ⍝ to break all links'
+     :Return
+ :EndIf
+ :If 0≠⎕NC name
+     ⎕EX name
+ :EndIf
+ :If ~0∊⍴folder  ⍝ specific folder
+     folder←∊1 ⎕NPARTS folder,(0=≢folder)/(739⌶0),'/linktest'
+     :If ⎕NEXISTS folder
+         Log folder,' exists. Clean it out? [Y|n] '
+         :If 'yYjJ1 '∊⍨⊃⍞~' '
+             3 ⎕NDELETE Retry⊢folder
+         :Else
+             Log'Directory must be non-existent.'
+             :Return
+         :EndIf
+     :EndIf
+ :Else  ⍝ generate a new directory - avoids prompting for deletion
+     folder←CreateTempDir 0
+ :EndIf
+ :If USE_ISOLATES
+     :If 9.1≠#.⎕NC⊂'isolate'
+         'isolate'#.⎕CY'isolate.dws'
+     :EndIf
+     {}#.isolate.Reset 0  ⍝ in case not closed properly last time
+     {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
+     #.SLAVE←#.isolate.New''
+     QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
+     QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵ ⋄ ⎕DL 0.001}  ⍝ ensure QNPUTS are not too tight for filewatcher
+ :Else
+     #.SLAVE←⎕NS''
+     QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
+     QNPUT←{⍺ NPUT ⍵ ⋄ ⎕DL 0.001}
+ :EndIf
+      ⍝QNMOVE←#.SLAVE.⎕NMOVE
+      ⍝QNCOPY←#.SLAVE.⎕NCOPY
+      ⍝QNGET←#.SLAVE.⎕NGET
+      ⍝QMKDIR←#.SLAVE.⎕MKDIR
+ r←folder

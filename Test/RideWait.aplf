@@ -1,0 +1,4 @@
+ {time}←RideWait start;end
+    ⍝ Ensure file timestamp has a 1second difference - user start←⍬ to get a timestamp without waiting
+ end←⊃start+1000
+ :While (~0∊⍴start)∧(end>time←3⊃⎕AI) ⋄ ⎕DL 0.01 ⋄ :EndWhile

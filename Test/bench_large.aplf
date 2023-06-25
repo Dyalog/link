@@ -1,0 +1,31 @@
+ (time dirs files)←{opts}bench_large folder;clear;fastload;filetype;name;opts;profile;temp;time
+    ⍝ times with (ndirs nfiles nlines maxdepth)←10 10 0 3 → (dirs files)≡1110 11100
+    ⍝ v2.0:        fastLoad=1:1500  ⋄ fastLoad=0:N/A
+    ⍝ v2.1-beta52: fastLoad=1:1000  ⋄ fastLoad=0:6500
+ :If 900⌶⍬ ⋄ opts←⍬ ⋄ :EndIf
+ (fastload profile clear)←opts,(≢opts)↓1 0 0
+ name←'#.largelink'
+ :If temp←0∊⍴folder
+     folder←CreateTempDir 0
+     Log'building ',folder,' ...'
+     clear build_large folder
+ :EndIf
+ filetype←⊃1 ⎕NINFO⍠1⍠'Recurse' 1⊢folder,'/*'
+ dirs←filetype+.=1 ⋄ files←filetype+.=2
+ opts←⎕NS ⍬
+ opts.source←'dir'
+ opts.fastLoad←fastload
+ Log'linking ',name,' ...'
+ :If profile ⋄ ⎕PROFILE¨'clear' 'start' ⋄ :EndIf
+ time←3⊃⎕AI
+ opts ⎕SE.Link.Create name folder
+ time←(3⊃⎕AI)-time
+ :If profile ⋄ ⎕PROFILE'stop' ⋄ :EndIf
+ Log ⎕SE.Link.Status name
+ Log'cleaning up...'
+ ⎕EX name
+ {}⎕SE.Link.Break name
+ :If temp
+     ⎕DL 1
+     3 ⎕NDELETE folder
+ :EndIf

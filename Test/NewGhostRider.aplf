@@ -1,0 +1,22 @@
+ instance←NewGhostRider;Env;env;file;msg;names;ok
+ :If GhostRider≡⎕NULL
+     file←(⊃⎕NPARTS GetSourceFile),'GhostRider/GhostRider.dyalog'  ⍝ in the directory of the git submodule
+     ⎕EX'GhostRider'  ⍝ GhostRider≡⎕NULL prevents ⎕SE.Link.Create from creating the namespace
+     :Trap 0 ⋄ names←2 ⎕FIX'file://',file
+     :Else ⋄ names←0⍴⊂''
+     :EndTrap
+     :If names≢,⊂'GhostRider'   ⍝ GhostRider correctly fixed
+     :OrIf 9.4≠⎕NC⊂'GhostRider' ⍝ GhostRider class present
+         GhostRider←⎕NULL
+         msg←'GhostRider class not found in "',file,'"',⎕UCS 13
+         msg,←'Try : git submodule update --init --recursive'
+         msg ⎕SIGNAL 999
+     :EndIf
+ :EndIf
+ Env←{⍵,'="',(2 ⎕NQ'.' 'GetEnvironment'⍵),'"'}
+ env←⍕Env¨'SESSION_FILE' 'MAXWS' 'DYALOGSTARTUPSE' 'DYALOGSTARTUPKEEPLINK' 'DYALOG_NETCORE'
+ instance←⎕NEW GhostRider env
+ {}instance.APL'⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←',⍕⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL) ⍝ because ⎕SE.Link.Test.Run sets it
+ {}instance.APL'⎕SE.Link.DEBUG←',⍕⎕SE.Link.DEBUG
+ {}instance.APL'⎕SE.Link.U.SHOWMSG←0'  ⍝ keep quiet
+ {}instance.MULTITHREADING←⎕SE.Link.U.IS181∨⎕SE.Link.Watcher.(CRAWLER>DOTNET) ⍝ seems unavoidable since v18.1

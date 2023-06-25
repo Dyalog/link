@@ -1,0 +1,12 @@
+ file←GetSourceFile;filename;msg
+ filename←'Test.dyalog'  ⍝ should be 'Test.apln' ???
+ file←4⊃5179⌶⊃⎕SI  ⍝ in case source is tied (DYALOGSTARTUPKEEPLINK=1)
+ :If ⎕NEXISTS file ⋄ :Return ⋄ :EndIf
+       ⍝ try reading DYALOGSTARTUPSE  - ⍝ Link issue #219
+ file←(+2 ⎕NQ'.' 'GetEnvironment' 'DYALOGSTARTUPSE'),'/Link/',filename
+ :If ⎕NEXISTS file ⋄ :Return ⋄ :EndIf
+      ⍝ try looking in DYALOG installation folder - ⍝ Link issue #219
+ file←(+2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/StartupSession/Link/',filename
+ :If ⎕NEXISTS file ⋄ :Return ⋄ :EndIf
+ 'Source file for ',(⍕⎕THIS),' not found - can not load GhostRider'
+ msg ⎕SIGNAL 999

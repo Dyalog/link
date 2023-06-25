@@ -1,0 +1,4 @@
+r←CountLinks
+:If 0≠r←≢⎕SE.Link.Links
+    r←≢⎕SE.Link.Links.ns~IGNORE_LINKS
+:EndIf

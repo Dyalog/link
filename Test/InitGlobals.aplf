@@ -1,0 +1,16 @@
+ InitGlobals dummy
+ ⎕IO←1 ⋄ ⎕ML←1
+
+ IGNORE_LINKS←'⎕SE.Link' '⎕SE.Dyalog' '⎕SE.LinkTest' ⍝ Pretend these don't exists while testing
+ TESTS_LINKED←{6::0 ⋄ (⊂⍕⎕THIS)∊⎕SE.Link.Links.ns}⍬
+
+ DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
+
+ NAME←'#.linktest'  ⍝ namespace used by link tests
+ TESTNS←⍕⎕THIS
+ APLVERSION←10÷⍨10⊥2↑2⊃'.' ⎕VFI 2⊃'.' ⎕WG 'APLVersion'
+ FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
+
+ ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided
+ ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
+ STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action

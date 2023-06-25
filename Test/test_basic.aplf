@@ -1,0 +1,189 @@
+ ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
+
+ 'link issue #265'assert'0=⎕NC''unlikelyname'''
+ name ⎕NS ''
+ (⍎name) ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
+ 'link issue #265'assert'3=⎕NC name,''.unlikelyname'''
+ 'link issue #265'assert'''unlikelyname''≡',name,'.unlikelyname'
+ ⎕EX name
+
+ 3 ⎕MKDIR Retry⊢folder
+
+ opts←⎕NS''
+ opts.beforeRead←TESTNS,'.onBasicRead'
+ opts.beforeWrite←TESTNS,'.onBasicWrite'
+ opts.customExtensions←'charmat' 'charvec'
+ opts.watch←'both'
+ z←opts ⎕SE.Link.Create name folder
+ assert'1=CountLinks'
+ link←⊃⎕SE.Link.Links
+ ns←#⍎name
+
+      ⍝ Create a monadic function
+ _←(⊂foo←' r←foo x' ' x x')QNPUT folder,'/foo.dyalog'
+ assert'foo≡ns.⎕NR ''foo''' 'ns.⎕FX ↑foo'
+      ⍝ Create a niladic / non-explicit function
+ _←(⊂nil←' nil' ' 2+2')QNPUT folder,'/nil.dyalog'
+ assert'nil≡ns.⎕NR ''nil''' 'ns.⎕FX ↑nil'
+
+      ⍝ Create an array
+ _←(⊂'[''one'' 1' '''two'' 2]')QNPUT o2file←folder,'/one2.apla'
+ assert'(2 2⍴''one'' 1 ''two'' 2)≡ns.one2'
+
+      ⍝ Update the array
+ _←(⊂'[''one'' 1' '''two'' 2' '''three'' 3]')QNPUT o2file 1
+ value←(3 2⍴'one' 1 'two' 2 'three' 3)
+ assert'value≡ns.one2' 'ns.one2←value'
+
+      ⍝ Update array using Link.Fix
+ ns.one2←⌽ns.one2
+ ns'one2'⎕SE.Link.Fix''
+ assert'ns.one2≡⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET o2file 1'
+
+      ⍝ Rename the array
+ Breathe ⋄ Breathe ⋄ Breathe   ⍝ because the previous Fix can trigger several "changed" filewatcher callbacks, and the following ⎕NMOVE would confuse them
+ otfile←folder,'/onetwo.apla'
+ z←ns.one2
+ _←otfile #.SLAVE.⎕NMOVE o2file
+ assert'z≡ns.onetwo' 'ns.onetwo←z'
+ assert'0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
+
+      ⍝ Create sub-folder
+ Breathe
+ _←#.SLAVE.⎕MKDIR folder,'/sub'
+ assert'9.1=ns.⎕NC ⊂''sub''' '''ns.sub'' ⎕NS '''''
+
+      ⍝ Move array to sub-folder
+ Breathe
+ value←ns.onetwo
+ _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
+ assert'value≡ns.sub.one2' 'ns.sub.one2←value'
+ assert'0=⎕NC''ns.onetwo''' '⎕EX''ns.onetwo'''
+
+      ⍝ Duplicate array (effect will be checked by looking at ⎕NL after renaming directory)
+ ns.sub.onetwo←ns.sub.one2
+ assert'~⎕NEXISTS folder,''/sub/onetwo.apla'''
+ {}⎕SE.Link.Add'ns.sub.onetwo'
+ Breathe
+ assert'⎕NEXISTS folder,''/sub/onetwo.apla'''
+ assert'2=⎕NC''ns.sub.onetwo'''
+
+      ⍝ Erase the array
+ Breathe
+ _←QNDELETE new
+ assert'0=⎕NC ''ns.sub.one2''' '⎕EX ''ns.sub.one2'''
+
+      ⍝ Put a copy of foo in the folder
+ _←(⊂foo)QNPUT folder,'/sub/foo.dyalog'
+ assert'foo≡ns.sub.⎕NR ''foo'''
+
+      ⍝ Create a class with missing dependency
+ _←(⊂ac←':Class aClass : bClass' ':EndClass')QNPUT folder,'/sub/aClass.dyalog'
+ assert'9=ns.sub.⎕NC ''aClass'''
+ assert'ac≡⎕SRC ns.sub.aClass'
+
+      ⍝ Now add the base class
+ _←(⊂bc←':Class bClass' ':EndClass')QNPUT folder,'/sub/bClass.dyalog'
+ assert'9=ns.sub.⎕NC ''bClass'''
+ assert'bc≡⎕SRC ns.sub.bClass'
+
+      ⍝ Check that the derived class works
+ :Trap 0 ⋄ {}⎕NEW ns.sub.aClass
+ :Else ⋄ Log'Unable to instantiate aClass: ',⊃⎕DM
+ :EndTrap
+
+      ⍝ Rename the sub-folder
+ nl←'aClass' 'bClass' 'foo' 'onetwo'
+ assert'nl≡ns.sub.⎕NL-⍳10'                             ⍝ contents are the same
+ assert'0=ns.⎕NC''bus'''
+ _←(folder,'/bus')#.SLAVE.⎕NMOVE folder,'/sub'
+ assert'9.1=ns.⎕NC ⊂''bus''' '''ns.bus'' ⎕NS '''''     ⍝ bus is a namespace
+ assert'3=ns.bus.⎕NC ''foo''' '2 ns.bus.⎕FIX ''file://'',folder,''/bus/foo.dyalog''' ⍝ bus.foo is a function
+ assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus.(5179⌶)''foo''' ⍝ check connection is registered
+ assert'0=ns.⎕NC ''sub''' '⎕EX ''ns.sub'''             ⍝ sub is gone
+ assert'nl≡ns.bus.⎕NL-⍳10'                             ⍝ contents are the same
+
+      ⍝ Now copy a file containing a function
+ old←ns.(5179⌶)'foo'
+ _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
+ Breathe ⋄ Breathe ⋄ Breathe ⍝ Allow FileSystemWatcher time to react (always needed)
+ goofile←folder,'/goo.dyalog'
+ _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
+ Breathe ⋄ Breathe ⋄ Breathe ⍝ Allow FileSystemWatcher some time to react (always needed)
+      ⍝ Verify that the old function is still linked to the original file
+ assert'old≡new←ns.(5179⌶)''foo''' '5178⌶''ns.foo'''
+
+      ⍝ Now edit the new file so it defines 'zoo'
+ tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn ⍝ (beware UTF-8 encoded file)
+      ⍝ Validate that this did cause zoo to arrive in the workspace
+ zoo←' r←zoo x' ' x x'
+ assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
+
+ Breathe
+      ⍝ Finally edit the new file so it finally defines 'goo'
+ tn←goofile ⎕NTIE 0
+ 'g'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
+ ⎕NUNTIE tn
+      ⍝ Validate that this did cause goo to arrive in the workspace
+ goo←' r←goo x' ' x x'
+ assert'goo≡ns.⎕NR ''goo''' 'ns.⎕FX goo'
+      ⍝ Also validate that zoo is now gone
+ assert'0=ns.⎕NC ''zoo''' 'ns.⎕EX ''zoo'''
+
+      ⍝ Now simulate changing goo using the editor and verify the file is updated
+ ns'goo'⎕SE.Link.Fix' r←goo x' ' r←x x x'
+ assert'(ns.⎕NR ''goo'')≡⊃⎕NGET goofile 1'
+ assert'goofile≡4⊃5179⌶''ns.goo''' ⍝ Ensure link registered
+
+ assert'1=⎕SE.Link.Expunge''ns.goo''' ⍝ Test "expunge"
+ assert'0=⎕NEXISTS goofile'
+ assert'0=⎕NC''ns.goo'''
+
+ assert'0=⎕SE.Link.Expunge ''''' ⍝ Text fix for #479
+
+      ⍝ Now test the Notify function - and verify the System Variable setting trick
+ name Watch 0  ⍝ pause file watching
+ {}(⊂':Namespace _SV' '##.(⎕IO←0)' ':EndNamespace')QNPUT file←folder,'/bus/_SV.dyalog'
+ ⎕SE.Link.Notify'created'file
+ assert'0=ns.bus.⎕IO'
+ assert'1=ns.⎕IO'
+ name Watch 1  ⍝ resume watcher
+
+
+      ⍝ Now test whether exits implement ".charmat" support
+      ⍝ First, write vars in the workspace to file'
+      ⍝ prevent thread-switch across the next line to avoid the crawler picking up APL changes before the Fix - they would be mapped to cm.apla and cv.apla because user doesn't declare a getFilename callback
+ ns.cm←↑ns.cv←'Line 1' 'Line two' ⋄ ns'cm'⎕SE.Link.Fix ⍬ ⋄ ns'cv'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
+ assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
+ assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
+
+      ⍝ Then verify that modifying the file brings changes back
+ _←(⊂cv←ns.cv,⊂'Line three')QNPUT(folder,'/cv.charvec')1
+ _←(⊂↓cm←↑cv)QNPUT(folder,'/cm.charmat')1
+ assert'cm≡ns.cm'
+ assert'cv≡ns.cv'
+
+      ⍝ Now tear it all down again:
+      ⍝ First the sub-folder
+ _←2 QNDELETE folder,'/bus'
+ assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
+
+      ⍝ The variables
+ _←QNDELETE folder,'/cv.charvec'
+ assert'0=ns.⎕NC ''cv''' 'ns.⎕EX ''cv'''
+ _←QNDELETE folder,'/cm.charmat'
+ assert'0=ns.⎕NC ''cm''' 'ns.⎕EX ''cm'''
+
+      ⍝ The the functions, one by one
+ _←QNDELETE folder,'/nil.dyalog'
+ assert'0=ns.⎕NC ''nil'''
+ _←QNDELETE folder,'/foo.dyalog'
+ assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
+
+ '()'⎕NPUT folder,'/array.apla'
+ 'link issue #260'assert name,'≡',name,'.array.##'
+
+ 'link issue #263'assert'''No link to break in arguments''≡⎕SE.Link.Break ⍬'
+
+ CleanUp folder name
+ ok←1

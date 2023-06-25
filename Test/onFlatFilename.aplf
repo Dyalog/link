@@ -1,0 +1,15 @@
+ r←onFlatFilename args;event;ext;file;link;name;nc;oldname
+    ⍝ Callback functions to implement determining target folder for flattened link
+ (event link file name nc oldname)←6↑args
+ :If 0≠≢r←4⊃5179⌶oldname     ⍝ we could find info for oldname
+     :If name≢oldname ⍝ copy / rename of an existing function
+         name←(⌽∧\⌽name≠'.')/name  ⍝ drop namespace specification
+         r←∊((⊂name)@2)⎕NPARTS r     ⍝ just substitute the name
+     :EndIf
+ :Else            ⍝ a new function
+          ⍝ A real application exit might prompt the user to pick a folder
+          ⍝   in the QA example we look to a global variable
+     ext←link ⎕SE.Link.TypeExtension nc        ⍝ Ask for correct extension for the name class
+     name←(⌽∧\⌽name≠'.')/name  ⍝ drop namespace specification
+     r←link.dir,'/',FLAT_TARGET,'/',name,'.',ext  ⍝ Return the file name
+ :EndIf

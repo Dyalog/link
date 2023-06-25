@@ -1,0 +1,35 @@
+ {txt}←{msg}assert args;clean;expr;maxwait;end;timeout;txt
+      ⍝ Asynchronous assert: We don't know how quickly the FileSystemWatcher will do something
+
+ :If STOP_TESTS
+     Log'STOP_TESTS detected...'
+     (1+⊃⎕LC)⎕STOP'assert'
+ :EndIf
+
+ (expr clean)←2↑(⊆args),⊂''
+ end←3000+3⊃⎕AI ⍝ allow three seconds of wait time
+ timeout←0
+
+ :While 0∊{0::0 ⋄ ⍎⍵}expr
+     Breathe
+ :Until timeout←end<3⊃⎕AI
+
+ :If 900⌶⍬ ⍝ Monadic
+     msg←'assertion failed'
+ :EndIf
+ :If ~timeout ⋄ txt←'' ⋄ :Return ⋄ :EndIf
+
+ txt←msg,': ',expr,' ⍝ at ',(2⊃⎕XSI),'[',(⍕2⊃⎕LC),']'
+ :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?
+     ⍎clean
+ :AndIf ~0∊{0::0 ⋄ ⍎⍵}expr ⍝ Did it work?
+     Log'Warning: ',txt,(~0∊⍴clean)/'- Recovered via ',clean
+     :Return
+ :EndIf
+
+      ⍝ No recovery, or recovery failed
+ :If ASSERT_ERROR
+     txt ⎕SIGNAL 11
+ :Else ⍝ Just muddle on, not recommended!
+     Log txt
+ :EndIf

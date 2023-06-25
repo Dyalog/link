@@ -5,7 +5,7 @@
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
-         :If 0∊⍴links←U.GetLinks ⋄ U.Error 'Not Linked: ',⍕ns ⋄ :EndIf
+         :If 0∊⍴links←U.GetLinks ⋄ U.Error 'Not linked: ',⍕ns ⋄ :EndIf
          opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
          (container ns)←(⎕RSI ⎕XSI) U.ContainerNs ns
          :If ~0∊⍴nsref←(0 U.GetRefTo)ns

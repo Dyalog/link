@@ -1,0 +1,31 @@
+ loops RunTestThread(folder name);sub;z
+ ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+ (⊂⎕SE.Dyalog.Array.Serialise 2 3 4⍴0)⎕NPUT folder,'/var.apla'
+ (⊂'r←foo arg' 'r←''foo'' arg')⎕NPUT folder,'/foo.aplf'
+ (⊂'r←(foo op) arg' 'r←''op'' foo arg')⎕NPUT folder,'/op.aplo'
+ (⊂':Interface api' '∇ r←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/api.apli'
+ (⊂':Class base:,api' ':Field Public Shared base←1' '∇ r←foo arg' ':Access Public Shared' 'r←''foo'' arg' '∇' ':EndClass')⎕NPUT folder,'/base.aplc'
+ (⊂':Class main:base,api' ':Field Public Shared main←1' ':EndClass')⎕NPUT folder,'/main.aplc'
+ :While 0≤loops←loops-1
+     z←⎕SE.Link.Create name folder
+     assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+     z←⎕SE.Link.Refresh name
+     assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+     ⎕MKDIR folder,'/sub'
+     assert'9=⎕NC',Stringify sub←name,'.sub'
+     (⍎sub).newvar←⎕TS
+     (⍎sub).⎕FX'r←goo arg' 'r←''goo'' arg'
+     z←⎕SE.Link.Add sub∘,¨'.goo' '.newvar'
+     assert'~∨/''Not found''⍷z'
+     assert'∧/⎕NEXISTS',⍕Stringify¨(folder,'/sub/')∘,¨'goo.aplf' 'newvar.apla'
+     z←sub ⎕SE.Link.Fix':Namespace ns' 'ns←1' ':EndNamespace'
+     assert'(z≡,⊂''ns'')∧⎕NEXISTS',Stringify folder,'/sub/ns.apln'
+     z←⎕SE.Link.Refresh name
+     assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+     z←⎕SE.Link.Expunge sub
+     assert'z'
+     assert'~⎕NEXISTS',Stringify folder,'/sub/'
+     {}⎕SE.Link.Break name
+     ⎕EX name
+ :EndWhile
+ 3 ⎕NDELETE folder

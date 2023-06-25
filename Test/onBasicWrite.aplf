@@ -1,0 +1,16 @@
+ r←onBasicWrite args;event;extn;file;link;name;nc;oldname;src;value
+ (event link file name nc oldname src)←7↑args
+ r←1 ⍝ Link should carry on; we're not handling this one
+ :If 2=⌊nc ⍝ A variable
+     :Select ⎕DR value←⍎name
+     :CaseList 80 82 160 320
+         :If 2=⍴⍴value ⋄ src←↓value ⋄ :Else ⋄ :Return ⋄ :EndIf
+         extn←⊂'.charmat'
+     :Case 326
+         :If (1≠⍴⍴value)∨~∧/,(10|⎕DR¨value)∊0 2 ⋄ :Return ⋄ :EndIf
+         src←value
+         extn←⊂'.charvec'
+     :EndSelect
+     {}(⊂src)QNPUT(∊(extn@3)⎕NPARTS file)1
+     r←0 ⍝ We're done; Link doesn't need to do any more
+ :EndIf

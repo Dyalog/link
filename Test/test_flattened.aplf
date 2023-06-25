@@ -1,0 +1,45 @@
+ ok←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
+     ⍝ Test the flattened scenario
+ FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
+
+ {}3 ⎕MKDIR Retry⊢folder
+ {}3 ⎕MKDIR folder,'/app'
+ {}3 ⎕MKDIR folder,'/utils'
+
+      ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
+ _←(⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
+ _←(⊂dup←' r←dup x' 'r←x x')⎕NPUT dupfile←folder,'/utils/dup.aplf' ⍝ One "utility" function
+
+ opts←⎕NS''
+ opts.(flatten source)←1 'dir'
+ opts.getFilename←TESTNS,'.onFlatFilename'
+ z←opts ⎕SE.Link.Create name folder
+
+ ns←#⍎name
+
+ assert'''dup'' ''main'' ≡ ns.⎕NL ¯3'           ⍝ Validate both fns are in root namespace
+ assert'2 2≡ns.main'                            ⍝ Check that main function works
+
+ dup,←⊂' ⍝ Modified dup'
+ ns'dup'⎕SE.Link.Fix dup                        ⍝ Redefine existing function dup
+ assert'dup≡⊃⎕NGET dupfile 1'
+ assert'dupfile≡4⊃5179⌶''ns.dup'''             ⍝   ... await callback & link established
+
+ goofile←folder,'/app/goo.aplf'
+
+ ns'goo'⎕SE.Link.Fix↑goo←' r←goo x' ' r←x x x'  ⍝ Add a new function, this time using a matrix
+ assert'goo≡⊃⎕NGET goofile 1'
+ assert'goofile≡4⊃5179⌶''ns.goo'''             ⍝   ... await callback & link established
+
+ ns'foo' 'goo'⎕SE.Link.Fix foo←' r←foo x' ' r←x x x' ⍝ Simulate RENAME of existing foo > goo
+
+ foofile←∊((⊂'foo')@2)⎕NPARTS goofile           ⍝ Expected name of the new file
+ assert'foo≡⊃⎕NGET foofile 1'                   ⍝ Validate file has the right contents
+ assert'foofile≡4⊃5179⌶''ns.foo'''             ⍝   ... and foo is linked to the right file
+
+ Breathe ⍝ Allow backlog of FSW events to clear on slow machines
+ _←QNDELETE foofile
+ assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
+
+ CleanUp folder name
+ ok←1

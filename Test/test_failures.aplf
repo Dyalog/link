@@ -1,0 +1,118 @@
+ ok←test_failures(folder name);debug;err;errf;erru;mod;names;opts;warn;z;unlikelyname
+ assertError('⎕SE.Link.Export''',name,'.ns_not_here'' ''',folder,'''')'Source not found'
+ assertError('⎕SE.Link.Import''',name,''' ''',folder,'/dir_not_here''')'Source not found'
+
+ z←⎕SE.Link.Break'#'
+ assert'∨/''Not linked: #''⍷z'
+
+ opts←⎕NS''
+ opts.source←'ns'
+ assertError('opts ⎕SE.Link.Create''',name,'.ns_not_here'' ''',folder,'''')'Source namespace not found'
+
+ opts←⎕NS''
+ opts.source←'dir'
+ assertError('opts ⎕SE.Link.Create''',name,''' ''',folder,'/dir_not_here''')'Source directory not found'
+
+ name ⎕NS'' ⋄ 3 ⎕MKDIR folder
+ opts←⎕NS'' ⋄ opts.source←'dir'
+ name⍎'var←1 2 3'
+ 'link issue #182'assertError('opts ⎕SE.Link.Create ',⍕Stringify¨name folder)('Destination namespace not empty: ',name)
+ ⎕EX name,'.var' ⋄ 3 ⎕NDELETE folder
+
+ opts.source←'ns'
+      ⍝ link issue #162 test unknown modifiers and invalid values - ⎕EN is almost impossible to predict : 911 when ⎕SE.Link.DEBUG←1, 701, 702 or 704 when ⎕SE.Link.DEBUG←0
+ 'link issue #162'assertError('⎕SE.UCMD '']link.create -BADMOD=BADVAL '',name,'' "'',folder,''"'' ')'unknown modifier' 0
+ 'link issue #162'assertError'''{BADMOD:1 2 3}''⎕SE.Link.Create name folder' 'Unknown modifier'
+ :For mod :In 'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename'
+     :Select mod
+     :CaseList 'source' 'watch' ⋄ err←1 ⋄ erru←0 ⎕SE.Link.U.CaseText errf←'Invalid value'
+     :CaseList 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' ⋄ err←1 ⋄ erru←'no value allowed' ⋄ errf←'Invalid value'
+     :CaseList 'beforeWrite' 'beforeRead' 'getFilename' ⋄ err←0 ⋄ erru←errf←'must be the name of an APL function'
+     :EndSelect
+     :If err  ⍝ UCMD expected to error (misusage of the UCMD syntax)
+         'link issue #162'assertError('⎕SE.UCMD '']link.create -'',(0 ⎕SE.Link.U.CaseText mod),''=BADVAL '',name,'' "'',folder,''"'' ')erru 0
+     :Else ⍝ Error in link - UCMD must not error and return a shorter message (link issue #217)
+         z←⎕SE.UCMD']link.create -',(0 ⎕SE.Link.U.CaseText mod),'=BADVAL ',name,' "',folder,'"'
+         'link issue #162'assert'∨/erru⍷z'
+     :EndIf
+     'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
+ :EndFor
+    ⍝ Mantis 18638 - handle lost source
+    3 ⎕MKDIR folder
+ :If APLVERSION<19 ⍝ Test lost source code on file deletion
+    (⊂':Class lostclass' ':EndClass')⎕NPUT(folder,'/lostclass.aplc')1
+    2(⍎name).⎕FIX'file://',folder,'/lostclass.aplc'
+    ⎕NDELETE folder,'/lostclass.aplc'
+    (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+    z←opts ⎕SE.Link.Create name folder
+    'Mantis 18638'assert'(∨/''ERRORS ENCOUNTERED''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
+    (⍎name).⎕EX'lostclass'
+    'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
+    ⎕SE.Link.U.WARN←warn
+ :Else
+    z←opts ⎕SE.Link.Create name folder
+ :EndIf
+
+ assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
+ assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
+ assertError('name ''¯1'' ⎕SE.Link.Fix '''' ')('Invalid name')
+ assertError(' ''¯1'' ''foo'' ⎕SE.Link.Fix '''' ')('Not a namespace')
+
+ z←⎕SE.Link.Break'#'
+ assert'∨/''Not linked:''⍷z'
+ z←⎕SE.Link.Break'#.unlikelyname'
+ assert'∨/''Not found:''⍷z'
+
+ z←(⍎name)'foo'⎕SE.Link.Fix,⊂'foo←{''foo'' arg}' ⍝ link issue #215 - allow passing a ref for target namespace
+ assert'z≡,⊂''foo'''
+ z←(⍎name) 'unlikelyname'⎕SE.Link.Fix,⊂'unlikelyname←{''foo'' arg}'  ⍝ link issue #215 - allow passing a ref for target namespace
+ assert'z≡,⊂''unlikelyname'''
+ assert'3=⊃⎕NC name,''.unlikelyname'''
+ Breathe ⍝ windows needs some time to clean up the file ties
+
+ {}⎕SE.Link.Break name ⋄ ⎕EX name
+
+ 3 ⎕MKDIR folder,'/sub/.git/info'
+ {}(⊂,⊂'goo←{''goo'' arg}')QNPUT(folder,'/sub/goo.aplf')1
+ {}(⊂'hoo arg' '⎕←''hoo'' arg')QNPUT(folder,'/sub/.git/info/hoo.aplf')1
+ {}(⊂'joo arg' '⎕←''joo'' arg')QNPUT(folder,'/.joo.aplf')1
+ {}(⊂'koo arg' '⎕←''koo'' arg')QNPUT(folder,'/koo.tmp')1
+ (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
+ z←⎕SE.Link.Create name folder
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ names←'#.linktest.foo' '#.linktest.unlikelyname' '#.linktest.sub' '#.linktest.sub.goo'
+ 'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
+
+ {}(⊂,⊂'foo2←{''foo2'' arg}')QNPUT(folder,'/foo2.aplf')1
+ {}(⊂,⊂'goo2←{''goo2'' arg}')QNPUT(folder,'/sub/goo2.aplf')1
+ {}(⊂'hoo2 arg' '⎕←''hoo2'' arg')QNPUT(folder,'/sub/.git/info/hoo2.aplf')1
+ {}(⊂'joo2 arg' '⎕←''joo2'' arg')QNPUT(folder,'/.joo2.aplf')1
+ {}(⊂'koo2 arg' '⎕←''koo2'' arg')QNPUT(folder,'/koo2.tmp')1
+ names,←'#.linktest.foo2' '#.linktest.sub.goo2'
+ 'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
+
+ {}QNDELETE(folder,'/foo2.aplf')
+ {}QNDELETE(folder,'/sub/goo2.aplf')
+ {}QNDELETE(folder,'/sub/.git/info/hoo2.aplf')
+ {}QNDELETE(folder,'/.joo2.aplf')
+ {}QNDELETE(folder,'/koo2.tmp')
+ names↓⍨←¯2
+ 'link issue #156'assert'({⍵[⍋⍵]}names)≡({⍵[⍋⍵]}1 NSTREE name)'
+ 'link issue #158'assert'0=≢⎕SE.Link.U.WARNLOG'
+
+ ⎕SE.Link.U.WARN←warn
+ {}⎕SE.Link.Break name
+ break_tests name folder
+
+ 3 ⎕NDELETE folder
+ name⍎'⎕USING←'''''
+ :Trap 0 ⋄ {}name⍎'System.Environment' ⋄ :EndTrap  ⍝ external objects appear in name list only if accessed
+ z←⎕SE.Link.Create name folder
+ 'link issue #220'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ {}⎕SE.Link.Break name
+
+ ⎕EX name
+ 'link issue #226'assertError'⎕SE.Link.Create ''C:\temp\dir'' ''#.temp.dir'' ' 'Not a properly named namespace'
+
+ CleanUp folder name
+ ok←1

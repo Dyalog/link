@@ -1,0 +1,4 @@
+ assertMsg←{
+     msg←⍎⍵
+     ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
+ }
