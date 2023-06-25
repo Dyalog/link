@@ -11,6 +11,6 @@
          src←value
          extn←⊂'.charvec'
      :EndSelect
-     {}(⊂src)QNPUT(∊(extn@3)⎕NPARTS file)1
+     {}(⊂src)⎕NPUT(∊(extn@3)⎕NPARTS file)1
      r←0 ⍝ We're done; Link doesn't need to do any more
  :EndIf
