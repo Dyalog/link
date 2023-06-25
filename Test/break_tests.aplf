@@ -17,7 +17,7 @@
  z←⎕SE.Link.Create se_name folder2
  'Create failed'assert'islinked name se_name'
 
-:If ~(⊂⍕⎕THIS)∊⎕SE.Link.Links.ns
+:If ~TESTS_LINKED
    opts←⎕NS''
    z←opts ⎕SE.Link.Break''⊣opts.all←'⎕SE'     ⍝ Break all children of ⎕SE
    'Break -all=⎕SE failed'assert'~islinked se_name'

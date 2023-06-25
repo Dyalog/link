@@ -78,7 +78,7 @@
 
  {}'{all:1}'⎕SE.Link.Break ⍬
  'link issue #284'assert'{6::1 ⋄ (⎕SE.Link.Links.ns~IGNORE_LINKS)≡,⊂''⎕SE.unlikelyname''}⍬'
- :If ~(⊂⍕⎕THIS)∊⎕SE.Link.Links.ns
+ :If ~TESTS_LINKED
     {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
     'link issue #284'assert'{6::1 ⋄ 0=CountLinks}⍬'
  :Else

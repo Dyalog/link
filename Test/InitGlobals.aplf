@@ -2,10 +2,7 @@
  ⎕IO←1 ⋄ ⎕ML←1
 
  IGNORE_LINKS←'⎕SE.Link' '⎕SE.Dyalog' '⎕SE.LinkTest' ⍝ Pretend these don't exists while testing
- USE_ISOLATES←1     ⍝ Boolean : 0=handle files locally ⋄ 1=handle files in isolate
-    ⍝ the isolate is to off-load this process from file operations give it more room to run filewatcher callbacks
-    ⍝ the namespace will be #.SLAVE, and only file operations that trigger a filewatcher callback need to be run in that namespace
-    ⍝ unfortunately isolates have to be put in # because they copy DRC into #, and therefore hold references to #, and can't be held in ⎕SE at the cost of preventing )CLEAR.
+ TESTS_LINKED←{6::0 ⋄ (⊂⍕⎕THIS)∊⎕SE.Link.Links.ns}⍬
 
  DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
 
