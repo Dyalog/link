@@ -2,9 +2,9 @@
      ⍝ Test the flattened scenario
  FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
 
- {}3 ⎕MKDIR Retry⊢folder
- {}3 ⎕MKDIR folder,'/app'
- {}3 ⎕MKDIR folder,'/utils'
+ {}3 QMKDIR Retry⊢folder
+ {}3 QMKDIR folder,'/app'
+ {}3 QMKDIR folder,'/utils'
 
       ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
  _←(⊂main←' r←main' 'r←dup 2')⎕NPUT folder,'/app/main.aplf'        ⍝ One "application" function
@@ -13,7 +13,7 @@
  opts←⎕NS''
  opts.(flatten source)←1 'dir'
  opts.getFilename←TESTNS,'.onFlatFilename'
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
 
  ns←#⍎name
 

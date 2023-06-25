@@ -1,7 +1,7 @@
  ok←test_bugs(folder name);engine;foo;newbody;nr;opts;props;ref;root;search;server;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;warn;z
     ⍝ Github issues
  name ⎕NS''
- ⎕MKDIR Retry⊢folder ⍝ folder must be non-existent
+ QMKDIR Retry⊢folder ⍝ folder must be non-existent
 
           ⍝ link issue #335
  z←name'abc'⎕SE.Link.Fix,⊂'[1 2 3]'
@@ -10,7 +10,7 @@
  ⎕EX name,'.abc'
 
       ⍝ link issue #112 : cannot break an empty link
- z←⎕SE.Link.Create name folder
+ z←LinkCreate name folder
  'link issue #112'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  z←⎕SE.Link.Break name ⋄ ⎕EX name
  'link issue #112'assert'(∨/''Unlinked''⍷z)'
@@ -19,7 +19,7 @@
  root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
  '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
  {}(⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
- z←'{source:''dir''}'⎕SE.Link.Create # folder
+ z←'{source:''dir''}'LinkCreate # folder
  :If ~0.6∊1||#.⎕NC #.⎕NL-⍳10  ⍝ Options → Configure → Object Syntax → Expose Root Properties
      Log'"Expose Root Properties" not turned on - cannot QA issue #161'
  :EndIf
@@ -32,10 +32,10 @@
  ⎕EX'#.unlikelyname'
  # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
 
- z←⎕SE.Link.Create(name,'.⎕THIS')folder
+ z←LinkCreate(name,'.⎕THIS')folder
  'link issue #145'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #145'assert'1=CountLinks'
- z←⎕SE.Link.Create('⎕THIS.',name,'.sub')folder
+ z←LinkCreate('⎕THIS.',name,'.sub')folder
  'link issue #145'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #145'assert'2=CountLinks'
  :Trap ⎕SE.Link.U.ERRNO
@@ -53,11 +53,11 @@
  ⎕EX name
 
       ⍝ link issue #204
- z←⎕SE.Link.Create name folder
+ z←LinkCreate name folder
  'link issue #204'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #204'assert'1=CountLinks'
  ⎕EX name
- z←⎕SE.Link.Create'#.unlikelyname'folder
+ z←LinkCreate'#.unlikelyname'folder
  'link issue #204'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #204'assert'1=CountLinks'
  {}⎕SE.Link.Expunge'#.unlikelyname'
@@ -66,9 +66,9 @@
       ⍝ link issue #284 : ]link.break -all should close links under #
       ⍝ previously #111 stated it should close ALL links
  '⎕SE.unlikelyname must be non-existent'assert'0=⎕NC''⎕SE.unlikelyname'''
- z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
- z←⎕SE.Link.Create'#.unlikelyname'folder
- z←⎕SE.Link.Create'#.unlikelyname.sub'folder
+ z←LinkCreate'⎕SE.unlikelyname'folder
+ z←LinkCreate'#.unlikelyname'folder
+ z←LinkCreate'#.unlikelyname.sub'folder
  assert'3=CountLinks'
  props←'Namespace' '' 'Directory' 'Files'
  z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ''
@@ -86,9 +86,9 @@
  :EndIf
 
  ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
- z←⎕SE.Link.Create'⎕SE.unlikelyname'folder
- z←⎕SE.Link.Create'#.unlikelyname'folder
- z←⎕SE.Link.Create'#.unlikelyname.sub'folder
+ z←LinkCreate'⎕SE.unlikelyname'folder
+ z←LinkCreate'#.unlikelyname'folder
+ z←LinkCreate'#.unlikelyname.sub'folder
  assert'3=CountLinks'
  {}'{recursive:''on''}'⎕SE.Link.Break'#.unlikelyname'
  'link issue #111'assert'1=CountLinks'
@@ -99,9 +99,9 @@
 
       ⍝ link issue #117 : leave trailing slash in dir
       ⍝ superseeded by issue #146 when trailing slash was disabled altogether
- 'link issue #146'assertError'⎕SE.Link.Create name(folder,''/'')' 'Trailing slash reserved'
+ 'link issue #146'assertError'LinkCreate name(folder,''/'')' 'Trailing slash reserved'
  'link issue #146'assert'{6::1 ⋄ 0=CountLinks}⍬'
- z←⎕SE.Link.Create name folder
+ z←LinkCreate name folder
  'link issue #117'assert'1=CountLinks'
  'link issue #117'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      ⍝ link issue #116 : ⎕SE.Link.Refresh should not error when given a dir
@@ -126,7 +126,7 @@
  opts.watch←'dir'
  opts.typeExtensions←↑(2 'myapla')(3 'myaplf')(4 'myaplo')(9.1 'myapln')(9.4 'myaplc')(9.5 'myapli')
  (⊂newbody)⎕NPUT unlikelyfile 1  ⍝ make it invalid source
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'∧/∨/¨''ERRORS ENCOUNTERED'' (⎕SE.Link.U.WinSlash unlikelyfile)⍷¨⊂z'
  name⍎'var←1 2 3'
  z←⎕SE.Link.Add name,'.var'
@@ -139,7 +139,7 @@
  3 ⎕MKDIR folder
  (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
  (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
- {}⎕SE.Link.Create name folder
+ {}LinkCreate name folder
  (⊂';some new text')⎕NPUT(folder,'/config.ini')1  ⍝ should be ignored
  Breathe ⍝ allow notify to run before the break
  {}⎕SE.Link.Expunge name ⋄ 3 ⎕NDELETE folder
@@ -180,20 +180,20 @@
 
       ⍝ .apln must clash with directory of the same name
  {}(⊂':Namespace sub' ':EndNamespace')QNPUT folder,'/sub.apln'
- assertError'z←⎕SE.Link.Create name folder' 'clashing APL names'
+ assertError'z←LinkCreate name folder' 'clashing APL names'
  ⎕NDELETE folder,'/sub.apln'
 
       ⍝ attempt to change a function to an operator
- {}⎕SE.Link.Create name folder
+ {}LinkCreate name folder
  name'foo'⎕SE.Link.Fix foo←' r←(op foo)arg' ' r←op arg' ⍝ turn foo into an operator
  Breathe
- {}(folder,'/foo.aplo')#.SLAVE.⎕NMOVE folder,'/foo.aplf'
+ {}(folder,'/foo.aplo')QNMOVE folder,'/foo.aplf'
  Breathe
  'link issue #142'assert'(props,[.5]name ''←→'' folder 7)≡⎕SE.Link.Status name'
 
       ⍝ attempt to create invalid directory
  (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
- 3 ⎕MKDIR folder,'/New directory (1)/'
+ 3 QMKDIR folder,'/New directory (1)/'
  'link issue #183'assert'~0∊⍴''invalid name defined by file''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
  ⎕SE.Link.U.WARN←warn
  3 ⎕NDELETE folder,'/New directory (1)/'
@@ -252,7 +252,7 @@
  opts←⎕NS ⍬
  opts.watch←'ns'
  {}(⊂todelete←':Namespace todelete' 'todelete←1' ':EndNamespace')QNPUT(folder,'/todelete.apln')1
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #184'assert'0 0≡name⍎''⎕IO ⎕ML'''
 
  'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete'
@@ -301,10 +301,10 @@
  # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
 
       ⍝ link issue #235
+ {}(⊂':Namespace ns' ':EndNamespace')QNPUT(folder,'/ns.apln')0
  (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
  ⎕EX name
- {}(⊂':Namespace ns' ':EndNamespace')QNPUT(folder,'/ns.apln')0
- {}⎕SE.Link.Create name folder
+ {}LinkCreate name folder
  'link issue #235'assert'9.1=⎕NC⊂''',name,'.ns'''
  ⎕SE.Link.Expunge name,'.ns'
  Breathe
@@ -318,7 +318,7 @@
      {}(⊂engine←':Namespace  Engine' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Engine.apln')1
      {}(⊂master←':Require file://Slave.apln' ':Namespace  Master' ' dup ← ##.Slave.dup' ':EndNamespace')QNPUT(folder,'/Master.apln')1
      {}(⊂slave←':Namespace  Slave' ' dup ← {⍵ ⍵}' ':EndNamespace')QNPUT(folder,'/Slave.apln')1
-     z←⎕SE.Link.Create name folder
+     z←LinkCreate name folder
      'link issue #155'assert'1=CountLinks'
      'link issue #155'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      'link issue #155'assert' ''Engine'' ''Master''  ''Server'' ''Slave'' ''UnlikelyName'' ≡ (⍎name).⎕NL -⍳10'
@@ -338,7 +338,7 @@
  3 ⎕NDELETE folder
  opts←⎕NS ⍬
  opts.arrays←,⊂'msg1,',name,'.msg2,⎕IO,',name,'.⎕ML'
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #282'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #282'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/msg',⍵,'.apla'}¨'123'
  'link issue #309'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/',⍵,'.apla'}¨'⎕IO' '⎕ML' '⎕WX'
@@ -347,7 +347,7 @@
  opts.arrays←('wh!at')(name,'.!#')(name,'.''hello''')(name,'.dot')(name)
  3 ⎕NDELETE folder
  ⎕SE.Link.U.WARNLOG/⍨←0
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #309'assert'1=≢⎕SE.Link.U.WARNLOG'
  search←(⊂'-arrays modifier: Non-array names ignored'),opts.arrays
  'link issue #309'assert'(⎕IO-⍨⍳≢search)≡{⍵[⍋⍵]}search ⎕S 3⊢ ⎕SE.Link.U.WARNLOG'

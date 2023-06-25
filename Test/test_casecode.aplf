@@ -28,7 +28,7 @@
  :EndTrap
  3 ⎕NDELETE folder
  :Trap ⎕SE.Link.U.ERRNO
-     z←opts ⎕SE.Link.Create name folder
+     z←opts LinkCreate name folder
      'Link issue #113'assert'0'
      ⎕SE.Link.Break name
  :Else
@@ -49,7 +49,7 @@
  3 ⎕NDELETE folder
 
       ⍝ try variables too
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'z≡''Linked: ',name,' ←→ ',winfolder,' [directory was created] '''
  actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
  'link issue #43'assert'actfiles≡expfiles'
@@ -75,17 +75,17 @@
  assertError'opts ⎕SE.Link.Import name folder' 'clashing file names'
 
  opts.caseCode←1
- {}⎕SE.Link.Create name folder
+ {}LinkCreate name folder
  {}⎕SE.Link.Break name ⋄ ⎕EX name
 
       ⍝ survive clashing apl definitions despite different filenames
  {}(⊂'r←foo x' 'r←''foo'' x')∘QNPUT¨files←folder∘,¨'/clash1.aplf' '/clash2.aplf'
- assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
+ assertError'opts LinkCreate name folder' 'clashing APL names'
  {}QNDELETE¨1↓files
 
       ⍝ forcefilename will rename file with proper casecoding
  assert'1 0≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
- {}opts ⎕SE.Link.Create name folder
+ {}opts LinkCreate name folder
  assert'0 1≡⎕NEXISTS folder∘,¨''/clash1.aplf'' ''/foo-0.aplf'''
 
       ⍝ check forcefilename on-the-fly
@@ -95,8 +95,8 @@
  assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
 
       ⍝ check file rename on-the-fly
- Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
- {}(folder,'/NotDup.aplf')#.SLAVE.⎕NMOVE(folder,'/Dup-1.aplf')
+ Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the QNMOVE triggered by the original Notify
+ {}(folder,'/NotDup.aplf')QNMOVE(folder,'/Dup-1.aplf')
  assert'0 1≡⎕NEXISTS folder∘,¨''/NotDup.aplf'' ''/Dup-1.aplf'''
 
       ⍝ check apl rename on-the-fly
@@ -130,13 +130,13 @@
       ⍝ survive clashing apl definitions despite different filenames
  {}(⊂'r←goo x' 'r←''goo'' x')∘QNPUT¨files←folder∘,¨'/goo.apla' '/goo.apln'
  {}(⊂'r←hoo x' 'r←''hoo'' x')QNPUT folder,'/hoo.aplf'  ⍝ this one should remain as is
- assertError'{}opts ⎕SE.Link.Create name folder' 'clashing APL names'
+ assertError'{}opts LinkCreate name folder' 'clashing APL names'
  {}QNDELETE¨1↓files
 
       ⍝ check forceextensions - should not enforce casecoding
  assert'1 0 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
  assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
- {}opts ⎕SE.Link.Create name folder
+ {}opts LinkCreate name folder
  assert'0 1 0≡⎕NEXISTS folder∘,¨''/goo.apla'' ''/goo.aplf'' ''/goo-0.aplf'''
  assert'1 0≡⎕NEXISTS folder∘,¨''/hoo.aplf'' ''/hoo-0.aplf'''
 
@@ -149,8 +149,8 @@
  assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
 
       ⍝ check file rename on-the-fly
- Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the ⎕NMOVE triggered by the original Notify
- {}(folder,'/NotDupDup1.apla')#.SLAVE.⎕NMOVE(folder,'/NotDupDup1.aplf')
+ Breathe ⋄ Breathe ⋄ Breathe   ⍝ the previous operation requires extensive post-processing so that Notify handles the QNMOVE triggered by the original Notify
+ {}(folder,'/NotDupDup1.apla')QNMOVE(folder,'/NotDupDup1.aplf')
  assert'0 1≡⎕NEXISTS folder∘,¨''/NotDupDup1.apla'' ''/NotDupDup1.aplf'''
  assert'fn≡⎕NR name,''.DupDup1'''
  assert'0=⎕NC name,''.NotDupDup1'''
@@ -256,7 +256,7 @@
  {}⎕SE.UCMD']Link.Expunge ',name
  'link issue #231'assert'0=⎕NC name'
  opts←⎕NS ⍬ ⋄ opts.(caseCode forceFilenames)←1
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #231'assert'~''ERRORS ENCOUNTERED''⍷z'
  (name,'.Sub')⎕SE.Link.Fix'res←SubFoo arg' 'res←arg arg'
  'link issue #231'assert'(,⊂folder,''/Sub-1/SubFoo-11.aplf'')≡(0 NTREE folder)'

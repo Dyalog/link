@@ -1,5 +1,4 @@
  ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
-
  'link issue #265'assert'0=⎕NC''unlikelyname'''
  name ⎕NS ''
  (⍎name) ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
@@ -14,7 +13,7 @@
  opts.beforeWrite←TESTNS,'.onBasicWrite'
  opts.customExtensions←'charmat' 'charvec'
  opts.watch←'both'
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'1=CountLinks'
  link←⊃⎕SE.Link.Links
  ns←#⍎name
@@ -41,22 +40,22 @@
  assert'ns.one2≡⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET o2file 1'
 
       ⍝ Rename the array
- Breathe ⋄ Breathe ⋄ Breathe   ⍝ because the previous Fix can trigger several "changed" filewatcher callbacks, and the following ⎕NMOVE would confuse them
+ Breathe ⋄ Breathe ⋄ Breathe   ⍝ because the previous Fix can trigger several "changed" filewatcher callbacks, and the following QNMOVE would confuse them
  otfile←folder,'/onetwo.apla'
  z←ns.one2
- _←otfile #.SLAVE.⎕NMOVE o2file
+ _←otfile QNMOVE o2file
  assert'z≡ns.onetwo' 'ns.onetwo←z'
  assert'0=⎕NC ''ns.one2''' '⎕EX ''ns.one2'''
 
       ⍝ Create sub-folder
  Breathe
- _←#.SLAVE.⎕MKDIR folder,'/sub'
+ _←QMKDIR folder,'/sub'
  assert'9.1=ns.⎕NC ⊂''sub''' '''ns.sub'' ⎕NS '''''
 
       ⍝ Move array to sub-folder
  Breathe
  value←ns.onetwo
- _←(new←folder,'/sub/one2.apla')#.SLAVE.⎕NMOVE otfile
+ _←(new←folder,'/sub/one2.apla')QNMOVE otfile
  assert'value≡ns.sub.one2' 'ns.sub.one2←value'
  assert'0=⎕NC''ns.onetwo''' '⎕EX''ns.onetwo'''
 
@@ -96,7 +95,7 @@
  nl←'aClass' 'bClass' 'foo' 'onetwo'
  assert'nl≡ns.sub.⎕NL-⍳10'                             ⍝ contents are the same
  assert'0=ns.⎕NC''bus'''
- _←(folder,'/bus')#.SLAVE.⎕NMOVE folder,'/sub'
+ _←(folder,'/bus')QNMOVE folder,'/sub'
  assert'9.1=ns.⎕NC ⊂''bus''' '''ns.bus'' ⎕NS '''''     ⍝ bus is a namespace
  assert'3=ns.bus.⎕NC ''foo''' '2 ns.bus.⎕FIX ''file://'',folder,''/bus/foo.dyalog''' ⍝ bus.foo is a function
  assert'∨/''/bus/foo.dyalog''⍷4⊃ns.bus.(5179⌶)''foo''' ⍝ check connection is registered
@@ -108,13 +107,14 @@
  _←(folder,'/foo - copy.dyalog')#.SLAVE.⎕NCOPY folder,'/foo.dyalog' ⍝ simulate copy/paste
  Breathe ⋄ Breathe ⋄ Breathe ⍝ Allow FileSystemWatcher time to react (always needed)
  goofile←folder,'/goo.dyalog'
- _←goofile #.SLAVE.⎕NMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
+ _←goofile QNMOVE folder,'/foo - copy.dyalog' ⍝ followed by rename
  Breathe ⋄ Breathe ⋄ Breathe ⍝ Allow FileSystemWatcher some time to react (always needed)
       ⍝ Verify that the old function is still linked to the original file
  assert'old≡new←ns.(5179⌶)''foo''' '5178⌶''ns.foo'''
 
       ⍝ Now edit the new file so it defines 'zoo'
  tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn ⍝ (beware UTF-8 encoded file)
+ Notify 'changed' goofile ⍝ No cover for QNREPLACE
       ⍝ Validate that this did cause zoo to arrive in the workspace
  zoo←' r←zoo x' ' x x'
  assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
@@ -123,6 +123,7 @@
       ⍝ Finally edit the new file so it finally defines 'goo'
  tn←goofile ⎕NTIE 0
  'g'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
+ Notify 'changed' goofile ⍝ No cover for ⎕NREPLACE
  ⎕NUNTIE tn
       ⍝ Validate that this did cause goo to arrive in the workspace
  goo←' r←goo x' ' x x'
@@ -180,7 +181,7 @@
  _←QNDELETE folder,'/foo.dyalog'
  assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
 
- '()'⎕NPUT folder,'/array.apla'
+ _←(⊂'()') QNPUT folder,'/array.apla'
  'link issue #260'assert name,'≡',name,'.array.##'
 
  'link issue #263'assert'''No link to break in arguments''≡⎕SE.Link.Break ⍬'

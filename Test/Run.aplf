@@ -28,8 +28,8 @@
  :EndIf
       ⍝ set up watcher/crawler
  (canwatch cancrawl interval)←⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)
- :If canwatch⍱cancrawl
-     Log'FileSystemWatcher or Crawler required to run tests'
+ :If ~USE_MOCK_FSW∨canwatch∨cancrawl
+     Log'Set USE_MOCK_FSW - no FileSystemWatcher or Crawler available'
      :Return
  :EndIf
       ⍝:If (canwatch⍲cancrawl)
@@ -60,14 +60,14 @@
      :If canwatch ⍝ test with file watcher
          ⎕SE.Link.Watcher.(CRAWLER DOTNET)←0 1
 ⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
-         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←         
+         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
 ⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
      :EndIf
      :If cancrawl ⍝ test with crawler
      :AndIf ~(canwatch∧test≡'test_watcherrors')  ⍝ already done with file watcher - no need to do it with file crawler
          ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
 ⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
-         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←         
+         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
 ⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
      :EndIf
  :EndFor
@@ -83,6 +83,8 @@
  core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
  aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
  aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
- opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),')'
+ opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', '
+ opts,←'USE_MOCK_FSW: ',(⍕USE_MOCK_FSW),')'
+ 
  oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
  Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts

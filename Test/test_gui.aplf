@@ -36,7 +36,7 @@
  {}(⊂varsrc)QNPUT(folder,'/sub/var.apla')1
  {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
  {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
- output←ride.APL' ''{flatten:1}'' ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+ output←ride.APL' ''{flatten:1}'' LinkCreate ',(Stringify name),' ',(Stringify folder)
  assert'(∨/''Linked:''⍷output)'
 
       ⍝ https://github.com/Dyalog/link/issues/48
@@ -64,7 +64,7 @@
  {}(⊂varsrc)QNPUT(folder,'/var.apla')1
  {}(⊂foo)QNPUT(folder,'/foo.aplf')1
  {}(⊂class)QNPUT(folder,'/class.aplc')1
- output←ride.APL'  ⎕SE.Link.Create ',(Stringify name),' ',(Stringify folder)
+ output←ride.APL'  LinkCreate ',(Stringify name),' ',(Stringify folder)
  assert'(⊃''Linked:''⍷output)'
 
      ⍝ link issue #190: edit a non-existing name, and change its name before fixing
