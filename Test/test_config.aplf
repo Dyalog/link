@@ -1,4 +1,4 @@
- ok←test_config(folder name);z
+ ok←test_config(folder name);z;config
 ⍝ Verify that the system is using configuration according to the spex
 
  3 ⎕MKDIR Retry⊢folder
@@ -6,11 +6,21 @@
  SetUserConfig 'watch: "ns"'
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ Used config
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGet folder,'/.linkconfig'
+ assert '(,⊂''watch'')≡config.Settings.⎕NL -2'
+ assert '''ns''≡config.Settings.watch'
  z←⎕SE.Link.Break name
 
  z←'{watch:''both''}' LinkCreate name folder
  assert '''both''≡(GetLink name).watch' ⍝ Setting overrides config
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGet folder,'/.linkconfig'
+ assert '''ns''≡config.Settings.watch'  ⍝ folder setting should NOT be changed
+ z←⎕SE.Link.Break name
 
- SetUserConfig ''       ⍝ All default
+ SetUserConfig '' ⍝ User config no longer has an opinion
+ z←LinkCreate name folder
+ assert '''ns''≡(GetLink name).watch' ⍝ used folder config
+ z←⎕SE.Link.Break name
+
  CleanUp folder name
  ok←1

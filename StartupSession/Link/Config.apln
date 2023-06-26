@@ -20,9 +20,13 @@
 
     DebugParams←'notify' 'debug',⍪0 0
 
-∇ GetEnvironment
-
-∇
+    ∇ ns←ExpungeDefaultParams ns;values;names;m
+      :If 0≠≢names←ns.⎕NL-2
+          values←¯1↓ns⍎⍕names,1↑names
+          m←values≡¨(LinkParams[;2],⎕NULL)[LinkParams[;1]⍳names]
+          ns.⎕EX m/names ⍝ remove settings which are default
+      :EndIf
+    ∇
 
     ∇ r←UserConfig
      ⍝ Return user configuration
@@ -34,7 +38,7 @@
       r←CONFIG
     ∇
 
-    ∇ config←{linkdir}GetConfig userfile;userdir;z;rc;dir;linkfile;config
+    ∇ config←{linkdir}GetConfig userfile;userdir;z;rc;dir;linkfile;config;names;p;valid
      ⍝ Return configuration namespaces, blending user configuration file with optional link directory config
      ⍝ config[1] is options actually set
      ⍝ config[2] hs defaults filled in
@@ -67,12 +71,22 @@
               dir ⎕SIGNAL 11
           :EndIf
      
-          ⎕TRAP←0 'S' ⋄ ∘∘∘
-          ∘∘∘ ⍝ now merge it
+          ⍝ Overwrite user config with directory config
+          'config.Settings'⎕NS ⎕OR'dir.Settings'
+          'config.Debug'⎕NS ⎕OR'dir.Debug'
+     
+          :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]
+              →0⊣(rc config)←1('Unknown Setting(s) in "',file,'": ',⍕names~valid)
+          :EndIf
+     
+          :If ~∧/(names←config.Debug.⎕NL-2)∊valid←(p←DebugParams)[;1]
+              →0⊣(rc config)←1('Unknown Debug options in "',file,'": ',⍕names~valid)
+          :EndIf
+     
       :EndIf
     ∇
 
-    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;set;json
+    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json
      ⍝ Read a configuration file and return a namespace
      
       :If ~⎕NEXISTS file
@@ -81,43 +95,30 @@
      
       :Trap 0
           config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
-          set←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json
       :Else
           →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⊃⎕DMX.EM)
       :EndTrap
      
       :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags'
           →0⊣(rc config)←1('Unknown section in "',file,'": valid are ',⍕names~valid)
-      :EndIf      
-      ⍎(×≢names)/'config.(',(⍕names),')←⎕NS¨(⍴names)⍴⊂'''''⊣names←valid~names
-     
-      :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]
-          →0⊣(rc config)←1('Unknown Setting(s) in "',file,'": ',⍕names~valid)
-      :EndIf   
-
-      config.Settings ApplyDefaults p
-     
-      :If ~∧/(names←config.Debug.⎕NL-2)∊valid←(p←DebugParams)[;1]
-          →0⊣(rc config)←1('Unknown Debug options in "',file,'": ',⍕names~valid)
       :EndIf
-      config.Debug ApplyDefaults p   
-      config←(set config)
+      ⍎(×≢names)/'config.(',(⍕names),')←⎕NS¨(⍴names)⍴⊂'''''⊣names←valid~names
       rc←0
     ∇
 
     ∇ ns ApplyDefaults params;names;values
       (names values)←↓⍉(~params[;1]∊ns.⎕NL-2)⌿params
       ⍎(×≢names)/'ns.(',(⍕names),')←values'
-    ∇                
-    
+    ∇
+
     ∇ merged←opts MergeOpts config
      ⍝ Add settings from the user configuration into Link Function options
-       :If 9=⎕NC 'config.Settings'
-           merged←0 ⎕JSON 1 ⎕JSON config.Settings ⍝ Clone settings ns
-           'merged' ⎕NS ⎕OR 'opts'                ⍝ Overwrite options with explicit switch settings
-       :Else
-           merged←opts
-       :EndIf 
+      :If 9=⎕NC'config.Settings'
+          merged←0 ⎕JSON 1 ⎕JSON config.Settings ⍝ Clone settings ns
+          'merged'⎕NS ⎕OR'opts'                ⍝ Overwrite options with explicit switch settings
+      :Else
+          merged←opts
+      :EndIf
     ∇
 
 

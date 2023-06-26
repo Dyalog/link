@@ -2,3 +2,4 @@
  (files types)←0 1 ⎕NINFO⍠1⍠'Recurse' 1⊢folder,'/*'
  files←files,¨(types=1)/¨'/'
  files←(dirs∨types≠1)/files  ⍝ dirs=0 : exclude directories
+ files←(~(2⊃¨⎕NPARTS¨ files)∊⊂'.linkconfig')/files
