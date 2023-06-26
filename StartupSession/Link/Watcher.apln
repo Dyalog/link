@@ -1,4 +1,4 @@
-﻿:Namespace Watcher
+:Namespace Watcher
     ⎕IO ⎕ML←1 1
     ⎕CT←0  ⍝ to compare EncodeTS
 
@@ -166,7 +166,7 @@
       :Else
           fsw←link.fsw
       :EndIf
-      :If fsw≢⎕NULL ⋄ paused←~fsw.EnableRaisingEvents
+      :If fsw≢⎕NULL ⋄ paused←{90::0 ⋄ ~fsw.EnableRaisingEvents}⍬
       :ElseIf CRAWLER ⋄ paused←~IsCrawlerActive link
       :Else ⋄ paused←0
       :EndIf

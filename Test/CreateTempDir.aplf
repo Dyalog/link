@@ -1,5 +1,5 @@
- dir←CreateTempDir create;i;prefix;tmp
+ dir←CreateTempDir create;i;prefix;tmp;dirs
  prefix←(739⌶0),'/linktest-' ⋄ i←0
  :Repeat ⋄ dir←prefix,⍕i←i+1
- :Until ~⎕NEXISTS dir
- :If create ⋄ 2 ⎕MKDIR dir ⋄ :EndIf
+ :Until ~∨/⎕NEXISTS dirs←dir∘,¨'' '-config'
+ :If create ⋄ 2 ⎕MKDIR dirs ⋄ :EndIf

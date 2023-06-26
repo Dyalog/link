@@ -1,9 +1,10 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;fullconfig
  ⎕IO ⎕ML←1 1
- :If U.debug=2
+ (setconfig fullconfig)←dir Config.GetConfig ''
+ :If 2=DEBUG←fullconfig.Debug.debug
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
- :Trap DEBUG↓0
+ :Trap DEBUG
      :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
          :If 0=⎕NC'⎕SE.Link.Links'   ⍝ init links if necessary
              U.SetLinks ⍬
@@ -20,6 +21,7 @@
          :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
          :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
          :EndIf
+         opts←opts Config.MergeOpts setconfig
          :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works
              opts.watch←'ns' ⍝ default to watch='ns' and warn about it
              :If U.IS180 ⋄ warnmsg←'.NET or .NetCore not available - watch defaults to ''ns'''

@@ -1,0 +1,124 @@
+:Namespace Config ⍝ Fns for dealing with config files
+
+⍝ Note that U.DefaultOpts contains related functionality
+⍝      that should perhaps be brought in here
+
+    LinkParams←1 2⍴'watch' 'both'
+    LinkParams⍪←'arrays' 0
+    LinkParams⍪←'sysVars' 0
+    LinkParams⍪←'forceExtensions' 0
+    LinkParams⍪←'forceFilenames' 0
+    LinkParams⍪←'caseCode' 0
+    LinkParams⍪←'flatten' 0
+    LinkParams⍪←'beforeWrite' ''
+    LinkParams⍪←'beforeRead' ''
+    LinkParams⍪←'getFilename' ''
+    LinkParams⍪←'codeExtensions' ''
+    LinkParams⍪←'customExtensions' ''
+    LinkParams⍪←'typeExtensions' ''
+    LinkParams⍪←'fastLoad' 0
+
+    DebugParams←'notify' 'debug',⍪0 0
+
+∇ GetEnvironment
+
+∇
+
+    ∇ r←UserConfig
+     ⍝ Return user configuration
+     ⍝ /// In the future, we will cache  CONFIG and watch the config file
+      ⍝ :If 0=⎕NC 'CONFIG'
+      CONFIG←GetConfig''
+     ⍝ :EndIf
+     
+      r←CONFIG
+    ∇
+
+    ∇ config←{linkdir}GetConfig userfile;userdir;z;rc;dir;linkfile;config
+     ⍝ Return configuration namespaces, blending user configuration file with optional link directory config
+     ⍝ config[1] is options actually set
+     ⍝ config[2] hs defaults filled in
+     ⍝
+     ⍝ GetConfig '' ⍝ returns user config from default location
+     ⍝ GetConfig '/some/folder/.linkconfig' ⍝ Reads specific
+     
+      :If 0=≢userfile        ⍝ Config file not given
+          :If 0=##.⎕NC'USERCONFIGFILE'
+              USERCONFIGFILE←''
+          :Else
+              userfile←##.USERCONFIGFILE ⍝ Allow e.g. QA to override user config file
+          :EndIf
+      :AndIf 0=≢userfile
+          :If 0≠≢userdir←{⍵:(⊢↓⍨1-'\'⍳⍨⌽)2⊃4070⌶⍬ ⋄ '/',⍨2 ⎕NQ #'GetEnvironment' 'HOME'}##.U.ISWIN
+              userfile←userdir,'.linkconfig'
+          :EndIf
+      :EndIf
+     
+      (rc config)←ReadConfigFile userfile
+      :If rc≠0
+          config ⎕SIGNAL 11
+      :EndIf
+     
+      :If 2=⎕NC'linkdir'
+      :AndIf 0≠≢linkdir
+      :AndIf ⎕NEXISTS linkfile←linkdir,'/.linkconfig'
+          (rc dir)←ReadConfigFile linkfile
+          :If rc≠0
+              dir ⎕SIGNAL 11
+          :EndIf
+     
+          ⎕TRAP←0 'S' ⋄ ∘∘∘
+          ∘∘∘ ⍝ now merge it
+      :EndIf
+    ∇
+
+    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;set;json
+     ⍝ Read a configuration file and return a namespace
+     
+      :If ~⎕NEXISTS file
+          →0⊣(rc config)←1('Unable to find configuration file "',file,'"')
+      :EndIf
+     
+      :Trap 0
+          config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
+          set←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json
+      :Else
+          →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⊃⎕DMX.EM)
+      :EndTrap
+     
+      :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags'
+          →0⊣(rc config)←1('Unknown section in "',file,'": valid are ',⍕names~valid)
+      :EndIf      
+      ⍎(×≢names)/'config.(',(⍕names),')←⎕NS¨(⍴names)⍴⊂'''''⊣names←valid~names
+     
+      :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]
+          →0⊣(rc config)←1('Unknown Setting(s) in "',file,'": ',⍕names~valid)
+      :EndIf   
+
+      config.Settings ApplyDefaults p
+     
+      :If ~∧/(names←config.Debug.⎕NL-2)∊valid←(p←DebugParams)[;1]
+          →0⊣(rc config)←1('Unknown Debug options in "',file,'": ',⍕names~valid)
+      :EndIf
+      config.Debug ApplyDefaults p   
+      config←(set config)
+      rc←0
+    ∇
+
+    ∇ ns ApplyDefaults params;names;values
+      (names values)←↓⍉(~params[;1]∊ns.⎕NL-2)⌿params
+      ⍎(×≢names)/'ns.(',(⍕names),')←values'
+    ∇                
+    
+    ∇ merged←opts MergeOpts config
+     ⍝ Add settings from the user configuration into Link Function options
+       :If 9=⎕NC 'config.Settings'
+           merged←0 ⎕JSON 1 ⎕JSON config.Settings ⍝ Clone settings ns
+           'merged' ⎕NS ⎕OR 'opts'                ⍝ Overwrite options with explicit switch settings
+       :Else
+           merged←opts
+       :EndIf 
+    ∇
+
+
+:EndNamespace

@@ -1,0 +1,5 @@
+SetUserConfig string;txt
+⍝ Set the User Config file
+
+txt←'{Settings:{',string,'}}'
+(⊂txt) ⎕NPUT ⎕SE.Link.USERCONFIGFILE 1

@@ -1,0 +1,16 @@
+ ok←test_config(folder name);z
+⍝ Verify that the system is using configuration according to the spex
+
+ 3 ⎕MKDIR Retry⊢folder
+ ⎕EX name
+ SetUserConfig 'watch: "ns"'
+ z←LinkCreate name folder
+ assert '''ns''≡(GetLink name).watch' ⍝ Used config
+ z←⎕SE.Link.Break name
+
+ z←'{watch:''both''}' LinkCreate name folder
+ assert '''both''≡(GetLink name).watch' ⍝ Setting overrides config
+
+ SetUserConfig ''       ⍝ All default
+ CleanUp folder name
+ ok←1
