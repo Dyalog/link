@@ -1,13 +1,29 @@
- msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML
+ msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
  ⎕IO ⎕ML←1 1
+ setconfig←src Config.GetConfig'' ⍝ Config options actually set in the folder or user config
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      (container src)←⎕RSI ⎕XSI U.ContainerNs rawsrc←src
 
-     (defopts←⎕NS ⍬).(overwrite arrays)←0 0
-     opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     (defopts←⎕NS ⍬).(overwrite arrays sysvars caseCode)←0 0 0 0
+     :If 0=⎕NC'opts' ⋄ opts←⎕NS''
+     :ElseIf ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts
+     :EndIf
+     opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
+
+     :If 0≠≢links←⎕SE.Link.Links
+     :AndIf (⊂src)∊links.ns               ⍝ If exporting a linked namespace
+     :AndIf ⎕NEXISTS file←links[links.ns⍳⊂src].dir,'/.linkconfig'
+     :AndIf 0=⊃(rc config)←Config.ReadConfigFile file
+         config.Settings.⎕EX(config.Settings.⎕NL ¯2)~defopts.⎕NL ¯2
+         opts←opts Config.MergeOpts config ⍝ ... merge settings found in .linkconfig in
+     :EndIf
+
+     'setopts'⎕NS ⎕OR'opts' ⍝ Record options that were set for writing .linkconfig file
+     opts←defopts U.DefaultOpts opts
+
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
 
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
@@ -35,6 +51,13 @@
          opts.dir←dir
 
          (fixed failed)←opts U.WriteFiles src dest opts.overwrite
+         ⍝ Now write config file
+         z←⎕NS''
+         z.Settings←Config.ExpungeDefaultParams setopts
+         :If 0≠≢z.Settings.⎕NL ¯2 ⍝ Don't write a file with no settings
+             json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢z
+             (⊂json)⎕NPUT dir,'/.linkconfig'
+         :EndIf
 
          :If ~single
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir

@@ -21,7 +21,7 @@
          :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
          :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
          :EndIf
-         opts←opts Config.MergeOpts setconfig
+         opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
          :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works
              opts.watch←'ns' ⍝ default to watch='ns' and warn about it
              :If U.IS180 ⋄ warnmsg←'.NET or .NetCore not available - watch defaults to ''ns'''

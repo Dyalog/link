@@ -58,7 +58,12 @@
           :EndIf
       :EndIf
      
-      (rc config)←ReadConfigFile userfile
+      :If ⎕NEXISTS userfile
+          (rc config)←ReadConfigFile userfile
+      :Else
+          (rc config)←0 (⎕NS '')
+      :EndIf
+
       :If rc≠0
           config ⎕SIGNAL 11
       :EndIf

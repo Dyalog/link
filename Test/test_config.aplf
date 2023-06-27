@@ -1,26 +1,58 @@
- ok←test_config(folder name);z;config
+ ok←test_config(folder name);z;config;userfile;ns;files;export
 ⍝ Verify that the system is using configuration according to the spex
 
+⍝ --- Link.Create ---
+⍝ Test that Link.Create uses "user configuration"
  3 ⎕MKDIR Retry⊢folder
+
  ⎕EX name
- SetUserConfig 'watch: "ns"'
+ SetConfig 'watch: "ns", caseCode:1' ⍝ Create a user config file
  z←LinkCreate name folder
- assert '''ns''≡(GetLink name).watch' ⍝ Used config
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGet folder,'/.linkconfig'
- assert '(,⊂''watch'')≡config.Settings.⎕NL -2'
- assert '''ns''≡config.Settings.watch'
+ assert '''ns''≡(GetLink name).watch' ⍝ Check that user config was used
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET folder,'/.linkconfig'
+ assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert '''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
+ ns←⍎name
+ ns.⎕FX 'foo' '2+2' ⍝ Little foo
+ ns.⎕FX 'FOO' '3+3' ⍝ Big foo
+ z←⎕SE.Link.Add name∘,¨'.foo' '.FOO'
+ files←⊃2⊃¨¨⎕NPARTS¨⎕NINFO⍠1⊢folder,'/*'
+ assert '''.linkconfig'' ''foo-0'' ''FOO-7'' ≡⍥{⍵[⍋⍵]} files'
  z←⎕SE.Link.Break name
 
+⍝ Test that explicit settings override any configuration
  z←'{watch:''both''}' LinkCreate name folder
- assert '''both''≡(GetLink name).watch' ⍝ Setting overrides config
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGet folder,'/.linkconfig'
- assert '''ns''≡config.Settings.watch'  ⍝ folder setting should NOT be changed
+ assert '''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET folder,'/.linkconfig'
+ assert '''ns''≡config.Settings.watch'  ⍝ Directory setting should NOT be changed
  z←⎕SE.Link.Break name
 
- SetUserConfig '' ⍝ User config no longer has an opinion
+⍝ Test that folder config is used if user config says nothing
+ SetConfig '' ⍝ User config now empty
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ used folder config
  z←⎕SE.Link.Break name
 
+⍝ Test that it works if there is no user config file
+ ⎕NDELETE userfile←⎕SE.Link.USERCONFIGFILE
+ z←LinkCreate name folder
+ assert '''ns''≡(GetLink name).watch' ⍝ used folder config
+
+⍝ --- Link.Export ---
+⍝ (also tests exporting a linked namespace - issue #505)
+ export←folder,'-export'
+ z←'{flatten:1}' ⎕SE.Link.Export name export
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET export,'/.linkconfig'
+ assert '(1 1)≡config.Settings.(caseCode flatten)'
+ z←⎕SE.Link.Break name
+ ⎕EX name
+
+⍝ --- Link.Import ---
+ SetUserConfig '' ⍝ Recreate (empty) user config
+ ⎕MKDIR export,'/sub'
+ (⊂'goo' '4+4') ⎕NPUT export,'/sub/goo-0.aplf'
+ z←⎕SE.Link.Import name export
+ assert '3=≢',name,'.⎕NL -3' ⍝ Should be 3 functions in there after flattening
+ 3 ⎕NDELETE export
  CleanUp folder name
  ok←1

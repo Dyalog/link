@@ -1,5 +1,6 @@
- msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML
+ msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML;setconfig
  ⎕IO ⎕ML←1 1
+ setconfig←src Config.GetConfig '' ⍝ Config options actually set in the folder or user config
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -7,7 +8,9 @@
      U.ErrorIfRestored U.GetLinks ⍝ never allow import - should ideally forbid it ONLY into linked namespaces
 
      (defopts←⎕NS ⍬).(overwrite)←0
-     opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ create opts monadic?
+     opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
+     opts←defopts U.DefaultOpts opts
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
