@@ -1,12 +1,18 @@
  ok←test_config(folder name);z;config;userfile;ns;files;export
 ⍝ Verify that the system is using configuration according to the spex
 
-⍝ --- Link.Create ---
-⍝ Test that Link.Create uses "user configuration"
- 3 ⎕MKDIR Retry⊢folder
+⍝ --- Link.Configure set user config ---
+ SetConfig '' ⍝ Clear user config file
+ z←⎕SE.Link.Configure '*' 'watch:ns' 'caseCode:1' ⍝ Set options
+ assert '∧/1∊¨''watch: '' ''caseCode: ''⍷¨⊂z'
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⎕SE.Link.USERCONFIGFILE
+ assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
 
+⍝ --- Link.Create ---
+⍝ Test that Link.Create uses the user config
+ 3 ⎕MKDIR Retry⊢folder
  ⎕EX name
- SetConfig 'watch: "ns", caseCode:1' ⍝ Create a user config file
+
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ Check that user config was used
  config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET folder,'/.linkconfig'
@@ -22,13 +28,18 @@
 
 ⍝ Test that explicit settings override any configuration
  z←'{watch:''both''}' LinkCreate name folder
+ z←⎕SE.Link.Configure name 'fastLoad:1'
  assert '''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
  config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET folder,'/.linkconfig'
- assert '''ns''≡config.Settings.watch'  ⍝ Directory setting should NOT be changed
+ assert '''ns'' 1≡config.Settings.(watch fastLoad)'  ⍝ Directory setting should NOT be changed
  z←⎕SE.Link.Break name
 
 ⍝ Test that folder config is used if user config says nothing
- SetConfig '' ⍝ User config now empty
+ z←⎕SE.Link.Configure '*' 'watch:' 'caseCode:' ⍝ Clear user config settings
+ assert '∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
+ config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⎕SE.Link.USERCONFIGFILE
+ assert '0=≢config.Settings.⎕NL -2'          ⍝ All clear
+
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ used folder config
  z←⎕SE.Link.Break name
@@ -41,14 +52,17 @@
 ⍝ --- Link.Export ---
 ⍝ (also tests exporting a linked namespace - issue #505)
  export←folder,'-export'
- z←'{flatten:1}' ⎕SE.Link.Export name export
+ z←'{flatten:0}' ⎕SE.Link.Export name export
+ z←⎕SE.Link.Configure export 'flatten:1'             ⍝ Test setting option in named file
+ assert '1∊''flatten:''⍷z'                           ⍝ flatten:0 is default so not stored in config
  config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET export,'/.linkconfig'
- assert '(1 1)≡config.Settings.(caseCode flatten)'
+ assert '1≡config.Settings.caseCode' ⍝ caseCode should be picked up from link
+
  z←⎕SE.Link.Break name
  ⎕EX name
 
 ⍝ --- Link.Import ---
- SetUserConfig '' ⍝ Recreate (empty) user config
+ SetConfig '' ⍝ Recreate (empty) user config
  ⎕MKDIR export,'/sub'
  (⊂'goo' '4+4') ⎕NPUT export,'/sub/goo-0.aplf'
  z←⎕SE.Link.Import name export

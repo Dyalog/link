@@ -1,7 +1,7 @@
  msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML;setconfig
  ⎕IO ⎕ML←1 1
- setconfig←src Config.GetConfig '' ⍝ Config options actually set in the folder or user config
- :If U.debug=2
+ setconfig←src Config.GetConfig '' ⍝ Read Config in imported folder or user config
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0

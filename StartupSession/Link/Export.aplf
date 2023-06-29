@@ -1,7 +1,7 @@
  msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
  ⎕IO ⎕ML←1 1
- setconfig←src Config.GetConfig'' ⍝ Config options actually set in the folder or user config
- :If U.debug=2
+ setconfig←Config.GetConfig'' ⍝ Read user config
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
@@ -11,7 +11,6 @@
      :If 0=⎕NC'opts' ⋄ opts←⎕NS''
      :ElseIf ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts
      :EndIf
-     opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
 
      :If 0≠≢links←⎕SE.Link.Links
      :AndIf (⊂src)∊links.ns               ⍝ If exporting a linked namespace
@@ -21,6 +20,7 @@
          opts←opts Config.MergeOpts config ⍝ ... merge settings found in .linkconfig in
      :EndIf
 
+     opts←opts Config.MergeOpts setconfig  ⍝ Finally merge user options in
      'setopts'⎕NS ⎕OR'opts' ⍝ Record options that were set for writing .linkconfig file
      opts←defopts U.DefaultOpts opts
 

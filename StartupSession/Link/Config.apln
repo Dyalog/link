@@ -20,6 +20,27 @@
 
     DebugParams←'notify' 'debug',⍪0 0
 
+    ∇ msg←FormatOptions config;obj;trace;stop;name
+       msg←''
+       :If 9=⎕NC 'config.Debug'
+           msg,←⊂'Debug     : ',⍕config.Debug.({⍵,':',⍕⍎⍵}¨⎕NL -2)
+       :EndIf
+       
+       :If 9=⎕NC 'config.Settings'
+           msg,←⊂'Settings  : ',⍕config.Settings.({⍵,':',⍕⍎⍵}¨⎕NL -2)
+       :EndIf
+       
+       :If 2=⎕NC  'config.SourceFlags'
+           msg,←⊂'Stop/Trace:'
+           :For obj :In config.SourceFlags    
+                (name stop trace)←obj.{6::⍬ ⋄ ⍎⍵}¨'Name' 'Stop' 'Trace'
+                :If (0≠≢name)∧(∨/0≠≢¨stop trace) ⍝ Something to report
+                     msg,←⊂'   ',name,'[',(⍕stop),'/',(⍕trace),']'
+                :EndIf
+           :EndFor
+       :EndIf       
+    ∇
+
     ∇ ns←ExpungeDefaultParams ns;values;names;m
       :If 0≠≢names←ns.⎕NL-2
           values←¯1↓ns⍎⍕names,1↑names
@@ -53,9 +74,7 @@
               userfile←##.USERCONFIGFILE ⍝ Allow e.g. QA to override user config file
           :EndIf
       :AndIf 0=≢userfile
-          :If 0≠≢userdir←{⍵:(⊢↓⍨1-'\'⍳⍨⌽)2⊃4070⌶⍬ ⋄ '/',⍨2 ⎕NQ #'GetEnvironment' 'HOME'}##.U.ISWIN
-              userfile←userdir,'.linkconfig'
-          :EndIf
+          userfile←##.U.UserConfigFile
       :EndIf
      
       :If ⎕NEXISTS userfile
@@ -63,7 +82,7 @@
       :Else
           (rc config)←0 (⎕NS '')
       :EndIf
-
+     
       :If rc≠0
           config ⎕SIGNAL 11
       :EndIf
@@ -101,7 +120,7 @@
       :Trap 0
           config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
       :Else
-          →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⊃⎕DMX.EM)
+          →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⎕DMX.Message)
       :EndTrap
      
       :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags'
@@ -120,11 +139,45 @@
      ⍝ Add settings from the user configuration into Link Function options
       :If 9=⎕NC'config.Settings'
           merged←0 ⎕JSON 1 ⎕JSON config.Settings ⍝ Clone settings ns
-          'merged'⎕NS ⎕OR'opts'                ⍝ Overwrite options with explicit switch settings
+          'merged'⎕NS ⎕OR'opts'                  ⍝ Overwrite options with explicit switch settings
       :Else
           merged←opts
       :EndIf
     ∇
+
+    ∇ (rc msg)←config MergeSettings settings;names;p;values;params;m;i;type;numeric;nums;key;ns;j;delete;old;ref;d
+     ⍝ Merge settings in form name1:value name2:value into config namespace
+     
+      rc←1 ⍝ Pessimistic
+      names←(¯1+p←settings⍳¨':')↑¨settings
+      values←p↓¨settings
+      old←(≢values)⍴⊂''
+      params←(1,LinkParams)⍪2,DebugParams
+      :If ∨/m←(≢params)<i←params[;2]⍳names
+          →0⊣msg←'unknown configuration option(s): ',⍕m/names
+      :EndIf           
+      delete←(d←0=≢¨values)/names
+      ⍝ (i values names)←(~delete)/¨i values names
+      numeric←⍸(~d)∧0=⊃¨params[i;3]
+      nums←⎕VFI¨values[numeric]
+      :If ∨/m←~(⊃¨nums)∊⊂,1 ⍝ 1 valid numbers
+          →0⊣msg←'invalid option settings: ',⍕m/values
+      :EndIf
+      values[numeric]←⊃¨2⊃¨nums
+     
+      :For (ns key) :In ('Settings' 1)('Debug' 2)
+          :If 0≠≢j←⍸key=params[i;1] ⍝ Settings or Debug   
+              ref←⍎'config.',ns
+              old[j]←ref⍎¨'{6::'''' ⋄'∘,¨names[j],¨⊂'}⍬'
+              ref.⎕EX delete
+          :AndIf 0≠≢j←(~d[j])/j                                 
+              ⍎'ref.(',(⍕names[j]),')←',(1≠≢j)↓'⊃values[j]'
+          :EndIf
+      :EndFor          
+
+      rc←0⊣msg←'Was ',⍕names,¨':',¨⍕¨old
+    ∇
+
 
 
 :EndNamespace
