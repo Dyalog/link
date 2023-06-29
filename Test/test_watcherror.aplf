@@ -4,12 +4,12 @@
      ok←1
      :Return
  :EndIf
- 3 ⎕MKDIR src←folder,'/src'
+ 3 QMKDIR src←folder,'/src'
  {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf')1}¨⍕¨⍳n←10000
- 3 ⎕MKDIR link←folder,'/link'
+ 3 QMKDIR link←folder,'/link'
  (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
- {}⎕SE.Link.Create name link
- link ⎕NMOVE⍠1⊢src,'/foo*.aplf'
+ {}LinkCreate name link
+ link QNMOVE⍠1⊢src,'/foo*.aplf'
  :If ⎕SE.Link.Watcher.DOTNET>⎕SE.Link.Watcher.DOTNETCORE ⍝ DOTNETCORE does not support FileSystemWatcher errors yet ?
      'link issue #120'assert'~0∊⍴''FileSystemWatcher error on linked directory''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
  :EndIf

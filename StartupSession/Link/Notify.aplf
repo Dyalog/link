@@ -14,7 +14,7 @@
 
      links←U.ErrorIfRestored U.GetLinks ⍝ never allow file notifications
 
-     hold←~(⊂⊃1↓⎕XSI)∊'⎕SE.Link.Notify' '⎕SE.Link.Watcher.Crawl'  ⍝ these already have the hold - avoid deadlock
+     hold←~(⊂⊃1↓⎕XSI)∊'⎕SE.Link.Notify' '⎕SE.Link.Watcher.Crawl' '⎕SE.LinkTest.Fix' ⍝ these already have the hold - avoid deadlock
      :Hold hold/'⎕SE.Link.Notify' '⎕SE.Link.Links'
      ⍝ :Hold '⎕SE.Link.Notify' is for functions that may modify files and file associations
      ⍝ :Hold '⎕SE.Link.Links' is just to get the link - we won't modify it - can't really hold it separately because Break/Expunge may have it too which could cause a deadlock

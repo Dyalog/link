@@ -1,0 +1,6 @@
+{r}←Notify args
+:If USE_MOCK_FSW∧~MOCK_OFF
+    r←⎕SE.Link.Notify args
+:Else
+    r←⍬
+:EndIf

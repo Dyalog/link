@@ -3,7 +3,7 @@
     ⍝ Called from test_basic
     ⍝ Assumes that both name and folder currently exist
 
- z←⎕SE.Link.Create name folder
+ z←LinkCreate name folder
  islinked←{2::0 ⋄ ∧/(⊆⍵)∊(⎕SE.Link.U.GetLinks).ns}
  'Create failed'assert'islinked name'
  z←⎕SE.Link.Break name                         ⍝ Test explicit break of a link
@@ -13,8 +13,8 @@
  folder2 ⎕NCOPY folder
  se_name←'⎕SE',1↓name
 
- z←⎕SE.Link.Create name folder
- z←⎕SE.Link.Create se_name folder2
+ z←LinkCreate name folder
+ z←LinkCreate se_name folder2
  'Create failed'assert'islinked name se_name'
 
 :If ~TESTS_LINKED
@@ -26,8 +26,8 @@
  'Break -all=* failed'assert'~islinked name'
 
  :For case :In '*'(,'*')                      ⍝ Test all alternatives of "all"
-     z←⎕SE.Link.Create name folder
-     z←⎕SE.Link.Create se_name folder2
+     z←LinkCreate name folder
+     z←LinkCreate se_name folder2
      'Create failed'assert'islinked name se_name'
      z←opts ⎕SE.Link.Break''⊣opts.all←case
      ('Break -all=',(⍕case),' failed')assert'0=≢⎕SE.Link.U.GetLinks'

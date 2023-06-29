@@ -1,6 +1,7 @@
  ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z;newvars;aplvars
  3 ⎕MKDIR folder
- {}'{watch:''none''}'⎕SE.Link.Create name folder
+ MOCK_OFF←1 ⍝ watch:none
+ {}'{watch:''none''}'LinkCreate name folder
  assert'0∊⍴⎕SE.Link.Diff name'
  3 ⎕MKDIR¨folders←folder∘,¨'' '/.hidden' '/sub'
  namespaces←name∘,¨'' '.sub'
@@ -19,7 +20,8 @@
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  ⎕EX name
  assertError'⎕SE.Link.Diff name' 'Not linked:'
- {}'{watch:''none''}'⎕SE.Link.Create name folder
+
+ {}'{watch:''none''}'LinkCreate name folder
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  3 ⎕NDELETE folder
  (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
@@ -41,7 +43,7 @@
  3 ⎕MKDIR folders  ⍝ for hidden folder too
  {}(⊂⎕SE.Dyalog.Array.Serialise 4 5 6)∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/var.apla'
  {}(⊂'res←foo arg' 'res←arg arg')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/foo.aplf'
- {}(⊂':Namespace ns ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/ns.apln'
+ {}(⊂,⊂':Namespace ns ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/ns.apln'
  {}(⊂'!TOTAL!GARBAGE!AGAIN!;;;')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.aplf'
  {}(⊂':Namespace garbage ⋄ :EndNamespace')∘{⍺ QNPUT ⍵ 1}¨folders,¨⊂'/garbage.ini'
  filemask←(~files∊folders,¨'/')∧(~files∊garbfiles)
@@ -52,9 +54,11 @@
  opts.arrays←aplvars
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}opts ⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  {}⎕SE.Link.Break name
-
  ⎕EX name
- (ns←⎕NS ⍬)NSMOVE #
+
+ MOCK_OFF←0 ⍝ Normal link coming up
+
+ (ns←⎕NS ⍬)NSMOVE # ⍝ Move everything out of # for a moment
  z←⎕SE.UCMD']link.create # ',folder
  diff←{⍵[;2 3]}#.{⎕SE.Link.Diff ⍵}⍬
  exp←(⊂''),[1.5]folder∘,¨'/garbage.aplf' '/sub/garbage.aplf'
@@ -62,7 +66,7 @@
  exp⍪←(2×~⎕SE.Link.U.IS181)↓'#.ns' '#.sub.ns' '' '',[1.5]'' '',folder∘,¨'/ns.apln' '/sub/ns.apln'
  assert'({⍵[⍋⍵;]}diff)≡({⍵[⍋⍵;]}exp)'
  {}⎕SE.Link.Break # ⋄ #.⎕EX #.⎕NL-⍳10
- # NSMOVE ns
+ # NSMOVE ns        ⍝ Restore #
 
  CleanUp folder name
  ok←1

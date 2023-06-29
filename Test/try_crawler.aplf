@@ -5,9 +5,9 @@
  assert'0∊⍴⎕SE.Link.U.GetLinks'
  (crawler dotnet)←⎕SE.Link.Watcher.(CRAWLER DOTNET)
  ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
- ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+ ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 QMKDIR folder
  opts←⎕NS ⍬ ⋄ opts.watch←'none'  ⍝ not only to disable watcher, but also to prevent tying source to files
- {}opts ⎕SE.Link.Create name folder
+ {}opts LinkCreate name folder
  assert'1=CountLinks'
  link←⊃⎕SE.Link.Links
  ⎕SE.Link.Watcher.AddCrawler link  ⍝ because we have set watch←'none'
@@ -20,7 +20,7 @@
  }
  assert'0∧.=≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ create files
- 3 ⎕MKDIR¨(folder,'/')∘,¨'sub1' 'sub1/subsub1'
+ 3 QMKDIR¨(folder,'/')∘,¨'sub1' 'sub1/subsub1'
  (⊂matsrc←⎕SE.Dyalog.Array.Serialise mat←⍳3 4)⎕NPUT folder,'/sub1/mat.apla'
  (⊂tradfn←'   res ← tradfn (arg1 arg2)   ' '   res ← arg1 arg2   ')⎕NPUT folder,'/sub1/tradfn.aplf'
  (⊂dop←,⊂'dop←{⍺ ⍺⍺ ⍵⍵ ⍵}')⎕NPUT folder,'/sub1/dop.aplo'
@@ -61,7 +61,7 @@
       ⍝ check it worked
  assert'0 2≡≢¨( 1 NSTREE name)(1 NTREE folder)'
       ⍝ create items on both sides
- 3 ⎕MKDIR¨folders←(folder,'/')∘,¨'sub1' 'sub3' 'sub1/subsub1' 'sub3/subsub3'
+ 3 QMKDIR¨folders←(folder,'/')∘,¨'sub1' 'sub3' 'sub1/subsub1' 'sub3/subsub3'
  folders←2↑folders
  (⊂⊂matsrc)⎕NPUT¨folders,¨⊂'/mat.apla'
  (⊂⊂tradfn)⎕NPUT¨folders,¨⊂'/tradfn.aplf'
@@ -80,7 +80,7 @@
  (⊂dop2)⎕NPUT(folder,'/sub1/dop.aplo')1
  (⊂NS2'ns')⎕NPUT(folder,'/sub1/ns.apln')1
  3 ⎕NDELETE folder,'/sub3'
- 3 ⎕MKDIR folder,'/sub5/subsub5'
+ 3 QMKDIR folder,'/sub5/subsub5'
  (⊂matsrc2)⎕NPUT(folder,'/sub5/mat.apla')1
  (⊂tradfn2)⎕NPUT(folder,'/sub5/tradfn.aplf')1
  (⊂dop)⎕NPUT(folder,'/sub5/dop.aplo')1
