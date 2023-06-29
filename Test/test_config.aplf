@@ -1,11 +1,12 @@
- ok←test_config(folder name);z;config;userfile;ns;files;export
+ ok←test_config(folder name);z;config;userfile;ns;files;export;getj5
 ⍝ Verify that the system is using configuration according to the spex
 
+getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
 ⍝ --- Link.Configure set user config ---
  SetConfig '' ⍝ Clear user config file
  z←⎕SE.Link.Configure '*' 'watch:ns' 'caseCode:1' ⍝ Set options
  assert '∧/1∊¨''watch: '' ''caseCode: ''⍷¨⊂z'
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⎕SE.Link.USERCONFIGFILE
+ config←getj5 ⎕SE.Link.USERCONFIGFILE
  assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
 
 ⍝ --- Link.Create ---
@@ -15,7 +16,7 @@
 
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ Check that user config was used
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET folder,'/.linkconfig'
+ config←getj5 folder,'/.linkconfig'
  assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
  assert '''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
  ns←⍎name
@@ -30,14 +31,14 @@
  z←'{watch:''both''}' LinkCreate name folder
  z←⎕SE.Link.Configure name 'fastLoad:1'
  assert '''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET folder,'/.linkconfig'
+ config←getj5 folder,'/.linkconfig'
  assert '''ns'' 1≡config.Settings.(watch fastLoad)'  ⍝ Directory setting should NOT be changed
  z←⎕SE.Link.Break name
 
 ⍝ Test that folder config is used if user config says nothing
  z←⎕SE.Link.Configure '*' 'watch:' 'caseCode:' ⍝ Clear user config settings
  assert '∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⎕SE.Link.USERCONFIGFILE
+ config←getj5 ⎕SE.Link.USERCONFIGFILE
  assert '0=≢config.Settings.⎕NL -2'          ⍝ All clear
 
  z←LinkCreate name folder
@@ -55,7 +56,7 @@
  z←'{flatten:0}' ⎕SE.Link.Export name export
  z←⎕SE.Link.Configure export 'flatten:1'             ⍝ Test setting option in named file
  assert '1∊''flatten:''⍷z'                           ⍝ flatten:0 is default so not stored in config
- config←⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET export,'/.linkconfig'
+ config←getj5 export,'/.linkconfig'
  assert '1≡config.Settings.caseCode' ⍝ caseCode should be picked up from link
 
  z←⎕SE.Link.Break name
