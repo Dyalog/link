@@ -1,4 +1,4 @@
- {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad
+ {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken
 ⍝ Action to be taken upon )LOAD or )CLEAR
  ok←0
  :Trap 0  ⍝ can't afford to error
@@ -20,6 +20,11 @@
              Watcher.Break(~keep)/links
              links←keep/links
          :Else
+             :If 0≠≢links
+             :AndIf 0≠≢broken←((⍕¨links.fsw)∊⊂'(NULL)')/links 
+                 ⍝ /// NAFF!!! But this is what happens to FSW's on )CLEAR ///
+                 broken.fsw←Watcher.Watch¨broken
+             :EndIf
              ¯1 U.Log'Nothing to clear'
          :EndIf
 
