@@ -1,0 +1,33 @@
+SetupSlave
+⍝ See InitGlobals for comments
+
+ :If USE_MOCK_FSW
+     ⍝ FSW switched off - mock the Notify calls that it WOULD have made
+     #.SLAVE←⎕NS''
+     QNDELETE←{⍺←⊢ ⋄ (Notify 'deleted' ⍵)⊢⍺ NDELETE ⍵ ⋄ }
+     QNPUT←{exists←⎕NEXISTS name←⊃⊆⍵ ⋄ (Notify ((⎕IO+exists)⊃'created' 'changed') name)⊢⍺ NPUT ⍵}
+     QNMOVE←{'*'∊⍵: ∘∘∘ ⋄ _←(Notify 'renamed' ⍺ ⍵)⊢⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵}
+     QMKDIR←{⍺←⊢ ⋄ _←(Notify 'created' ⍵)⊢⍺ ⎕MKDIR ⍵}
+
+ :ElseIf USE_ISOLATES
+     ⍝ Make file updates via isolate so FSW has a chance to work
+     :If 9.1≠#.⎕NC⊂'isolate'
+         'isolate'#.⎕CY'isolate.dws'
+     :EndIf
+     {}#.isolate.Reset 0  ⍝ in case not closed properly last time
+     {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
+     #.SLAVE←#.isolate.New''
+     QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
+     QNPUT←{⍺←⊢ ⋄ _←⍺ #.SLAVE.⎕NPUT ⍵} ⍝ ensure QNPUTS are not too tight for filewatcher
+     QNMOVE←{_←⍺ #.SLAVE.{⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵} ⍵}
+     QMKDIR←{⍺←⊢ ⋄ _←⍺ #.SLAVE.⎕MKDIR ⍵}
+
+ :Else
+     ∘∘∘ ⍝ This just won't work, FSW events will not be processed in time
+     #.SLAVE←⎕NS''
+     QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
+     QNPUT←{_←⍺ NPUT ⍵}
+     QNMOVE←{_←⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵}
+     QMKDIR←{_←⍺←⊢ ⋄ ⍺ ⎕MKDIR ⍵}
+
+ :EndIf

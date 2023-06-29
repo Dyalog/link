@@ -1,16 +1,32 @@
  InitGlobals dummy
  ⎕IO←1 ⋄ ⎕ML←1
 
+ MODE←'MOCK'        ⍝ How to handle FSW events
+ ⍝ ''                 Just make changes, hope that FSW will kick in while tests run
+ ⍝                       Does not work at all.
+ ⍝ 'ISOLATE'          Redirect changes to an isolate and use Breathe+delays in "assert" to wait for FSW events to catch up
+ ⍝                       Works better, but is still subject to race conditions
+ ⍝ 'MOCK'             Turn off FSW, make updates via functions defined by SetupSlave, which call Notify directly
+ ⍝                       Seems to make
+ 'Invalid MODE' ⎕SIGNAL ((⊂MODE)∊'' 'MOCK' 'ISOLATE')↓11
+
+ USE_MOCK_FSW←MODE≡'MOCK'     ⍝ Mock the FSW
+ USE_ISOLATES←MODE≡'ISOLATE'  ⍝ Still supported in order to allow testing the FSW
+
+ MOCK_OFF←0         ⍝ Turn off mocking when pausing or not watching directory
+
+ NAME←'#.linktest'  ⍝ namespace created by link tests
+ TESTNS←⍕⎕THIS
  IGNORE_LINKS←'⎕SE.Link' '⎕SE.Dyalog' '⎕SE.LinkTest' ⍝ Pretend these don't exists while testing
  TESTS_LINKED←{6::0 ⋄ (⊂⍕⎕THIS)∊⎕SE.Link.Links.ns}⍬
 
  DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
 
- NAME←'#.linktest'  ⍝ namespace used by link tests
- TESTNS←⍕⎕THIS
  APLVERSION←10÷⍨10⊥2↑2⊃'.' ⎕VFI 2⊃'.' ⎕WG 'APLVersion'
  FOLDER←''          ⍝ empty defaults to default to a new directory in (739⌶0)
 
- ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided
+ ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided in the argument to "assert"
+                    ⍝    This setting is a "bodge" to allow tests to continue after FSW-related failures
+
  ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
  STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action

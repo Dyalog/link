@@ -1,5 +1,5 @@
  loops RunTestThread(folder name);sub;z
- ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+ ⎕EX name ⋄ 3 ⎕NDELETE folder ⋄ 3 QMKDIR folder
  (⊂⎕SE.Dyalog.Array.Serialise 2 3 4⍴0)⎕NPUT folder,'/var.apla'
  (⊂'r←foo arg' 'r←''foo'' arg')⎕NPUT folder,'/foo.aplf'
  (⊂'r←(foo op) arg' 'r←''op'' foo arg')⎕NPUT folder,'/op.aplo'

@@ -3,7 +3,7 @@
  subfolder←folder,'/sub' ⋄ subname←name,'.sub'
 
       ⍝ test default UCMD to ⎕THIS
- 2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
+ 2 QMKDIR subfolder ⋄ name ⎕NS ⍬
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith  ⍝ not goot - :With brings in locals into the target namespace
  z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ⎕THIS.⎕THIS ',folder
  assert'∨/''Linked:''⍷z'
@@ -25,7 +25,7 @@
  (⊂'foo' '2+2')⎕NPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place
  (⊂'goo' '2+2')⎕NPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
  (⊂'bar' '2+2')⎕NPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'system variables not inherited'assert'0=subname⍎''⎕IO'''
  'expected functions not found'assert'3.1=',name,'.⎕NC ''foo'' ''goo'' ''bar'''
  z←(⍎name)⎕SE.Link.Fix'baz' '3+3'        ⍝ must NOT overwrite baz.aplf
@@ -40,21 +40,21 @@
       ⍝ test failing creations
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'dir'
- assertError'opts ⎕SE.Link.Create name folder' 'Source directory not found'
+ assertError'opts LinkCreate name folder' 'Source directory not found'
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
  subname⍎'foo←{⍺+⍵}'
- assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
+ assertError'opts LinkCreate name folder' 'Destination namespace not empty'
  3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'ns'
- assertError'opts ⎕SE.Link.Create name folder' 'Source namespace not found'
+ assertError'opts LinkCreate name folder' 'Source namespace not found'
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
- 3 ⎕MKDIR subfolder,'/subsub'
- assertError'opts ⎕SE.Link.Create name folder' 'Destination directory not empty'
+ 3 QMKDIR subfolder,'/subsub'
+ assertError'opts LinkCreate name folder' 'Destination directory not empty'
  ⎕EX name ⋄ 3 ⎕NDELETE folder
  assert'{6::1 ⋄ 0=CountLinks}⍬'
 
@@ -62,11 +62,11 @@
  ⍎name,'←⎕NS ⍬'  ⍝ unnamed namespace name
  2 ⎕MKDIR subfolder
  (⊂':Namespace ns' ':EndNamespace')⎕NPUT folder,'/ns.apln'
- 'link issue #197'assertError'opts ⎕SE.Link.Create name folder' 'Not a properly named namespace'
+ 'link issue #197'assertError'opts LinkCreate name folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import name folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import name (folder,''/ns.apln'')' 'Not a properly named namespace'
  ⎕EX name ⋄ ref←⎕NS ⍬  ⍝ unnamed namespace reference
- 'link issue #197'assertError'opts ⎕SE.Link.Create ref folder' 'Not a properly named namespace'
+ 'link issue #197'assertError'opts LinkCreate ref folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import ref folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import ref (folder,''/ns.apln'')' 'Not a properly named namespace'
  3 ⎕NDELETE folder
@@ -97,51 +97,51 @@
       ⍝ test source=auto
  opts.source←'auto'
       ⍝ both don't exist
- assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-existent namespace to a non-existent directory'
+ assertError'opts LinkCreate name folder' 'Cannot link a non-existent namespace to a non-existent directory'
  assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ only dir exists
  2 ⎕MKDIR folder
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  sourceis←'((~⎕SE.Link.Links.ns∊IGNORE_LINKS)/⎕SE.Link.Links.source)≡'
  assert sourceis,',⊂''dir'''
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ only ns exists
  name ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''ns'''
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ both exist
  2 ⎕MKDIR folder ⋄ name ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''dir'''
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ only dir is populated
  2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''dir'''
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ only ns is populated
  2 ⎕MKDIR folder ⋄ subname ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''ns'''
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
       ⍝ both are populated
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
  subname⍎'foo←{⍺+⍵}'
- assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
+ assertError'opts LinkCreate name folder' 'Cannot link a non-empty namespace to a non-empty directory'
  ⎕EX subname,'.foo'
  2 ⎕MKDIR subfolder,'/subsub'
- assertError'opts ⎕SE.Link.Create name folder' 'Cannot link a non-empty namespace to a non-empty directory'
+ assertError'opts LinkCreate name folder' 'Cannot link a non-empty namespace to a non-empty directory'
  3 ⎕NDELETE subfolder,'/subsub'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  3 ⎕NDELETE folder ⋄ ⎕EX name
@@ -192,7 +192,7 @@
 
  :If ⎕SE.Link.U.IS181 ⍝ link issue #144
      opts.source←'dir' ⋄ opts.watch←'both'
-     z←opts ⎕SE.Link.Create name folder
+     z←opts LinkCreate name folder
      'link issue #144'assert'badsrc1≡⎕SRC ',name,'.badns1'
      'link issue #144'assert'badsrc2≡⎕SRC ',name,'.badns2'
      {}⎕SE.Link.Break name ⋄ ⎕EX name
@@ -200,10 +200,10 @@
 
       ⍝ Link issue #173
  (⊂reqsrc)⎕NPUT reqfile 1 ⋄ opts.source←'dir'
- opts.watch←'dir' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
- opts.watch←'ns' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
- opts.watch←'none' ⋄ 'link issue #173'assertError'opts ⎕SE.Link.Create name folder' ':Require' ⋄ ⎕EX name
- opts.watch←'both' ⋄ z←opts ⎕SE.Link.Create name folder
+ opts.watch←'dir' ⋄ 'link issue #173'assertError'opts LinkCreate name folder' ':Require' ⋄ ⎕EX name
+ opts.watch←'ns' ⋄ 'link issue #173'assertError'opts LinkCreate name folder' ':Require' ⋄ ⎕EX name
+ opts.watch←'none' ⋄ 'link issue #173'assertError'opts LinkCreate name folder' ':Require' ⋄ ⎕EX name
+ opts.watch←'both' ⋄ z←opts LinkCreate name folder
  'link issue #206'assert'0 2 1≡name⍎''⎕IO ⎕ML ⎕WX'''
  :If 0 ⍝ :If ⎕SE.Link.U.IS181 ⋄ assert'~∨/''ERRORS ENCOUNTERED''⍷z'       ⍝ badns are reported as failed to fix since Link v2.1.0-beta42
  :Else ⋄ assert' ~∨/folder⍷ ''^Linked:.*$''  ''^.*badns.*$'' ⎕R '''' ⊢z '  ⍝ no failure apart from badns1 and badns2
@@ -227,7 +227,7 @@
  ⎕NDELETE⍠1⊢(folder,'/')∘,¨'AREQ*.apln' 'ZREQ*.apln'  ⍝ link issue #173
 
       ⍝ test source=dir watch=dir
- opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts ⎕SE.Link.Create name folder
+ opts.source←'dir' ⋄ opts.watch←'dir' ⋄ z←opts LinkCreate name folder
  assert'''Linked:''≡7↑z'
  assert'var∘≡¨⍎¨name subname,¨⊂''.var'''
  assert'∧/foosrc∘≡¨NR¨name subname,¨⊂''.foo'''  ⍝ source-as-typed
@@ -255,7 +255,9 @@
  {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
  0 assert_create 0
       ⍝ link issue #176 - test Pause - can't test Pause on watch='both' because the file would be tied with 2 ⎕FIX 'file://'
+
  {}⎕SE.Link.Pause name
+ MOCK_OFF←1
  {}(⊂newnssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
  {}(⊂newfoosrc)QNPUT(subfolder,'/foo.aplf')1
  {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
@@ -267,7 +269,7 @@
  assert'({6::1 ⋄ 0=CountLinks}⍬)∧(z≡1)'
 
       ⍝ now try source=dir watch=ns
- opts.source←'dir' ⋄ opts.watch←'ns' ⋄ {}opts ⎕SE.Link.Create name folder
+ opts.source←'dir' ⋄ opts.watch←'ns' ⋄ {}opts LinkCreate name folder
  1 assert_create 1 ⍝ NB dir contains "new" definitions
  'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
       ⍝ APL changes must be reflected to file
@@ -290,7 +292,8 @@
  {}⎕SE.Link.Expunge name
 
       ⍝ now try source=dir watch=none
- opts.source←'dir' ⋄ opts.watch←'none' ⋄ {}opts ⎕SE.Link.Create name folder
+ opts.source←'dir' ⋄ opts.watch←'none' ⋄ MOCK_OFF←1
+ {}opts LinkCreate name folder
  1 assert_create 1
  'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
  {}(⊂nssrc)QNPUT(subfolder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
@@ -308,9 +311,9 @@
  {}⎕SE.Link.Break name
  3 ⎕NDELETE folder
 
-
       ⍝ now try source=ns watch=dir
- opts.source←'ns' ⋄ opts.watch←'dir' ⋄ opts.arrays←name,'.var,',name,'.sub.var'
+ opts.source←'ns' ⋄ opts.watch←'dir' ⋄ MOCK_OFF←0
+ opts.arrays←name,'.var,',name,'.sub.var'
  name⍎'derived←∧.∧'
  name⍎'array←1 2 3'
  :If ⎕SE.Link.Watcher.DOTNET ⍝ Test #397: Inject a .NET namespace
@@ -320,7 +323,7 @@
  #.outside.⎕FX'goo' '3+3'  ⍝ Create a namespace with a function in it
  name⍎'outside←#.outside'  ⍝ Embed a ref to it in our namespace
 
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #397'assert'~⎕NEXISTS folder,''/System'''
  'link issue #442'assert'~⎕NEXISTS folder,''/outside'''
  'link issue #186'assert'∨/''',name,'.derived''⍷z'   ⍝ must warn about unsupported names
@@ -343,8 +346,8 @@
  ⎕EX'#.outside'
 
       ⍝ now try source=ns watch=ns
- opts.source←'ns' ⋄ opts.watch←'ns'
- {}opts ⎕SE.Link.Create name folder
+ opts.source←'ns' ⋄ opts.watch←'ns' ⋄ MOCK_OFF←1
+ {}opts LinkCreate name folder
  ⎕SE.UCMD'z←]Link.Add ',name,'.array ',name,'.var ',subname,'.var'  ⍝ can't add variable automatically when source=ns
  'link issue #194'assert'⊃''Added: ''⍷z'
  'link issue #194'assert'∧/⎕NEXISTS folder folder subfolder,¨''/array.apla'' ''/var.apla'' ''/var.apla'' '
@@ -363,7 +366,7 @@
 
       ⍝ now try source=ns watch=none
  opts.source←'ns' ⋄ opts.watch←'none'
- {}opts ⎕SE.Link.Create name folder
+ {}opts LinkCreate name folder
  {}⎕SE.Link.Add subname,'.var'  ⍝ can't add variable automatically when source=ns
  1 assert_create 1
  'link issue #173'assert'0=+/~3⊃⎕SE.Link.U.GetFileTiesIn ',name
@@ -385,7 +388,7 @@
  {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
 
       ⍝ link issue #160 try having items in the namespace already tied to items in the folder
- ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 ⎕MKDIR subfolder
+ ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 QMKDIR subfolder
  {}(⊂nssrc)QNPUT(folder,'/ns.apln')1    ⍝ write ns first because ⎕SRC is deceiptful
  {}(⊂foosrc)QNPUT(folder,'/foo.aplf')1
  {}(⊂varsrc)QNPUT(folder,'/var.apla')1
@@ -394,9 +397,9 @@
  {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
  2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
  2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
- opts.source←'auto' ⋄ opts.watch←'both'  ⍝ try source=auto
+ opts.source←'auto' ⋄ opts.watch←'both' ⋄ MOCK_OFF←1 ⍝ try source=auto
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #160'assert'1=CountLinks'
  'link issue #160'assert sourceis,',⊂''dir'''
  1 assert_create 1
@@ -407,10 +410,10 @@
  2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace
  opts.source←'dir' ⋄ opts.watch←'both'  ⍝ try source=dir
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- 'link issue #160'assertError'opts ⎕SE.Link.Create name folder' 'Destination namespace not empty'
+ 'link issue #160'assertError'opts LinkCreate name folder' 'Destination namespace not empty'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX subname
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #160'assert'1=CountLinks'
  1 assert_create 1
  'link issue #160'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
@@ -419,7 +422,7 @@
  2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
  2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #230'assert'1=CountLinks'
  {}⎕SE.Link.Break name
@@ -428,12 +431,12 @@
       ⍝    foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
       ⍝:EndIf
  3 ⎕NDELETE folder
- z←opts ⎕SE.Link.Create name folder
+ z←opts LinkCreate name folder
  'link issue #160'assert'1=CountLinks'
  {}⎕SE.Link.Add name subname,¨⊂'.var'
  z←⎕SE.Link.Break name
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- z←⎕SE.Link.Create name folder  ⍝ Link issue #230
+ z←LinkCreate name folder  ⍝ Link issue #230
 
  1 assert_create 1
  assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
@@ -448,44 +451,45 @@
  files,←'var' 'sub/subvar'
  files←(folder,'/')∘,¨files,¨(⊂'.apla')
       ⍝(opts←⎕NS'').source←'ns'
-      ⍝z←opts ⎕SE.Link.Create name folder
+      ⍝z←opts LinkCreate name folder
  ⎕SE.UCMD'z←]link.create -source=ns ',name,' ',folder
  'link issue #187'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #187'assert'0∧.=⎕NEXISTS files'
  {}⎕SE.Link.Break name
  3 ⎕NDELETE folder
       ⍝opts.(arrays sysVars)←1
-      ⍝z←opts ⎕SE.Link.Create name folder
+      ⍝z←opts LinkCreate name folder
  ⎕SE.UCMD'z←]link.create -source=ns -arrays=1 -sysvars ',name,' ',folder  ⍝ link issue #194
  'link issue #187'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #187'assert'1∧.=⎕NEXISTS files'
  {}⎕SE.Link.Break name
  ⎕EX name ⋄ 3 ⎕NDELETE folder
+ MOCK_OFF←0
 
       ⍝ link issue #249
  ref←⍎(name,'.SubNs1')⎕NS ⍬
  ref.⎕FX'res←foo arg' 'res←arg'
  ref.⎕FIX':Namespace ns' ':EndNamespace'
  ref.var←○⍳3 4
- z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
+ z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'LinkCreate name folder
  'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  ⎕SE.Link.Expunge name
- z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
+ z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'LinkCreate name folder
  'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  ⎕SE.Link.Expunge name
- z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'⎕SE.Link.Create name folder
+ z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'LinkCreate name folder
  'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  ⎕SE.Link.Expunge name
 
       ⍝ link issue #251
  {}(⊂'res←foo arg' 'res←arg arg')QNPUT folder,'/SubNs1-11/foo.dyalog'  ⍝ clashes with SubNs1.foo
  opts←⎕NS ⍬ ⋄ opts.caseCode←1 ⋄ opts.source←'dir' ⋄ opts.fastLoad←1
- 'link issue #251'assertError'opts ⎕SE.Link.Create name folder' 'clashing APL names'
+ 'link issue #251'assertError'opts LinkCreate name folder' 'clashing APL names'
  ⎕NDELETE folder,'/SubNs1-11/foo.dyalog'
  ⎕SE.Link.Expunge name
 
       ⍝ link issue #261
- {}⎕SE.Link.Create name folder
+ {}LinkCreate name folder
  'link issue #261'assertError'⎕SE.Link.Status 42' 'Not a linked namespace'
 
  CleanUp folder name

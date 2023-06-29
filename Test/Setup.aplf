@@ -24,22 +24,7 @@
  :Else  ⍝ generate a new directory - avoids prompting for deletion
      folder←CreateTempDir 0
  :EndIf
- :If USE_ISOLATES
-     :If 9.1≠#.⎕NC⊂'isolate'
-         'isolate'#.⎕CY'isolate.dws'
-     :EndIf
-     {}#.isolate.Reset 0  ⍝ in case not closed properly last time
-     {}#.isolate.Config'processors' 1 ⍝ Only start 1 slave
-     #.SLAVE←#.isolate.New''
-     QNDELETE←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NDELETE ⍵}
-     QNPUT←{⍺←⊢ ⋄ ⍺ #.SLAVE.⎕NPUT ⍵ ⋄ ⎕DL 0.001}  ⍝ ensure QNPUTS are not too tight for filewatcher
- :Else
-     #.SLAVE←⎕NS''
-     QNDELETE←{⍺←⊢ ⋄ ⍺ NDELETE ⍵}
-     QNPUT←{⍺ NPUT ⍵ ⋄ ⎕DL 0.001}
- :EndIf
-      ⍝QNMOVE←#.SLAVE.⎕NMOVE
-      ⍝QNCOPY←#.SLAVE.⎕NCOPY
-      ⍝QNGET←#.SLAVE.⎕NGET
-      ⍝QMKDIR←#.SLAVE.⎕MKDIR
+
+ SetupSlave ⍝ Set up "SLAVE" namespace for handling file operations
+
  r←folder
