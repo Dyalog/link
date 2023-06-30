@@ -1,0 +1,3 @@
+ msg←Stop args
+ ⍝ Set or report on Stop flags
+ msg←'Stop' SetFlags args

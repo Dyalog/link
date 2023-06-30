@@ -16,15 +16,26 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
 
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ Check that user config was used
- config←getj5 folder,'/.linkconfig'
- assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
- assert '''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
  ns←⍎name
  ns.⎕FX 'foo' '2+2' ⍝ Little foo
  ns.⎕FX 'FOO' '3+3' ⍝ Big foo
  z←⎕SE.Link.Add name∘,¨'.foo' '.FOO'
  files←⊃2⊃¨¨⎕NPARTS¨⎕NINFO⍠1⊢folder,'/*'
  assert '''.linkconfig'' ''foo-0'' ''FOO-7'' ≡⍥{⍵[⍋⍵]} files'
+
+⍝ Test setting Stops
+ z←⎕SE.Link.Stop (name,'.foo') (1 2 3)
+ assert '(,1)≡⎕STOP ''',name,'.foo'''
+ config←getj5 folder,'/.linkconfig'
+ assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert '''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
+ assert '1≡≢config.SourceFlags'
+ assert '(,1)≡config.SourceFlags[1].Stop'
+ z←⎕SE.Link.Stop (name,'.foo') ⍬
+ assert '⍬≡⎕STOP ''',name,'.foo'''
+ config←getj5 folder,'/.linkconfig'
+ assert '0=⎕NC ''config.SourceFlags'''
+
  z←⎕SE.Link.Break name
 
 ⍝ Test that explicit settings override any configuration

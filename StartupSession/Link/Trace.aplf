@@ -1,0 +1,3 @@
+ msg←Trace args
+ ⍝ Set or report on Trace flags
+ msg←'Trace' SetFlags args

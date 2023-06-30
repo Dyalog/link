@@ -1,7 +1,7 @@
-:Namespace Config ⍝ Fns for dealing with config files
+:Namespace Config ⍝ Code for dealing with config files
 
 ⍝ Note that U.DefaultOpts contains related functionality
-⍝      that should perhaps be brought in here
+⍝      that should perhaps be brought in here.
 
     LinkParams←1 2⍴'watch' 'both'
     LinkParams⍪←'arrays' 0
@@ -19,6 +19,22 @@
     LinkParams⍪←'fastLoad' 0
 
     DebugParams←'notify' 'debug',⍪0 0
+
+    ∇ config WriteConfig file;json;ns;m;nss  
+    ⍝ Clean up and write config
+    ns←⎕NS ⎕OR 'config' ⍝ Do not modify the argument
+
+    :If 2=⎕NC 'ns.SourceFlags' 
+    :AndIf 0=≢ns.SourceFlags 
+        ns.⎕EX 'SourceFlags' ⍝ No flags
+    :EndIf                  
+    
+    m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
+    ns.⎕EX m/nss ⍝ Expunge empty namepaces
+  
+    json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
+    (⊂json)⎕NPUT file 1    
+    ∇
 
     ∇ msg←FormatOptions config;obj;trace;stop;name
        msg←''
@@ -110,7 +126,7 @@
       :EndIf
     ∇
 
-    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json
+    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json;one
      ⍝ Read a configuration file and return a namespace
      
       :If ~⎕NEXISTS file
@@ -125,8 +141,10 @@
      
       :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags'
           →0⊣(rc config)←1('Unknown section in "',file,'": valid are ',⍕names~valid)
-      :EndIf
-      ⍎(×≢names)/'config.(',(⍕names),')←⎕NS¨(⍴names)⍴⊂'''''⊣names←valid~names
+      :EndIf                                                  
+      one←1=≢names←valid~names,⊂'SourceFlags'
+      ⍎(×≢names)/'config.(',(⍕names),')←',(one/'⊃'),'⎕NS¨(⍴names)⍴⊂'''''
+      :If 0=⎕NC 'config.SourceFlags' ⋄ config.SourceFlags←⍬ ⋄ :EndIf
       rc←0
     ∇
 
