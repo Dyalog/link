@@ -1,5 +1,5 @@
 !!! Note
-     This documentation needs to be revised for Link version 4.0! 
+     This documentation is in the process of being revised for Link version 4.0! 
      
      At the moment it is primarily the unmodified documentation for version 3.0.
 
