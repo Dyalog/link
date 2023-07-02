@@ -424,8 +424,22 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#stop-and-trace-flags" class="md-nav__link">
+    Stop and Trace flags
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#linkconfigure" class="md-nav__link">
+    Link.Configure
+  </a>
   
 </li>
       
@@ -820,8 +834,22 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#stop-and-trace-flags" class="md-nav__link">
+    Stop and Trace flags
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#linkconfigure" class="md-nav__link">
+    Link.Configure
+  </a>
   
 </li>
       
@@ -878,7 +906,7 @@
                 
                 <h1 id="configuration-files">Configuration Files</h1>
 <h2 id="introduction">Introduction</h2>
-<p>Link Configuration files are in <a href="https://json5.org/">JSON5 format</a>, which is the same format as Dyalog APL configuration files. </p>
+<p>Link Configuration files are in <a href="https://json5.org/">JSON5 format</a>, which is the same format as Dyalog APL configuration files. There is a user configuration file containing options that apply to all links, and directory configuraton files which apply to individual directories.</p>
 <h3 id="user-configuration-files">User Configuration Files</h3>
 <p>You can have a user configuration file which allows you to record preferences that apply to all links, for example link creation options like -watch= or the <code>notify</code> setting. A simple example of a user configuration file would be:</p>
 <pre><code>{
@@ -892,18 +920,49 @@
 </code></pre>
 <p>With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and use default to only propagating changes from the namespace to source files (watch:ns), unless a call to <a href="..API/Link.Create.md">Link.Create</a> includes an explicit setting of that option .</p>
 <h3 id="directory-configuration-files">Directory Configuration Files</h3>
-<p>Each linked directory may contain a <code>.linkconfig</code> file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When <a href="..API/Link.Create.md">Link.Create</a> or <a href="..API/Link.Export.md">Link.Export</a> create a directory and create files in it, any non-default switch settings will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.</p>
+<p>Each linked directory may contain a <code>.linkconfig</code> file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When <a href="..API/Link.Create.md">Link.Create</a> or <a href="..API/Link.Export.md">Link.Export</a> create a directory and create files in it, any non-default switch settings provided to tha API function will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.</p>
 <p>If you already have a Link folder which was created by an earlier version of Link, you can add a <code>.linkconfig</code> file using <a href="..API/Link.Configure.md">Link.Configure</a>. For example:</p>
-<pre><code>      ]link.Create linkdemo c:\tmp\linkdemo
-      ]link.configure linkdemo flatten:1
+<pre><code>      ]Link.Create linkdemo /tmp/linkdemo
+      ]Link.Configure linkdemo flatten:1
 Was  flatten: 
 </code></pre>
-<p>This will create a file called <code>/tmp/linkdemo/.linkconfig</code> with the following contents:</p>
+<p>The result documents that there was no previous setting for the option. A file called <code>/tmp/linkdemo/.linkconfig</code> is created, with the following contents:</p>
 <pre><code>{
   Settings: {
     flatten: 1,
   },
 }
+</code></pre>
+<h3 id="stop-and-trace-flags">Stop and Trace flags</h3>
+<p>Directory configuration files also record stop and trace settings for functions and operators in the linked directory, which you can either manipulate in the editor, or using the API functions <a href="../../API/Link.Stop/">Link.Stop</a> and (Link.Trace)[../API/Link.Trace.md]:</p>
+<pre><code>      ]link.stop linkdemo.stats.Mean 2
+Was linkdemo.stats.Mean 1
+</code></pre>
+<p>These settings are recorded in a <code>SourceFlags</code> section of our configuration file, which now looks like this:</p>
+<pre><code>{
+  Settings: {
+    flatten: 1,
+  },
+  SourceFlags: [
+    {
+      Name: &quot;stats.Mean&quot;,
+      Stop: [
+        2,        
+      ],
+    },    
+  ],
+}
+</code></pre>
+<h2 id="linkconfigure">Link.Configure</h2>
+<p>The <a href="../../API/Link.Configure/">Link.Configure</a> API function, and the corresponding user command, can be used to query and set the contents of both user and directory configuration files. For example, following on from the above example, we can query the current settings:</p>
+<pre><code>      ]link.configure linkdemo
+Contents of &quot;c:/tmp/linkdemo/.linkconfig&quot;:
+   Settings  :  flatten:1 
+
+      ]link.configure *
+Contents of &quot;C:\Users\mkrom\Documents\.linkconfig&quot;:
+   Debug     :  notify:1 
+   Settings  :  watch:ns 
 </code></pre>
 <h2 id="the-configuration-file-format">The Configuration File Format</h2>
 <h3 id="debug-section">Debug Section</h3>
