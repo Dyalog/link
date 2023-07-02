@@ -14,7 +14,7 @@
     
     
       
-        <title>Upgrading to Link 3.0 - Link User Guide</title>
+        <title>Version 4.0 Release Notes - Link User Guide</title>
       
     
     
@@ -63,7 +63,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#upgrading-to-link-30" class="md-skip">
+        <a href="#version-40-release-notes" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +92,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Upgrading to Link 3.0
+              Version 4.0 Release Notes
             
           </span>
         </div>
@@ -324,12 +324,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Upgrading to Link 3.0
+          Version 4.0 Release Notes
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Upgrading to Link 3.0
+        Version 4.0 Release Notes
       </a>
       
         
@@ -347,22 +347,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#breaking-changes" class="md-nav__link">
-    Breaking Changes
+  <a href="#implemented-features" class="md-nav__link">
+    Implemented Features
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-significant-changes" class="md-nav__link">
-    Other Significant Changes
+  <a href="#upcoming-features" class="md-nav__link">
+    Upcoming Features
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#change-history" class="md-nav__link">
-    Change History
+  <a href="#deferred-features" class="md-nav__link">
+    Deferred Features
   </a>
   
 </li>
@@ -371,18 +371,6 @@
   
 </nav>
       
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ChangeHistory/" class="md-nav__link">
-        Change History
-      </a>
     </li>
   
 
@@ -436,6 +424,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../Usage/ConfigFiles/" class="md-nav__link">
+        Configuration Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../Usage/Setup/" class="md-nav__link">
         Setting Up Your Environment
       </a>
@@ -460,8 +460,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../Usage/SALTtoLink/" class="md-nav__link">
-        Migrating from SALT to Link
+      <a href="../Usage/SALTtoLink.md" class="md-nav__link">
+        None
       </a>
     </li>
   
@@ -759,22 +759,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#breaking-changes" class="md-nav__link">
-    Breaking Changes
+  <a href="#implemented-features" class="md-nav__link">
+    Implemented Features
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-significant-changes" class="md-nav__link">
-    Other Significant Changes
+  <a href="#upcoming-features" class="md-nav__link">
+    Upcoming Features
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#change-history" class="md-nav__link">
-    Change History
+  <a href="#deferred-features" class="md-nav__link">
+    Deferred Features
   </a>
   
 </li>
@@ -791,32 +791,41 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/dyalog/link/edit/master/docs/Upgradeto30.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/dyalog/link/edit/master/docs/ReleaseNotes40.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="upgrading-to-link-30">Upgrading to Link 3.0</h1>
-<p>If you are upgrading from Link 2.0 to 3.0, there are many new options and API functions (and corresponding user commands) that are available. The most significant changes are described here.</p>
-<h3 id="breaking-changes">Breaking Changes</h3>
-<p>Some of the changes have the potential to break existing applications that use Link and require a review of existing code that calls the <a href="../API/">Link API</a>:</p>
+                <h1 id="version-40-release-notes">Version 4.0 Release Notes</h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page describes differences between Link version 3.0 and 4.0. 
+ Change history for earlier releases,
+ and instructions on migrating to Link from SALT, can be found in the
+ <a href="https://dyalog.github.io/link/3.0/">Link version 3.0 documentation</a>.</p>
+</div>
+<p>Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used with version 18.2. For instructions on using
+Ling 4.0 with APL version 18.2, see the <a href="Installation.md">installation instructions</a>.</p>
+<p>The the most important enhancements are described on this page. For a complete list of changes, see the <a href="https://github.com/Dyalog/link/milestone/2">version 4.0 milestone on GitHub</a>.</p>
+<h2 id="implemented-features">Implemented Features</h2>
+<p>The following features have been implemented in the master branch:</p>
 <ul>
-<li>When specifying the name of a directory, Link 3.0 will not accept a trailing slash (this is reserved for possible future extensions)</li>
-<li>The <code>source=both</code> option has been removed from <a href="../API/Link.Create/">Link.Create</a>.</li>
-<li>Link.List has been renamed <a href="../API/Link.Status/">Link.Status</a>.</li>
-<li>When providing a new value for an array using <a href="../API/Link.Fix/">Link.Fix</a>, Link 3.0 expects the text source form of the array rather than the value of the array (bringing arrays into line with all other cases). To update using a new value, assign the value to the array and call <a href="../API/Link.Add/">Link.Add</a>.</li>
-<li>If you have defined handlers for custom array representations, there have been significant changes to the arguments to the <code>beforeRead</code> and <code>beforeWrite</code>callback functions. Also, a new <code>getFilename</code> callback has been added. These callback functions are described in the documentation for <a href="../API/Link.Create/">Link.Create</a>.</li>
-<li><strong>fastLoad:</strong> When loading very large bodies of code (thousands or tens of thousands of functions), you may need to specify the new <code>fastLoad</code> option on <a href="../API/Link.Create/">Link.Create</a>, in order to disable the checking of whether the names of items actually defined by source files correspond to the name of the file. Without this option, link creation may slow down so much that it could be considered a breaking change.</li>
+<li>Version 4.0 adds <a href="../Usage/ConfigFiles/">configuration files</a>:</li>
+<li>A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=</li>
+<li>Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings</li>
+<li>If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive noticiation in the APL session each time Link performs an action related to external files.</li>
 </ul>
-<h3 id="other-significant-changes">Other Significant Changes</h3>
-<p>The most important new features are:</p>
+<h2 id="upcoming-features">Upcoming Features</h2>
 <ul>
-<li>The addition of code to warn upon the loading of a workspace saved with active links, combined with the <a href="../API/Link.Resync/">Link.Resync</a> command which will assist in bringing a saved workspace in line with the external source, provide better support for resuming work after a break.</li>
-<li>"Case Coding" of file names, supporting the maintenence of source for names which differ only in case (for example, <code>FOO</code> vs <code>Foo</code>) in case-insensitive file systems.</li>
-<li>The addition of the <a href="../API/Link.LaunchDir/">Link.LaunchDir</a> API function, which returns the name of the directory that the interpreter was started from, either using the <code>LOAD=</code> or <code>CONFIGFILE=</code>setting.</li>
+<li>Storing multi-line character data in "flat" text files.</li>
+<li>Creating Links from single source files in addition to linking a folder to a namespace.</li>
+<li>Transfer information about who last changed a source file from Git to <code>⎕AT</code> within APL.</li>
+<li>Use a <code>.linkignore</code> to list names in the active workspace which should be ignored by Link.</li>
 </ul>
-<h3 id="change-history">Change History</h3>
-<p>A detailed list of new features added to recent releases and a few behavioural changes can be found in the <a href="../ChangeHistory/">Link Change History</a>. </p>
+<h2 id="deferred-features">Deferred Features</h2>
+<ul>
+<li>The so-called crawler, which will periodically scan for differences between the active workspace and the linked source files, will be implemented immediately after the release of Link 4.0</li>
+</ul>
                 
               
               
@@ -852,13 +861,13 @@
       
       
         
-        <a href="../ChangeHistory/" class="md-footer__link md-footer__link--next" aria-label="Next: Change History" rel="next">
+        <a href="../Usage/" class="md-footer__link md-footer__link--next" aria-label="Next: Basic Usage" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Change History
+              Basic Usage
             </div>
           </div>
           <div class="md-footer__button md-icon">

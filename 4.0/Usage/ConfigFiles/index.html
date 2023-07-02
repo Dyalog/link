@@ -14,7 +14,7 @@
     
     
       
-        <title>Migrating from SALT to Link - Link User Guide</title>
+        <title>Configuration Files - Link User Guide</title>
       
     
     
@@ -63,7 +63,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#migrating-from-salt-to-link" class="md-skip">
+        <a href="#configuration-files" class="md-skip">
           Skip to content
         </a>
       
@@ -92,7 +92,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Migrating from SALT to Link
+              Configuration Files
             
           </span>
         </div>
@@ -312,20 +312,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Upgradeto30/" class="md-nav__link">
-        Upgrading to Link 3.0
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../ChangeHistory/" class="md-nav__link">
-        Change History
+      <a href="../../ReleaseNotes40/" class="md-nav__link">
+        Version 4.0 Release Notes
       </a>
     </li>
   
@@ -380,6 +368,112 @@
             
   
   
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Configuration Files
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Configuration Files
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    Introduction
+  </a>
+  
+    <nav class="md-nav" aria-label="Introduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-configuration-files" class="md-nav__link">
+    User Configuration Files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#directory-configuration-files" class="md-nav__link">
+    Directory Configuration Files
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-configuration-file-format" class="md-nav__link">
+    The Configuration File Format
+  </a>
+  
+    <nav class="md-nav" aria-label="The Configuration File Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debug-section" class="md-nav__link">
+    Debug Section
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-section" class="md-nav__link">
+    Settings Section
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sourceflags-section" class="md-nav__link">
+    SourceFlags Section
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
   
     <li class="md-nav__item">
       <a href="../Setup/" class="md-nav__link">
@@ -404,93 +498,11 @@
             
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Migrating from SALT to Link
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        Migrating from SALT to Link
+    <li class="md-nav__item">
+      <a href="../SALTtoLink.md" class="md-nav__link">
+        None
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#no-version-control-features" class="md-nav__link">
-    No Version Control Features
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#different-api" class="md-nav__link">
-    Different API
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#file-name-extensions" class="md-nav__link">
-    File Name Extensions
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dyapp-files" class="md-nav__link">
-    .dyapp Files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#arrays" class="md-nav__link">
-    Arrays
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#loading-individual-files" class="md-nav__link">
-    Loading Individual Files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-require-comment" class="md-nav__link">
-    The ⍝∇:require Comment
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -787,51 +799,63 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#no-version-control-features" class="md-nav__link">
-    No Version Control Features
+  <a href="#introduction" class="md-nav__link">
+    Introduction
   </a>
+  
+    <nav class="md-nav" aria-label="Introduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-configuration-files" class="md-nav__link">
+    User Configuration Files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#directory-configuration-files" class="md-nav__link">
+    Directory Configuration Files
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#different-api" class="md-nav__link">
-    Different API
+  <a href="#the-configuration-file-format" class="md-nav__link">
+    The Configuration File Format
+  </a>
+  
+    <nav class="md-nav" aria-label="The Configuration File Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debug-section" class="md-nav__link">
+    Debug Section
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#file-name-extensions" class="md-nav__link">
-    File Name Extensions
+        
+          <li class="md-nav__item">
+  <a href="#settings-section" class="md-nav__link">
+    Settings Section
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#dyapp-files" class="md-nav__link">
-    .dyapp Files
+        
+          <li class="md-nav__item">
+  <a href="#sourceflags-section" class="md-nav__link">
+    SourceFlags Section
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#arrays" class="md-nav__link">
-    Arrays
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#loading-individual-files" class="md-nav__link">
-    Loading Individual Files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-require-comment" class="md-nav__link">
-    The ⍝∇:require Comment
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -847,30 +871,44 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/dyalog/link/edit/master/docs/Usage/SALTtoLink.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/dyalog/link/edit/master/docs/Usage/ConfigFiles.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="migrating-from-salt-to-link">Migrating from SALT to Link</h1>
-<p>If you have been using SALT (<a href="../../Discussion/History/">Link's direct predecessor</a>) to maintain the source of your application, the good news is that nearly all of your source files already have a format which can be used directly with Link (with the exception of source files containing arrays). </p>
-<p>There are a few issues that may require some work to sort out.</p>
-<h2 id="no-version-control-features">No Version Control Features</h2>
-<p>SALT includes basic version control features, such as storing multiple versions of the source for a single function by creating file names containing sequence numbers, and providing tools to compare different versions. Link assumes that you will use an external <abbr title="Source Code Manager">SCM</abbr> like Git or SVN, and contains no version control features of its own.</p>
-<h2 id="different-api">Different API</h2>
-<p>You need to replace all calls to SALT functions like <code>⎕SE.SALT.Load</code> with calls to <code>⎕SE.Link.Create</code> or <code>⎕SE.Link.Import</code>.</p>
-<h2 id="file-name-extensions">File Name Extensions</h2>
-<p>SALT uses the extension of <code>.dyalog</code> for all source files including arrays. Link will load <code>.dyalog</code> files and, if you edit existing objects the source file will be updated. However, if you create any new items, all new files will have extensions that vary by type, for example <code>.aplf</code> for functions, <code>.apln</code> for namespaces, or <code>.apla</code> for arrays.</p>
-<p>You can rename all your source files to the Link defaults in one operation by creating a link using the <a href="../../API/Link.Create/"><code>-forcefilenames</code></a> switch. Remember to take a backup before you cause such a sweeping change to your source files!</p>
-<h2 id="dyapp-files"><code>.dyapp</code> Files</h2>
-<p>From Dyalog version 18.0, you can launch the APL interpreter using any APL source file, or a configuration file. As a result, <code>.dyapp</code> files are now deprecated. The section on <a href="../Setup/">setting up your environment</a> contains examples of using the new mechanisms to launch your application.</p>
-<h2 id="arrays">Arrays</h2>
-<p>SALT uses a couple of different formats to represent arrays, either XML or executable APL expressions. Link uses the future literal array notation. You will need to load your arrays into the workspace using SALT and then use <a href="../../API/Link.Add/">Link.Add</a> to write them back out again.</p>
-<h2 id="loading-individual-files">Loading Individual Files</h2>
-<p>The SALT <code>Load</code> function supports loading individual source files and maintaining a link to the source file, so that editing the function will cause the source file to be updated. While <a href="../../API/Link.Import/">Link.Import</a> can load individual files, the files loaded in this way will not be synchronised. <a href="../../API/Link.Create/">Link.Create</a> only supports linking an entire directory to a namespace.</p>
-<p>This may well change in a future release. Until then, you can use <code>2 ⎕FIX 'file://filename'</code> to achieve more or less the same effect as SALT's Load.</p>
-<h2 id="the-require-comment">The <code>⍝∇:require</code> Comment</h2>
-<p>SALT was implemented before the interpreter added support for the <code>:Require</code> keyword, which can be used to manage the order in which dependencies are loaded. SALT used special comments to implement its own dependency management. Link does not support these comments; you must switch to using the keyword.</p>
+                <h1 id="configuration-files">Configuration Files</h1>
+<h2 id="introduction">Introduction</h2>
+<p>Link Configuration files are in <a href="https://json5.org/">JSON5 format</a>, which is the same format as Dyalog APL configuration files. </p>
+<h3 id="user-configuration-files">User Configuration Files</h3>
+<p>You can have a user configuration file which allows you to record preferences that apply to all links, for example link creation options like -watch= or the <code>notify</code> setting. A simple example of a user configuration file would be:</p>
+<pre><code>{
+  Debug: {
+    notify: 1,
+  },
+  Settings: {
+    watch: &quot;ns&quot;,
+  },
+}
+</code></pre>
+<p>With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and use default to only propagating changes from the namespace to source files (watch:ns), unless a call to <a href="..API/Link.Create.md">Link.Create</a> includes an explicit setting of that option .</p>
+<h3 id="directory-configuration-files">Directory Configuration Files</h3>
+<p>Each linked directory may contain a <code>.linkconfig</code> file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When <a href="..API/Link.Create.md">Link.Create</a> or <a href="..API/Link.Export.md">Link.Export</a> create a directory and create files in it, any non-default switch settings will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.</p>
+<p>If you already have a Link folder which was created by an earlier version of Link, you can add a <code>.linkconfig</code> file using <a href="..API/Link.Configure.md">Link.Configure</a>. For example:</p>
+<pre><code>      ]link.Create linkdemo c:\tmp\linkdemo
+      ]link.configure linkdemo flatten:1
+Was  flatten: 
+</code></pre>
+<p>This will create a file called <code>/tmp/linkdemo/.linkconfig</code> with the following contents:</p>
+<pre><code>{
+  Settings: {
+    flatten: 1,
+  },
+}
+</code></pre>
+<h2 id="the-configuration-file-format">The Configuration File Format</h2>
+<h3 id="debug-section">Debug Section</h3>
+<h3 id="settings-section">Settings Section</h3>
+<h3 id="sourceflags-section">SourceFlags Section</h3>
                 
               
               
@@ -890,7 +928,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../WStoLink/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Converting an Existing Workspace to use Link" rel="prev">
+        <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Basic Usage" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -899,20 +937,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Converting an Existing Workspace to use Link
+              Basic Usage
             </div>
           </div>
         </a>
       
       
         
-        <a href="../../API/" class="md-footer__link md-footer__link--next" aria-label="Next: API Overview" rel="next">
+        <a href="../Setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Setting Up Your Environment" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              API Overview
+              Setting Up Your Environment
             </div>
           </div>
           <div class="md-footer__button md-icon">
