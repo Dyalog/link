@@ -10,11 +10,11 @@ nav:
     
   - Install and Upgrade:
     - Usage/Installation.md
-    - Upgradeto30.md
-    - ChangeHistory.md
+    - ReleaseNotes40.md
     
   - Working with Link:
     - Usage/index.md
+    - Usage/ConfigFiles.md
     - Usage/Setup.md
     - Usage/WStoLink.md
     - Usage/SALTtoLink.md

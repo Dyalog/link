@@ -1,21 +1,13 @@
 !!! Note
-     This documentation is in the process of being revised for Link version 4.0! 
-     
-     At the moment it is primarily the unmodified documentation for version 3.0.
+     Link version 4.0 and associated documentation are under development!
+     You can track our progress [on GitHub](https://github.com/Dyalog/link/milestone/2).
+
+# Audience
+It is assumed the reader is a user of Dyalog APL using Dyalog APL version 19.0 or later. If you are currently managing text source using SALT or Link versions 1 or 2,, you might want to review documentation which describes differences between early versions of SALT and Link - these can be found in the [Link 3.0 documentation](https://dyalog.github.io/link/3.0/).
+
+If you are migrating from Link 3.0 to 4.0, you may want to begin with a review of the [new features of Link 4.0](ReleaseNotes40.md).
 
 # Introduction
-*Link* enables users of Dyalog to store their APL source code in text files. If you have an earlier version of APL or Link, you might want to read one or more of the following pages before continuing: 
-
-* [Link version 2.0](https://github.com/Dyalog/link/blob/master/help/Home.md) If you are actually looking for documentation of the version which was distributed with Dyalog APL versions 17.1 and 18.0.
-* [Migrating to Link 3.0 from Link 2.0:](Upgradeto30.md) Dyalog recommends migrating to version 3.0 at your earliest convenience.
-* [Migrating to Link 3.0 from SALT:](Usage/SALTtoLink.md) If you have APL source in text files managed by SALT that you want to migrate to Link.
-* [Installation instructions:](Usage/Installation.md) If you want to download and install Link from the GitHub repository rather than use the version installed with APL, for example if you want to use Link 3.0 with Dyalog version 18.0.
-* [The historical perspective:](Discussion/History.md) Link is a step on a journey which begins more than a decade ago with the introduction of SALT for managing source code in text files, as an alternative to binary workspaces and files, and will hopefully end with the interpreter handling everything itself.
-
-## Audience
-It is assumed the reader has a reasonable understanding of Dyalog and in particular workspaces and namespaces.
-
-## What is Link?
 
 ***Link*** allows you to use Unicode text files to store APL source code, rather than "traditional" binary workspaces. The benefits of using Link and text files include:
 
@@ -36,7 +28,7 @@ It is assumed the reader has a reasonable understanding of Dyalog and in particu
 
 ## Link is NOT...
 
-- **A source code management system**: unlike it's [predecessor SALT](Usage/SALTtoLink.md), Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.
+- **A source code management system**: Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.
 - **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define using the editor will be written to source files by default, source files are only created for arrays by explicit calls to [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
 
 ## Link fundamentals
