@@ -542,7 +542,7 @@
           :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
           :If ~0∊⍴links
               dirs←(links←GetLinks).dir
-          :AndIf ∨/mask←dirs Begins¨⊂file
+          :AndIf ∨/mask←dirs Begins⍥WinSlash¨⊂file
               inx←⊃⍒mask×≢¨dirs ⍝ longest directory containing file
               linkns←inx⊃links
           :Else
