@@ -3,6 +3,8 @@
 ## Introduction
 Link Configuration files are in [JSON5 format](https://json5.org/), which is the same format as Dyalog APL configuration files. There is a user configuration file containing options that apply to all links, and directory configuraton files which apply to individual directories.
 
+When performing an action that is related to a directory, Link will read both the user and directory configurations. If a setting is found in both places, the more specific directory setting will override the general user settting.
+
 ### User Configuration Files
 You can have a user configuration file which allows you to record preferences that apply to all links, for example link creation options like -watch= or the `notify` setting. A simple example of a user configuration file would be:
 
