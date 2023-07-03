@@ -564,6 +564,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../API/Link.Configure/" class="md-nav__link">
+        Link.Configure
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../API/Link.Export/" class="md-nav__link">
         Link.Export
       </a>
@@ -696,6 +708,30 @@
   
   
     <li class="md-nav__item">
+      <a href="../API/Link.Stop/" class="md-nav__link">
+        Link.Stop
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API/Link.Trace/" class="md-nav__link">
+        Link.Trace
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../API/Link.StripCaseCode/" class="md-nav__link">
         Link.StripCaseCode
       </a>
@@ -813,10 +849,15 @@ Link 4.0 with APL version 18.2, see the <a href="Installation.md">installation i
 <li><a href="../Usage/ConfigFiles/">Configuration files</a>:<ul>
 <li>A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=</li>
 <li>Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings</li>
-<li>If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive noticiation in the APL session each time Link performs an action related to external files.</li>
+<li>If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.</li>
 </ul>
 </li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Link.Create, Import and Export have a new switch -ignoreconfig, which allows you
+ to ignore a damaged or otherwise inappropriate configuration file.</p>
+</div>
 <h2 id="upcoming-features">Upcoming Features</h2>
 <ul>
 <li>Storing multi-line character data in "flat" text files.</li>

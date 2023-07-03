@@ -452,22 +452,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#debug-section" class="md-nav__link">
-    Debug Section
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#settings-section" class="md-nav__link">
-    Settings Section
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sourceflags-section" class="md-nav__link">
-    SourceFlags Section
+  <a href="#the-ignoreconfig-switch" class="md-nav__link">
+    The ignoreconfig switch
   </a>
   
 </li>
@@ -618,6 +604,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../API/Link.Configure/" class="md-nav__link">
+        Link.Configure
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../API/Link.Export/" class="md-nav__link">
         Link.Export
       </a>
@@ -750,6 +748,30 @@
   
   
     <li class="md-nav__item">
+      <a href="../../API/Link.Stop/" class="md-nav__link">
+        Link.Stop
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Trace/" class="md-nav__link">
+        Link.Trace
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../API/Link.StripCaseCode/" class="md-nav__link">
         Link.StripCaseCode
       </a>
@@ -862,22 +884,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#debug-section" class="md-nav__link">
-    Debug Section
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#settings-section" class="md-nav__link">
-    Settings Section
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sourceflags-section" class="md-nav__link">
-    SourceFlags Section
+  <a href="#the-ignoreconfig-switch" class="md-nav__link">
+    The ignoreconfig switch
   </a>
   
 </li>
@@ -907,6 +915,7 @@
                 <h1 id="configuration-files">Configuration Files</h1>
 <h2 id="introduction">Introduction</h2>
 <p>Link Configuration files are in <a href="https://json5.org/">JSON5 format</a>, which is the same format as Dyalog APL configuration files. There is a user configuration file containing options that apply to all links, and directory configuraton files which apply to individual directories.</p>
+<p>When performing an action that is related to a directory, Link will read both the user and directory configurations. If a setting is found in both places, the more specific directory setting will override the general user settting.</p>
 <h3 id="user-configuration-files">User Configuration Files</h3>
 <p>You can have a user configuration file which allows you to record preferences that apply to all links, for example link creation options like -watch= or the <code>notify</code> setting. A simple example of a user configuration file would be:</p>
 <pre><code>{
@@ -954,7 +963,7 @@ Was linkdemo.stats.Mean 1
 }
 </code></pre>
 <h2 id="linkconfigure">Link.Configure</h2>
-<p>The <a href="../../API/Link.Configure/">Link.Configure</a> API function, and the corresponding user command, can be used to query and set the contents of both user and directory configuration files. For example, following on from the above example, we can query the current settings:</p>
+<p>The <a href="../../API/Link.Configure/">Link.Configure</a> API function and the corresponding user command, can be used to query and set the contents of both user and directory configuration files. For example, following on from the above example, we can query the current settings:</p>
 <pre><code>      ]link.configure linkdemo
 Contents of &quot;c:/tmp/linkdemo/.linkconfig&quot;:
    Settings  :  flatten:1 
@@ -964,10 +973,61 @@ Contents of &quot;C:\Users\mkrom\Documents\.linkconfig&quot;:
    Debug     :  notify:1 
    Settings  :  watch:ns 
 </code></pre>
+<p>You can change the settings by adding name:value pairs, and completely remove a setting by putting nothing after the colon:</p>
+<pre><code>      ]link.configure linkdemo flatten:0
+Was  flatten:1 
+      ]link.configure linkdemo
+Contents of &quot;c:/tmp/linkdemo/.linkconfig&quot;:
+   Settings  :  flatten:0
+      ]link.configure linkdemo flatten:
+Was  flatten:1 
+      ]link.configure linkdemo
+No configuration options set in &quot;c:/tmp/linkdemo/.linkconfig&quot;
+</code></pre>
 <h2 id="the-configuration-file-format">The Configuration File Format</h2>
-<h3 id="debug-section">Debug Section</h3>
-<h3 id="settings-section">Settings Section</h3>
-<h3 id="sourceflags-section">SourceFlags Section</h3>
+<p>User and directory configuration files have the same format, with up to three top level names:</p>
+<ul>
+<li>
+<p><strong>Settings</strong> This section can contain settings for most Link API function options. For a complete list, see the 
+documentation for <a href="../../API/Link.Create/">Link.Create</a>.</p>
+</li>
+<li>
+<p><strong>Debug</strong> This section can contain two settings, debug and notify that assist with debugging Link, they are primarily aimed at Link Developers or expert APL users who believe Link might be misbehaving.</p>
+<ul>
+<li><strong>debug:1</strong> Disables error trapping within Link API functions</li>
+<li><strong>debug:2</strong> Stops at the beginning of each Link API call, to facilitate tracing</li>
+<li><strong>notify:1</strong> Causes Link to write confirmation to the APL session each time it defines a function</li>
+</ul>
+</li>
+<li>
+<p><strong>SourceFlags</strong> Unlike Debug and Settings, SourceFlags is an array with one element per function or operator which has saved Stop and Trace settings. Each array element will contain a Name property, which is the name of the function or operator, and it may contain Stop and Trace, which are integer vectors containing line numbers.</p>
+</li>
+</ul>
+<p>An example of a configuration file with information in all three sections is:</p>
+<pre><code>{
+  Debug: {
+    notify:1,
+  },
+  Settings: {
+    watch: &quot;ns&quot;1,
+  },
+  SourceFlags: [
+    {
+      Name: &quot;stats.Mean&quot;,
+      Stop: [
+        2,        
+      ],
+    },    
+  ],
+}
+</code></pre>
+<h3 id="the-ignoreconfig-switch">The <code>ignoreconfig</code> switch</h3>
+<p>If you manually edit a <code>.linkconfig</code> file and damage it so that it either becomes invalid JSON5 so that Link is unable to read it, or if Link is able to read it but complains that it has invalid contents, or if you simply want to ignore the configuration, several API functions including Create, Import and Export have an <code>ignoreconfig</code> option:</p>
+<pre><code>      ]link.create linkdemo c:\tmp\linkdemo
+Unknown Setting(s) in &quot;c:\tmp\linkdemo/.linkconfig&quot;:  fasten 
+      ]link.create linkdemo c:\tmp\linkdemo -ignoreconfig
+Linked: #.linkdemo ←→ c:\tmp\linkdemo
+</code></pre>
                 
               
               

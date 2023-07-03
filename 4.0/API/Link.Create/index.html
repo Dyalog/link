@@ -615,6 +615,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#ignoreconfig" class="md-nav__link">
+    ignoreconfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#flatten" class="md-nav__link">
     flatten
   </a>
@@ -686,6 +693,18 @@
   
 </nav>
       
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Configure/" class="md-nav__link">
+        Link.Configure
+      </a>
     </li>
   
 
@@ -817,6 +836,30 @@
     <li class="md-nav__item">
       <a href="../Link.Status/" class="md-nav__link">
         Link.Status
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Stop/" class="md-nav__link">
+        Link.Stop
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Link.Trace/" class="md-nav__link">
+        Link.Trace
       </a>
     </li>
   
@@ -974,6 +1017,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#ignoreconfig" class="md-nav__link">
+    ignoreconfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#flatten" class="md-nav__link">
     flatten
   </a>
@@ -1060,7 +1110,7 @@
                 
                 <h1 id="linkcreate">Link.Create</h1>
 <h2 id="syntax">Syntax</h2>
-<pre><code>]LINK.Create &lt;ns&gt; &lt;dir&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload]
+<pre><code>]LINK.Create &lt;ns&gt; &lt;dir&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig]
 
 message ← {options} ⎕SE.Link.Create (namespace directory)
 </code></pre>
@@ -1131,6 +1181,9 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <p>By default, Link will always create new files with the same name as items created in the active workspace. However, it will not insist that file names match item names when importing items from a directory.</p>
 <p>If <strong>forceFilenames</strong> is not set.  Link will update to the same file that an item was loaded from, even though the file name does not match the item name.</p>
 <h2 id="advanced-options">Advanced Options</h2>
+<h3 id="ignoreconfig"><strong>ignoreconfig</strong></h3>
+<p>Default: <strong>off</strong></p>
+<p>The <strong>ignoreconfig</strong> allows you to ignore the <code>.linkconfig</code> file in the linked directory. This can be useful during debugging, especially if you have a damaged configuration file.</p>
 <h3 id="flatten"><strong>flatten</strong></h3>
 <p>Default: <strong>off</strong></p>
 <p>The <strong>flatten</strong> flag prevents the creation of sub-namespaces in the active workspace.</p>
@@ -1400,13 +1453,13 @@ nd character vectors of corresponding file extensions in the second column.</p>
       
       
         
-        <a href="../Link.Export/" class="md-footer__link md-footer__link--next" aria-label="Next: Link.Export" rel="next">
+        <a href="../Link.Configure/" class="md-footer__link md-footer__link--next" aria-label="Next: Link.Configure" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Link.Export
+              Link.Configure
             </div>
           </div>
           <div class="md-footer__button md-icon">
