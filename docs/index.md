@@ -50,10 +50,10 @@ If `myapp` contains sub-directories, a namespace hierarchy corresponding to the 
 * **Keep source files up-to-date:** 
 Any changes made to code in the active workspace using the tracer and editor are immediately replicated in the corresponding text files.
 * **Keep the workspace up-to-date:**
-If .NET Framework or .NET Core is available, then any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
+If .NET is available, then any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.
 
 !!!Note
-	For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.
+	For Dyalog to automatically update workspace contents due to file changes requires .NET.
 	
 	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
 	

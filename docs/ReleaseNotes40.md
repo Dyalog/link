@@ -18,7 +18,11 @@ The following features have been implemented in the master branch:
 * [Configuration files](Usage/ConfigFiles.md):
     - A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=
     - Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings
-    - If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive noticiation in the APL session each time Link performs an action related to external files.
+    - If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.
+
+!!! Note
+     Link.Create, Import and Export have a new switch -ignoreconfig, which allows you
+     to ignore a damaged or otherwise inappropriate configuration file.
 
 ## Upcoming Features
 

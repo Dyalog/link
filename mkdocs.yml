@@ -25,6 +25,7 @@ nav:
     - API/Link.Break.md
     - API/Link.CaseCode.md
     - API/Link.Create.md
+    - API/Link.Configure.md
     - API/Link.Export.md
     - API/Link.Expunge.md
     - API/Link.Fix.md
@@ -36,6 +37,8 @@ nav:
     - API/Link.Refresh.md
     - API/Link.Resync.md
     - API/Link.Status.md
+    - API/Link.Stop.md
+    - API/Link.Trace.md
     - API/Link.StripCaseCode.md
     - API/Link.TypeExtension.md
     - API/Link.Version.md
