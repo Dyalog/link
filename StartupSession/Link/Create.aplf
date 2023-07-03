@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;path;file;dirs
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -109,7 +109,13 @@
              :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 1≢opts.preloaded
                  fail←2⊃opts U.FixFiles nsref dir 1 ⍝ we already checked the overwrite condition
-                 :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
+                 :If ×≢fail
+                     :For path :In fail
+                         dirs←¯1↓U.SplitDir⊃⌽(':;'⊃⍨1+U.ISWIN)(≠⊆⊢)path ⍝ X Y from /X/Y/Z
+                         file←2⌷opts U.DetermineAplName path            ⍝   Z from /X/Y/Z
+                         msg,←(⊂(⍕≢fail),' import(s) failed:'),⊂(U.WinSlash path),{0∊⍴⍵:'' ⋄ ' ─ invalid name(s): ',∊1↓,', ',⍥⊆⍪('"'∘,,∘'"')¨⍵}{(0>40 ⎕ATX ⍵)/⍵}dirs,file
+                     :EndFor
+                 :EndIf
              :EndIf
          :Else
              U.Error'Unknown source setting:'opts.source
