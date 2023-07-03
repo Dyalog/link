@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create <ns> <dir> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] 
+    ]LINK.Create <ns> <dir> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -87,6 +87,12 @@ By default, Link will always create new files with the same name as items create
 If **forceFilenames** is not set.  Link will update to the same file that an item was loaded from, even though the file name does not match the item name.
 
 ## Advanced Options
+
+### **ignoreconfig**
+Default: **off**
+
+The **ignoreconfig** allows you to ignore the `.linkconfig` file in the linked directory. This can be useful during debugging, especially if you have a damaged configuration file.
+
 
 ### **flatten**
 Default: **off**
