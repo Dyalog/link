@@ -27,8 +27,8 @@
                          U.ErrorIfRestored links ⍝ error only in linked namespaces
                          (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)leaf leaf nc  ⍝ U.NormNs parent
                          :If (parent.⎕NC leaf)∊3 4
-                             :If 0≠≢parent.⎕STOP leaf  ⋄ z←Stop name ⍬  ⋄ :EndIf
-                             :If 0≠≢parent.⎕TRACE leaf ⋄ z←Trace name ⍬ ⋄ :EndIf
+                             z←Stop name ⍬
+                             z←Trace name ⍬
                          :EndIf
                          r[i]←parent.⎕EX leaf  ⍝ do it before the watcher kicks in
                          :If (⊂link.watch)∊'ns' 'both'

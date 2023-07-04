@@ -19,7 +19,7 @@
      :EndIf
 
      opts←opts Config.MergeOpts setconfig  ⍝ Finally merge user options in
-     'setopts'⎕NS ⎕OR'opts' ⍝ Record options that were set for writing .linkconfig file
+     'setopts'⎕NS opts ⍝ Record options that were set for writing .linkconfig file
      opts←defopts U.DefaultOpts opts
 
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf

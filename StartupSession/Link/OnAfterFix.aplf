@@ -18,9 +18,7 @@
          z←'Trace'SetFlags (fullname trace) ns
      :EndIf
  :Else
-     :If 0≠{0::0 ⋄ ≢(⎕STOP fullname),⎕TRACE fullname}⍬
-         ⎕←'Warning: unable to record Stop/Trace settings'
-     :endIf
+     U.Warn 'Unable to record Stop/Trace settings'
  :EndTrap
 
 :Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error

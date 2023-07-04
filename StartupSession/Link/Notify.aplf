@@ -9,7 +9,6 @@
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
  :Trap DEBUG↓0
-     ⎕TRAP←0 'S'
      :If 0=⎕NC 'NOTIFY' ⋄ NOTIFY←0 ⋄ :EndIf ⍝ Does user want confirmation of notifications?
 
      links←U.ErrorIfRestored U.GetLinks ⍝ never allow file notifications

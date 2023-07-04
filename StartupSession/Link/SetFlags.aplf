@@ -1,34 +1,40 @@
- msg←type SetFlags (args container opts);setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z;relname;fullname
+ msg←type SetFlags(args container opts);setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z;relname;fullname;err
  ⍝ Set or report on user and directory configuration settings
+ ⍝ Called by Stop and Trace
+ ⍝ 1st element of args is a name to set flags for
+ ⍝ remaining elements are line numbers - could be numeric or character
+
  ⎕IO ⎕ML←1 1
  (msg setconfig)←Config.GetConfig opts ⍝ Read user config
  →(0≠≢msg)⍴0
- ⍝ Read Config in imported folder or user config
 
  :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
 
- type←⎕C type
- name←⊃args
- query←1=≢args
- lines←⍕1↓args
- :If (⍬≡2⊃args,⊂⍬)∨(lines~' ')≡,'⍬' ⋄ lines←⍬
- :ElseIf ∧/⊃vfi←⎕VFI lines
-     lines←2⊃vfi
- :Else
-     →0⊣msg←'Invalid line numbers: ',lines
- :EndIf
-
- 'Valid flag types are Stop and Trace'⎕SIGNAL((⊂type)∊'stop' 'trace')↓11
-
  :Trap DEBUG↓0
-     fn←container⍎'⎕',type
-     :If ~(container.⎕NC name)∊3 4
-         →0⊣msg←'Not a function or operator: ',name
+     err←'ERRORS ENCOUNTERED: '
+     type←⎕C type
+     name←⊃args
+     query←1=≢args
+     lines←(⍕1↓args)~'⍬'
+     :If ∧/⊃vfi←', '⎕VFI lines
+         lines←2⊃vfi
+     :Else
+         →0⊣msg←err,'Invalid line numbers: ',lines
      :EndIf
 
-     current←fn name
+     fn←container⍎'⎕',type
+     :If ~(container.⎕NC name)∊3 4
+         →0⊣msg←err,'Not a function or operator: ',name
+     :EndIf
+
+     :Trap 0
+         current←fn name
+     :Else
+         →0⊣msg←err,' unable to manipulate ',type,' flags for ',name
+     :EndTrap
+
      msg←name,' ',(⍕current),(0=≢current)/'⍬'
 
      →query⍴0
@@ -40,13 +46,14 @@
 NOHOLD:
          (ns leaf)←U.SplitNs name
          :If 0≠≢links←U.GetLinks
-             link←links U.LookupRef {0=≢ns:⍵ ⋄ ⍵⍎ns}container
+             link←links U.LookupRef{0=≢ns:⍵ ⋄ ⍵⍎ns}container
          :EndIf
          →(0=≢link)⍴0
 
          :If exists←⎕NEXISTS file←link.dir,'/.linkconfig'
-             :If 0≠⊃(rc config)←Config.ReadConfigFile file
-                 →0⊣msg←'ERRORS ENCOUNTERED: Unable to write flags to .linkconfig - ',config
+             (rc config)←Config.ReadConfigFile file
+             :If 0≠rc
+                 →0⊣msg←err,config ⍝ config is an error message in this case
              :EndIf
          :Else
              config←⎕NS''
@@ -63,12 +70,12 @@ NOHOLD:
          type←(1∘⎕C)@1⊢type
 
          :If 0=≢lines
-             ⎕EX 'flags.',type
+             ⎕EX'flags.',type
          :Else
              ⍎'flags.',type,'←lines'
          :EndIf
 
-         :If 0=≢(flags.⎕nl -2)~⊂'Name' ⍝ All flags reset?
+         :If 0=≢(flags.⎕NL-2)~⊂'Name' ⍝ All flags reset?
              flagarray←(i≠⍳≢flagarray)/flagarray
          :EndIf
          config.SourceFlags←flagarray
