@@ -1,7 +1,7 @@
  msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
- (msg setconfig)←Config.GetConfig '' opts
+ (msg setconfig)←Config.GetConfig opts
  →(0≠≢msg)⍴0
  :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI

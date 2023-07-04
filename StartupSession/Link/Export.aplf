@@ -1,7 +1,7 @@
  msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
  ⎕IO ⎕ML←1 1
  preProcessOpts
- (msg setconfig)←Config.GetConfig '' opts
+ (msg setconfig)←Config.GetConfig opts
  →(0≠≢msg)⍴0
  :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI

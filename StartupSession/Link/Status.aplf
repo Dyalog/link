@@ -1,7 +1,7 @@
  status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML;setconfig
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
- (status setconfig)←Config.GetConfig '' opts
+ (status setconfig)←Config.GetConfig opts
  →(0≠≢status)⍴0
  :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI

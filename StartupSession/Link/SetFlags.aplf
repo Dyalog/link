@@ -1,7 +1,7 @@
  msg←type SetFlags (args container opts);setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z;relname;fullname
  ⍝ Set or report on user and directory configuration settings
  ⎕IO ⎕ML←1 1
- (msg setconfig)←Config.GetConfig '' opts ⍝ Read user config
+ (msg setconfig)←Config.GetConfig opts ⍝ Read user config
  →(0≠≢msg)⍴0
  ⍝ Read Config in imported folder or user config
 
