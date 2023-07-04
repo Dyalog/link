@@ -9,16 +9,12 @@
  :Trap DEBUG↓0
      (container src)←⎕RSI ⎕XSI U.ContainerNs rawsrc←src
 
-     (defopts←⎕NS ⍬).(overwrite arrays sysvars caseCode)←0 0 0 0
-     :If 0=⎕NC'opts' ⋄ opts←⎕NS''
-     :ElseIf ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts
-     :EndIf
+     (defopts←⎕NS ⍬).overwrite←0
 
-     :If 0≠≢links←⎕SE.Link.Links
+     :If 0≠≢links←U.GetLinks
      :AndIf (⊂src)∊links.ns               ⍝ If exporting a linked namespace
      :AndIf ⎕NEXISTS file←links[links.ns⍳⊂src].dir,'/.linkconfig'
      :AndIf 0=⊃(rc config)←Config.ReadConfigFile file
-         config.Settings.⎕EX(config.Settings.⎕NL ¯2)~defopts.⎕NL ¯2
          opts←opts Config.MergeOpts config ⍝ ... merge settings found in .linkconfig in
      :EndIf
 

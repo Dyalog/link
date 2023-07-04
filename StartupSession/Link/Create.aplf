@@ -6,7 +6,7 @@
 :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
- :Trap DEBUG
+ :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
          :If 0=⎕NC'⎕SE.Link.Links'   ⍝ init links if necessary
              U.SetLinks ⍬
@@ -26,7 +26,7 @@
              :Else ⋄ warnmsg←'Dyalog v18.0 is required to watch directories with .NET or .NetCore - watch defaults to ''ns'''
              :EndIf
          :EndIf  ⍝ otherwise watch defaults to 'both'
-         'setopts' ⎕NS ⎕OR 'opts' ⍝ Record options that were set for writing .linkconfig file
+         'setopts' ⎕NS opts ⍝ Record options that were set for writing .linkconfig file
          opts←U.DefaultOpts opts
 
          :If hasdir←⎕NEXISTS dir
@@ -108,12 +108,11 @@
              z.Settings←Config.ExpungeDefaultParams setopts
              z.Settings.⎕EX 'source' ⍝ Not a folder configuration option
              z Config.WriteConfig opts
-         :EndIf
-
-         :If ~dircreated ⍝ Update source flag cache
-            :If 0=⊃(rc config)←Config.ReadConfigFile dir,'/.linkconfig'
-               config Config.SetSourceFlags opts
-            :EndIf
+         :Else
+             (rc config)←Config.ReadConfigFile dir,'/.linkconfig'
+             :If 0=rc
+                 config Config.SetSourceFlags opts ⍝ Update source flag cache
+             :EndIf
          :EndIf
 
          :Select opts.source
