@@ -1,7 +1,10 @@
- msg←type SetFlags args;setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z
+ msg←type SetFlags (args container opts);setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z;relname;fullname
  ⍝ Set or report on user and directory configuration settings
  ⎕IO ⎕ML←1 1
- setconfig←Config.GetConfig'' ⍝ Read user config
+ (msg setconfig)←Config.GetConfig '' opts ⍝ Read user config
+ →(0≠≢msg)⍴0
+ ⍝ Read Config in imported folder or user config
+
  :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
@@ -10,7 +13,7 @@
  name←⊃args
  query←1=≢args
  lines←⍕1↓args
- :If (⍬≡2⊃args,⊂⍬)∨lines≡,'⍬' ⋄ lines←⍬
+ :If (⍬≡2⊃args,⊂⍬)∨(lines~' ')≡,'⍬' ⋄ lines←⍬
  :ElseIf ∧/⊃vfi←⎕VFI lines
      lines←2⊃vfi
  :Else
@@ -20,7 +23,6 @@
  'Valid flag types are Stop and Trace'⎕SIGNAL((⊂type)∊'stop' 'trace')↓11
 
  :Trap DEBUG↓0
-     container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      fn←container⍎'⎕',type
      :If ~(container.⎕NC name)∊3 4
          →0⊣msg←'Not a function or operator: ',name
@@ -33,15 +35,14 @@
      msg←'Was ',msg
      lines fn name ⍝ Do the deed
      lines←fn name ⍝ Read back in case some lines do not exist
-
+     →(('⎕SE.Link.OnAfterFix' '⎕SE.Link.Expunge')∊⎕XSI)/NOHOLD ⍝ Cannot hold in a high priority callback (or already held)
      :Hold '⎕SE.Link.Links'
+NOHOLD:
          (ns leaf)←U.SplitNs name
-
-         :If 0∊⍴links←U.GetLinks
-         :OrIf 9≠container.⎕NC ns
-         :OrIf 0∊⍴link←links U.LookupRef container⍎ns
-             →0
+         :If 0≠≢links←U.GetLinks
+             link←links U.LookupRef {0=≢ns:⍵ ⋄ ⍵⍎ns}container
          :EndIf
+         →(0=≢link)⍴0
 
          :If exists←⎕NEXISTS file←link.dir,'/.linkconfig'
              :If 0≠⊃(rc config)←Config.ReadConfigFile file
@@ -52,8 +53,11 @@
          :EndIf
 
          flagarray←{0::⍬ ⋄ config.SourceFlags}⍬
-         :If (≢flagarray)<i←({0::⍬ ⋄ flagarray.Name}⍬)⍳⊂name
-             flagarray,←⎕NS ''
+         fullname←(⍕container⍎ns,(0=≢ns)/'⎕THIS'),'.',leaf
+         relname←(1+≢link.ns)↓fullname
+         :If (≢flagarray)<i←({0::⍬ ⋄ flagarray.Name}⍬)⍳⊂relname
+             flagarray,←flags←⎕NS ''
+             flags.Name←relname
          :EndIf
          flags←i⊃flagarray
          type←(1∘⎕C)@1⊢type
@@ -64,11 +68,11 @@
              ⍎'flags.',type,'←lines'
          :EndIf
 
-         :If 0=≢flags.⎕nl -2 ⍝ All flags reset?
+         :If 0=≢(flags.⎕nl -2)~⊂'Name' ⍝ All flags reset?
              flagarray←(i≠⍳≢flagarray)/flagarray
          :EndIf
          config.SourceFlags←flagarray
-         config Config.WriteConfig file
+         config Config.WriteConfig link
      :EndHold
 
  :Else

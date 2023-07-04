@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;relname
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -29,6 +29,7 @@
 
      callback←'⎕SE.Link.OnAfterFix' '⎕SE.SALTUtils.EditorFix'∊⍨⊂⊃1↓XSI  ⍝ v18.0 started using ⎕SE.Link.OnFix/⎕SE.Link.OnAfterFix - v17.1 was called directly from SALT
      add←'⎕SE.Link.Add'≡⊃1↓XSI
+     ⍝ :If callback ⋄ →NOHOLD ⋄ :EndIf
      →callback/NOHOLD ⍝ Can't hold in a high-priority callback (Editor AfterFix callback) - see mantis 18160: can't :Hold 0⍴⊂'' in a high-priority callback
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
      ⍝ Ok not to hold ⎕SE.Link.Links in high-priority callback because it only reads it and doesn't change it, and no other APL thread will run.
@@ -165,6 +166,9 @@ NOHOLD:
          :Else
              names←,⊂name
          :EndIf
+
+         relname←(1+≢link.ns)↓nsname,'.',name
+         relname Config.RestoreFlags link
 
          :If ~0∊⍴error ⋄ U.Error error ⋄ :EndIf
 

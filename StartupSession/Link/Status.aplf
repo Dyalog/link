@@ -1,6 +1,9 @@
- status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML
+ status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML;setconfig
  ⎕IO ⎕ML←1 1
- :If U.debug=2
+ preProcessOpts ⍝ Make sure opts is a namespace
+ (status setconfig)←Config.GetConfig '' opts
+ →(0≠≢status)⍴0
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
@@ -28,7 +31,7 @@
          status⍪⍨←'Namespace' '' 'Directory' 'Files'
 
          (defopts←⎕NS ⍬).(extended)←0
-         opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+         opts←defopts U.DefaultOpts opts
          :If ~opts.extended∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.extended),' for modifier "extended" - must be one of: 0 1' ⋄ :EndIf
 
          props←('Case' 'Code')'Flatten'('Force' 'Extensions')('Force' 'Filenames')'Watch'

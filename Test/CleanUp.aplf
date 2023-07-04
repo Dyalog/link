@@ -1,5 +1,6 @@
  CleanUp(folder name);z;m
-    ⍝ Tidy up after test    
+    ⍝ Tidy up after test
+ z←2 ⎕NQ '.' 'wscheck'
  z←⎕SE.Link.Break name
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  z←⊃¨5176⌶⍬ ⍝ Check all links have been cleared

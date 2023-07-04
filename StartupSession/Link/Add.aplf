@@ -1,6 +1,9 @@
- msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML
+ msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type
  ⎕IO ⎕ML←1 1
- :If U.debug=2
+ preProcessOpts ⍝ Make sure opts is a namespace
+ (msg setconfig)←Config.GetConfig '' opts
+ →(0≠≢msg)⍴0
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
@@ -10,6 +13,15 @@
      :For item :In items
          :If ~(# U.NameClass item)∊0 ¯1
              (ns name)←U.SplitNs item
+             :If (⎕NC item)∊3 4
+                 :If 0≠≢lines←⎕STOP item
+                     z←Stop item lines
+                 :EndIf
+                 :If 0≠≢lines←⎕TRACE item
+                     z←Trace item lines
+                 :EndIf
+             :EndIf
+
              :If ~0∊⍴ns name Fix''  ⍝ was linked and fixed
                  added,←⊂item
              :Else

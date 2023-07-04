@@ -20,41 +20,82 @@
 
     DebugParams←'notify' 'debug',⍪0 0
 
-    ∇ config WriteConfig file;json;ns;m;nss  
-    ⍝ Clean up and write config
-    ns←⎕NS ⎕OR 'config' ⍝ Do not modify the argument
+    ∇ {name}RestoreFlags config;names;flags;f;type;nm
+    ⍝ Restore Stop/Trace flags after a fix
+      :If 0=⎕NC'name' ⋄ name←⍬ ⋄ :EndIf
+      :If 0=⎕NC'config.flagged' ⋄ config.flagged←⍬ ⋄ :EndIf ⍝ /// paranoia during v19.0 development
+      names←(⊂name)∩⍣(0≠≢name)⊢config.flagged ⍝ filter flagged list by name if defined
+      →(0=≢names)⍴0 ⍝ No flags - 99.9% use case
+      flags←config.flags[config.flagged⍳names]
+      :For f :In flags
+          :For type :In 'Stop' 'Trace'
+              :If 2=⎕NC'f.',type
+              :AndIf (⎕NC nm←config.ns,'.',f.Name)∊3 4
+                  ⍎'f.',type,' ⎕',type,' ''',nm,''''
+              :EndIf
+          :EndFor
+      :EndFor
+    ∇
 
-    :If 2=⎕NC 'ns.SourceFlags' 
-    :AndIf 0=≢ns.SourceFlags 
-        ns.⎕EX 'SourceFlags' ⍝ No flags
-    :EndIf                  
-    
-    m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
-    ns.⎕EX m/nss ⍝ Expunge empty namepaces
-  
-    json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
-    (⊂json)⎕NPUT file 1    
+    ∇ config SetSourceFlags link
+      :If 2=⎕NC'config.SourceFlags'
+      :AndIf 0≠≢config.SourceFlags
+          link.flagged←config.SourceFlags.Name
+          link.flags←config.SourceFlags
+      :Else
+          link.flagged←⍬
+      :EndIf
+    ∇
+
+    ∇ config WriteConfig linkorfile;link;file;json;ns;m;nss;islink
+    ⍝ Clean up and write config
+     
+      :If islink←9=⎕NC'linkorfile' ⍝ It's a link namespace
+          file←linkorfile.dir,'/.linkconfig'
+      :Else
+          file←linkorfile
+      :EndIf
+     
+      ns←⎕NS ⎕OR'config' ⍝ Do not modify the argument
+     
+      :If 2=⎕NC'ns.SourceFlags'
+      :AndIf 0=≢ns.SourceFlags
+          ns.⎕EX'SourceFlags' ⍝ No flags
+      :EndIf
+     
+      m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
+      ns.⎕EX m/nss ⍝ Expunge empty namepaces
+     
+      json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
+      (⊂json)⎕NPUT file 1
+     
+      :If islink
+          ns SetSourceFlags linkorfile
+      :EndIf
     ∇
 
     ∇ msg←FormatOptions config;obj;trace;stop;name
-       msg←''
-       :If 9=⎕NC 'config.Debug'
-           msg,←⊂'Debug     : ',⍕config.Debug.({⍵,':',⍕⍎⍵}¨⎕NL -2)
-       :EndIf
-       
-       :If 9=⎕NC 'config.Settings'
-           msg,←⊂'Settings  : ',⍕config.Settings.({⍵,':',⍕⍎⍵}¨⎕NL -2)
-       :EndIf
-       
-       :If 2=⎕NC  'config.SourceFlags'
-           msg,←⊂'Stop/Trace:'
-           :For obj :In config.SourceFlags    
-                (name stop trace)←obj.{6::⍬ ⋄ ⍎⍵}¨'Name' 'Stop' 'Trace'
-                :If (0≠≢name)∧(∨/0≠≢¨stop trace) ⍝ Something to report
-                     msg,←⊂'   ',name,'[',(⍕stop),'/',(⍕trace),']'
-                :EndIf
-           :EndFor
-       :EndIf       
+      msg←''
+      :If 9=⎕NC'config.Debug'
+      :AndIf 0≠≢config.Debug.⎕NL -2
+          msg,←⊂'Debug     : ',⍕config.Debug.({⍵,':',⍕⍎⍵}¨⎕NL-2)
+      :EndIf
+     
+      :If 9=⎕NC'config.Settings'
+      :AndIf 0≠≢config.Settings.⎕NL -2      
+          msg,←⊂'Settings  : ',⍕config.Settings.({⍵,':',⍕⍎⍵}¨⎕NL-2)
+      :EndIf
+     
+      :If 2=⎕NC'config.SourceFlags'   
+      :AndIf 0≠≢config.SourceFlags            
+          msg,←⊂'Stop/Trace:'
+          :For obj :In config.SourceFlags
+              (name stop trace)←obj.{6::⍬ ⋄ ⍎⍵}¨'Name' 'Stop' 'Trace'
+              :If (0≠≢name)∧(∨/0≠≢¨stop trace) ⍝ Something to report
+                  msg,←⊂'   ',name,'[',(⍕stop),'/',(⍕trace),']'
+              :EndIf
+          :EndFor
+      :EndIf
     ∇
 
     ∇ ns←ExpungeDefaultParams ns;values;names;m
@@ -65,23 +106,26 @@
       :EndIf
     ∇
 
-    ∇ r←UserConfig
-     ⍝ Return user configuration
-     ⍝ /// In the future, we will cache  CONFIG and watch the config file
-      ⍝ :If 0=⎕NC 'CONFIG'
-      CONFIG←GetConfig''
-     ⍝ :EndIf
-     
-      r←CONFIG
-    ∇
-
-    ∇ config←{linkdir}GetConfig userfile;userdir;z;rc;dir;linkfile;config;names;p;valid
+    ∇ (msg config)←{linkdir}GetConfig(userfile opts);userdir;z;rc;dir;linkfile;config;names;p;valid;err;allowignore
      ⍝ Return configuration namespaces, blending user configuration file with optional link directory config
      ⍝ config[1] is options actually set
      ⍝ config[2] hs defaults filled in
      ⍝
      ⍝ GetConfig '' ⍝ returns user config from default location
      ⍝ GetConfig '/some/folder/.linkconfig' ⍝ Reads specific
+     
+      msg←''                 ⍝ All OK
+     
+      allowignore←⎕XSI[2]∊'⎕SE.Link.Create' '⎕SE.Link.Import' '⎕SE.Link.Export' ⍝ Create or Import (or Export)
+      err←'ERRORS ENCOUNTERED: ',allowignore/'(use -ignoreconfig to ignore config files) '
+      :If 2=⎕NC'opts.ignoreconfig'
+      :AndIf opts.ignoreconfig≡1
+          :If allowignore
+              →0⊣(config←⎕NS'').⎕DF'[ignored configuration]'
+          :Else
+              →0⊣msg←'ERRORS ENCOUNTERED: -ignoreconfig not allowed with this API function'⊣config←⎕NS''
+          :EndIf
+      :EndIf
      
       :If 0=≢userfile        ⍝ Config file not given
           :If 0=##.⎕NC'USERCONFIGFILE'
@@ -96,11 +140,11 @@
       :If ⎕NEXISTS userfile
           (rc config)←ReadConfigFile userfile
       :Else
-          (rc config)←0 (⎕NS '')
+          (rc config)←0(⎕NS'')
       :EndIf
      
       :If rc≠0
-          config ⎕SIGNAL 11
+          →0⊣msg←err,config
       :EndIf
      
       :If 2=⎕NC'linkdir'
@@ -108,7 +152,7 @@
       :AndIf ⎕NEXISTS linkfile←linkdir,'/.linkconfig'
           (rc dir)←ReadConfigFile linkfile
           :If rc≠0
-              dir ⎕SIGNAL 11
+              →0⊣msg←err,dir
           :EndIf
      
           ⍝ Overwrite user config with directory config
@@ -116,11 +160,11 @@
           'config.Debug'⎕NS ⎕OR'dir.Debug'
      
           :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]
-              →0⊣(rc config)←1('Unknown Setting(s) in "',file,'": ',⍕names~valid)
+              →0⊣(msg config)←('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid)config
           :EndIf
      
           :If ~∧/(names←config.Debug.⎕NL-2)∊valid←(p←DebugParams)[;1]
-              →0⊣(rc config)←1('Unknown Debug options in "',file,'": ',⍕names~valid)
+              →0⊣(msg config)←('Unknown Debug options in "',linkfile,'": ',⍕names~valid)config
           :EndIf
      
       :EndIf
@@ -129,28 +173,27 @@
     ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json;one
      ⍝ Read a configuration file and return a namespace
      
-      :If ~⎕NEXISTS file
-          →0⊣(rc config)←1('Unable to find configuration file "',file,'"')
-      :EndIf
+      :If 0≠≢file
+          :If ~⎕NEXISTS file
+              →0⊣(rc config)←1('Unable to find configuration file "',file,'"')
+          :EndIf
      
-      :Trap 0
-          config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
-      :Else
-          →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⎕DMX.Message)
-      :EndTrap
+          :Trap 0
+              config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
+          :Else
+              →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⎕DMX.Message)
+          :EndTrap
+      :Else ⍝ Just return an empty but valid namespace
+          config←⎕NS''
+      :EndIf
      
       :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags'
           →0⊣(rc config)←1('Unknown section in "',file,'": valid are ',⍕names~valid)
-      :EndIf                                                  
+      :EndIf
       one←1=≢names←valid~names,⊂'SourceFlags'
       ⍎(×≢names)/'config.(',(⍕names),')←',(one/'⊃'),'⎕NS¨(⍴names)⍴⊂'''''
-      :If 0=⎕NC 'config.SourceFlags' ⋄ config.SourceFlags←⍬ ⋄ :EndIf
+      :If 0=⎕NC'config.SourceFlags' ⋄ config.SourceFlags←⍬ ⋄ :EndIf
       rc←0
-    ∇
-
-    ∇ ns ApplyDefaults params;names;values
-      (names values)←↓⍉(~params[;1]∊ns.⎕NL-2)⌿params
-      ⍎(×≢names)/'ns.(',(⍕names),')←values'
     ∇
 
     ∇ merged←opts MergeOpts config
@@ -163,7 +206,7 @@
       :EndIf
     ∇
 
-    ∇ (rc msg)←config MergeSettings settings;names;p;values;params;m;i;type;numeric;nums;key;ns;j;delete;old;ref;d
+    ∇ (rc msg)←config ApplySettings settings;names;p;values;params;m;i;type;numeric;nums;key;ns;j;delete;old;ref;d
      ⍝ Merge settings in form name1:value name2:value into config namespace
      
       rc←1 ⍝ Pessimistic
@@ -173,7 +216,7 @@
       params←(1,LinkParams)⍪2,DebugParams
       :If ∨/m←(≢params)<i←params[;2]⍳names
           →0⊣msg←'unknown configuration option(s): ',⍕m/names
-      :EndIf           
+      :EndIf
       delete←(d←0=≢¨values)/names
       ⍝ (i values names)←(~delete)/¨i values names
       numeric←⍸(~d)∧0=⊃¨params[i;3]
@@ -184,15 +227,15 @@
       values[numeric]←⊃¨2⊃¨nums
      
       :For (ns key) :In ('Settings' 1)('Debug' 2)
-          :If 0≠≢j←⍸key=params[i;1] ⍝ Settings or Debug   
+          :If 0≠≢j←⍸key=params[i;1] ⍝ Settings or Debug
               ref←⍎'config.',ns
               old[j]←ref⍎¨'{6::'''' ⋄'∘,¨names[j],¨⊂'}⍬'
               ref.⎕EX delete
-          :AndIf 0≠≢j←(~d[j])/j                                 
+          :AndIf 0≠≢j←(~d[j])/j
               ⍎'ref.(',(⍕names[j]),')←',(1≠≢j)↓'⊃values[j]'
           :EndIf
-      :EndFor          
-
+      :EndFor
+     
       rc←0⊣msg←'Was ',⍕names,¨':',¨⍕¨old
     ∇
 

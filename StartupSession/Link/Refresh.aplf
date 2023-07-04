@@ -1,12 +1,15 @@
- msg←{opts}Refresh nss;inFail;ko;link;links;ns;nsref;ok;outFail;rsi;source;xsi;⎕IO;⎕ML
+ msg←{opts}Refresh nss;inFail;ko;link;links;ns;nsref;ok;outFail;rsi;source;xsi;⎕IO;⎕ML;setconfig
  ⎕IO ⎕ML←1 1
- :If U.debug=2
+ preProcessOpts ⍝ Make sure opts is a namespace
+ (msg setconfig)←Config.GetConfig '' opts
+ →(0≠≢msg)⍴0
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
          :If 0∊⍴links←U.ErrorIfRestored U.GetLinks ⋄ msg←'No active links' ⋄ :Return ⋄ :EndIf
-         opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+         opts←U.DefaultOpts opts
          :If ''≡0⍴nss ⋄ nss←⊂nss ⋄ :EndIf  ⍝ ⊆ would enclose vector of namespaces
          ok←ko←⍬
          (rsi xsi)←(⎕RSI ⎕XSI)

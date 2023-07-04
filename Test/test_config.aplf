@@ -1,4 +1,4 @@
- ok←test_config(folder name);z;config;userfile;ns;files;export;getj5
+ ok←test_config(folder name);z;config;userfile;ns;files;export;getj5;fn;link;here
 ⍝ Verify that the system is using configuration according to the spex
 
 getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
@@ -19,24 +19,35 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
  ns←⍎name
  ns.⎕FX 'foo' '2+2' ⍝ Little foo
  ns.⎕FX 'FOO' '3+3' ⍝ Big foo
+ 1 ns.⎕STOP 'FOO' ⍝ Check that Link.Add will register existing stops
  z←⎕SE.Link.Add name∘,¨'.foo' '.FOO'
  files←⊃2⊃¨¨⎕NPARTS¨⎕NINFO⍠1⊢folder,'/*'
  assert '''.linkconfig'' ''foo-0'' ''FOO-7'' ≡⍥{⍵[⍋⍵]} files'
+ link←GetLink name
+ assert '(,⊂''FOO'')≡link.flagged'
+ assert '(,1)≡link.flags[1].Stop'
 
 ⍝ Test setting Stops
- z←⎕SE.Link.Stop (name,'.foo') (1 2 3)
- assert '(,1)≡⎕STOP ''',name,'.foo'''
+ z←⎕SE.Link.Expunge name,'.FOO'           ⍝ Should clear stops
+ z←⎕SE.Link.Stop (fn←name,'.foo') (1 2 3) ⍝ Set on foo
+ assert '(,1)≡⎕STOP ''',fn,''''
+ link←GetLink name
+ assert '(,⊂''foo'')≡link.flagged'
+ assert '(,1)≡link.flags[1].Stop'
  config←getj5 folder,'/.linkconfig'
  assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
  assert '''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
  assert '1≡≢config.SourceFlags'
  assert '(,1)≡config.SourceFlags[1].Stop'
+ assert '''foo''≡config.SourceFlags[1].Name'
+
  z←⎕SE.Link.Stop (name,'.foo') ⍬
  assert '⍬≡⎕STOP ''',name,'.foo'''
  config←getj5 folder,'/.linkconfig'
  assert '0=⎕NC ''config.SourceFlags'''
 
  z←⎕SE.Link.Break name
+ ⎕EX name
 
 ⍝ Test that explicit settings override any configuration
  z←'{watch:''both''}' LinkCreate name folder
@@ -44,20 +55,46 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
  assert '''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
  config←getj5 folder,'/.linkconfig'
  assert '''ns'' 1≡config.Settings.(watch fastLoad)'  ⍝ Directory setting should NOT be changed
+
+ ⍝ Now set up a trace and check that it is restored on re-link
+ here←⍕⎕THIS
+ ⎕CS name
+ z←⎕SE.UCMD 'Link.Trace foo 1' ⍝ Call trace via UCMD from inside the ns
+ ⎕CS here
+ link←GetLink name
+ assert '(,⊂''foo'')≡link.flagged'
+ assert '(,1)≡link.flags[1].Trace'
+ assert '(,1)≡⎕TRACE fn'
  z←⎕SE.Link.Break name
 
 ⍝ Test that folder config is used if user config says nothing
  z←⎕SE.Link.Configure '*' 'watch:' 'caseCode:' ⍝ Clear user config settings
  assert '∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
  config←getj5 ⎕SE.Link.USERCONFIGFILE
- assert '0=≢config.Settings.⎕NL -2'          ⍝ All clear
+ assert '0=≢config.⎕NL -2 9'          ⍝ All clear
 
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ used folder config
+ assert '(,1)≡⎕TRACE name,''.foo'''   ⍝ has that trace been restored?
+ z←(⊂'foo' '22+22') QNPUT folder,'/foo-0.aplf'
+ assert '(,1)≡⎕TRACE name,''.foo'''   ⍝ has that trace been restored after re-fix?
  z←⎕SE.Link.Break name
+ ⎕EX name
+
+⍝ Test recovery from unreadable user config file
+ (⊂'This is not JSON') ⎕NPUT ⎕SE.Link.USERCONFIGFILE 1
+ z←LinkCreate name folder
+ assert '1∊''Invalid configuration file''⍷z'
+
+ z←'{ignoreconfig:1}' LinkCreate name folder
+ assert '''Linked:''≡7↑z'
+ z←'{ignoreconfig:1}' ⎕SE.Link.Break name
+ assert '1∊''-ignoreconfig not allowed''⍷z'
+ z←⎕SE.Link.Break name
+ ⎕EX name
 
 ⍝ Test that it works if there is no user config file
- ⎕NDELETE userfile←⎕SE.Link.USERCONFIGFILE
+ 3 ⎕NDELETE userfile←⎕SE.Link.USERCONFIGFILE ⍝ Delete the damaged file
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ used folder config
 
@@ -78,7 +115,7 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
  ⎕MKDIR export,'/sub'
  (⊂'goo' '4+4') ⎕NPUT export,'/sub/goo-0.aplf'
  z←⎕SE.Link.Import name export
- assert '3=≢',name,'.⎕NL -3' ⍝ Should be 3 functions in there after flattening
+ assert '''foo'' ''goo''≡',name,'.⎕NL -3' ⍝ Should be 3 functions in there after flattening
  3 ⎕NDELETE export
  CleanUp folder name
  ok←1

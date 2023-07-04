@@ -1,11 +1,14 @@
- msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML;i;all
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML;i;all;setconfig;DEBUG
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
  ⍝ opts.all=0 (default)   : break specified links
  ⍝ opts.all=1 (-all)      : break all links
  ⎕IO ⎕ML←1 1
- :If U.debug=2
+ preProcessOpts ⍝ Make sure opts is a namespace
+ (msg setconfig)←Config.GetConfig '' opts
+ →(0≠≢msg)⍴0
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
@@ -15,7 +18,7 @@
          linked←⍎¨links.ns
 
          (defopts←⎕NS ⍬).(all recursive)←0 'error'
-         opts←defopts U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts'
+         opts←defopts U.DefaultOpts opts
          :If ~(⊂,opts.all)∊,¨0 1 '#' '⎕SE' '*' ⋄ U.Error'Invalid value ',(⍕opts.all),' for modifier "all" - must be one of: 0 1 # ⎕SE *'
          :ElseIf ~(⊂opts.recursive)∊'on' 'off' 'error' ⋄ U.Error'Invalid value ',(⍕opts.recursive),' for modifier "recursive" - must be one of: on off error'
          :EndIf
