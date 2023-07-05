@@ -1776,6 +1776,7 @@
       m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
       m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
       m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
+      m⍪←'-create' '' 'create a configuration file if it does not exist'
       m⍪←'-extended' '' 'include additional properties for each link'
       ⍝m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
       m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
@@ -1807,6 +1808,9 @@
       a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
       a⍪←'items' 'one or more names of APL items'
       a⍪←'def' 'expression for one or more APL item values'
+      a⍪←'lines' 'line numbers, ⍬ to clear all'
+      a⍪←'target' 'a linked namespace, a folder containing a .linkconfig file, or * to set user configuration'
+      a⍪←'settings' 'name:value pairs - empty value to delete a setting'
       (args argTxts)←↓⍉a
       myArgs←'\w+'⎕S'&'⊢info.args
       myArgI←⊂args⍳myArgs
