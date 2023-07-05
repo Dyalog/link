@@ -1,11 +1,14 @@
- msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name;restored
+ msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name;restored;setconfig
  ⎕IO ⎕ML←1 1
- :If U.debug=2
+ preProcessOpts ⍝ Make sure opts is a namespace
+ (msg setconfig)←Config.GetConfig opts
+ →(0≠≢msg)⍴0
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      restored←⍬
-     opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+     opts←U.DefaultOpts opts
      :If 0∊⍴links←U.GetLinks ⋄ →0⊣msg←'No active links' ⋄ :EndIf
      diff←0 4⍴⊂''
      :For ns :In links.ns

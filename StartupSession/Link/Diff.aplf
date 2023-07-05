@@ -1,12 +1,13 @@
  diff←{opts}Diff ns;container;link;links;nsref;⎕IO;⎕ML
  ⎕IO ⎕ML←1 1
+ preProcessOpts
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
      :Hold '⎕SE.Link.Links'
          :If 0∊⍴links←U.GetLinks ⋄ U.Error 'Not linked: ',⍕ns ⋄ :EndIf
-         opts←U.DefaultOpts⍎⎕NS∘⍬⍣(900⌶⍬)⊢'opts' ⍝ monadic?
+         opts←U.DefaultOpts opts
          (container ns)←(⎕RSI ⎕XSI) U.ContainerNs ns
          :If ~0∊⍴nsref←(0 U.GetRefTo)ns
          :AndIf ~0∊⍴link←links U.LookupRef nsref

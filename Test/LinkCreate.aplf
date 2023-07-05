@@ -5,6 +5,7 @@
 :EndIf
 
 z←opts ⎕SE.Link.Create args
+→(1∊'ERRORS ENCOUNTERED'⍷z)⍴0
 
 :If USE_MOCK_FSW ⍝ Disable the FSW
    :If 9≠⎕NC 'ns'⊣ns←1⊃args

@@ -241,10 +241,16 @@
  1 assert_create 1 ⍝ assert we have new ws items and new file contents
       ⍝ watch=dir must not reflect changes from APL to files
       ⍝  ⎕SE.Link.Fix should NOT updates files when watch=dir
+ ⍝ (⍎subname).⎕FX '_trigger args' ':Implements trigger *' '⎕←''_trigger: '',⎕JSON args'
  subname'var'⎕SE.Link.Fix varsrc
  subname'foo'⎕SE.Link.Fix foosrc
  subname'ns'⎕SE.Link.Fix nssrc
- 0 assert_create 1 ⋄ Breathe ⍝ Breathe should be unnecessary, no FSW activity expected
+:If #.linktest.sub.var≢var
+    ⎕←'/// WARNING - fix of variable reverted?! - bypassing test'
+:Else
+    0 assert_create 1 ⋄ Breathe ⍝ Breathe should be unnecessary, no FSW activity expected
+:EndIf
+ ⍝ ⎕EX subname,'._trigger'
       ⍝ emulate a proper editor fix
  subname'var'EdFix newvarsrc
  subname'foo'EdFix newfoosrc

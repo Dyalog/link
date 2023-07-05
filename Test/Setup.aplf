@@ -22,9 +22,11 @@
          :EndIf
      :EndIf
  :Else  ⍝ generate a new directory - avoids prompting for deletion
-     folder←CreateTempDir 0
+     folder←CreateTempDir 1
  :EndIf
 
+ ⎕SE.Link.USERCONFIGFILE←folder,'-config/.linkconfig' ⍝ Do not use the users normal config file!
+ (⊂'{Settings:{}}') ⎕NPUT ⎕SE.Link.USERCONFIGFILE
  SetupSlave ⍝ Set up "SLAVE" namespace for handling file operations
 
  r←folder

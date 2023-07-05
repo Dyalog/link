@@ -1,4 +1,5 @@
  UnSetup
+ 3 ⎕NDELETE folder,'-config' ⍝ Delete configuration file & folder
  :If USE_ISOLATES
      assert'4=#.SLAVE.(2+2)' ⍝ Make sure it finished what it was doing
      {}#.isolate.Reset 0

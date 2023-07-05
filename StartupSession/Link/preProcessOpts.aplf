@@ -1,0 +1,13 @@
+preProcessOpts
+⍝ Preprocess the left argument (global 'opts') of all API functions
+
+:If 0=⎕NC 'opts'
+   opts←⎕NS ''
+   opts.⎕DF '[Link API options]'
+:EndIf
+
+:If ''≡0⍴opts
+    opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
+:Else
+    opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
+:EndIf

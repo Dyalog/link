@@ -1,0 +1,2 @@
+link←GetLink name
+link←⎕SE.Link.Links[⎕SE.Link.Links.ns⍳⊂name]

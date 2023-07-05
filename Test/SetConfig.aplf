@@ -1,0 +1,10 @@
+{dir} SetConfig string;txt;file
+⍝ Set a Config file
+:If 0=⎕NC 'dir' ⍝ By default, the user config file
+    file←⎕SE.Link.USERCONFIGFILE
+:Else
+    file←dir,'/.linkconfig'
+:EndIf
+
+txt←'{Settings:{',string,'}}'
+(⊂txt) ⎕NPUT file 1
