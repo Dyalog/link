@@ -177,14 +177,14 @@
     :Section Files
 
     ∇ r←UserConfigFile
-      :If 0≠⎕NC '⎕SE.Link.USERCONFIGFILE'
+      :If 0≠⎕NC'⎕SE.Link.USERCONFIGFILE'
       :AndIf 0≠≢r←⎕SE.Link.USERCONFIGFILE
           →0
-      :EndIf                                      
-      :If 0≠≢r←2 ⎕NQ # 'GetEnvironment' 'LINKCONFIGFILE'
-          :If~⎕NEXISTS r
+      :EndIf
+      :If 0≠≢r←2 ⎕NQ #'GetEnvironment' 'LINKCONFIGFILE'
+          :If ~⎕NEXISTS r
           :AndIf ~'/'∊r
-              Warn 'LINKCONFIGFILE file "',r,'" not found - note directory separator is "/"'
+              Warn'LINKCONFIGFILE file "',r,'" not found - note directory separator is "/"'
           :EndIf
       :Else
           r←{⍵:(⊢↓⍨1-'\'⍳⍨⌽)2⊃4070⌶⍬ ⋄ '/',⍨2 ⎕NQ #'GetEnvironment' 'HOME'}ISWIN
@@ -609,8 +609,8 @@
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
       'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' Default 0
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' Check¨⊂0 1
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Default 0
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
@@ -753,7 +753,7 @@
       :EndIf
       :Trap 0
           name where.{⍎⍺,'←⎕SE.Dyalog.Array.Deserialise ⍵'}src  ⍝ array materialised in its namespace
-          nc←where NameClass name          
+          nc←where NameClass name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
@@ -825,7 +825,7 @@
       :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
       :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
-      :If 82=⎕DR '' ⍝ Classic
+      :If 82=⎕DR'' ⍝ Classic
           ⎕AVU←ns⍎'⎕AVU'
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
@@ -915,7 +915,7 @@
       :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
-          :If 82=⎕DR '' ⍝ Classic
+          :If 82=⎕DR'' ⍝ Classic
               ⎕AVU←opts.ns⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
           :EndIf
           (actname nc)←Sniff expname file       ⍝ inspect source
@@ -942,7 +942,7 @@
           mask∨←IsDotNetSpace¨refs  ⍝ namespaces created to host .NET objects
           names~←pre∘,¨mask/subns
           (refs subns)/⍨←⊂~mask
-      :AndIf 1∊mask←~{0=≢⍵: ⍬ ⋄ IsScripted¨⍵}refs  ⍝ trad ns
+      :AndIf 1∊mask←~{0=≢⍵:⍬ ⋄ IsScripted¨⍵}refs  ⍝ trad ns
           allrefs,←mask/refs
           tradns←pre∘,¨mask/subns
           :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
@@ -969,7 +969,7 @@
       :If (arrays=0)∧(~0=≡link.arrays)  ⍝ add some specified arrays
           arraynames←nsref NormName¨link.arrays
           :If 0∊mask←(nsref NameClass¨arraynames)=2.1
-              ¯1 Warn ('-arrays modifier: Non-array names ignored:'),⍕(~mask)/link.arrays
+              ¯1 Warn('-arrays modifier: Non-array names ignored:'),⍕(~mask)/link.arrays
           :EndIf
           nc,⍨←2.1⍴⍨≢names,⍨←mask/arraynames
           (names nc)/⍨←⊂(⍳⍨names)=(⍳⍴names)  ⍝ remove redundant names e.g. sysvars
@@ -1041,7 +1041,7 @@
                   (files oldfiles names src)/⍨←⊂mask
               :EndIf
           :AndIf 0≠≢files
-              mask←src (nsref Into)¨files  ⍝ failed to write
+              mask←src(nsref Into)¨files  ⍝ failed to write
               written,←mask/files ⋄ failed,←(ns,'.')∘,¨(~mask)/names
               :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                   ⎕NDELETE¨mask/oldfiles
@@ -1094,12 +1094,12 @@
       :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
       :EndIf
      
-      :If 82=⎕DR '' ⍝ Classic
+      :If 82=⎕DR'' ⍝ Classic
       :AndIf (≢allfiles)≥i←(¯10↑¨allfiles)⍳⍥⎕C⊂'/⎕AVU.apla' ⍝ Source contains ⎕AVU
           :Trap 0 ⍝ Try to set ⎕AVU so that all ⎕NGET/⎕FIX operations will use saved ⎕AVU
-              ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET i⊃allfiles
+              ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise⊃⎕NGET i⊃allfiles
           :Else
-              Warn 'Unable to set ⎕AVU from ',i⊃allfiles
+              Warn'Unable to set ⎕AVU from ',i⊃allfiles
           :EndTrap
       :EndIf
      
@@ -1744,78 +1744,78 @@
 
     ∇ r←UCMD_List
       ⍝ Name, group, short description and parsing rules
-          r←'['
-          r,←'{"Name":"Add",         "args":"items[←def]","Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
-          r,←'{"Name":"Break",       "args":"[ns1]",      "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
+      r←'['
+      r,←'{"Name":"Add",         "args":"items[←def]","Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
+      r,←'{"Name":"Break",       "args":"[ns1]",      "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-          r,←'{"Name":"Create",      "args":"ns dir",     "Parse":"2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
-          r,←'{"Name":"Export",      "args":"ns0 dir2",   "Parse":"2L -overwrite -arrays[=] -sysvars -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
-          r,←'{"Name":"Expunge",     "args":"[item]",     "Parse":"9999S",  "Desc":"Erase item and associated file"},'
-          r,←'{"Name":"GetFileName", "args":"item",       "Parse":"1",  "Desc":"Return name of file associated with item"},'
-          r,←'{"Name":"GetItemName", "args":"file",       "Parse":"1L", "Desc":"Return name of item associated with file"},'
-          r,←'{"Name":"Import",      "args":"ns2 dir0",   "Parse":"2L -overwrite -flatten -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      r,←'{"Name":"Create",      "args":"ns dir",     "Parse":"2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2",   "Parse":"2L -overwrite -arrays[=] -sysvars -casecode", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Expunge",     "args":"[item]",     "Parse":"9999S",  "Desc":"Erase item and associated file"},'
+      r,←'{"Name":"GetFileName", "args":"item",       "Parse":"1",  "Desc":"Return name of file associated with item"},'
+      r,←'{"Name":"GetItemName", "args":"file",       "Parse":"1L", "Desc":"Return name of item associated with file"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0",   "Parse":"2L -overwrite -flatten -fastload", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
-          r,←'{"Name":"Status",      "args":"[ns1]",      "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
-          r,←'{"Name":"Refresh",     "args":"ns1",        "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
-          r,←'{"Name":"Resync",      "args":"[ns1]",      "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
-          r←⎕JSON']',⍨¯1↓r
-          r.Group←⊂'Link'
-          r/⍨←×⎕NC'⎕SE.Link'
-        ∇
-        
-        ∇ r←level UCMD_Help cmd;info;Means;m;mods;myMods;myModI;myModS;a;modVals;modTxts;argTxts;myArgs;myArgI;myArgss;args;myArgS
-          info←{⍵⊃⍨⍵.Name⍳⊢/'.'(≠⊆⊢)cmd}UCMD_List
-          
-          m←⍉⍪'' '' ''
-          m⍪←'-all' '' 'break all links (in all children of # and ⎕SE)'
-          m⍪←'-arrays' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
-          m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
-          m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
-          m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
-          m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
-          m⍪←'-extended' '' 'include additional properties for each link'
+      r,←'{"Name":"Status",      "args":"[ns1]",      "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
+      r,←'{"Name":"Refresh",     "args":"ns1",        "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
+      r,←'{"Name":"Resync",      "args":"[ns1]",      "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
+      r←⎕JSON']',⍨¯1↓r
+      r.Group←⊂'Link'
+      r/⍨←×⎕NC'⎕SE.Link'
+    ∇
+
+    ∇ r←level UCMD_Help cmd;info;Means;m;mods;myMods;myModI;myModS;a;modVals;modTxts;argTxts;myArgs;myArgI;myArgss;args;myArgS
+      info←{⍵⊃⍨⍵.Name⍳⊢/'.'(≠⊆⊢)cmd}UCMD_List
+     
+      m←⍉⍪'' '' ''
+      m⍪←'-all' '' 'break all links (in all children of # and ⎕SE)'
+      m⍪←'-arrays' '{=name1,name2,...}' 'set to 1 to export all arrays, or set to comma-separated list of names to export a selected list of array names'
+      m⍪←'-beforeread' '=<fn>' 'name of function to call before reading a file'
+      m⍪←'-beforewrite' '=<fn>' 'name of function to call before writing a file'
+      m⍪←'-casecode' '' 'add octal suffixes to preserve capitalisation on systems that ignore case'
+      m⍪←'-codeextensions' '=<var>' 'name of vector of file extensions to be considered code'
+      m⍪←'-extended' '' 'include additional properties for each link'
       ⍝m⍪←'-extension' '=<ext>' 'file extension of created file if different from link''s default for the nameclass'
-          m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
-          m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
-          m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
-          m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
-          m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
-          m⍪←'-overwrite' '' 'overwrite destination if needed'
-          m⍪←'-proceed' '' 'perform changes required to resynchronise'
-          m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
-          m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
-          m⍪←'-sysvars' '' 'Export namespace-scoped system variables to file for all unscripted namespaces'
-          m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
-          m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
-          (mods modVals modTxts)←↓⍉m
-          myMods←'-\pL+'⎕S'&'⊢info.Parse
-          myModI←⊂mods⍳myMods
-          myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
-          
-          a←⍉⍪'' ''
-          a⍪←'ns' 'namespace to be linked'
-          a⍪←'ns0' 'source namespace'
-          a⍪←'ns1' 'linked namespace'
-          a⍪←'ns2' 'target namespace'
-          a⍪←'dir' 'directory to be linked'
-          a⍪←'dir0' 'source directory'
-          a⍪←'dir2' 'target directory'
-          a⍪←'file' 'name of file where item source is stored'
-          a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
-          a⍪←'items' 'one or more names of APL items'
-          a⍪←'def' 'expression for one or more APL item values'
-          (args argTxts)←↓⍉a
-          myArgs←'\w+'⎕S'&'⊢info.args
-          myArgI←⊂args⍳myArgs
-          myArgS←' ','\w+'⎕R'<&>'⊢info.args
-          
-          r←⊂info.Desc
-          r,←⊂'    ]LINK.',cmd,myArgS,myModS
-          r,←⊂''
-          r,←'^  (\pL+)\d?' ' +$'⎕R'  <\1>' ''↓¯1⌽⍕myArgI⌷args,⍪argTxts
-          r,←⊂''
-          r,←' +$'⎕R''↓¯1⌽⍕myModI⌷modTxts,⍨⍪mods,¨modVals
-          r,←⊂''
+      m⍪←'-fastload' '' 'reduce the load time by not inspecting source to detect name clashes'
+      m⍪←'-flatten' '' 'merge items from all subdirectories into target directory'
+      m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
+      m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
+      m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
+      m⍪←'-overwrite' '' 'overwrite destination if needed'
+      m⍪←'-proceed' '' 'perform changes required to resynchronise'
+      m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
+      m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
+      m⍪←'-sysvars' '' 'Export namespace-scoped system variables to file for all unscripted namespaces'
+      m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
+      m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
+      (mods modVals modTxts)←↓⍉m
+      myMods←'-\pL+'⎕S'&'⊢info.Parse
+      myModI←⊂mods⍳myMods
+      myModS←∊myMods{' [',⍺,⍵,']'}¨myModI⌷modVals
+     
+      a←⍉⍪'' ''
+      a⍪←'ns' 'namespace to be linked'
+      a⍪←'ns0' 'source namespace'
+      a⍪←'ns1' 'linked namespace'
+      a⍪←'ns2' 'target namespace'
+      a⍪←'dir' 'directory to be linked'
+      a⍪←'dir0' 'source directory'
+      a⍪←'dir2' 'target directory'
+      a⍪←'file' 'name of file where item source is stored'
+      a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
+      a⍪←'items' 'one or more names of APL items'
+      a⍪←'def' 'expression for one or more APL item values'
+      (args argTxts)←↓⍉a
+      myArgs←'\w+'⎕S'&'⊢info.args
+      myArgI←⊂args⍳myArgs
+      myArgS←' ','\w+'⎕R'<&>'⊢info.args
+     
+      r←⊂info.Desc
+      r,←⊂'    ]LINK.',cmd,myArgS,myModS
+      r,←⊂''
+      r,←'^  (\pL+)\d?' ' +$'⎕R'  <\1>' ''↓¯1⌽⍕myArgI⌷args,⍪argTxts
+      r,←⊂''
+      r,←' +$'⎕R''↓¯1⌽⍕myModI⌷modTxts,⍨⍪mods,¨modVals
+      r,←⊂''
       :EndIf
       r/⍨←~'' ''⍷r
       r,←⊂']FILE.Open https://dyalog.github.io/link/4.0/API/Link.',cmd ⍝ for full documentation'
@@ -1850,12 +1850,12 @@
       :EndSelect
       :Trap debug↓0   ⍝ link issue #217
           ⍝ must not use :With because of link issue #163
-              r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵}){9=⎕NC'⍵':⍵.Arguments ⋄ ⍵}args ⍝ dot our way home
-          :Else  ⍝ provide nice error message
-              r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
-          :EndTrap
-        ∇
-        
+          r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵}){9=⎕NC'⍵':⍵.Arguments ⋄ ⍵}args ⍝ dot our way home
+      :Else  ⍝ provide nice error message
+          r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
+      :EndTrap
+    ∇
+
     :EndSection
 
 
