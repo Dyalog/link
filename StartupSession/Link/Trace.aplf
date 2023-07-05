@@ -1,0 +1,5 @@
+ msg←{opts} Trace args;container
+ ⍝ Set or report on Trace flags
+ container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+ preProcessOpts
+ msg←'Trace' SetFlags args container opts

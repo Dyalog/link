@@ -1,0 +1,60 @@
+ msg←{opts}Configure args;setconfig;links;file;islinked;target;settings;exists;config;rc;p;names;values;json;container
+ ⍝ Set or report on user and directory configuration settings
+ ⎕IO ⎕ML←1 1
+ target←⍕⊃args←,⊆args
+ settings←1↓args
+ preProcessOpts ⍝ Make sure opts is a namespace
+ (msg setconfig)←Config.GetConfig''opts
+ →(0≠≢msg)⍴0
+
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
+     (1+⊃⎕LC)⎕STOP⊃⎕SI
+ :EndIf
+ :Trap DEBUG↓0
+     islinked←0
+     container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
+
+     :If 9=container.⎕NC target
+         target←⍕container⍎target
+     :AndIf 0≠≢links←U.GetLinks
+     :AndIf islinked←(⊂target)∊links.ns                  ⍝ If target is a linked namespace
+         file←links[links.ns⍳⊂target].dir,'/.linkconfig'
+     :ElseIf target≡⍥,'*'
+         file←U.UserConfigFile
+     :Else
+         :If ⎕NEXISTS target
+         :AndIf 1=1 ⎕NINFO target ⍝ target is a directory
+             file←target,'/.linkconfig'
+         :Else
+             →END⊣msg←,⊂'ERRORS ENCOUNTERED: "',target,'" not a linked namespace nor the name of a directory.'
+         :EndIf
+     :EndIf
+     exists←⎕NEXISTS file
+
+     (rc config)←Config.ReadConfigFile exists/file
+     :If 0≠rc
+         →END⊣msg←,⊂'ERRORS ENCOUNTERED: ',config
+     :EndIf
+
+     :If 0=≢settings
+         :If 0=≢msg←Config.FormatOptions config
+             msg←,⊂'No configuration options set in "',file,'"'
+         :Else
+             msg←(⊂'Contents of "',file,'":'),'   '∘,¨msg
+         :EndIf
+         →END
+      :EndIf
+
+     (rc msg)←config Config.ApplySettings settings
+     :If 0≠rc
+         →END⊣msg←,⊂'ERRORS ENCOUNTERED: ',msg
+     :EndIf
+
+     config Config.WriteConfig file
+     msg←,⊆msg
+
+END:
+     msg←1↓U.FmtLines msg
+ :Else
+     U.Resignal 1
+ :EndTrap

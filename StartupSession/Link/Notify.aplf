@@ -9,7 +9,6 @@
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
  :Trap DEBUG↓0
-
      :If 0=⎕NC 'NOTIFY' ⋄ NOTIFY←0 ⋄ :EndIf ⍝ Does user want confirmation of notifications?
 
      links←U.ErrorIfRestored U.GetLinks ⍝ never allow file notifications
@@ -225,6 +224,11 @@
          :Case 0 ⋄ msg,←⊂' - APL already up to date'
          :Case ¯1 ⋄ warn←1 ⋄ msg,←⊂' - failed to fix file'
          :EndSelect
+
+         :If (nsref.⎕NC actname)∊3 4   ⍝ Fn or Op
+         :AndIf (⊂actname)∊link.flagged ⍝ Stops or Trace set?
+             actname Config.RestoreFlags link
+         :EndIf
 
          :If NOTIFY∧fixrc≠¯1
              src←⊃⎕NGET path

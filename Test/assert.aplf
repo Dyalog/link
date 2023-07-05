@@ -7,7 +7,7 @@
  :EndIf
 
  (expr clean)←2↑(⊆args),⊂''
- end←3000+3⊃⎕AI ⍝ allow three seconds of wait time
+ end←(3000×~USE_MOCK_FSW)+3⊃⎕AI ⍝ allow three seconds of wait time unless mocking
  timeout←0
 
  :While 0∊{0::0 ⋄ ⍎⍵}expr

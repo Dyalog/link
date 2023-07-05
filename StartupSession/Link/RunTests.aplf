@@ -2,7 +2,7 @@
  :If 0=⎕NC '⎕SE.LinkTest' ⍝ Already loaded?
     :If 0≠≢link←2 ⎕NQ '.' 'GetEnvironment' 'DYALOGLINK'
     :AndIf ⎕NEXISTS test←link,'/Test'
-        :If ∨/'1Y'∊2 ⎕NQ '.' 'GetEnvironment' 'DYALOGSTARTUPKEEPLINK'
+        :If '1'∊2 ⎕NQ '.' 'GetEnvironment' 'DYALOGSTARTUPKEEPLINK'
             ⍝ Note that if LinkTest is linked, this will disable some Link.Break tests
             ⍝    Search code for references to TESTS_LINKED
             ⎕SE.Link.Create '⎕SE.LinkTest' test
