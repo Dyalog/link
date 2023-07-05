@@ -33,6 +33,8 @@
              :EndIf ⍝ otherwise not Link's fault (Mantis 18903)
              →END⊣msg,←⊂'path not in a linked directory'
          :EndIf
+
+         →((⊂link.watch)∊'dir' 'both')↓0 ⍝ Not watching
          ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time - done by Link.Create
 
          :If '.'∨.=⊃¨U.SplitDir(≢link.dir)↓path  ⍝ link issue #156 - due to unreliable 6∘⎕NINFO
@@ -226,6 +228,7 @@
          :EndSelect
 
          :If (nsref.⎕NC actname)∊3 4   ⍝ Fn or Op
+         :AndIf 2=⎕NC 'link.flagged'
          :AndIf (⊂actname)∊link.flagged ⍝ Stops or Trace set?
              actname Config.RestoreFlags link
          :EndIf

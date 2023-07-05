@@ -70,7 +70,7 @@
  z←LinkCreate'#.unlikelyname'folder
  z←LinkCreate'#.unlikelyname.sub'folder
  assert'3=CountLinks'
- props←'Namespace' '' 'Directory' 'Files'
+ props←'Namespace' '' 'Source' 'Files'
  z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ''
  'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 3⍴''←→'' folder 1)≡z'
  z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ⎕SE

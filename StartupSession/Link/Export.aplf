@@ -47,6 +47,7 @@
          opts.source←'ns'
          opts.ns←ns
          opts.dir←dir
+         opts.singlefile←0   ⍝ /// until further notice
 
          (fixed failed)←opts U.WriteFiles src dest opts.overwrite
          ⍝ Now write config file

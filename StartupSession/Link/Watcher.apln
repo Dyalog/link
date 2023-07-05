@@ -132,7 +132,13 @@
           :Return
       :EndIf
       :If DOTNET
-          args←link.dir(,'*')
+          :Select 1 ⎕NINFO link.dir
+          :Case 1 ⍝ directory 
+               args←link.dir(,'*')
+          :Case 2 ⍝ single file
+               args←(⊃⎕NPARTS link.dir) (,'*')
+          :EndSelect
+               
           r←MakeWatcher args
           r.EnableRaisingEvents←1
           link.fsw←r

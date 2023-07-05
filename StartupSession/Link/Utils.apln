@@ -120,7 +120,7 @@
     ∇
     ∇ r←RemoveFileTiesIn rootns;names;parents;scriptitems
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
-     ⍝ Return number of links broken
+     ⍝ Return number of links broken         
       (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
       ⍝ there might be some orphaned script items - interpreter must forget about them
       ⍝ do it first because of mantis 18606
@@ -512,7 +512,7 @@
           links←⍬
           :If ×⎕NC'⎕SE.Link.Links'
           :AndIf ~0∊⍴links,←⎕SE.Link.Links
-          :AndIf 1∊mask←¯9.1≠# NameClass¨links.ns  ⍝ clean up "zombie" links
+          :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie" links
               0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
               ¯1 Log'Clearing expunged links:'(⍕mask/links)
               SetLinks links←(~mask)/links
@@ -544,12 +544,20 @@
       :EndIf
     ∇
 
-    ∇ {n}←untie Break links
+    ∇ {n}←untie Break links;link;ns
       n←0
       :If ~0∊⍴links
           ##.Watcher.Break links  ⍝ will ⎕DL slightly
-          :If untie
-              n←+/RemoveFileTiesIn¨⍎¨links.ns  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
+          :If untie      
+              :For link :In links    
+                  ns←⍎link.ns
+                  :If link.singlefile
+                      ns.##.⎕FIX ⎕SRC ns      
+                      n+←1                
+                  :Else
+                      n+←RemoveFileTiesIn ns
+                  :EndIf 
+              :EndFor
           :EndIf
       :EndIf
     ∇
@@ -806,14 +814,21 @@
 
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
+      :If opts.singlefile
+          (file oldfile nc)←{,∘⊂¨⍵}⍣depth⊢opts.dir '' (⎕NC ⊂opts.ns)
+          :Return
+      :EndIf
+
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
+   
       :If depth
           :If 0∊⍴args←↓⍉↑(where name oldname src)
               (file oldfile nc)←⊂0⍴⊂''
           :Else
               (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
           :EndIf
-      :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
+      :Else 
+          (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
     ∇
     ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
@@ -841,7 +856,7 @@
       :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file           ⍝ no existing file name for it
       :OrIf forceFilenames  ⍝ force using the default
-          :If isroot                ⍝ if we're asking for opts.ns then the answer is opts.dir
+          :If isroot∨opts.singlefile             
               file←dir
           :Else
               :If ~flatten          ⍝ flatten prevents subdirectory hierarchy
@@ -849,10 +864,10 @@
               :Else                 ⍝ when flattening, use the same dir as the old file (if any)
                   file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
               :EndIf
-              file←dir,file                          ⍝ Add link directory
+              file←dir,file 
               file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
           :EndIf
-          file,←typeExtensions Tail nc               ⍝ Add extension
+          file,←(~opts.singlefile)/typeExtensions Tail nc            ⍝ Add extension
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
       :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
@@ -895,6 +910,9 @@
     ⍝ opts cached for performance on ns lookup
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
+⍝      :If opts.singlefile
+⍝          where←⊃¨SplitNs¨where ⍝ single file is fixed in its parent
+⍝      :EndIf
     ∇
     ∇ (where expname actname nc)←opts DetermineAplNameSub file;⎕AVU;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions;subext
     ⍝ ns is the target namespace
@@ -976,7 +994,7 @@
       :EndIf
     ∇
 
-    ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
+    ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames;dir
     ⍝ Write items to file in folders
     ⍝ ns must be a fully specified unscripted namespace
     ⍝ arrays: boolean to include/exclude arrays, or list of normalised APL names to include
@@ -990,12 +1008,13 @@
           (names nc failed)←(0 ListLinkedNs 0)opts ⍝ list trad namespaces (excepted ns itself) - list requested arrays
           :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
       :Else
-          names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
+          names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs⍣(~opts.singlefile)⊢src  ⍝ single APL name provide - dest may be a directory or a file name
           nc←nsref NameClass¨names
       :EndIf
       ⍝ Create directory for namespace
-      3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
-      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)opts.dir  ⍝ exclude root dir
+      dir←{⊃⎕NPARTS ⍵}⍣opts.singlefile⊢opts.dir ⍝ One level higher when linking a single file
+      3 ⎕MKDIR dir ⋄ failed,←(~ok←⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)dir  ⍝ exclude root dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
       ⍝ Write files
@@ -1051,7 +1070,8 @@
     ∇
 
     ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order;parts;g
-      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+      :If 0=⎕NC 'opts.singlefile' ⋄ opts.singlefile←0 ⋄ :EndIf ⍝ /// temporary
+      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
       parts←⎕NPARTS¨list[1;]
       list←list[;g←⍋'⎕'≠⊃¨list[3;]]                 ⍝ System names first
      
@@ -1238,6 +1258,8 @@
     ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
+      :ElseIf link.singlefile
+          filesrc←GetFileSource¨file←,⊂link.dir
       :Else
           filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
       :EndIf
