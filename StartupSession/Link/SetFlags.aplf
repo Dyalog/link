@@ -15,6 +15,7 @@
  :Trap DEBUG↓0
      err←'ERRORS ENCOUNTERED: '
      type←⎕C type
+     args←,⊆args
      name←⊃args
      query←1=≢args
      lines←(⍕1↓args)~'⍬'
