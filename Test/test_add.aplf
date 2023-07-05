@@ -1,0 +1,40 @@
+ ok←test_add(folder name);here;src;ns;z
+ '#.linktest'⎕NS ⍬
+ z←LinkCreate name folder
+ ns←⍎name
+
+ 2 ns.⎕FIX src←'foo' 'one'
+ z←⎕SE.Link.Add name,'.foo'
+ assert'src≡⊃⎕NGET''',folder,'/foo.aplf'' 1'
+
+ 2 ns.⎕FIX src←'hoo' 'one'
+ here←⍕⎕THIS
+ ⎕CS name
+ z←⎕SE.Link.Add'hoo'
+ ⎕CS here
+ assert'src≡⊃⎕NGET''',folder,'/hoo.aplf'' 1'
+
+ 2 ns.⎕FIX¨src←('foo' 'two')('hoo' 'two')
+ z←⎕SE.Link.Add(name,'.foo')(name,'.hoo')
+ assert'src≡{⊃⎕NGET(''',folder,'/'',⍵,''oo.aplf'')1}¨''fh'''
+
+ 2 ns.⎕FIX¨src←('foo' 'three')('hoo' 'three')
+ z←⎕SE.Link.Add(name,'.foo ',name,'.hoo')
+ assert'src≡{⊃⎕NGET(''',folder,'/'',⍵,''oo.aplf'')1}¨''fh'''
+
+ z←⎕SE.Link.Expunge name,'.foo'
+ 2 ns.⎕FIX src←,⊂'foo←{ four }'
+ z←⎕SE.Link.Add name,'.foo'
+ assert'src≡⊃⎕NGET''',folder,'/foo.aplf'' 1'
+
+ ⎕CS name
+ z←⎕SE.Link.Add'a b c←1 2 3'
+ ⎕CS here
+ assert'''123''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc'''
+
+ ⎕CS name
+ z←⎕SE.Link.Add'(a b)c←⊂1 2'
+ ⎕CS here
+ assert'''121 2''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc'''
+
+ ok←1

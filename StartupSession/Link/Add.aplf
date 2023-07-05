@@ -4,8 +4,14 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     items←(⊆,items)~¨' '
-     items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨items        ⍝ fully qualified name
+
+     :If '←'∊items
+         ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs''
+         ns⍎items
+         items(' '@(∊∘'()←')⍳↑⊣)←'←'  ⍝ extract name from (possibly nested) name list
+     :EndIf
+     items(≠⊆⊢)⍣(1=≡,items)⍨←' '
+     items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨items  ⍝ fully qualified name
      added←unlinked←unfound←0⍴⊂''
      :For item :In items
          :If ~(# U.NameClass item)∊0 ¯1
