@@ -1,0 +1,15 @@
+ dtestrunner nul;log;res;nl
+ log←''  ⍝ any messages
+ res←1 ⍝ ¯1: err, 0=fail, 1=ok
+ nl←⎕UCS 10
+
+ :Trap 0
+     res←⎕SE.Link.Test.Run 2⎕nq#'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+ :Else
+     log,←'Tests failed with error',nl
+     log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
+     res←¯1
+ :EndTrap
+
+ ⎕SE.UCMD'GetTools4CITA'
+ log ⎕SE._cita._LogStatus res

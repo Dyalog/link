@@ -1,0 +1,17 @@
+{
+  tests: {
+    id: 'basic',
+    test: './Test/dtestrunner.aplf',
+    dtestmodifiers: '-SuccessValue=apl!1',
+    env: {
+      CITA_APIDEV: 0
+    },
+    {
+    id: 'all',
+    test: './Test/dtestrunner.aplf',
+    dtestmodifiers: '-SuccessValue=apl!1',
+    env: {
+      CITA_APIDEV: 0
+    }    
+  }
+}
