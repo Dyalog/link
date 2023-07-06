@@ -1,4 +1,4 @@
- msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
+ msg←{opts}Export args;src;dest;arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
  ⎕IO ⎕ML←1 1
  preProcessOpts
  (msg setconfig)←Config.GetConfig opts
@@ -7,7 +7,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     (container src)←⎕RSI ⎕XSI U.ContainerNs rawsrc←src
+     (container src dir)←preProcessNsDir args
 
      (defopts←⎕NS ⍬).overwrite←0
 
@@ -25,7 +25,7 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
 
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
-         U.Error'Not a properly named namespace: ',,⍕rawsrc
+         U.Error'Not a properly named namespace: ',,⍕args
      :ElseIf 0=nc
          U.Error'Source not found: ',src
      :ElseIf U.Slash⊃⌽src

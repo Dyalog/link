@@ -1,0 +1,20 @@
+ ok←test_shortargs(folder name);here;simple;spaces;bits
+⍝ Verify that short argument handling works
+
+ ∘∘∘
+ here←⍕⎕THIS
+ simple←'/myapp'
+ bits←1↓¨' '(≠⊆⊢)spaces←'/my app'
+
+ ⍝ Unit test for preProcessNsDir
+ ⍝   returns (container targetns directory)
+
+ assert 'here here simple≡⎕SE.Link.preProcessNsDir simple'
+ assert 'here here simple≡⎕SE.Link.preProcessNsDir ⊂simple'
+ assert 'here here simple≡⎕SE.Link.preProcessNsDir here simple'
+
+ assert 'here here spaces≡⎕SE.Link.preProcessNsDir spaces'
+ assert 'here here spaces≡⎕SE.Link.preProcessNsDir ⊂spaces'
+ assert 'here here spaces≡⎕SE.Link.preProcessNsDir (⊂here),spaces'
+
+ ⍝ Add at least one real test for Create, Import and Export with no namespace specified

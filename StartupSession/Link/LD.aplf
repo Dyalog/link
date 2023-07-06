@@ -1,0 +1,8 @@
+ msg←{opts}LD rarg
+ ⍝ Synonym for Create
+
+ :If 0=⎕NC 'opts'
+     msg←Create args
+ :Else
+     msg←opts Create args
+ :EndIf
