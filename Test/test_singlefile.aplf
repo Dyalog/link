@@ -1,4 +1,4 @@
- ok←test_singlefile(folder name);source;file;z;link;bare
+ ok←test_singlefile(folder name);source;file;z;link;bare;export;parent
 ⍝ Test ability to use a single source file
 
  3 ⎕MKDIR Retry⊢folder
@@ -20,8 +20,14 @@
  assert 'link.dir≡file'
  z←(⊂bare)QNPUT file                  ⍝ Write the truncated source
  assert'(,¨source)≡⎕SRC ',name        ⍝ Verify it was not updated in the ws
- (⍎name) ⎕SE.Link.Fix source          ⍝ Update the ws definition
+ parent←⊃⎕SE.Link.U.SplitNs name
+ (⍎parent) ⎕SE.Link.Fix source        ⍝ Update the ws definition
  assert'(,¨source)≡⊃⎕NGET file 1'     ⍝ Check file WAS updated
+ assertError '⎕SE.Link.Expunge name' 'may not'
+ assertError '⎕SE.Link.Expunge name,''.dup''' 'may not'
+ (⍎name).⎕FX 'foo' '2+2'
+ assertError '⎕SE.Link.Add name,''.foo''' 'may not'
+
  z←⎕SE.Link.Break name
  3 ⎕NDELETE file
 
@@ -35,14 +41,26 @@
 
  z←⎕SE.Link.Configure name 'flatten:1'
  assert '1∊''only supported for linked directories''⍷z'
+ ⎕SE.Link.Break name
 
+ export←folder,'-export'
+ file←export,'/linktest.aplc'
+ ⎕SE.Link.Export name export
+ assert'(,¨source)≡⊃⎕NGET file 1'    ⍝ File written correctly
+ assert '1=≢⊃⎕NINFO⍠1⊢export,''/*''' ⍝ And only 1 file in that directory
+
+ ⎕EX name
+ ⎕SE.Link.Import name file           ⍝ Bring it back again
+ assert '(,¨source)≡⎕SRC ',name,'.linktest'
+
+ ⍝ Try to Link to a function file
+ file←folder,'/dup.aplf'
+ source←'∇r←dup x' 'r←x x' '∇'
+ source QNPUT file
+ assertError 'z←⎕SE.Link.Create name file' 'namespace, class or interface'
+
+
+ ⍝ /// Tests ToDo
+ ⍝ Expunge or Add something *inside* a linked class or namespace?
+ ⍝ Test
  ok←1
-
- ⍝ Test watch=ns or =none
-
- ⍝ Test export, import (already works?)
- ⍝ Test add (should fail)
- ⍝ Expunge (should break the link)
- ⍝ Configuire (should refuse to do anything)
- ⍝ Test linking to a function source file
- 

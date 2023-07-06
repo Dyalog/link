@@ -11,6 +11,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     err←'ERRORS ENCOUNTERED: '
      islinked←0
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
 
@@ -37,7 +38,7 @@
 
      (rc config)←Config.ReadConfigFile exists/file
      :If 0≠rc
-         →END⊣msg←,⊂'ERRORS ENCOUNTERED: ',config
+         →END⊣msg←,⊂err,config
      :EndIf
 
      :If 0=≢settings

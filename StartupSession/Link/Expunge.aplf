@@ -25,6 +25,9 @@
                      (parent leaf)←U.SplitNs name
                      :If ~0∊⍴link←links U.LookupRef parent←⍎parent
                          U.ErrorIfRestored links ⍝ error only in linked namespaces
+                         :If link.singlefile
+                             U.Error 'You may not Expunge an object within a linked namespace, class or interface'
+                         :EndIf
                          (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)leaf leaf nc  ⍝ U.NormNs parent
                          :If (parent.⎕NC leaf)∊3 4
                              z←Stop name ⍬
@@ -39,6 +42,10 @@
                              :EndIf
                          :EndIf
                      :Else
+                         :If 9=⎕NC name
+                         :AndIf ~0∊⍴link←links U.LookupRef ⍎name
+                             U.Error 'You may not Expunge a linked namespace, class or interface'
+                         :EndIf
                          r[i]←parent.⎕EX name
                      :EndIf
                  :EndHold ⍝ Notify

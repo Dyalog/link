@@ -928,7 +928,8 @@
               ⍝ ↑↑ Trap required to avoid timing hole between ⎕NEXISTS and ⎕NINFO
       :EndIf
       :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
-      (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
+      fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
+      (where expname)←SplitNs fullname 
       :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
       :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer

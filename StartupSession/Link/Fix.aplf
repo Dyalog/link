@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;relname
+ {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;relname;sname;snc
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -20,8 +20,9 @@
      :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
      oldname,←(0=≢oldname)/name ⍝ oldname not specified
      name,←(0=≢name)/oldname ⍝ name not specified
+     (sname snc)←U.Sniff '' src
      :If 0=≢name ⍝ no names provided at all
-         name←oldname←⊃U.Sniff '' src
+         name←oldname←sname
      :EndIf
      this←⊃RSI XSI U.ContainerNs ns
      nsname←⍕nsref←this(0 U.GetRefTo)ns
@@ -35,13 +36,23 @@
      ⍝ Ok not to hold ⎕SE.Link.Links in high-priority callback because it only reads it and doesn't change it, and no other APL thread will run.
      ⍝ However not holding '⎕SE.Link.Notify' is annoying because there is a non-zero probability of the files being in an incomplete/misleading state
 NOHOLD:
-         :If 0∊⍴links←U.GetLinks
-         :OrIf 0∊⍴link←links U.LookupRef ns←nsref
+         links←U.GetLinks
+         :If snc∊9.1 9.4 9.5         ⍝ Sniffed source looks like a linkable space
+         :AndIf snc=nsref.⎕NC ⊂sname ⍝ ... and a space by that name exists
+         :AndIf 0≠≢link←links U.LookupRef nsref⍎sname ⍝ ...and is linked
+         :AndIf link.singlefile      ⍝ ... this may be unnecessary paranoia
+              ⍝ We are overwriting the linked space in link
+         :ElseIf 0∊⍴link←links U.LookupRef ns←nsref ⍝ Is it within a normal link?
              :GoTo NOLINK
          :EndIf
+
          :If ~U.IsNamedRef nsref ⋄ U.Error'Not a properly named namespace: ',ns ⋄ :EndIf
          U.ErrorIfRestored links  ⍝ now that we know we're dealing with a linked namespace, allow error
 
+         :If link.singlefile
+         :AndIf (⍕where)≢⊃U.SplitNs link.ns
+             U.Error'May not Fix inside a linked namespace, class or interface'
+         :EndIf
          (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src
 
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name

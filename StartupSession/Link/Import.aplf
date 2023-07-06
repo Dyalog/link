@@ -36,10 +36,13 @@
      :Else
          src←⊃files
          opts.ns←ns←U.NormNs ns
-         :If single←1≠1 ⎕NINFO src ⋄ dir←¯1↓⊃⎕NPARTS src←0 U.NormFile src  ⍝ single file
-         :Else ⋄ dir←src←0 U.NormDir src   ⍝ directory
+         :If single←1≠1 ⎕NINFO src     ⍝ Exporting a single object to a single file
+             dir←¯1↓⊃⎕NPARTS src←0 U.NormFile src
+             opts.dir←dir
+         :Else                         ⍝ A namespace to a directory
+             opts.dir←dir←src←0 U.NormDir src
          :EndIf
-         opts.dir←dir
+         opts.singlefile←single
 
          (fixed failed)←opts U.FixFiles nsref src opts.overwrite
 
