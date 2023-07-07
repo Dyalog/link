@@ -1,4 +1,4 @@
- (container ns dir)←{ucmd}preProcessNsDir args;rsi;xsi;first
+ r←{ucmd}preProcessNsDir args;rsi;xsi;first;container;ns;dir
 ⍝ Preprocess arguments to Create, Import and Export
 
  (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs''
@@ -10,15 +10,15 @@
 
  :If ~ucmd ⍝ Strictly one or two args for an API call
      :Select ≢args
-     :Case 1 ⋄ →0 ⍝ Everything already done
+     :Case 1 ⋄ →DONE ⍝ Everything already done
      :Case 2 ⋄ (ns dir)←args
      :Case 3 ⋄ U.Error'One or two arguments are required'
      :EndSelect
 
  :Else                       ⍝ UCMD might get a directory name split on spaces
-     :If ¯1=⎕NC first ⍝ Does 1st element looks like start of a directory name?
+     :If (¯1=⎕NC first)∧9≠{0::¯1 ⋄ ns←⍎⍵ ⋄ ⎕NC 'ns'}first ⍝ Does 1st element looks like start of a directory name?
          dir←1↓∊' ',¨args ⍝ We guess we have a dir name with spaces in it
-         →0 ⍝ ns and container are fine
+         →DONE ⍝ ns and container are fine
      :Else ⍝ 1st is a legal space name => we think not a file name
          ns←first
          dir←1↓∊' ',¨1↓args
@@ -26,3 +26,5 @@
  :EndIf
 
  (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs first
+DONE:
+ r←container ns dir ⍝ /// was failing when this was the result

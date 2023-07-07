@@ -1,6 +1,7 @@
- msg←{opts}Import args;ns;src;defopts;dir;failed;files;fixed;nsref;single;⎕IO;⎕ML;setconfig;container
+ msg←{opts}Import args;ns;src;defopts;failed;files;fixed;nsref;single;⎕IO;⎕ML;setconfig;container;dir
  ⎕IO ⎕ML←1 1
  preProcessOpts
+ (container ns src)←preProcessNsDir args
  (msg setconfig)←src Config.GetConfig opts ⍝ Read Config in imported folder or user config
  →(0≠≢msg)⍴0
 
@@ -16,7 +17,6 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
-     (container ns dir)←preProcessNsDir args
 
      files←opts U.FindFile src  ⍝ candidates for source file
      :If 0=≢files

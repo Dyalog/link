@@ -60,7 +60,7 @@
  assert'foo≢⊃⎕NGET folder,''/foo.dyalog'''
 
  _←(⊂' r←foo x' ' r←x x x x')QNPUT(folder,'/foo.dyalog')1
- assert'(ns.⎕NR''foo'')≢⊃#.SLAVE.⎕NGET folder,''/foo.dyalog'''
+ assert'(ns.⎕NR''foo'')≢⊃#.⎕NGET folder,''/foo.dyalog'''
 
  ⎕SE.Link.Expunge'ns.sub.sub1'
  assert'⎕NEXISTS folder,''/sub/sub1'''

@@ -1,4 +1,4 @@
- msg←{opts}Export args;src;dest;arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
+ msg←{opts}Export args;src;arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json;dest
  ⎕IO ⎕ML←1 1
  preProcessOpts
  (msg setconfig)←Config.GetConfig opts
@@ -31,10 +31,10 @@
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else
-         :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dest  ⍝ dest is a file
-             dir←⊃⎕NPARTS dest←0 U.NormFile dest
+         :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dir  ⍝ dest is a file
+             dir←⊃⎕NPARTS dest←0 U.NormFile dir
          :Else                                            ⍝ dest is a directory
-             dir←dest←0 U.NormDir dest
+             dir←dest←0 U.NormDir dir
          :EndIf
          :If single
              ns←⊃U.SplitNs src←container U.NormName src  ⍝ single name is relative to calling namespace (container) because there is no implicit namespace
