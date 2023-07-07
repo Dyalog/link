@@ -16,5 +16,8 @@
              CITA_APIDEV:0
          }
      }
-     ]
+     ],
+     defaults: {
+        dyalogversions:  "18+"
+     }
  }
