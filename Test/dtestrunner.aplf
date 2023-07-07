@@ -4,7 +4,15 @@
  nl←⎕UCS 10
 
  :Trap 0
-     res←⎕SE.Link.Test.Run 2⎕nq#'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+     :If 0=⎕SE.⎕NC'Link'
+         path←1 ⎕NPARTS 50 ⎕ATX 1⊃⎕SI
+         :If 0=≢path
+             'Cannot determine home path for tests!'⎕SIGNAL 11
+         :EndIf
+         path←1⊃⎕NPARTS ¯1↓path
+         ⎕←⎕SE.Link.Import'⎕SE.Link'path
+     :EndIf
+     res←⎕SE.Link.Test.Run 2 ⎕NQ #'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
  :Else
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
