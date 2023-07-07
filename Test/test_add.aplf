@@ -3,10 +3,12 @@
  z←LinkCreate name folder
  ns←⍎name
 
+⍝ Basic functionality: define and add a function
  2 ns.⎕FIX src←'foo' 'one'
  z←⎕SE.Link.Add name,'.foo'
  assert'src≡⊃⎕NGET''',folder,'/foo.aplf'' 1'
 
+⍝ Same, but from inside a namespace
  2 ns.⎕FIX src←'hoo' 'one'
  here←⍕⎕THIS
  ⎕CS name
@@ -14,27 +16,33 @@
  ⎕CS here
  assert'src≡⊃⎕NGET''',folder,'/hoo.aplf'' 1'
 
+ z←⎕SE.Link.Expunge name,'.foo'
+⍝ Add two functions at once
  2 ns.⎕FIX¨src←('foo' 'two')('hoo' 'two')
  z←⎕SE.Link.Add(name,'.foo')(name,'.hoo')
  assert'src≡{⊃⎕NGET(''',folder,'/'',⍵,''oo.aplf'')1}¨''fh'''
 
+⍝ Use Add to update already existing files
  2 ns.⎕FIX¨src←('foo' 'three')('hoo' 'three')
  z←⎕SE.Link.Add(name,'.foo ',name,'.hoo')
  assert'src≡{⊃⎕NGET(''',folder,'/'',⍵,''oo.aplf'')1}¨''fh'''
 
- z←⎕SE.Link.Expunge name,'.foo'
+ z←⎕SE.Link.Expunge name,'.foo' ⍝ workaround for https://github.com/Dyalog/link/issues/551 - Failure to remove obsolete file when nameclass changes
+⍝ Add one-liner dfn while simultaneously defining it
  2 ns.⎕FIX src←,⊂'foo←{ four }'
  z←⎕SE.Link.Add name,'.foo'
  assert'src≡⊃⎕NGET''',folder,'/foo.aplf'' 1'
 
+⍝ Add multiple variables while simultaneously defining them
  ⎕CS name
  z←⎕SE.Link.Add'a b c←1 2 3'
  ⎕CS here
- assert'''123''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc'''
+ assert'''123''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc''' ⍝ result is actually a vector of vectors of vectors
 
+⍝ Make sure it works with a destructuring namelist
  ⎕CS name
  z←⎕SE.Link.Add'(a b)c←⊂1 2'
  ⎕CS here
- assert'''121 2''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc'''
+ assert'''121 2''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc''' ⍝ 1 2 (1 2)
 
  ok←1
