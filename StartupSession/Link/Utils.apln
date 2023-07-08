@@ -816,6 +816,7 @@
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
 
+      :If 0=⎕NC 'opts.ignorecurrent' ⋄ opts.ignorecurrent←0 ⋄ :EndIf
       :If opts.singlefile
           (file oldfile nc)←opts.dir '' (⎕NC ⊂opts.ns)
           ⍝ /// This is questionable: In a singlefile link, the user has provided an explicit file name
@@ -829,7 +830,6 @@
           :EndIf
           :Return
       :EndIf
-
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
    
       :If depth
@@ -849,7 +849,8 @@
       ⍝ values cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
-      :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+      :Else ⋄ ref←⍎where         
+          oldfile←(~opts.ignorecurrent)/ref CurrentFileName name     ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
       :If 82=⎕DR '' ⍝ Classic
           ⎕AVU←ns⍎'⎕AVU'
@@ -1041,7 +1042,8 @@
           ⍝ determine file names and check for clashes
           :If file 
               files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
-          :Else                   
+          :Else
+              ⍝ :If 0=⎕NC 'opts.isexport' ⋄ opts.isexport←0 ⋄ :EndIf                   
               (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
               :If opts.(singlefile∧caseCode)
                   opts.dir←⊃files ⍝ replace with case coded name

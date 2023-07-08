@@ -1,4 +1,4 @@
- msg←{opts}Export args;src;dir;arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json;nsgiven
+ msg←{opts}Export args;src;dir;arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json;nsgiven;dest
  ⎕IO ⎕ML←1 1
  preProcessOpts
  (msg setconfig)←Config.GetConfig opts
@@ -50,7 +50,7 @@
          opts.ns←ns
          opts.dir←dir
          opts.singlefile←0   ⍝ /// until further notice
-
+         opts.ignorecurrent←1
          (fixed failed)←opts U.WriteFiles src dest opts.overwrite
 
          :If ×≢failed
