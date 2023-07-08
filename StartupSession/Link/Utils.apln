@@ -815,7 +815,16 @@
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
       :If opts.singlefile
-          (file oldfile nc)←{,∘⊂¨⍵}⍣depth⊢opts.dir '' (⎕NC ⊂opts.ns)
+          (file oldfile nc)←opts.dir '' (⎕NC ⊂opts.ns)
+          ⍝ /// This is questionable: In a singlefile link, the user has provided an explicit file name
+          ⍝     However, we currently "enforce" case coding in this case
+          :If opts.caseCode
+          :AndIf ~'-'∊2⊃⎕NPARTS file ⍝ Not already case coded?              
+              (file oldfile)←1 (×≢oldfile)/¨((¯1↓⊃⎕NPARTS opts.dir) CaseCode opts.flatten)¨file oldfile
+          :EndIf   
+          :If depth
+               (file oldfile)←{,⊂⍵}¨file oldfile
+          :EndIf
           :Return
       :EndIf
 
@@ -1028,8 +1037,13 @@
           :EndIf
       :AndIf 0<count←≢names
           ⍝ determine file names and check for clashes
-          :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
-          :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+          :If file 
+              files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
+          :Else                   
+              (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+              :If opts.(singlefile∧caseCode)
+                  opts.dir←⊃files ⍝ replace with case coded name
+              :EndIf
           :EndIf
           :If ∨/mask←(inx←⍳⍨0 CaseText files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
@@ -1066,7 +1080,7 @@
               :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                   ⎕NDELETE¨mask/oldfiles
               :EndIf
-          :EndIf
+          :EndIf                             
       :EndIf
     ∇
 
@@ -1125,6 +1139,10 @@
       :EndIf
      
       (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+      :If opts.singlefile
+      :AndIf actnames≢expnames
+          Error 'Source file defines "',actnames,'", rather than "',expnames,'"'
+      :EndIf
       :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
           mask←actncs∊¯1   ⍝ invalid names
           failed,←mask/allfiles

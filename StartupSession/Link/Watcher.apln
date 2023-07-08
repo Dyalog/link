@@ -136,7 +136,7 @@
           :Case 1 ⍝ directory 
                args←link.dir(,'*')
           :Case 2 ⍝ single file
-               args←(⊃⎕NPARTS link.dir) (,'*')
+               args←(¯1↓⊃⎕NPARTS link.dir) (,'*')
           :EndSelect
                
           r←MakeWatcher args

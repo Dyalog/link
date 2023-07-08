@@ -127,6 +127,10 @@
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name
                  ⎕EX curname  ⍝ delete name in case the name defined by source has changed
                  msg,←'updating un-linked 'affected', expunging previously linked 'curname
+             :ElseIf link.singlefile∧affected≢link.ns
+                 msg,←'redirecting single file link from ',link.ns,' to ',affected
+                 ⎕EX link.ns
+                 link.ns←affected
              :Else
                  msg,←'updating un-linked 'affected
              :EndIf

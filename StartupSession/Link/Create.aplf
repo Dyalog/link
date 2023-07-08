@@ -1,4 +1,4 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;ext;file;fulltarget;singlefile;singlenc
+ msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;ext;file;fulltarget;singlefile;singlenc;nohold;m
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (msg setconfig)←dir Config.GetConfig opts
@@ -8,7 +8,9 @@
  :EndIf
  :Trap DEBUG↓0
      singlenc←9.1 9.4 9.5 ⍝ Namespace, Class or Interface - single file linkable classes
-     :Hold '⎕SE.Link.Links'   ⍝ functions that use ⎕SE.Link.Links must :Hold '⎕SE.Link.Links' to avoid e.g. wrong results in lookup
+     →(nohold←(''⍴1↓⎕XSI)∊⊂'⎕SE.Link.OnAfterFix')⍴NOHOLD
+     :Hold ⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
+NOHOLD:
          :If 0=⎕NC'⎕SE.Link.Links'   ⍝ init links if necessary
              U.SetLinks ⍬
          :EndIf
@@ -37,40 +39,48 @@
                  (actname actclass)←U.Sniff leaf dir
                  :If ~actclass∊singlenc
                      U.Error'Link must target a directory or a file containing the source for a namespace, class or interface'
-             :EndIf
+                 :EndIf
                  :If 0=nc
                      nc←actclass
-                     opts.singlefile←1
-                     nsref←container
-                 :Else
-                     U.Error'Cannot link an existing file to an existing name'
+                 :ElseIf nc∊singlenc
+                     :If (⎕SRC⍎ns)≢⊃⎕NGET dir 1
+                         U.Error'Cannot link an existing file to an existing name unless source is identical'
+                     :EndIf
                  :EndIf
+                 opts.singlefile←1
+                 nsref←container
                  emptydir←0
              :Else
-             emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
+                 emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
              :EndIf
          :Else
              emptydir←1 ⋄ isfile←0
          :EndIf
 
          fulltarget←dir
-         :If isfile∨hasns←(|nc)∊singlenc
+         isfile∨←hasns←(|nc)∊singlenc
+         :If isfile
          :AndIf ~opts.(preloaded∨flatten)
              :If isfile←nc∊singlenc                 ⍝ Scripted thing
                  dir←¯1↓⊃⎕NPARTS fulltarget         ⍝ Directory is one up
                  emptyns←1
              :Else
-             :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
-             :AndIf ~emptydir                       ⍝ some dir/files defined
-             :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
-             ⍝ link issue #160: allow some APL names to be tied to source files when source is dir - typically happens when starting dyalog with load=boot.aplf - won't work with arrays
+                 :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
+                 :AndIf ~emptydir                       ⍝ some dir/files defined
+                 :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
+                 ⍝ link issue #160: allow some APL names to be tied to source files when source is dir - typically happens when starting dyalog with load=boot.aplf - won't work with arrays
                  emptyns←emptyns U.EmptyNamespace nsref dir
-             :EndIf
+                 :EndIf
              :EndIf
          :Else ⋄ emptyns←1
          :EndIf
 
-         opts.singlefile←isfile
+         :If opts.singlefile←isfile
+             z←'forceFilenames' 'forceExtensions' 'flatten' ⍝ Not allowed
+         :AndIf ∨/m←opts⍎⍕z
+             U.Error 'Not allowed in single-file links: ',⍕m/z
+         :EndIf
+
          :If emptydir⍱emptyns  ⍝ link issue #230
              opts.(ns dir)←(ns fulltarget)
              :If opts.preloaded
@@ -95,7 +105,8 @@
              U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
              U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',dir
-         :ElseIf isfile ⋄ z←3 ⎕MKDIR dir
+         :ElseIf isfile
+             z←3 ⎕MKDIR dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
              U.Error'Not a namespace: ',ns
          :ElseIf ~U.IsNamedRef nsref  ⍝ ns is name of unnamed namespace

@@ -50,16 +50,16 @@
          opts.singlefile←0   ⍝ /// until further notice
 
          (fixed failed)←opts U.WriteFiles src dest opts.overwrite
-         ⍝ Now write config file
-         :If ~single
+
+         :If ×≢failed
+             msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' export(s) failed:'),failed
+         :ElseIf single
+             msg←⊂'Exported: ',src,' → ',U.WinSlash fixed
+         :Else
              z←⎕NS''
              z.Settings←Config.ExpungeDefaultParams setopts
              z Config.WriteConfig dir,'/.linkconfig'
-
              msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
-             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' export(s) failed:'),failed ⋄ :EndIf
-         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Export failed: ',⊃failed
-         :Else ⋄ msg←⊂'Exported: ',src,' → ',U.WinSlash fixed
          :EndIf
          msg←1↓U.FmtLines msg
      :EndIf
