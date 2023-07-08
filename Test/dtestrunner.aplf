@@ -10,9 +10,11 @@
              'Cannot determine home path for tests!'⎕SIGNAL 11
          :EndIf
          path←1⊃⎕NPARTS ¯1↓path
-         ⎕←⎕SE.Link.Import'⎕SE.Link'path
+         {}⎕SE.Link.Import'⎕SE.Link'path
+     :ElseIf 0=⎕SE.Link.⎕NC'Test'
+         {}⎕SE.Link.Import'⎕SE.Link.Test'(path,'Test')
      :EndIf
-     res←⎕SE.Link.Test.Run 2 ⎕NQ #'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+     ⎕←⎕SE.Link.Test.Run 2 ⎕NQ #'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
  :Else
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
