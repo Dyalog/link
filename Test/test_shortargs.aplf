@@ -1,0 +1,51 @@
+ ok←test_shortargs(folder name);here;simple;spaces;bits;hereref;z;link;myapp;source;export;file
+⍝ Verify that short argument handling works
+
+ here←⍕hereref←⎕THIS
+ simple←'/myapp'
+ bits←1↓¨' '(=⊂⊢)' ',spaces←'/my app'
+ myapp←here,'.myapp'
+
+ ⍝ Unit test for preProcessNsDir
+ ⍝   returns (container targetns directory)
+
+ assert '⎕THIS myapp simple 0≡⎕SE.Link.preProcessNsDir simple'
+ assert '⎕THIS myapp simple 0≡⎕SE.Link.preProcessNsDir ⊂simple'
+ assert '⎕THIS myapp simple 1≡⎕SE.Link.preProcessNsDir myapp simple'
+
+ z←⎕SE.Link.Create 'HttpCommand'
+ link←GetLink here,'.HttpCommand'
+ assert '⎕NEXISTS link.dir'
+ assert '9=⎕NC ''HttpCommand'''
+ file←link.dir
+
+ z←⎕SE.Link.Break HttpCommand
+ z←⎕SE.UCMD 'Link.Create HttpCommand'
+ assert '9=⎕NC ''HttpCommand'''
+ assert 'file≡4⊃5179⌶HttpCommand'
+
+ ⎕SE.Link.Break HttpCommand
+ ⎕EX 'HttpCommand'
+ z←⎕SE.Link.Import 'HttpCommand'
+ assert '9=⎕NC ''HttpCommand'''
+ assert '0=≢4⊃5179⌶HttpCommand' ⍝ Not linked
+ ⎕EX 'HttpCommand' '#.HttpCommand'
+
+ z←⎕SE.Link.Import '#' 'HttpCommand'
+ assert '9=⎕NC ''#.HttpCommand'''
+ ⎕EX '#.HttpCommand'
+
+ export←folder,'/export'
+ name ⎕NS ''
+ 2 (⍎name).⎕FIX source←'r←dup x' 'r←x x'
+ ⎕CS name
+ z←⎕SE.Link.Export folder
+ ⎕CS here
+ assert 'source≡⊃⎕NGET (folder,''/dup.aplf'') 1'
+ 3 ⎕NDELETE folder
+ ⎕EX name
+
+ ⎕EX 'HttpCommand'
+
+ ok←1
+ ⍝ Add at least one real test for Create, Import and Export with no namespace specified

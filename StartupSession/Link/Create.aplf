@@ -1,6 +1,7 @@
- msg←{opts}Create(ns dir);arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;ext;file;fulltarget;singlefile;singlenc;nohold;m
+ msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;ext;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
+(container ns dir nsgiven)←preProcessNsDir args
  (msg setconfig)←dir Config.GetConfig opts
  →(0≠≢msg)⍴0
 :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
@@ -20,7 +21,6 @@ NOHOLD:
 
          dircreated←0
          msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
-         (container ns)←(rsi xsi←⎕RSI ⎕XSI)U.ContainerNs ns
 
          opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
          :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works

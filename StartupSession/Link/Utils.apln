@@ -5,6 +5,7 @@
     SRC_BEST←62 ⍝ ⎕ATX fact
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
+    CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
     Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
@@ -426,7 +427,7 @@
           ⍝ can't use NormNs because ns may not exist
           :If 0∊⍴ns
               ns←⍕container
-          :ElseIf (⊂ns)∊(,'#')'⎕SE'
+          :ElseIf (⊂,ns)∊(,'#')'⎕SE'
           :OrIf ∨/'#.' '⎕SE.'Begins¨⊂ns
               ns←ns  ⍝ ns already fully specified
           :Else
@@ -623,7 +624,7 @@
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
       'customExtensions'Default''
-      'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
+      'codeExtensions'Default⊂CODE_EXTENSIONS
       opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
       Check¨'customExtensions' 'codeExtensions'
       Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier "',⍵,'" must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
@@ -814,6 +815,7 @@
 
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
+
       :If opts.singlefile
           (file oldfile nc)←opts.dir '' (⎕NC ⊂opts.ns)
           ⍝ /// This is questionable: In a singlefile link, the user has provided an explicit file name
@@ -1789,13 +1791,13 @@
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
       r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",  "Parse":"2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",  "Parse":"1-2 -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Configure",   "args":"target [settings]",  "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"1-2 -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
-      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"1-2 -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
       r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Stop",        "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on breakpoints"},'

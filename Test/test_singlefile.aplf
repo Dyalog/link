@@ -23,7 +23,7 @@
  ⍝ Simulate editing
  (⊂source2) ⎕NPUT file 1   ⍝ Editor will have updated the file
  2 #.⎕FIX 'file://',file
- ⎕SE.Link.U.LASTFIX←source # (2↓name)
+ ⎕SE.Link.U.LASTFIX←source '#' (2↓name)
  ⍝ OnAfterFix rarg: obj evt src ns oldname name file
  ⎕SE.Link.OnAfterFix (⎕NS '') 'AfterFix' '' # (2↓name) (2↓name2) file
  ⍝ Verify results

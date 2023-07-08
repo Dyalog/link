@@ -1,0 +1,17 @@
+ r←resolveSimpleName name;path;libs;lib;files
+⍝ Try to find something like "HttpCommand"
+
+ r←name ⍝ If we cannot improve it
+ libs←⊃0 ⎕NINFO⍠1⊢(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/Library/*'
+ :If 0≠≢path←2 ⎕NQ'.' 'GetEnvironment' 'DYALOG_LIB_PATH'
+     libs,⍨←{1↓¨(';'=⍵)⊂⍵}';',path
+ :EndIf
+
+ :For lib :In libs
+     :Trap 22
+         :If 0≠≢files←⊃0 ⎕NINFO⍠1⊢lib,'/',name,'*'
+         :AndIf 0≠≢files/⍨←(3⊃¨⎕NPARTS files)∊'.',¨U.CODE_EXTENSIONS
+             →0⊣r←⊃files
+         :EndIf
+     :EndTrap
+ :EndFor

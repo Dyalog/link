@@ -79,8 +79,7 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
 
  z←⎕SE.Link.Configure '*' 'watch:' 'caseCode:' ⍝ Clear user config settings
  assert '∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
- config←getj5 ⎕SE.Link.USERCONFIGFILE
- assert '0=≢config.⎕NL -2 9'          ⍝ All clear
+ assert '0=⎕NEXISTS ⎕SE.Link.USERCONFIGFILE' ⍝ No settings
 
  z←LinkCreate name folder
  assert '''ns''≡(GetLink name).watch' ⍝ used folder config

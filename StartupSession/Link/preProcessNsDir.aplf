@@ -1,0 +1,25 @@
+ r←{ucmd}preProcessNsDir args;rsi;xsi;first;container;ns;dir;nsgiven
+⍝ Preprocess arguments to Create, Import and Export
+
+ (container ns)←(rsi xsi←1↓¨⎕RSI ⎕XSI)U.ContainerNs''
+ first←⊃args←,⊆args ⋄ dir←''
+
+ nsgiven←2=≢args
+ :Select ≢args
+ :Case 1
+     dir←⊃args
+     ns←' '~⍨2⊃⎕NPARTS dir
+ :Case 2 ⋄ (ns dir)←args
+ :Case 3 ⋄ U.Error'One or two arguments are required'
+ :EndSelect
+
+ (container ns)←(rsi xsi)U.ContainerNs ns
+
+ :If ¯1≠⎕NC⍕dir ⍝ e.g. ]link.create HttpCommand
+     dir←resolveSimpleName dir
+     ⍝:If ⎕NEXISTS dir
+     ⍝:AndIf 2=⊃1 ⎕NINFO dir ⍝ It's a file
+     ⍝    ns←ns,'.',first  ⍝ Extend target namespace to include object name
+     ⍝:EndIf
+ :EndIf
+ r←container ns dir nsgiven ⍝ /// was failing when this was the result
