@@ -9,6 +9,7 @@
          :If 0=≢path
              'Cannot determine home path for tests!'⎕SIGNAL 11
          :EndIf
+         ⎕←(1⊃⎕si),' was read from ',path
          path←1⊃⎕NPARTS ¯1↓path
          ⎕←⎕SE.Link.Import'⎕SE.Link'path
      :ElseIf 0=⎕SE.Link.⎕NC'Test'
@@ -20,6 +21,9 @@
  :Else
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
+     :trap 0
+     log,←nl,'path=',path
+     :endtrap
      res←¯1
  :EndTrap
 
