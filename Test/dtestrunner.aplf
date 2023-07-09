@@ -4,8 +4,8 @@
  nl←⎕UCS 10
 
  :Trap 0
-     ⎕←{⎕←⍵.'=',2⎕nq#'GetEnvironment'⍵}'CITA_TESTFILE'
-     ⎕←{⎕←⍵.'=',2⎕nq#'GetEnvironment'⍵}'CITATEST'
+     ⎕←{⎕←⍵,'=',2⎕nq#'GetEnvironment'⍵}'CITA_TESTFILE'
+     ⎕←{⎕←⍵,'=',2⎕nq#'GetEnvironment'⍵}'CITATEST'
           ⎕←⎕SH'ls -l ',path
      :If 0=⎕SE.⎕NC'Link'
          path←path,'REPO/Test/'
