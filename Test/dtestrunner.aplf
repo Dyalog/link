@@ -4,11 +4,9 @@
  nl←⎕UCS 10
 
  :Trap 0
-     ⎕←{⎕←⍵,'=',2⎕nq#'GetEnvironment'⍵}'CITA_TESTFILE'
-     ⎕←{⎕←⍵,'=',2⎕nq#'GetEnvironment'⍵}'CITATEST'
-          ⎕←⎕SH'ls -l ',path
+     path←1⊃⎕nparts ¯1↓1⊃⎕nparts {⎕←⍵,'=',2⎕nq#'GetEnvironment'⍵}'CITA_TESTFILE'
+⎕←'path=',path
      :If 0=⎕SE.⎕NC'Link'
-         path←path,'REPO/Test/'
          ⎕←⎕SE.Link.Import'⎕SE.Link'path
      :ElseIf 0=⎕SE.Link.⎕NC'Test'
          ⎕←⎕SE.Link.Import'⎕SE.Link.Test'(path,'Test')
@@ -19,10 +17,6 @@
  :Else
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
-     :Trap 0
-         log,←nl,'ATX: >',(50 ⎕ATX 1⊃⎕SI),'<',nl
-         log,←'si1: ',1⊃⎕SI
-     :EndTrap
      res←¯1
  :EndTrap
 
