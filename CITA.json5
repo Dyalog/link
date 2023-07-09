@@ -5,7 +5,8 @@
          test:'./Test/dtestrunner.aplf',
          dtestmodifiers:'-SuccessValue=apl!1',
          env:{
-             CITA_APIDEV:0
+             CITA_APIDEV:0,
+             LINK_DIR: ${PARENTFOLDER}
          }
      },
      {
@@ -13,7 +14,8 @@
          test:'./Test/dtestrunner.aplf',
          dtestmodifiers:'-SuccessValue=apl!1',
          env:{
-             CITA_APIDEV:0
+             CITA_APIDEV:0,
+             LINK_DIR:${PARENTFOLDER}
          }
      }
      ],

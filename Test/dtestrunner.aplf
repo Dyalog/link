@@ -4,7 +4,7 @@
  nl←⎕UCS 10
 
  :Trap 0
-     path←1⊃⎕nparts ¯1↓1⊃⎕nparts {⎕←⍵,'=',2⎕nq#'GetEnvironment'⍵}'CITA_TESTFILE'
+     path←2⎕nq#'GetEnvironment' 'LINK_DIR'
 ⎕←'path=',path
      :If 0=⎕SE.⎕NC'Link'
          ⎕←⎕SE.Link.Import'⎕SE.Link'path
