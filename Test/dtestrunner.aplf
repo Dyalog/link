@@ -22,7 +22,7 @@
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
      :trap 0
-     log,←nl,'path=',path
+     log,←nl,'ATX: ',50⎕atx 1⊃⎕si
      :endtrap
      res←¯1
  :EndTrap
