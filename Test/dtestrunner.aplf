@@ -5,12 +5,12 @@
 
  :Trap 0
      :If 0=⎕SE.⎕NC'Link'
-         path←1 ⎕NPARTS 50 ⎕ATX 1⊃⎕SI
-         :If 0=≢path
-             'Cannot determine home path for tests!'⎕SIGNAL 11
+         :if 0=≢path←2⎕nq'G.' 'GetEnvironment' 'REPOFOLDER'
+             'REPOFOLDER not defined!'⎕SIGNAL 11
          :EndIf
-         ⎕←(1⊃⎕SI),' was read from ',path
-         path←1⊃⎕NPARTS ¯1↓path
+         ⎕←'REPOFOLDER=' ,path
+         ⎕←⎕sh'ls -l ',path
+         path←path,'REPO/Tests/'
          ⎕←⎕SE.Link.Import'⎕SE.Link'path
      :ElseIf 0=⎕SE.Link.⎕NC'Test'
          ⎕←⎕SE.Link.Import'⎕SE.Link.Test'(path,'Test')
