@@ -9,21 +9,22 @@
          :If 0=≢path
              'Cannot determine home path for tests!'⎕SIGNAL 11
          :EndIf
-         ⎕←(1⊃⎕si),' was read from ',path
+         ⎕←(1⊃⎕SI),' was read from ',path
          path←1⊃⎕NPARTS ¯1↓path
          ⎕←⎕SE.Link.Import'⎕SE.Link'path
      :ElseIf 0=⎕SE.Link.⎕NC'Test'
          ⎕←⎕SE.Link.Import'⎕SE.Link.Test'(path,'Test')
      :EndIf
-     ⎕←'1: ',⎕se.⎕nc'Link'
-     ⎕←'2: ',⎕se.⎕nc'Link.Test'
+     ⎕←'1: ',⎕SE.⎕NC'Link'
+     ⎕←'2: ',⎕SE.⎕NC'Link.Test'
      ⎕←⎕SE.Link.Test.Run 2 ⎕NQ #'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
  :Else
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
-     :trap 0
-     log,←nl,'ATX: ',50⎕atx 1⊃⎕si
-     :endtrap
+     :Trap 0
+         log,←nl,'ATX: >',(50 ⎕ATX 1⊃⎕SI),'<',nl
+         log,←'si1: ',1⊃⎕SI
+     :EndTrap
      res←¯1
  :EndTrap
 
