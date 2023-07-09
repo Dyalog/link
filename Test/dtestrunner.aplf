@@ -4,13 +4,11 @@
  nl←⎕UCS 10
 
  :Trap 0
+     ⎕←{⎕←⍵.'=',2⎕nq#'GetEnvironment'⍵}'CITA_TESTFILE'
+     ⎕←{⎕←⍵.'=',2⎕nq#'GetEnvironment'⍵}'CITATEST'
+          ⎕←⎕SH'ls -l ',path
      :If 0=⎕SE.⎕NC'Link'
-         :if 0=≢path←2⎕nq'G.' 'GetEnvironment' 'REPOFOLDER'
-             'REPOFOLDER not defined!'⎕SIGNAL 11
-         :EndIf
-         ⎕←'REPOFOLDER=' ,path
-         ⎕←⎕sh'ls -l ',path
-         path←path,'REPO/Tests/'
+         path←path,'REPO/Test/'
          ⎕←⎕SE.Link.Import'⎕SE.Link'path
      :ElseIf 0=⎕SE.Link.⎕NC'Test'
          ⎕←⎕SE.Link.Import'⎕SE.Link.Test'(path,'Test')
