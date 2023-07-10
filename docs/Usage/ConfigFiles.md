@@ -41,7 +41,7 @@ The result documents that there was no previous setting for the option. A file c
 ```
 ### Stop and Trace flags
 
-Directory configuration files also record stop and trace settings for functions and operators in the linked directory, which you can either manipulate in the editor, or using the API functions [Link.Stop](../API/Link.Stop.md) and (Link.Trace)[../API/Link.Trace.md]:
+Directory configuration files also record stop and trace settings for functions and operators in the linked directory, which you can either manipulate in the editor, or using the API functions [Link.Stop](../API/Link.Stop.md) and [Link.Trace](../API/Link.Trace.md):
 
 ```
       ]link.stop linkdemo.stats.Mean 2
@@ -64,6 +64,8 @@ These settings are recorded in a `SourceFlags` section of our configuration file
   ],
 }
 ```
+
+Note that there is no support for storing `⎕MONITOR` settings, as these are usually set under program control and used for reporting.
 
 ## Link.Configure
 The [Link.Configure](../API/Link.Configure.md) API function and the corresponding user command, can be used to query and set the contents of both user and directory configuration files. For example, following on from the above example, we can query the current settings:
