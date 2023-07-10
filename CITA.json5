@@ -6,7 +6,7 @@
          dtestmodifiers:'-SuccessValue=apl!1',
          env:{
              CITA_APIDEV:0,
-             DYALOGLINK: "${PARENTFOLDER}"
+             DYALOGLINK: "${THISPATH}"
          }
      },
      {
@@ -15,11 +15,12 @@
          dtestmodifiers:'-SuccessValue=apl!1',
          env:{
              CITA_APIDEV:0,
-             DYALOGLINK:"${PARENTFOLDER}"
+             DYALOGLINK:"${THISPATH}"
          }
      }
      ],
      defaults: {
-        dyalogversions:  "19+"
+        dyalogversions:  "19+",
+        secondstimeout: 300
      }
  }
