@@ -24,12 +24,29 @@ The following features have been implemented in the master branch:
      Link.Create, Import and Export have a new switch -ignoreconfig, which allows you
      to ignore a damaged or otherwise inappropriate configuration file.
 
+* Creating a Link from single class or namespace files in addition to linking directories.
+    - Note that configuration files cannot be created for single-file links
+
+* Link.Create, Import and Export will default to the current namespace if no namespace is specified. For example,
+
+```
+      )cs #
+      ]link.export /tmp/myapp
+```
+... will export the current workspace to a folder called `/tmp/myapp`.
+
+* Link.Create and Import will search the Dyalog `Library` folders and user folder specified using `DYALOG_LIB_PATH` for source files. Specifying the file extension is not required, if there is no ambiguity. For example,
+
+```
+      ]link.import HttpCommand
+Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\Library\Conga\HttpCommand.dyalog
+```
+
 ## Upcoming Features
 
 * Storing multi-line character data in "flat" text files.
-* Creating Links from single source files in addition to linking a folder to a namespace.
 * Transfer information about who last changed a source file from Git to `⎕AT` within APL.
-* Use a `.linkignore` to list names in the active workspace which should be ignored by Link.
+* Use a `.linkignore` file to list names in the active workspace which should be ignored by Link.
 
 ## Deferred Features
 
