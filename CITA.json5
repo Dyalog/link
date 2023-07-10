@@ -6,7 +6,7 @@
          dtestmodifiers:'-SuccessValue=apl!1',
          env:{
              CITA_APIDEV:0,
-             LINK_DIR: "${PARENTFOLDER}"
+             DYALOGLINK: "${PARENTFOLDER}"
          }
      },
      {
@@ -15,11 +15,11 @@
          dtestmodifiers:'-SuccessValue=apl!1',
          env:{
              CITA_APIDEV:0,
-             LINK_DIR:"${PARENTFOLDER}"
+             DYALOGLINK:"${PARENTFOLDER}"
          }
      }
      ],
      defaults: {
-        dyalogversions:  "18+"
+        dyalogversions:  "19+"
      }
  }

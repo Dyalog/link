@@ -2,18 +2,13 @@
  log←''  ⍝ any messages
  res←1 ⍝ ¯1: err, 0=fail, 1=ok
  nl←⎕UCS 10
-
+ 
  :Trap 0
-     path←2⎕nq#'GetEnvironment' 'LINK_DIR'
-⎕←'path=',path
-     :If 0=⎕SE.⎕NC'Link'
-         ⎕←⎕SE.Link.Import'⎕SE.Link'path
-     :ElseIf 0=⎕SE.Link.⎕NC'Test'
-         ⎕←⎕SE.Link.Import'⎕SE.Link.Test'(path,'Test')
-     :EndIf
-     ⎕←'1: ',⎕SE.⎕NC'Link'
-     ⎕←'2: ',⎕SE.⎕NC'Link.Test'
-     ⎕←⎕SE.Link.Test.Run 2 ⎕NQ #'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+     ⎕SE.Link.RunTests 2⎕nq#'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+ :Case 11
+     log,←'Tests failed with error',nl
+     log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
+     res←0
  :Else
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
