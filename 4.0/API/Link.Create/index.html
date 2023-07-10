@@ -1110,7 +1110,7 @@
                 
                 <h1 id="linkcreate">Link.Create</h1>
 <h2 id="syntax">Syntax</h2>
-<pre><code>]LINK.Create &lt;ns&gt; &lt;dir&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig]
+<pre><code>]LINK.Create &lt;ns&gt; &lt;dirorfile&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig]
 
 message ← {options} ⎕SE.Link.Create (namespace directory)
 </code></pre>
@@ -1121,8 +1121,7 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <ul>
 <li><code>namespace</code> is either a reference to, or a simple character vector containing the name of a namespace.<br />
     In the user command <code>&lt;ns&gt;</code> is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing <code>[namespace]</code> or similar segments).</li>
-<li><code>directory</code> is a simple character vector containing the path to a file system directory without any trailing slash or backslash.<br />
-    In the user command, <code>&lt;dir&gt;</code> is the path to the file system directory.</li>
+<li><code>dirorfile</code> is a simple character vector containing the path to a file system directory (without a trailing backslash), or a single text file defining a namespace, class or interface.</li>
 </ul>
 <h2 id="result">Result</h2>
 <ul>

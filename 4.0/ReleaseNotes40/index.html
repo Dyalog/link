@@ -858,12 +858,32 @@ Link 4.0 with APL version 18.2, see the <a href="Installation.md">installation i
 <p>Link.Create, Import and Export have a new switch -ignoreconfig, which allows you
  to ignore a damaged or otherwise inappropriate configuration file.</p>
 </div>
+<ul>
+<li>
+<p>Creating a Link from single class or namespace files in addition to linking directories.</p>
+<ul>
+<li>Note that configuration files cannot be created for single-file links</li>
+</ul>
+</li>
+<li>
+<p>Link.Create, Import and Export will default to the current namespace if no namespace is specified. For example,</p>
+</li>
+</ul>
+<pre><code>      )cs #
+      ]link.export /tmp/myapp
+</code></pre>
+<p>... will export the current workspace to a folder called <code>/tmp/myapp</code>.</p>
+<ul>
+<li>Link.Create and Import will search the Dyalog <code>Library</code> folders and user folder specified using <code>DYALOG_LIB_PATH</code> for source files. Specifying the file extension is not required, if there is no ambiguity. For example,</li>
+</ul>
+<pre><code>      ]link.import HttpCommand
+Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\Library\Conga\HttpCommand.dyalog
+</code></pre>
 <h2 id="upcoming-features">Upcoming Features</h2>
 <ul>
 <li>Storing multi-line character data in "flat" text files.</li>
-<li>Creating Links from single source files in addition to linking a folder to a namespace.</li>
 <li>Transfer information about who last changed a source file from Git to <code>⎕AT</code> within APL.</li>
-<li>Use a <code>.linkignore</code> to list names in the active workspace which should be ignored by Link.</li>
+<li>Use a <code>.linkignore</code> file to list names in the active workspace which should be ignored by Link.</li>
 </ul>
 <h2 id="deferred-features">Deferred Features</h2>
 <ul>

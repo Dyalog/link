@@ -943,7 +943,7 @@ Was  flatten:
 }
 </code></pre>
 <h3 id="stop-and-trace-flags">Stop and Trace flags</h3>
-<p>Directory configuration files also record stop and trace settings for functions and operators in the linked directory, which you can either manipulate in the editor, or using the API functions <a href="../../API/Link.Stop/">Link.Stop</a> and (Link.Trace)[../API/Link.Trace.md]:</p>
+<p>Directory configuration files also record stop and trace settings for functions and operators in the linked directory, which you can either manipulate in the editor, or using the API functions <a href="../../API/Link.Stop/">Link.Stop</a> and <a href="../../API/Link.Trace/">Link.Trace</a>:</p>
 <pre><code>      ]link.stop linkdemo.stats.Mean 2
 Was linkdemo.stats.Mean 1
 </code></pre>
@@ -962,6 +962,7 @@ Was linkdemo.stats.Mean 1
   ],
 }
 </code></pre>
+<p>Note that there is no support for storing <code>⎕MONITOR</code> settings, as these are usually set under program control and used for reporting.</p>
 <h2 id="linkconfigure">Link.Configure</h2>
 <p>The <a href="../../API/Link.Configure/">Link.Configure</a> API function and the corresponding user command, can be used to query and set the contents of both user and directory configuration files. For example, following on from the above example, we can query the current settings:</p>
 <pre><code>      ]link.configure linkdemo
