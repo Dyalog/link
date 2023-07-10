@@ -38,7 +38,7 @@ NOHOLD:
                  (leaf ext)←1↓⎕NPARTS dir
                  (actname actclass)←U.Sniff leaf dir
                  :If ~actclass∊singlenc
-                     U.Error'Link must target a directory or a file containing the source for a namespace, class or interface'
+                     U.Error'Link must target a file containing the source for a namespace, class or interface - or a directory'
                  :EndIf
                  :If 0=nc
                      nc←actclass
@@ -131,14 +131,19 @@ NOHOLD:
 
          ⍝ We're all good; do it!
          opts.ns←ns←U.NormNs⍣(~isfile)⊢ns
-         :If isfile ⋄ dir←0 U.NormFile fulltarget ⋄ :EndIf
-         opts.dir←dir←0 U.NormDir⍣(~isfile)⊢dir
+         :If isfile
+              dir←0 U.NormFile fulltarget
+         :Else
+              dir←0 U.NormDir dir
+         :EndIf
+         opts.dir←dir
          opts.singlefile←isfile
          msg←0⍴⊂''
 
          ⍝ Create a config file if folder is new or empty
-         :If dircreated
-         :OrIf {isfile:0 ⋄ 0=≢⊃⎕NINFO⍠1⊢dir,'/*'}⍬
+         :If isfile
+         :ElseIf dircreated
+         :OrIf 0=≢⊃⎕NINFO⍠1⊢dir,'/*'
              z←⎕NS''
              z.Settings←Config.ExpungeDefaultParams setopts
              z.Settings.⎕EX'source' ⍝ Not a folder configuration option
@@ -146,9 +151,9 @@ NOHOLD:
          :EndIf
 
          :If ~isfile∨dircreated ⍝ Update source flag cache
-             :If 0=⊃(rc config)←Config.ReadConfigFile dir,'/.linkconfig'
+             (rc config)←Config.ReadConfigFile dir,'/.linkconfig'
+         :AndIf 0=rc
                  config Config.SetSourceFlags opts
-             :EndIf
          :EndIf
 
          :Select opts.source
