@@ -21,6 +21,7 @@
      ],
      defaults: {
         dyalogversions:  "19+",
-        secondstimeout: 300
+        secondstimeout: 600,
+        platforms: ["win","macx86","macarm","pi","linux"]
      }
  }
