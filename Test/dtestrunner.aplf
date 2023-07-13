@@ -1,10 +1,15 @@
- dtestrunner nul;log;res;nl
+ dtestrunner nul;log;res;nl;testid
  log←''  ⍝ any messages
  res←1 ⍝ ¯1: err, 0=fail, 1=ok
  nl←⎕UCS 10
- 
+
+ ⍝ ids of test must follow convention
+ ⍝ {id of Link tests to run}_{whatever is need to make the id unique}
+ testid←2 ⎕NQ #'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+ testid←1⊃'_'(≠⊆⊢)testid
+
  :Trap 0
-     ⎕SE.Link.RunTests 2⎕nq#'GetEnvironment' 'CITA_TEST_ID'  ⍝ run basic tests
+     ⎕SE.Link.RunTests testid
  :Case 11
      log,←'Tests failed with error',nl
      log,←(⎕JSON ⎕OPT'Compact' 0)⎕DMX
@@ -16,4 +21,5 @@
  :EndTrap
 
  ⎕SE.UCMD'GetTools4CITA'
+ file←...
  log ⎕SE._cita._LogStatus res

@@ -1,26 +1,47 @@
 {
      tests:[
-     {
-         id:'basic',
-         test:'./Test/dtestrunner.aplf',
-         dtestmodifiers:'-SuccessValue=apl!1',
-         env:{
-             CITA_APIDEV:0,
-             DYALOGLINK: "${THISPATH}"
-         }
-     },
-     {
-         id:'all',
-         test:'./Test/dtestrunner.aplf',
-         dtestmodifiers:'-SuccessValue=apl!1',
-         env:{
-             CITA_APIDEV:0,
-             DYALOGLINK:"${THISPATH}"
-         }
-     }
+        {
+            id:'basic_18',
+            test:'./Test/dtestrunner.aplf',
+            dtestmodifiers:'-SuccessValue=apl!1',
+            dyalogversions:  "18.2",
+            env:{
+                CITA_APIDEV:0,
+                DYALOGSTARTUPSE: "${THISPATH}StartupSession"
+            }
+        },
+        {
+            id:'all_18',
+            test:'./Test/dtestrunner.aplf',
+            dtestmodifiers:'-SuccessValue=apl!1',
+            dyalogversions:  "18.2",
+            env:{
+                CITA_APIDEV:0,
+                DYALOGSTARTUPSE:"${THISPATH}StartupSession"
+            }
+        },
+        {
+            id:'basic_19',
+            test:'./Test/dtestrunner.aplf',
+            dtestmodifiers:'-SuccessValue=apl!1',
+            dyalogversions:  "19+",
+            env:{
+                CITA_APIDEV:0,
+                DYALOGLINK: "${THISPATH}"
+            }
+        },
+        {
+            id:'all_19',
+            test:'./Test/dtestrunner.aplf',
+            dtestmodifiers:'-SuccessValue=apl!1',
+            dyalogversions:  "19+",
+            env:{
+                CITA_APIDEV:0,
+                DYALOGLINK:"${THISPATH}"
+            }
+        }
      ],
      defaults: {
-        dyalogversions:  "19+",
         secondstimeout: 600,
         platforms: ["win","macx86","macarm","pi","linux"]
      }
