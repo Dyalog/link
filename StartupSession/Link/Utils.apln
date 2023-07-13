@@ -183,7 +183,7 @@
           →0
       :EndIf                                      
       :If 0≠≢r←2 ⎕NQ # 'GetEnvironment' 'LINKCONFIGFILE'
-          :If~⎕NEXISTS r
+          :If ~⎕NEXISTS r
           :AndIf ~'/'∊r
               Warn 'LINKCONFIGFILE file "',r,'" not found - note directory separator is "/"'
           :EndIf
