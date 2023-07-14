@@ -43,7 +43,7 @@ NOHOLD:
                  :If 0=nc
                      nc←actclass
                  :ElseIf nc∊singlenc
-                     :If (⎕SRC⍎ns)≢⊃⎕NGET dir 1
+                     :If (⎕SRC⍎ns)≢⊃⎕NGET⍠'ContentType' 'APLCode'⊢dir 1
                          U.Error'Cannot link an existing file to an existing name unless source is identical'
                      :EndIf
                  :EndIf

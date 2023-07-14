@@ -853,7 +853,8 @@
           oldfile←(~opts.ignorecurrent)/ref CurrentFileName name     ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
       :If 82=⎕DR '' ⍝ Classic
-          ⎕AVU←ns⍎'⎕AVU'
+      :AndIf 9=⎕NC where
+          ⎕AVU←where⍎'⎕AVU'
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
       :If 0∊⍴src  ⍝ no information about item - item must exist
@@ -947,7 +948,8 @@
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
           :If 82=⎕DR '' ⍝ Classic
-              ⎕AVU←opts.ns⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
+          :AndIf 9=⎕NC where
+              ⎕AVU←where⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
           :EndIf
           (actname nc)←Sniff expname file       ⍝ inspect source
       :EndIf

@@ -2,14 +2,26 @@
      defaults: {
         secondstimeout: 600,
         platforms: ["win","macx86","macarm","pi","linux"],
-        dyalogversions: "18.2,19.0",
         email: "mkrom@dyalog.com",
+        dyalogversions: "18-",
         },
 
    tests: [
         {
-            id:"all",
+            id:"all_18",
             test:"./Test/RunTests.aplf",
+            dyalogversions:  "18.2",
+            env:{
+                DEBUG_LINKQA: "Y",
+                DYALOGLINK: "${THISPATH}",
+                DYALOGSTARTUPSE: "${THISPATH}StartupSession",
+                // DYALOGSTARTUPKEEPLINK: 1,
+            }
+        },
+        {
+            id:"all_19",
+            test:"./Test/RunTests.aplf",
+            dyalogversions:  "19+",
             env:{
                 DEBUG_LINKQA: "Y",
                 DYALOGLINK: "${THISPATH}",
