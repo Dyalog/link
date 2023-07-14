@@ -1,0 +1,18 @@
+ RunTests arg;link;test
+ :If 0=⎕NC'⎕SE.LinkTest' ⍝ Already loaded?
+     :If 0≠≢link←2 ⎕NQ'.' 'GetEnvironment' 'DYALOGLINK'
+     :AndIf ⎕NEXISTS test←link,'/Test'
+         :If '1'∊2 ⎕NQ'.' 'GetEnvironment' 'DYALOGSTARTUPKEEPLINK'
+            ⍝ Note that if LinkTest is linked, this will disable some Link.Break tests
+            ⍝    Search code for references to TESTS_LINKED
+             ⎕SE.Link.Create'⎕SE.LinkTest'test
+         :Else
+             ⎕SE.Link.Import'⎕SE.LinkTest'test
+         :EndIf
+     :Else
+         ⎕←'To run this function, you must either load the Test subfolder of the Link repo into ⎕SE.LinkTest'
+         ⎕←'or configure DYALOGLINK= to refer to a checkout of the Link repository which contains the Test folder.'
+     :EndIf
+ :EndIf
+
+ ⎕SE.LinkTest.Run arg

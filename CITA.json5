@@ -1,0 +1,20 @@
+ {
+     defaults: {
+        secondstimeout: 600,
+        platforms: ["win","macx86","macarm","pi","linux"],
+        dyalogversions: "18.2,19.0",
+        email: "mkrom@dyalog.com",
+        },
+
+   tests: [
+        {
+            id:"all",
+            test:"./Test/RunTests.aplf",
+            env:{
+                DEBUG_LINKQA: "Y",
+                DYALOGLINK: "${THISPATH}",
+                // DYALOGSTARTUPKEEPLINK: 1,  
+          }
+        },
+     ]
+ }
