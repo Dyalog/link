@@ -11,7 +11,7 @@
      assert'~∨/''ERRORS ENCOUNTERED''⍷z'
      z←⎕SE.Link.Refresh name
      assert'~∨/''ERRORS ENCOUNTERED''⍷z'
-     ⎕MKDIR folder,'/sub'
+     QMKDIR folder,'/sub'
      assert'9=⎕NC',Stringify sub←name,'.sub'
      (⍎sub).newvar←⎕TS
      (⍎sub).⎕FX'r←goo arg' 'r←''goo'' arg'
