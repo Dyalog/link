@@ -103,7 +103,7 @@
 
  oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
  Log z←(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
-
+ 
  :If CITA
      ⎕TRAP←0 'S'
      (⊂z) ⎕NPUT (CITA_LOG,'.ok') 1
@@ -116,6 +116,5 @@
    isassert←2
    extn←'.',isassert⊃'fail' 'err'
    ⎕←'Writing file: ',file←CITA_LOG,extn
-   ⎕←(⊂z) ⎕NPUT file 1
-   file←CITA_LOG,'.ok'
+   z←(⊂z) ⎕NPUT file 1
    ok←file,' created.'

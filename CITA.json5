@@ -12,10 +12,9 @@
             test:"./Test/RunTests.aplf",
             dyalogversions:  "18.2",
             env:{
-                DEBUG_LINKQA: "Y",
+                DEBUG_LINKQA: "N",
                 DYALOGLINK: "${THISPATH}",
-                DYALOGSTARTUPSE: "${THISPATH}StartupSession",
-                // DYALOGSTARTUPKEEPLINK: 1,
+                DYALOGSTARTUPSE: "${THISPATH}StartupSession;${THISPATH}qse/StartupSession",
             }
         },
         {
@@ -23,9 +22,8 @@
             test:"./Test/RunTests.aplf",
             dyalogversions:  "19+",
             env:{
-                DEBUG_LINKQA: "Y",
+                DEBUG_LINKQA: "N",
                 DYALOGLINK: "${THISPATH}",
-                // DYALOGSTARTUPKEEPLINK: 1,  
           }
         },
      ]

@@ -1,4 +1,4 @@
- RunTests arg;link;test
+ r←RunTests arg;link;test
  :If 0=⎕NC'⎕SE.LinkTest' ⍝ Already loaded?
      :If 0≠≢link←2 ⎕NQ'.' 'GetEnvironment' 'DYALOGLINK'
      :AndIf ⎕NEXISTS test←link,'/Test'
@@ -15,4 +15,5 @@
      :EndIf
  :EndIf
 
- ⎕SE.LinkTest.Run arg
+r←⎕SE.LinkTest.Run arg
+r←(r≢1)/r ⍝ CITA wants an empty return on OK
