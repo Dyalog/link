@@ -1,13 +1,12 @@
- ok←test_shortargs(folder name);here;simple;spaces;bits;hereref;z;link;myapp;source;export;file
+ ok←test_shortargs(folder name);here;simple;spaces;hereref;z;link;myapp;source;export;file
 ⍝ Verify that short argument handling works
 
  here←⍕hereref←⎕THIS
  simple←'/myapp'
- bits←1↓¨' '(=⊂⊢)' ',spaces←'/my app'
  myapp←here,'.myapp'
 
  ⍝ Unit test for preProcessNsDir
- ⍝   returns (container targetns directory)
+ ⍝   returns (container targetns directory nsgiven)
 
  assert '⎕THIS myapp simple 0≡⎕SE.Link.preProcessNsDir simple'
  assert '⎕THIS myapp simple 0≡⎕SE.Link.preProcessNsDir ⊂simple'
@@ -48,4 +47,3 @@
  ⎕EX 'HttpCommand'
 
  ok←1
- ⍝ Add at least one real test for Create, Import and Export with no namespace specified

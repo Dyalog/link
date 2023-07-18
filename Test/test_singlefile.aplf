@@ -41,12 +41,14 @@
  (⊂source2) QNPUT file 1 ⍝ Write source with new name to existing file
  assert 'name2≡link.ns'  ⍝ Now points to new name
  assert '0=⎕NC name'
+ assert '(2↓name)≡2⊃⎕NPARTS 4⊃5179⌶name2'
  z←⎕SE.Link.Break name2
  3 ⎕NDELETE file
 
  ⍝ --- Test modifying a file which is linked to two namespaces
- ⍝ Problem is hard to reproduce because tying to link e.g. linktest2 to file now gives
+ ⍝ This is no longer possible to reproduce because tying to link e.g. linktest2 to file now gives
  ⍝ ⎕SE.Link.Create: Source file defines "linktest", rather than "linktest2"
+ ⍝ Therefore, we now just verify that we get this error
 
  ⎕EX name name2
  #.⎕FIX source            ⍝ Restore original namespace
@@ -59,7 +61,7 @@
  ⍝ (⊂source2) QNPUT file 1 ⍝ Update the source
  z←⎕SE.Link.Break name
 
- ⍝ --- Now watch the ns only
+ ⍝ --- Now create a new link where we only watch the ns
  #.⎕FIX source           ⍝ Restore original namespace
  z←'{watch:''ns''}' LinkCreate name file
  link←GetLink name
@@ -91,7 +93,7 @@
  3 ⎕NDELETE ccfile
 
  ⍝ --- Now try with an already case coded file name
- z←'{caseCode:1}' LinkCreate name file
+ z←'{caseCode:1}' LinkCreate name ccfile
  link←GetLink name
  assert 'link.dir≡ccfile'
  z←⎕SE.Link.Break name
@@ -109,11 +111,18 @@
  z←LinkCreate name file ⍝ Link not to the folder, but to the file
  assert'(,¨source)≡⊃⎕NGET file 1' ⍝ File written correctly
 
+ ⍝ --- Now export the linked file
+ export←folder,'-export'
+ 3 ⎕NDELETE file←export,'/linktest.aplc'
+ z←⎕SE.Link.Export name export
+ assert'(,¨source)≡⊃⎕NGET file 1'    ⍝ File written correctly
+ assert '1=≢⊃⎕NINFO⍠1⊢export,''/*''' ⍝ And only 1 file in that directory
+
  z←⎕SE.Link.Configure name 'flatten:1'
  assert '1∊''only supported for linked directories''⍷z'
  z←⎕SE.Link.Break name
 
- ⍝ --- Now Export it
+ ⍝ --- Now Export it after it has been unlinked
  export←folder,'-export'
  3 ⎕NDELETE file←export,'/linktest.aplc'
  z←⎕SE.Link.Export name export

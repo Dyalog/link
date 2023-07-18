@@ -254,6 +254,5 @@
          :EndIf
      :EndHold ⍝ 'Notify'
  :Else
-     ↑⎕DM
      U.Resignal 1
  :EndTrap

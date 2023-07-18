@@ -58,13 +58,12 @@ NOHOLD:
          :EndIf
 
          fulltarget←dir
-         isfile∨←hasns←(|nc)∊singlenc
-         :If isfile
-         :AndIf ~opts.(preloaded∨flatten)
+         hasns←(|nc)∊singlenc
+         :If isfile∨hasns
              :If isfile←nc∊singlenc                 ⍝ Scripted thing
                  dir←¯1↓⊃⎕NPARTS fulltarget         ⍝ Directory is one up
                  emptyns←1
-             :Else
+             :ElseIf ~opts.(preloaded∨flatten)
                  :If ~emptyns←0∊⍴U.ListNames nsref←⍎ns  ⍝ some APL names defined
                  :AndIf ~emptydir                       ⍝ some dir/files defined
                  :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
@@ -103,7 +102,7 @@ NOHOLD:
              U.Error'Destination directory not empty: ',dir
          :ElseIf emptydir⍱emptyns ⋄ :AndIf opts.source≡'auto'
              U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
-         :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'   ⍝ MK @ link issue #136 Q2 : would create a lot of dummy directories/namespaces on typos
+         :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'
              U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',dir
          :ElseIf isfile
              z←3 ⎕MKDIR dir
@@ -128,14 +127,14 @@ NOHOLD:
          :EndIf
          :If ~0∊⍴warnmsg ⋄ ¯1 U.Warn warnmsg ⋄ :EndIf
 
-
          ⍝ We're all good; do it!
-         opts.ns←ns←U.NormNs⍣(~isfile)⊢ns
          :If isfile
               dir←0 U.NormFile fulltarget
          :Else
               dir←0 U.NormDir dir
+              ns←U.NormNs ns
          :EndIf
+         opts.ns←ns
          opts.dir←dir
          opts.singlefile←isfile
          msg←0⍴⊂''

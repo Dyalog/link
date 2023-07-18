@@ -26,7 +26,7 @@
          U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          :If ¯1=U.NameClass ns  ⍝ either invalid name or ref to unnamed namespace
-             U.Error'Not a properly named namespace: ',,⍕args
+             U.Error'Not a properly named namespace: ',,⍕ns
          :Else
              U.Error'Not a namespace: ',ns
          :EndIf
@@ -44,8 +44,7 @@
                  :If ~nsexisted
                      ⎕EX ns ⍝ Was created by GetRefTo
                  :EndIf
-                 nsref←⍎opts.ns←ns←⊃U.SplitNs ns ⍝ Target is one directory above
-
+                 opts.ns←ns←⍕nsref←container ⍝ We import into the container
              :EndIf
          :Else                         ⍝ A directory to a namespace
              opts.dir←dir←src←0 U.NormDir src

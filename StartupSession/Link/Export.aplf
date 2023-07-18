@@ -27,7 +27,7 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
 
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
-         U.Error'Not a properly named namespace: ',,⍕args
+         U.Error'Not a properly named namespace: ',,⍕src
      :ElseIf 0=nc
          U.Error'Source not found: ',src
      :ElseIf U.Slash⊃⌽src

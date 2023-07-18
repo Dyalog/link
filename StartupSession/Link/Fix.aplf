@@ -38,7 +38,7 @@
 NOHOLD:
          links←U.GetLinks
          :If snc∊9.1 9.4 9.5         ⍝ Sniffed source looks like a linkable space
-         :AndIf snc=nsref.⎕NC ⊂sname ⍝ ... and a space by that name exists
+         :AndIf 9=nsref.⎕NC sname    ⍝ ... and a space by that name exists
          :AndIf 0≠≢link←links U.LookupRef nsref⍎sname ⍝ ...and is linked
          :AndIf link.singlefile      ⍝ ... this may be unnecessary paranoia
               ⍝ We are overwriting the linked space in link

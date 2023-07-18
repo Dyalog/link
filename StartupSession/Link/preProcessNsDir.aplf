@@ -9,17 +9,15 @@
  :Case 1
      dir←⊃args
      ns←' '~⍨2⊃⎕NPARTS dir
- :Case 2 ⋄ (ns dir)←args
- :Case 3 ⋄ U.Error'One or two arguments are required'
+ :Case 2
+     (ns dir)←args
+ :Else
+     U.Error'Argument should be a path name, optionally preceded by a namespace name'
  :EndSelect
 
  (container ns)←(rsi xsi)U.ContainerNs ns
 
- :If ¯1≠⎕NC⍕dir ⍝ e.g. ]link.create HttpCommand
+ :If ~∨/':/\'∊⍕dir ⍝ not a file/directory name, e.g. ]link.create HttpCommand
      dir←resolveSimpleName dir
-     ⍝:If ⎕NEXISTS dir
-     ⍝:AndIf 2=⊃1 ⎕NINFO dir ⍝ It's a file
-     ⍝    ns←ns,'.',first  ⍝ Extend target namespace to include object name
-     ⍝:EndIf
  :EndIf
- r←container ns dir nsgiven ⍝ /// was failing when this was the result
+ r←container ns dir nsgiven ⍝ /// SYNTAX ERROR in v19.0 if (container ns dir nsgiven)← in function header
