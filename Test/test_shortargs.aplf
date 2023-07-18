@@ -23,7 +23,7 @@
  assert '9=⎕NC ''HttpCommand'''
  assert 'file≡4⊃5179⌶HttpCommand'
 
- ⎕SE.Link.Break HttpCommand
+ z←⎕SE.Link.Break HttpCommand
  ⎕EX 'HttpCommand'
  z←⎕SE.Link.Import 'HttpCommand'
  assert '9=⎕NC ''HttpCommand'''

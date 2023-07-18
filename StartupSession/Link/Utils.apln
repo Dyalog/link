@@ -4,7 +4,7 @@
     :Section Constants
     SRC_BEST←62 ⍝ ⎕ATX fact
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'                 
-    PATHDEL←':;'[1+ISWIN],'∘' 
+    PATHDEL←':;'[1+ISWIN] 
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
     CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION

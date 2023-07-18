@@ -1,18 +1,16 @@
- r←resolveSimpleName name;path;libs;lib;files;del;ulibs;append;paths
+ r←resolveSimpleName name;path;libs;lib;files;del;paths
 ⍝ Try to find something like "HttpCommand"
 
  r←name ⍝ If we cannot improve it, return argument unchanged
- libs←,⊂(2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'),'/Library/*'
+ libs←'[DYALOG]/Library/*'
  :If 0≠≢path←2 ⎕NQ'.' 'GetEnvironment' 'DYALOGCODEPATH'
-     append←','=⊃path ⍝ Append user libs if first character is "," (else replace)
-     ulibs←{1↓¨(⍵∊del)⊂⍵}(⊃del←U.PATHDEL),append↓path
-     libs←(append/libs),ulibs
+     libs←U.PATHDEL(≠⊆⊢),(libs/⍨U.PATHDEL=⊃path),path
  :EndIf
 
  :For lib :In libs
+     lib←⎕SE.Dyalog.Utils.ExpandConfig lib
      paths←⊃0 ⎕NINFO⍠1⊢lib
      :For path :In paths
-         path←⎕SE.Dyalog.Utils.ExpandConfig path
          :Trap 22
              :If 0≠≢files←⊃0 ⎕NINFO⍠1⊢path,'/',name,'*'
              :AndIf 0≠≢files/⍨←(3⊃¨⎕NPARTS files)∊'.',¨U.CODE_EXTENSIONS
