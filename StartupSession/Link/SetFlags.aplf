@@ -32,7 +32,7 @@
      :EndIf
 
      :Trap 0
-     current←fn name
+         current←fn name
      :Else
          →0⊣msg←err,' unable to manipulate ',type,' flags for ',name
      :EndTrap

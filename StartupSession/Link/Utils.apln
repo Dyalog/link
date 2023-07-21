@@ -3,8 +3,10 @@
 
     :Section Constants
     SRC_BEST←62 ⍝ ⎕ATX fact
-    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
+    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'                 
+    PATHDEL←':;'[1+ISWIN] 
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
+    CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
     Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
@@ -182,7 +184,7 @@
           →0
       :EndIf                                      
       :If 0≠≢r←2 ⎕NQ # 'GetEnvironment' 'LINKCONFIGFILE'
-          :If~⎕NEXISTS r
+          :If ~⎕NEXISTS r
           :AndIf ~'/'∊r
               Warn 'LINKCONFIGFILE file "',r,'" not found - note directory separator is "/"'
           :EndIf
@@ -426,7 +428,7 @@
           ⍝ can't use NormNs because ns may not exist
           :If 0∊⍴ns
               ns←⍕container
-          :ElseIf (⊂ns)∊(,'#')'⎕SE'
+          :ElseIf (⊂,ns)∊(,'#')'⎕SE'
           :OrIf ∨/'#.' '⎕SE.'Begins¨⊂ns
               ns←ns  ⍝ ns already fully specified
           :Else
@@ -623,7 +625,7 @@
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
       'customExtensions'Default''
-      'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
+      'codeExtensions'Default⊂CODE_EXTENSIONS
       opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
       Check¨'customExtensions' 'codeExtensions'
       Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier "',⍵,'" must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
@@ -814,6 +816,8 @@
 
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
+
+      :If 0=⎕NC 'opts.ignorecurrent' ⋄ opts.ignorecurrent←0 ⋄ :EndIf
       :If opts.singlefile
           (file oldfile nc)←opts.dir '' (⎕NC ⊂opts.ns)
           ⍝ /// This is questionable: In a singlefile link, the user has provided an explicit file name
@@ -827,7 +831,6 @@
           :EndIf
           :Return
       :EndIf
-
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
    
       :If depth
@@ -847,10 +850,12 @@
       ⍝ values cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
-      :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+      :Else ⋄ ref←⍎where         
+          oldfile←(~opts.ignorecurrent)/ref CurrentFileName name     ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
       :If 82=⎕DR '' ⍝ Classic
-          ⎕AVU←ns⍎'⎕AVU'
+      :AndIf 9=⎕NC where
+          ⎕AVU←where⍎'⎕AVU'
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
       :If 0∊⍴src  ⍝ no information about item - item must exist
@@ -944,7 +949,8 @@
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
           :If 82=⎕DR '' ⍝ Classic
-              ⎕AVU←opts.ns⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
+          :AndIf 9=⎕NC where
+              ⎕AVU←where⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
           :EndIf
           (actname nc)←Sniff expname file       ⍝ inspect source
       :EndIf
@@ -1039,7 +1045,7 @@
           ⍝ determine file names and check for clashes
           :If file 
               files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
-          :Else                   
+          :Else
               (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
               :If opts.(singlefile∧caseCode)
                   opts.dir←⊃files ⍝ replace with case coded name
@@ -1789,13 +1795,13 @@
       r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
       r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",  "Parse":"2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir","Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Configure",   "args":"target [settings]",  "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
-      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"1-2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
       ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
       r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Stop",        "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on breakpoints"},'
@@ -1825,6 +1831,7 @@
       m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
+      m⍪←'-ignoreconfig' '' 'ignore configuration files'
       m⍪←'-overwrite' '' 'overwrite destination if needed'
       m⍪←'-proceed' '' 'perform changes required to resynchronise'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'

@@ -34,6 +34,8 @@
              →END⊣msg,←⊂'path not in a linked directory'
          :EndIf
 
+         :If 0=⎕NC 'link.singlefile' ⋄ link.singlefile←0 ⋄ :EndIf
+
          →((⊂link.watch)∊'dir' 'both')↓0 ⍝ Not watching
          ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time - done by Link.Create
 
@@ -128,7 +130,7 @@
                  ⎕EX curname  ⍝ delete name in case the name defined by source has changed
                  msg,←'updating un-linked 'affected', expunging previously linked 'curname
              :ElseIf link.singlefile∧affected≢link.ns
-                 msg,←'redirecting single file link from ',link.ns,' to ',affected
+                 msg,←⊂'redirecting single file link from ',link.ns,' to ',affected
                  ⎕EX link.ns
                  link.ns←affected
              :Else

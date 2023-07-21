@@ -1,3 +1,7 @@
 [submodule "Test/GhostRider"]
 	path = Test/GhostRider
 	url = https://github.com/Dyalog/GhostRider
+
+[submodule "qse"]
+	path = qse
+	url = https://github.com/dyalog/qse

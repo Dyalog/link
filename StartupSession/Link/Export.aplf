@@ -1,4 +1,4 @@
- msg←{opts}Export(src dest);arrays;container;defopts;dir;failed;fixed;nc;ns;ok;rawsrc;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json
+ msg←{opts}Export args;src;dir;arrays;container;defopts;dir;failed;fixed;nc;ns;ok;single;⎕IO;⎕ML;setconfig;setopts;z;there;ref;nss;links;file;config;rc;merge;json;nsgiven;dest
  ⎕IO ⎕ML←1 1
  preProcessOpts
  (msg setconfig)←Config.GetConfig opts
@@ -7,8 +7,10 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-     (container src)←⎕RSI ⎕XSI U.ContainerNs rawsrc←src
-
+     (container src dir nsgiven)←preProcessNsDir args
+     :If ~nsgiven
+         src←⍕container
+     :EndIf
      (defopts←⎕NS ⍬).overwrite←0
 
      :If 0≠≢links←U.GetLinks
@@ -25,16 +27,16 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
 
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
-         U.Error'Not a properly named namespace: ',,⍕rawsrc
+         U.Error'Not a properly named namespace: ',,⍕src
      :ElseIf 0=nc
          U.Error'Source not found: ',src
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else
-         :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dest  ⍝ dest is a file
-             dir←⊃⎕NPARTS dest←0 U.NormFile dest
+         :If single←¯9.1≠nc ⋄ :AndIf opts U.HasExtn dir  ⍝ dest is a file
+             dir←⊃⎕NPARTS dest←0 U.NormFile dir
          :Else                                            ⍝ dest is a directory
-             dir←dest←0 U.NormDir dest
+             dir←dest←0 U.NormDir dir
          :EndIf
          :If single
              ns←⊃U.SplitNs src←container U.NormName src  ⍝ single name is relative to calling namespace (container) because there is no implicit namespace
@@ -48,7 +50,7 @@
          opts.ns←ns
          opts.dir←dir
          opts.singlefile←0   ⍝ /// until further notice
-
+         opts.ignorecurrent←1
          (fixed failed)←opts U.WriteFiles src dest opts.overwrite
 
          :If ×≢failed

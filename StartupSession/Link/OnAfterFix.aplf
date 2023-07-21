@@ -7,14 +7,15 @@
 
  :If oldname≢name
  :AndIf 1=≢link←U.LookupFile file  ⍝ Single-file link needs special rename handling
- :AndIf (⊂link.watch)∊'both' 'ns'  ⍝ ... if sync'ing in both directions
+ :AndIf link.singlefile
+ :AndIf (⊂link.watch)∊'both' 'ns'  ⍝ ... if sync'ing  from ns to file
        err←'ERRORS ENCOUNTERED'
        :If oldname≡3⊃U.LASTFIX     ⍝ OnFix left old source around
            2 ns.⎕FIX ⊃U.LASTFIX    ⍝ Restore the old definition
        :EndIf
        newfile←∊(⊂name)@2⊢⎕NPARTS file
        :If 1∊err⍷z←⎕SE.Link.Create (new←(⍕ns),'.',name) newfile ⍝ Create a link to the new file
-          U.Warn 'Adding new to ',new,' failed - please check link status: ',z
+          U.Warn 'Could not create link to ',new,': ',z
        :EndIf
  :EndIf
 

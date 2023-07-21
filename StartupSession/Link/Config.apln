@@ -75,10 +75,10 @@
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
      
       json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
-      :If json≡'{}' ⍝ Do not leave empty config files around
-          3 ⎕NDELETE file
+      :If json≢'{',(⎕UCS 13),'}' ⍝ Do not create empty config files
+          (⊂json)⎕NPUT file 1                                      
       :Else
-          (⊂json)⎕NPUT file 1
+          3 ⎕NDELETE file
       :EndIf
      
       :If islink

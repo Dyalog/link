@@ -6,7 +6,7 @@ SetupSlave
      #.SLAVE←⎕NS''
      QNDELETE←{⍺←⊢ ⋄ _←(Notify 'deleted' ⍵)⊢⍺ NDELETE ⍵}
      QNPUT←{exists←⎕NEXISTS name←⊃⊆⍵ ⋄ _←(Notify ((⎕IO+exists)⊃'created' 'changed') name)⊢⍺ NPUT ⍵}
-     QNMOVE←{'*'∊⍵: ∘∘∘ ⋄ _←(Notify 'renamed' ⍺ ⍵)⊢⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵}
+     QNMOVE←{_←(Notify 'renamed' ⍺ ⍵)⊢⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵}
      QMKDIR←{⍺←⊢ ⋄ _←(Notify 'created' ⍵)⊢⍺ ⎕MKDIR ⍵}
 
  :ElseIf USE_ISOLATES

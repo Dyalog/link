@@ -1,6 +1,19 @@
- {ok}←{debug}Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z
+ {ok}←Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z;CITA;CITA_LOG;⎕TRAP;extn;isassert;file
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
+
+ :If 2401⌶0
+     ⎕←'Expose root properties was set'
+ :EndIf
+
+ :If CITA←0≠≢CITA_LOG←2 ⎕NQ '.' 'GetEnvironment' 'CITA_LOG'
+     :If ∨/'yY1'∊2 ⎕NQ '.' 'GetEnvironment' 'DEBUG_LINKQA'
+         ⎕TRAP←0 'S'
+     :Else
+         ⎕TRAP←0 'C' '→ERROR'
+     :EndIf
+ :EndIf
+
  :If 0=⎕NC'NAME'
      InitGlobals''
  :EndIf
@@ -17,7 +30,7 @@
  tests←{((5↑¨⍵)∊⊂'test_')⌿⍵}'t'⎕NL ¯3 ⍝ ALL tests
  slow←'test_threads' 'test_watcherror'  ⍝ slow tests
  :If all←(⊂'all')∊test_filter  ⍝ all tests - nothing to do
- :ElseIf (0∊⍴test_filter)∨(test_filter≡,⊂'') ⋄ tests~←slow  ⍝ basic tests
+ :ElseIf (0∊⍴test_filter)∨(0=≢⊃test_filter) ⋄ tests~←slow  ⍝ basic tests
      Log'Not running slow tests:',(⍕slow),' - use (',(⊃⎕XSI),'& ''all'') to run all tests'  ⍝ remove slow tests
  :Else ⋄ tests/⍨←∨⌿1∊¨(test_filter)∘.⍷tests  ⍝ selected tests
  :EndIf
@@ -89,4 +102,19 @@
  opts,←'USE_MOCK_FSW: ',(⍕USE_MOCK_FSW),')'
 
  oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
- Log(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+ Log z←(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+ 
+ :If CITA
+     ⎕TRAP←0 'S'
+     (⊂z) ⎕NPUT (CITA_LOG,'.ok') 1
+ :EndIf
+ →0
+
+ ERROR:
+   ⎕TRAP←0 'S'
+   z←⎕DMX.DM
+   isassert←2
+   extn←'.',isassert⊃'fail' 'err'
+   ⎕←'Writing file: ',file←CITA_LOG,extn
+   z←(⊂z) ⎕NPUT file 1
+   ok←file,' created.'
