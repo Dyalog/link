@@ -1,5 +1,7 @@
- r←Setup(folder name);udebug
+ r←Setup(folder name);udebug;z
  r←'' ⍝ Run will abort if empty
+ z←⎕SE.Link.Break name
+ ⎕EX name
  :If 0≠⎕NC'⎕SE.Link.Links'
  :AndIf 0≠CountLinks
      Log'Please break all links and try again.'

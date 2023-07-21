@@ -4,9 +4,9 @@ SetupSlave
  :If USE_MOCK_FSW
      ⍝ FSW switched off - mock the Notify calls that it WOULD have made
      #.SLAVE←⎕NS''
-     QNDELETE←{⍺←⊢ ⋄ (Notify 'deleted' ⍵)⊢⍺ NDELETE ⍵ ⋄ }
-     QNPUT←{exists←⎕NEXISTS name←⊃⊆⍵ ⋄ (Notify ((⎕IO+exists)⊃'created' 'changed') name)⊢⍺ NPUT ⍵}
-     QNMOVE←{'*'∊⍵: ∘∘∘ ⋄ _←(Notify 'renamed' ⍺ ⍵)⊢⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵}
+     QNDELETE←{⍺←⊢ ⋄ _←(Notify 'deleted' ⍵)⊢⍺ NDELETE ⍵}
+     QNPUT←{exists←⎕NEXISTS name←⊃⊆⍵ ⋄ _←(Notify ((⎕IO+exists)⊃'created' 'changed') name)⊢⍺ NPUT ⍵}
+     QNMOVE←{_←(Notify 'renamed' ⍺ ⍵)⊢⍺ ⎕NMOVE⍠('*'∊⍵)⊢⍵}
      QMKDIR←{⍺←⊢ ⋄ _←(Notify 'created' ⍵)⊢⍺ ⎕MKDIR ⍵}
 
  :ElseIf USE_ISOLATES

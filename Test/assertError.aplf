@@ -7,6 +7,6 @@
  :Else
 
      ok←0
-     txt←msg assert'∨/errmsg⍷⎕DMX.EM'  ⍝ always true if errmsg≡''
+     txt←msg assert'∨/errmsg⍷⍥⎕C ⎕DMX.EM'  ⍝ always true if errmsg≡''
  :EndTrap
  :If ok ⋄ txt←msg assert'0' ⋄ :EndIf

@@ -75,7 +75,11 @@
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
      
       json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
-      (⊂json)⎕NPUT file 1
+      :If json≢'{',(⎕UCS 13),'}' ⍝ Do not create empty config files
+          (⊂json)⎕NPUT file 1                                      
+      :Else
+          3 ⎕NDELETE file
+      :EndIf
      
       :If islink
           ns SetSourceFlags linkorfile

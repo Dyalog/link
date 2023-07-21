@@ -1,4 +1,4 @@
- msg←{opts}Configure args;setconfig;links;file;islinked;target;settings;exists;config;rc;p;names;values;json;container
+ msg←{opts}Configure args;setconfig;links;file;islinked;target;settings;allopts;exists;config;rc;p;names;values;json;container;err;link
  ⍝ Set or report on user and directory configuration settings
  ⎕IO ⎕ML←1 1
  target←⍕⊃args←,⊆args
@@ -11,6 +11,7 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
+     err←'ERRORS ENCOUNTERED: '
      islinked←0
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
 
@@ -18,7 +19,11 @@
          target←⍕container⍎target
      :AndIf 0≠≢links←U.GetLinks
      :AndIf islinked←(⊂target)∊links.ns                  ⍝ If target is a linked namespace
-         file←links[links.ns⍳⊂target].dir,'/.linkconfig'
+         link←links[links.ns⍳⊂target]
+         :If link.singlefile
+             →END⊣msg←,⊂err,' configuration is only supported for linked directories.'
+         :EndIf
+         file←link.dir,'/.linkconfig'
      :ElseIf target≡⍥,'*'
          file←U.UserConfigFile
      :Else
@@ -26,14 +31,14 @@
          :AndIf 1=1 ⎕NINFO target ⍝ target is a directory
              file←target,'/.linkconfig'
          :Else
-             →END⊣msg←,⊂'ERRORS ENCOUNTERED: "',target,'" not a linked namespace nor the name of a directory.'
+             →END⊣msg←,⊂err,'"',target,'" not a linked namespace nor the name of a directory.'
          :EndIf
      :EndIf
      exists←⎕NEXISTS file
 
      (rc config)←Config.ReadConfigFile exists/file
      :If 0≠rc
-         →END⊣msg←,⊂'ERRORS ENCOUNTERED: ',config
+         →END⊣msg←,⊂err,config
      :EndIf
 
      :If 0=≢settings

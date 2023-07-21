@@ -1,10 +1,24 @@
- {linked}←OnAfterFix(obj evt src ns oldname name file);nss;z;stop;trace;link;fullname;relname;nsref
+ {linked}←OnAfterFix(obj evt src ns oldname name file);nss;z;stop;trace;link;fullname;relname;nsref;err;new;old;newfile
  ⍝ Thin cover for editor onAfterFix event
  ⍝ Returns 1 if a link was found for the name, else 0
  ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
  ⍝ If obj is not linked, Link has no business here, but SALT might
-
  linked←0 ⍝ Let SALT have a go
+
+ :If oldname≢name
+ :AndIf 1=≢link←U.LookupFile file  ⍝ Single-file link needs special rename handling
+ :AndIf link.singlefile
+ :AndIf (⊂link.watch)∊'both' 'ns'  ⍝ ... if sync'ing  from ns to file
+       err←'ERRORS ENCOUNTERED'
+       :If oldname≡3⊃U.LASTFIX     ⍝ OnFix left old source around
+           2 ns.⎕FIX ⊃U.LASTFIX    ⍝ Restore the old definition
+       :EndIf
+       newfile←∊(⊂name)@2⊢⎕NPARTS file
+       :If 1∊err⍷z←⎕SE.Link.Create (new←(⍕ns),'.',name) newfile ⍝ Create a link to the new file
+          U.Warn 'Could not create link to ',new,': ',z
+       :EndIf
+ :EndIf
+
  :If 0∊⍴nsref←#(0 U.GetRefTo)ns
  :OrIf 0∊⍴link←U.LookupRef nsref  ⍝ issue # 257: not a linked namespace
      :Return
@@ -21,7 +35,7 @@
      U.Warn 'Unable to record Stop/Trace settings'
  :EndTrap
 
-:Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error
+ :Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error
      {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
  :Else
      U.Warn⊃⎕DMX.DM

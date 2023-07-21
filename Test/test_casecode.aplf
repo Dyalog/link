@@ -34,7 +34,7 @@
  :Else
      'Link issue #113'assert'∨/''File name case clash''⍷⊃⎕DM'
           ⍝assert'~⎕NEXISTS folder'        ⍝ folder must not exist
-     assert'1=≢⊃⎕NINFO⍠1⊢folder,''/*'''    ⍝ .linkconfig only
+     assert'0=≢⊃⎕NINFO⍠1⊢folder,''/*'''
  :EndTrap
  3 ⎕NDELETE folder
 

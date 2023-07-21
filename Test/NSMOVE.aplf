@@ -8,8 +8,9 @@
          :If ~0∊⍴file←4⊃from.(5179⌶)'foo' ⋄ 2 to.⎕FIX'file://',file
          :Else ⋄ to.⎕FX from.⎕NR name
          :EndIf
+     :Case 1 ⍝ Label: Ignore
      :Else
-         'Unhandled name class'⎕SIGNAL 11
+         ('Unhandled name class ',(⍕nc),': ',name) ⎕SIGNAL 11
      :EndSelect
  :EndFor
  from.⎕EX nl

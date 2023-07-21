@@ -1,12 +1,13 @@
 CleanFolders;names;z
 ⍝ Utility to clear test folders after multiple failed/aborted tests
 
-:If 0=≢names←⊃1 ⎕NINFO⍠1⊢ (739⌶0),'/linktest-*'
+:If 0=≢names←⊃0 ⎕NINFO⍠1⊢ (739⌶0),'/linktest-*'
     ⎕←'Nothing to clean'
     →0
 :EndIf
 
 ⎕←⍪names
+⎕←'Type Y to delete ',(⍕≢names),' folder(s):'
 z←⍞
-→(∨/'nN→'∊z)⍴0
-⎕NDELETE names
+→(~∨/'yY'∊z)⍴0
+3 ⎕NDELETE names

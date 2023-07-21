@@ -1,6 +1,7 @@
- msg←{opts}Import(ns src);defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML;setconfig
+ msg←{opts}Import args;ns;src;defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML;setconfig;container;dir;nsgiven;nsexisted
  ⎕IO ⎕ML←1 1
  preProcessOpts
+ (container ns src nsgiven)←preProcessNsDir args
  (msg setconfig)←src Config.GetConfig opts ⍝ Read Config in imported folder or user config
  →(0≠≢msg)⍴0
 
@@ -16,16 +17,16 @@
      :If ~opts.overwrite∊0 1 ⋄ U.Error'Invalid value ',(⍕opts.overwrite),' for modifier "overwrite" - must be one of: 0 1' ⋄ :EndIf
      opts.watch←'none'  ⍝ prevent tying to the files
      opts.source←'dir'
-     ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs rawns←ns
 
      files←opts U.FindFile src  ⍝ candidates for source file
+     nsexisted←0≠⎕NC ns
      :If 0=≢files
          U.Error'Source not found: ',src
      :ElseIf 1<≢files
          U.Error'More than one source found for ',src,': ',U.FmtLines files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          :If ¯1=U.NameClass ns  ⍝ either invalid name or ref to unnamed namespace
-             U.Error'Not a properly named namespace: ',,⍕rawns
+             U.Error'Not a properly named namespace: ',,⍕ns
          :Else
              U.Error'Not a namespace: ',ns
          :EndIf
@@ -36,10 +37,19 @@
      :Else
          src←⊃files
          opts.ns←ns←U.NormNs ns
-         :If single←1≠1 ⎕NINFO src ⋄ dir←¯1↓⊃⎕NPARTS src←0 U.NormFile src  ⍝ single file
-         :Else ⋄ dir←src←0 U.NormDir src   ⍝ directory
+         :If single←2=1 ⎕NINFO src     ⍝ Importing a single object from a single file
+             dir←¯1↓⊃⎕NPARTS src←0 U.NormFile src
+             opts.dir←dir
+             :If ~nsgiven
+                 :If ~nsexisted
+                     ⎕EX ns ⍝ Was created by GetRefTo
+                 :EndIf
+                 opts.ns←ns←⍕nsref←container ⍝ We import into the container
+             :EndIf
+         :Else                         ⍝ A directory to a namespace
+             opts.dir←dir←src←0 U.NormDir src
          :EndIf
-         opts.dir←dir
+         opts.singlefile←single
 
          (fixed failed)←opts U.FixFiles nsref src opts.overwrite
 

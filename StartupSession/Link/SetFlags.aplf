@@ -7,6 +7,7 @@
  ⎕IO ⎕ML←1 1
  (msg setconfig)←Config.GetConfig opts ⍝ Read user config
  →(0≠≢msg)⍴0
+ ⍝ Read Config in imported folder or user config
 
  :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
@@ -50,6 +51,9 @@ NOHOLD:
              link←links U.LookupRef{0=≢ns:⍵ ⋄ ⍵⍎ns}container
          :EndIf
          →(0=≢link)⍴0
+         :If link.singlefile
+             →0⊣msg,←' (flags not recorded for single-file links)'
+         :EndIf
 
          :If exists←⎕NEXISTS file←link.dir,'/.linkconfig'
              (rc config)←Config.ReadConfigFile file

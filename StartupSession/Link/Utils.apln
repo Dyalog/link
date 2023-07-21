@@ -3,8 +3,10 @@
 
     :Section Constants
     SRC_BEST←62 ⍝ ⎕ATX fact
-    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
+    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'                 
+    PATHDEL←':;'[1+ISWIN] 
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
+    CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
     Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
@@ -120,7 +122,7 @@
     ∇
     ∇ r←RemoveFileTiesIn rootns;names;parents;scriptitems
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
-     ⍝ Return number of links broken
+     ⍝ Return number of links broken         
       (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
       ⍝ there might be some orphaned script items - interpreter must forget about them
       ⍝ do it first because of mantis 18606
@@ -426,7 +428,7 @@
           ⍝ can't use NormNs because ns may not exist
           :If 0∊⍴ns
               ns←⍕container
-          :ElseIf (⊂ns)∊(,'#')'⎕SE'
+          :ElseIf (⊂,ns)∊(,'#')'⎕SE'
           :OrIf ∨/'#.' '⎕SE.'Begins¨⊂ns
               ns←ns  ⍝ ns already fully specified
           :Else
@@ -512,7 +514,7 @@
           links←⍬
           :If ×⎕NC'⎕SE.Link.Links'
           :AndIf ~0∊⍴links,←⎕SE.Link.Links
-          :AndIf 1∊mask←¯9.1≠# NameClass¨links.ns  ⍝ clean up "zombie" links
+          :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie" links
               0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
               ¯1 Log'Clearing expunged links:'(⍕mask/links)
               SetLinks links←(~mask)/links
@@ -544,12 +546,20 @@
       :EndIf
     ∇
 
-    ∇ {n}←untie Break links
+    ∇ {n}←untie Break links;link;ns
       n←0
       :If ~0∊⍴links
           ##.Watcher.Break links  ⍝ will ⎕DL slightly
-          :If untie
-              n←+/RemoveFileTiesIn¨⍎¨links.ns  ⍝ holding is now useless because there is no file watcher - however people may still Fix and such
+          :If untie      
+              :For link :In links    
+                  ns←⍎link.ns
+                  :If link.singlefile
+                      ns.##.⎕FIX ⎕SRC ns      
+                      n+←1                
+                  :Else
+                      n+←RemoveFileTiesIn ns
+                  :EndIf 
+              :EndFor
           :EndIf
       :EndIf
     ∇
@@ -615,7 +625,7 @@
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
       'customExtensions'Default''
-      'codeExtensions'Default⊂'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
+      'codeExtensions'Default⊂CODE_EXTENSIONS
       opts.codeExtensions{⍵↓¨⍨⍺=⊃¨⊆⍵}∘⊆⍨←'.'
       Check¨'customExtensions' 'codeExtensions'
       Check←Error{v←⍵⍵⍎⍵ ⋄ error←'Modifier "',⍵,'" must be a two-column matrix of name classes (scalar numbers) and extension (text vectors)'
@@ -806,14 +816,31 @@
 
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
+
+      :If 0=⎕NC 'opts.ignorecurrent' ⋄ opts.ignorecurrent←0 ⋄ :EndIf
+      :If opts.singlefile
+          (file oldfile nc)←opts.dir '' (⎕NC ⊂opts.ns)
+          ⍝ /// This is questionable: In a singlefile link, the user has provided an explicit file name
+          ⍝     However, we currently "enforce" case coding in this case
+          :If opts.caseCode
+          :AndIf ~'-'∊2⊃⎕NPARTS file ⍝ Not already case coded?              
+              (file oldfile)←1 (×≢oldfile)/¨((¯1↓⊃⎕NPARTS opts.dir) CaseCode opts.flatten)¨file oldfile
+          :EndIf   
+          :If depth
+               (file oldfile)←{,⊂⍵}¨file oldfile
+          :EndIf
+          :Return
+      :EndIf
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
+   
       :If depth
           :If 0∊⍴args←↓⍉↑(where name oldname src)
               (file oldfile nc)←⊂0⍴⊂''
           :Else
               (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
           :EndIf
-      :Else ⋄ (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
+      :Else 
+          (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
     ∇
     ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
@@ -823,10 +850,12 @@
       ⍝ values cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
-      :Else ⋄ ref←⍎where ⋄ oldfile←ref CurrentFileName name         ⍝ Grab file info before ⎕FIX might destroy it
+      :Else ⋄ ref←⍎where         
+          oldfile←(~opts.ignorecurrent)/ref CurrentFileName name     ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
-      :If 82=⎕DR'' ⍝ Classic
-          ⎕AVU←ns⍎'⎕AVU'
+      :If 82=⎕DR '' ⍝ Classic
+      :AndIf 9=⎕NC where
+          ⎕AVU←where⍎'⎕AVU'
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
       :If 0∊⍴src  ⍝ no information about item - item must exist
@@ -841,7 +870,7 @@
       :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file           ⍝ no existing file name for it
       :OrIf forceFilenames  ⍝ force using the default
-          :If isroot                ⍝ if we're asking for opts.ns then the answer is opts.dir
+          :If isroot∨opts.singlefile             
               file←dir
           :Else
               :If ~flatten          ⍝ flatten prevents subdirectory hierarchy
@@ -849,10 +878,10 @@
               :Else                 ⍝ when flattening, use the same dir as the old file (if any)
                   file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
               :EndIf
-              file←dir,file                          ⍝ Add link directory
+              file←dir,file 
               file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
           :EndIf
-          file,←typeExtensions Tail nc               ⍝ Add extension
+          file,←(~opts.singlefile)/typeExtensions Tail nc            ⍝ Add extension
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
       :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
@@ -895,6 +924,9 @@
     ⍝ opts cached for performance on ns lookup
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
       (where expname actname nc)←⊃⍣(1=≡,files)⊢↓⍉↑cache∘DetermineAplNameSub¨⊆files
+⍝      :If opts.singlefile
+⍝          where←⊃¨SplitNs¨where ⍝ single file is fixed in its parent
+⍝      :EndIf
     ∇
     ∇ (where expname actname nc)←opts DetermineAplNameSub file;⎕AVU;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions;subext
     ⍝ ns is the target namespace
@@ -910,13 +942,15 @@
               ⍝ ↑↑ Trap required to avoid timing hole between ⎕NEXISTS and ⎕NINFO
       :EndIf
       :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
-      (where expname)←SplitNs fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
+      fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
+      (where expname)←SplitNs fullname 
       :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
       :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
-          :If 82=⎕DR'' ⍝ Classic
-              ⎕AVU←opts.ns⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
+          :If 82=⎕DR '' ⍝ Classic
+          :AndIf 9=⎕NC where
+              ⎕AVU←where⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
           :EndIf
           (actname nc)←Sniff expname file       ⍝ inspect source
       :EndIf
@@ -976,7 +1010,7 @@
       :EndIf
     ∇
 
-    ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames
+    ∇ (written failed)←opts WriteFiles(src dest overwrite);count;file;files;i;inx;mask;names;nc;ns;nsref;ok;oldfiles;single;src;tradfiles;tradnames;dir
     ⍝ Write items to file in folders
     ⍝ ns must be a fully specified unscripted namespace
     ⍝ arrays: boolean to include/exclude arrays, or list of normalised APL names to include
@@ -990,12 +1024,13 @@
           (names nc failed)←(0 ListLinkedNs 0)opts ⍝ list trad namespaces (excepted ns itself) - list requested arrays
           :If file ⋄ Error'Internal error: Incorrect directory provided' ⋄ :EndIf  ⍝ dest must be the directory
       :Else
-          names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs src  ⍝ single APL name provide - dest may be a directory or a file name
+          names←,⊂src ⋄ nsref←⍎ns←⊃SplitNs⍣(~opts.singlefile)⊢src  ⍝ single APL name provide - dest may be a directory or a file name
           nc←nsref NameClass¨names
       :EndIf
       ⍝ Create directory for namespace
-      3 ⎕MKDIR opts.dir ⋄ failed,←(~ok←⎕NEXISTS opts.dir)/⊂ns  ⍝ can't create directory
-      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)opts.dir  ⍝ exclude root dir
+      dir←{⊃⎕NPARTS ⍵}⍣opts.singlefile⊢opts.dir ⍝ One level higher when linking a single file
+      3 ⎕MKDIR dir ⋄ failed,←(~ok←⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
+      :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)dir  ⍝ exclude root dir
           Error'Destination not empty: "',(WinSlash⍕dir),'"'
       :EndIf
       ⍝ Write files
@@ -1008,8 +1043,13 @@
           :EndIf
       :AndIf 0<count←≢names
           ⍝ determine file names and check for clashes
-          :If file ⋄ files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
-          :Else ⋄ (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+          :If file 
+              files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
+          :Else
+              (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+              :If opts.(singlefile∧caseCode)
+                  opts.dir←⊃files ⍝ replace with case coded name
+              :EndIf
           :EndIf
           :If ∨/mask←(inx←⍳⍨0 CaseText files)≠(⍳≢files)
               ⍝ cannot let user do this on any platform - if the directory is moved to windows then the user will be screwed
@@ -1046,12 +1086,13 @@
               :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                   ⎕NDELETE¨mask/oldfiles
               :EndIf
-          :EndIf
+          :EndIf                             
       :EndIf
     ∇
 
     ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order;parts;g
-      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+      :If 0=⎕NC 'opts.singlefile' ⋄ opts.singlefile←0 ⋄ :EndIf ⍝ /// temporary
+      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
       parts←⎕NPARTS¨list[1;]
       list←list[;g←⍋'⎕'≠⊃¨list[3;]]                 ⍝ System names first
      
@@ -1104,6 +1145,10 @@
       :EndIf
      
       (parents expnames actnames actncs)←opts DetermineAplName allfiles  ⍝ expected names (one per file), actual names (one list per file), actual name classes (one list per file)
+      :If opts.singlefile
+      :AndIf actnames≢expnames
+          Error 'Source file defines "',actnames,'", rather than "',expnames,'"'
+      :EndIf
       :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
           mask←actncs∊¯1   ⍝ invalid names
           failed,←mask/allfiles
@@ -1238,6 +1283,8 @@
     ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
+      :ElseIf link.singlefile
+          filesrc←GetFileSource¨file←,⊂link.dir
       :Else
           filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
       :EndIf
@@ -1745,18 +1792,18 @@
     ∇ r←UCMD_List
       ⍝ Name, group, short description and parsing rules
       r←'['
-      r,←'{"Name":"Add",         "args":"items[←def]",  "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
-      r,←'{"Name":"Break",       "args":"[ns1]",        "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
-     ⍝r,←'{"Name":"CaseCode",    "args":"file1",        "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",     "Parse":"2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
-      r,←'{"Name":"Configure",   "args":"target [settings]",  "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2",     "Parse":"2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
-      r,←'{"Name":"Expunge",     "args":"[item]",       "Parse":"9999S",  "Desc":"Erase item and associated file"},'
-      r,←'{"Name":"GetFileName", "args":"item",         "Parse":"1",  "Desc":"Return name of file associated with item"},'
-      r,←'{"Name":"GetItemName", "args":"file",         "Parse":"1L", "Desc":"Return name of item associated with file"},'
-      r,←'{"Name":"Import",      "args":"ns2 dir0",     "Parse":"2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
-     ⍝r,←'{"Name":"Pause",       "args":"ns1",          "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
-      r,←'{"Name":"Status",      "args":"[ns1]",        "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
+      r,←'{"Name":"Add",         "args":"items[←def]",       "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
+      r,←'{"Name":"Break",       "args":"[ns1]",             "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
+      ⍝r,←'{"Name":"CaseCode",    "args":"file1",             "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Configure",   "args":"target [settings]", "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Expunge",     "args":"[item]",            "Parse":"9999S",  "Desc":"Erase item and associated file"},'
+      r,←'{"Name":"GetFileName", "args":"item",              "Parse":"1",  "Desc":"Return name of file associated with item"},'
+      r,←'{"Name":"GetItemName", "args":"file",              "Parse":"1L", "Desc":"Return name of item associated with file"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0",          "Parse":"1-2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      ⍝r,←'{"Name":"Pause",       "args":"ns1",               "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
+      r,←'{"Name":"Status",      "args":"[ns1]",             "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Stop",        "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on breakpoints"},'
       r,←'{"Name":"Trace",       "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on lines traced"},'
       r,←'{"Name":"Refresh",     "args":"ns1",          "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
@@ -1784,6 +1831,7 @@
       m⍪←'-forceextensions' '' 'rename existing files so they adhere to the type specific file extensions'
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
+      m⍪←'-ignoreconfig' '' 'ignore configuration files'
       m⍪←'-overwrite' '' 'overwrite destination if needed'
       m⍪←'-proceed' '' 'perform changes required to resynchronise'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'

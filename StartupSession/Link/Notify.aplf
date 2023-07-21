@@ -33,6 +33,10 @@
              :EndIf ⍝ otherwise not Link's fault (Mantis 18903)
              →END⊣msg,←⊂'path not in a linked directory'
          :EndIf
+
+         :If 0=⎕NC 'link.singlefile' ⋄ link.singlefile←0 ⋄ :EndIf
+
+         →((⊂link.watch)∊'dir' 'both')↓0 ⍝ Not watching
          ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time - done by Link.Create
 
          :If '.'∨.=⊃¨U.SplitDir(≢link.dir)↓path  ⍝ link issue #156 - due to unreliable 6∘⎕NINFO
@@ -125,6 +129,10 @@
              :ElseIf ~curnc∊0 ¯1     ⍝ file already tied to a name
                  ⎕EX curname  ⍝ delete name in case the name defined by source has changed
                  msg,←'updating un-linked 'affected', expunging previously linked 'curname
+             :ElseIf link.singlefile∧affected≢link.ns
+                 msg,←⊂'redirecting single file link from ',link.ns,' to ',affected
+                 ⎕EX link.ns
+                 link.ns←affected
              :Else
                  msg,←'updating un-linked 'affected
              :EndIf
@@ -226,6 +234,7 @@
          :EndSelect
 
          :If (nsref.⎕NC actname)∊3 4   ⍝ Fn or Op
+         :AndIf 2=⎕NC 'link.flagged'
          :AndIf (⊂actname)∊link.flagged ⍝ Stops or Trace set?
              actname Config.RestoreFlags link
          :EndIf

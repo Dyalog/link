@@ -1,4 +1,4 @@
- msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML;i;all;setconfig;DEBUG
+ msg←{opts}Break nss;defopts;link;linked;links;mask;missing;ns;refs;there;tobreak;unlinked;⎕IO;⎕ML;i;all;setconfig;DEBUG;nohold
  ⍝ Use Break # to break all links
  ⍝ opts.exact=0 (default) : break all links below argument namespaces
  ⍝ opts.exact=1 (-exact)  : break all links matching arguments namespaces - but not their children if they are linked to other directories
@@ -12,8 +12,9 @@
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
-
-     :Hold ('⎕SE.Link.Expunge'≢⊃1↓⎕XSI)/⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
+     →(nohold←(''⍴1↓⎕XSI)∊'⎕SE.Link.Expunge' '⎕SE.Link.OnAfterFix')⍴NOHOLD
+     :Hold ⊂'⎕SE.Link.Links'  ⍝ Expunge already has the hold
+NOHOLD:
          :If 0∊⍴links←U.ErrorIfRestored U.GetLinks ⋄ msg←'Not linked: ',,⍕nss ⋄ :Return ⋄ :EndIf
          linked←⍎¨links.ns
 
@@ -52,7 +53,9 @@
          unlinked,←refs~tobreak
 
          :If ~0∊⍴tobreak  ⍝ stop the file watcher
+             →nohold⍴NOHOLD2
              :Hold '⎕SE.Link.Notify'  ⍝ about to change file ties
+ NOHOLD2:
                  ⍝ because we're :Hold-ing '⎕SE.Link.Notify' '⎕SE.Link.Links', the Notify events will happen after we're done breaking the link
                  1 U.Break∪(mask←linked∊tobreak)/links  ⍝ will ⎕DL slightly - unti because we know they exist
                  U.SetLinks(~mask)/links

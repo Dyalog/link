@@ -1,0 +1,143 @@
+ ok←test_singlefile(folder name);source;file;z;link;bare;export;parent;source2;name2;file2;ccfile
+⍝ Test ability to use a single source file
+
+ 3 ⎕MKDIR Retry⊢folder
+ name2←name,'2'
+ ⎕EX name name2
+ file←folder,'/linktest.apln'
+ file2←∊(⊂2↓name2)@2 ⎕NPARTS file
+ source2←source←,¨(':Namespace ',2↓name)'∇r←dup x' 'r←x x' '∇' ':EndNamespace'
+ (1⊃source2)←':Namespace ',2↓name2
+ z←(⊂bare←1 0 0 0 1/source)QNPUT file
+
+ ⍝ --- Link not to the folder, but to the file
+ z←LinkCreate name file
+ link←GetLink name
+ assert'1=link.singlefile'
+ z←(⊂source)QNPUT file
+ assert'source≡⎕SRC ',name
+
+ ⍝ --- Verify correct behaviour when renaming in the editor
+ ⍝ Should end up with two parallel links
+
+ ⍝ Simulate editing
+ (⊂source2) ⎕NPUT file 1   ⍝ Editor will have updated the file
+ 2 #.⎕FIX 'file://',file
+ ⎕SE.Link.U.LASTFIX←source '#' (2↓name)
+ ⍝ OnAfterFix rarg: obj evt src ns oldname name file
+ ⎕SE.Link.OnAfterFix (⎕NS '') 'AfterFix' '' # (2↓name) (2↓name2) file
+ ⍝ Verify results
+ assert 'source≡⎕SRC ',name
+ assert 'source2≡⎕SRC ',name2
+ assert '(name name2,⍪file file2)≡¯2↑(⎕SE.Link.Status ⍬)[;1 3]'
+ z←⎕SE.Link.Break name2
+ ⎕EX name2 ⋄ ⎕NDELETE file2
+
+ ⍝ --- Verify correct behaviour when renaming in the file
+ ⍝ Old namespace should disappear and link should be to the new one
+
+ link←GetLink name
+ assert 'name≡link.ns'
+ (⊂source2) QNPUT file 1 ⍝ Write source with new name to existing file
+ assert 'name2≡link.ns'  ⍝ Now points to new name
+ assert '0=⎕NC name'
+ assert '(2↓name)≡2⊃⎕NPARTS 4⊃5179⌶name2'
+ z←⎕SE.Link.Break name2
+ 3 ⎕NDELETE file
+
+ ⍝ --- Test modifying a file which is linked to two namespaces
+ ⍝ This is no longer possible to reproduce because tying to link e.g. linktest2 to file now gives
+ ⍝ ⎕SE.Link.Create: Source file defines "linktest", rather than "linktest2"
+ ⍝ Therefore, we now just verify that we get this error
+
+ ⎕EX name name2
+ #.⎕FIX source            ⍝ Restore original namespace
+ ⍎name2,'←0 #.⎕FIX source' ⍝ Create 2nd namespace with same source
+ assert '≡/⎕SRC¨',⍕name name2
+ z←LinkCreate name file
+ assertError 'z←LinkCreate name2 file' ('Source file defines "',(2↓name),'"')
+ ⍝ ↓↓↓ rest of test construction skipped due to expected error above
+ ⍝ assert '(name name2,⍪file file)≡¯2↑(⎕SE.Link.Status ⍬)[;1 3]'
+ ⍝ (⊂source2) QNPUT file 1 ⍝ Update the source
+ z←⎕SE.Link.Break name
+
+ ⍝ --- Now create a new link where we only watch the ns
+ #.⎕FIX source           ⍝ Restore original namespace
+ z←'{watch:''ns''}' LinkCreate name file
+ link←GetLink name
+ assert 'link.dir≡file'
+ z←(⊂bare)QNPUT file                  ⍝ Write the truncated source
+ assert'(,¨source)≡⎕SRC ',name        ⍝ Verify it was not updated in the ws
+ parent←⊃⎕SE.Link.U.SplitNs name
+ (⍎parent) ⎕SE.Link.Fix source        ⍝ Update the ws definition
+ assert'(,¨source)≡⊃⎕NGET file 1'     ⍝ Check file WAS updated
+ assertError '⎕SE.Link.Expunge name' 'may not'
+ assertError '⎕SE.Link.Expunge name,''.dup''' 'may not'
+ (⍎name).⎕FX 'foo' '2+2'
+ assertError '⎕SE.Link.Add name,''.foo''' 'may not'
+
+ z←⎕SE.Link.Break name
+ 3 ⎕NDELETE file
+
+ ⍝ --- Now test case code
+ ⍝ (a bit wierd since you specify a specific file name)
+ ⍝ First test with a non-case coded name
+
+ z←'{caseCode:1}' LinkCreate name file
+ ccfile←(¯1↓⊃⎕NPARTS file)⎕SE.Link.U.CaseCode 0⊢file
+ link←GetLink name
+ assert 'link.caseCode=1'
+ assert 'link.dir≡ccfile'
+ assert 'source≡⊃⎕NGET ccfile 1'
+ z←⎕SE.Link.Break name
+ 3 ⎕NDELETE ccfile
+
+ ⍝ --- Now try with an already case coded file name
+ z←'{caseCode:1}' LinkCreate name ccfile
+ link←GetLink name
+ assert 'link.dir≡ccfile'
+ z←⎕SE.Link.Break name
+
+ ⍝ --- Test an invalid flag settings
+ assertError '''{forceFilenames:1}'' LinkCreate name file' 'not allowed'
+ assertError '''{forceExtensions:1}'' LinkCreate name file' 'not allowed'
+ assertError '''{flatten:1}'' LinkCreate name file' 'not allowed'
+
+ ⍝ --- Now try to create a class from a file
+ (¯4↑file)←'aplc'
+ 3 ⎕NDELETE file
+ #.⎕FIX source←(':Class ',2↓name)'∇r←dup x' ':Access Shared Public' 'r←x x' '∇' ':EndClass'
+
+ z←LinkCreate name file ⍝ Link not to the folder, but to the file
+ assert'(,¨source)≡⊃⎕NGET file 1' ⍝ File written correctly
+
+ ⍝ --- Now export the linked file
+ export←folder,'-export'
+ 3 ⎕NDELETE file←export,'/linktest.aplc'
+ z←⎕SE.Link.Export name export
+ assert'(,¨source)≡⊃⎕NGET file 1'    ⍝ File written correctly
+ assert '1=≢⊃⎕NINFO⍠1⊢export,''/*''' ⍝ And only 1 file in that directory
+
+ z←⎕SE.Link.Configure name 'flatten:1'
+ assert '1∊''only supported for linked directories''⍷z'
+ z←⎕SE.Link.Break name
+
+ ⍝ --- Now Export it after it has been unlinked
+ export←folder,'-export'
+ 3 ⎕NDELETE file←export,'/linktest.aplc'
+ z←⎕SE.Link.Export name export
+ assert'(,¨source)≡⊃⎕NGET file 1'    ⍝ File written correctly
+ assert '1=≢⊃⎕NINFO⍠1⊢export,''/*''' ⍝ And only 1 file in that directory
+
+ ⍝ --- And Import
+ ⎕EX name
+ z←⎕SE.Link.Import name file           ⍝ Bring it back again
+ assert '(,¨source)≡⎕SRC ',name,'.linktest'
+
+ ⍝ --- Try to Link to a function file
+ file←folder,'/dup.aplf'
+ source←'∇r←dup x' 'r←x x' '∇'
+ z←source QNPUT file
+ assertError 'z←⎕SE.Link.Create name file' 'namespace, class or interface'
+
+ ok←1
