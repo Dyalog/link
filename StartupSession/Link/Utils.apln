@@ -179,14 +179,14 @@
     :Section Files
 
     ∇ r←UserConfigFile
-      :If 0≠⎕NC '⎕SE.Link.USERCONFIGFILE'
+      :If 0≠⎕NC'⎕SE.Link.USERCONFIGFILE'
       :AndIf 0≠≢r←⎕SE.Link.USERCONFIGFILE
           →0
-      :EndIf                                      
-      :If 0≠≢r←2 ⎕NQ # 'GetEnvironment' 'LINKCONFIGFILE'
+      :EndIf
+      :If 0≠≢r←2 ⎕NQ #'GetEnvironment' 'LINKCONFIGFILE'
           :If ~⎕NEXISTS r
           :AndIf ~'/'∊r
-              Warn 'LINKCONFIGFILE file "',r,'" not found - note directory separator is "/"'
+              Warn'LINKCONFIGFILE file "',r,'" not found - note directory separator is "/"'
           :EndIf
       :Else
           r←{⍵:(⊢↓⍨1-'\'⍳⍨⌽)2⊃4070⌶⍬ ⋄ '/',⍨2 ⎕NQ #'GetEnvironment' 'HOME'}ISWIN
@@ -619,8 +619,8 @@
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
       'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' Default 0
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' Check¨⊂0 1
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Default 0
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
@@ -763,7 +763,7 @@
       :EndIf
       :Trap 0
           name where.{⍎⍺,'←⎕SE.Dyalog.Array.Deserialise ⍵'}src  ⍝ array materialised in its namespace
-          nc←where NameClass name          
+          nc←where NameClass name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
@@ -976,7 +976,7 @@
           mask∨←IsDotNetSpace¨refs  ⍝ namespaces created to host .NET objects
           names~←pre∘,¨mask/subns
           (refs subns)/⍨←⊂~mask
-      :AndIf 1∊mask←~{0=≢⍵: ⍬ ⋄ IsScripted¨⍵}refs  ⍝ trad ns
+      :AndIf 1∊mask←~{0=≢⍵:⍬ ⋄ IsScripted¨⍵}refs  ⍝ trad ns
           allrefs,←mask/refs
           tradns←pre∘,¨mask/subns
           :If ~trad ⋄ names~←tradns ⋄ :EndIf  ⍝ trad=0 : exclude trad namespaces
@@ -1003,7 +1003,7 @@
       :If (arrays=0)∧(~0=≡link.arrays)  ⍝ add some specified arrays
           arraynames←nsref NormName¨link.arrays
           :If 0∊mask←(nsref NameClass¨arraynames)=2.1
-              ¯1 Warn ('-arrays modifier: Non-array names ignored:'),⍕(~mask)/link.arrays
+              ¯1 Warn('-arrays modifier: Non-array names ignored:'),⍕(~mask)/link.arrays
           :EndIf
           nc,⍨←2.1⍴⍨≢names,⍨←mask/arraynames
           (names nc)/⍨←⊂(⍳⍨names)=(⍳⍴names)  ⍝ remove redundant names e.g. sysvars
@@ -1081,7 +1081,7 @@
                   (files oldfiles names src)/⍨←⊂mask
               :EndIf
           :AndIf 0≠≢files
-              mask←src (nsref Into)¨files  ⍝ failed to write
+              mask←src(nsref Into)¨files  ⍝ failed to write
               written,←mask/files ⋄ failed,←(ns,'.')∘,¨(~mask)/names
               :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                   ⎕NDELETE¨mask/oldfiles
@@ -1135,12 +1135,12 @@
       :Else ⋄ allfiles←⊃opts(1 ListFiles 0)source  ⍝ whole directory including root
       :EndIf
      
-      :If 82=⎕DR '' ⍝ Classic
+      :If 82=⎕DR'' ⍝ Classic
       :AndIf (≢allfiles)≥i←(¯10↑¨allfiles)⍳⍥⎕C⊂'/⎕AVU.apla' ⍝ Source contains ⎕AVU
           :Trap 0 ⍝ Try to set ⎕AVU so that all ⎕NGET/⎕FIX operations will use saved ⎕AVU
-              ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise ⊃⎕NGET i⊃allfiles
+              ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise⊃⎕NGET i⊃allfiles
           :Else
-              Warn 'Unable to set ⎕AVU from ',i⊃allfiles
+              Warn'Unable to set ⎕AVU from ',i⊃allfiles
           :EndTrap
       :EndIf
      
@@ -1792,22 +1792,22 @@
     ∇ r←UCMD_List
       ⍝ Name, group, short description and parsing rules
       r←'['
-      r,←'{"Name":"Add",         "args":"item",    "Parse":"1-9999", "Desc":"Associate item in linked namespace with new file/directory in corresponding directory"},'
-      r,←'{"Name":"Break",       "args":"[ns1]",   "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
-      ⍝r,←'{"Name":"CaseCode",    "args":"file1",   "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir","Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
-      r,←'{"Name":"Configure",   "args":"target [settings]",  "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2","Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
-      r,←'{"Name":"Expunge",     "args":"[item]",  "Parse":"9999S",  "Desc":"Erase item and associated file"},'
-      r,←'{"Name":"GetFileName", "args":"item",    "Parse":"1",  "Desc":"Return name of file associated with item"},'
-      r,←'{"Name":"GetItemName", "args":"file",    "Parse":"1L", "Desc":"Return name of item associated with file"},'
-      r,←'{"Name":"Import",      "args":"ns2 dir0","Parse":"1-2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
-      ⍝r,←'{"Name":"Pause",       "args":"ns1",     "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
-      r,←'{"Name":"Status",      "args":"[ns1]",   "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
+      r,←'{"Name":"Add",         "args":"items[←def]",       "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
+      r,←'{"Name":"Break",       "args":"[ns1]",             "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
+      ⍝r,←'{"Name":"CaseCode",    "args":"file1",             "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Configure",   "args":"target [settings]", "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Expunge",     "args":"[item]",            "Parse":"9999S",  "Desc":"Erase item and associated file"},'
+      r,←'{"Name":"GetFileName", "args":"item",              "Parse":"1",  "Desc":"Return name of file associated with item"},'
+      r,←'{"Name":"GetItemName", "args":"file",              "Parse":"1L", "Desc":"Return name of item associated with file"},'
+      r,←'{"Name":"Import",      "args":"ns2 dir0",          "Parse":"1-2L -overwrite -flatten -fastload  -ignoreconfig", "Desc":"Import a namespace from a directory (create the namespace if absent); does not create a link"},'
+      ⍝r,←'{"Name":"Pause",       "args":"ns1",               "Parse":"1", "Desc":"Pause synchronisation between namespace and directory"},'
+      r,←'{"Name":"Status",      "args":"[ns1]",             "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Stop",        "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on breakpoints"},'
       r,←'{"Name":"Trace",       "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on lines traced"},'
-      r,←'{"Name":"Refresh",     "args":"ns1",     "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
-      r,←'{"Name":"Resync",      "args":"[ns1]",   "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
+      r,←'{"Name":"Refresh",     "args":"ns1",          "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
+      r,←'{"Name":"Resync",      "args":"[ns1]",        "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'
       r/⍨←×⎕NC'⎕SE.Link'
@@ -1854,14 +1854,15 @@
       a⍪←'dir2' 'target directory'
       a⍪←'file' 'name of file where item source is stored'
       a⍪←'file1' 'filename to be appended with octal representation of reverse binary encoding of capitalisation'
-      a⍪←'item' 'name of APL item'            
+      a⍪←'items' 'one or more names of APL items'
+      a⍪←'def' 'expression for one or more APL item values'
       a⍪←'lines' 'line numbers, ⍬ to clear all'
       a⍪←'target' 'a linked namespace, a folder containing a .linkconfig file, or * to set user configuration'
       a⍪←'settings' 'name:value pairs - empty value to delete a setting'
       (args argTxts)←↓⍉a
       myArgs←'\w+'⎕S'&'⊢info.args
       myArgI←⊂args⍳myArgs
-      myArgS←∊'(\[?)(\pL+)\d?(\]?)'⎕S' \1<\2>\3'⊢info.args
+      myArgS←' ','\w+'⎕R'<&>'⊢info.args
      
       r←⊂info.Desc
       r,←⊂'    ]LINK.',cmd,myArgS,myModS
@@ -1908,7 +1909,7 @@
       :EndSelect
       :Trap debug↓0   ⍝ link issue #217
           ⍝ must not use :With because of link issue #163
-          r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵})args.Arguments ⍝ dot our way home
+          r←opts(cmd this.{⍺←⊢ ⋄ ⍺(⎕SE.Link⍎⍺⍺)⍵}){9=⎕NC'⍵':⍵.Arguments ⋄ ⍵}args ⍝ dot our way home
       :Else  ⍝ provide nice error message
           r←∊'ERRORS ENCOUNTERED: '⎕DMX.(Message{⍵(': '/⍨×≢⍺)⍺}EM)
       :EndTrap
