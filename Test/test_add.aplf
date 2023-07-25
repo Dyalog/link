@@ -45,4 +45,5 @@
  ⎕CS here
  assert'''121 2''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc''' ⍝ 1 2 (1 2)
 
+ CleanUp folder name
  ok←1
