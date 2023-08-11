@@ -1,48 +1,38 @@
-{
-     tests:[
-        {
-            id:'basic_18',
-            test:'./Test/dtestrunner.aplf',
-            dtestmodifiers:'-SuccessValue=apl!1',
-            dyalogversions:  "18.2",
-            env:{
-                CITA_APIDEV:0,
-                DYALOGSTARTUPSE: "${THISPATH}StartupSession"
-            }
-        },
+ {
+     defaults: {
+        secondstimeout: 600,
+        platforms: ["win","macx86","macarm","pi","linux"],
+        email: "mkrom@dyalog.com",
+        test:'./Test/dtestrunner.aplf',
+        dtestmodifiers:'-SuccessValue=apl!1',    // append -h  to halt on error when running local tests
+        env: {
+                CITA_APIDEV: 0,            //MB: neutralize, just in case a dev has set this up
+                PROPERTYEXPOSEROOT: 1,     //MB: there is a test in test_bugs that needs this...
+                DYALOGSTARTUPKEEPLINK: 0,  //MB: helps with local testing
+        }
+    },
+
+   tests: [
         {
             id:'all_18',
-            test:'./Test/dtestrunner.aplf',
-            dtestmodifiers:'-SuccessValue=apl!1',
             dyalogversions:  "18.2",
             env:{
-                CITA_APIDEV:0,
-                DYALOGSTARTUPSE:"${THISPATH}StartupSession"
+                DYALOGSTARTUPSE: "${THISPATH}StartupSession;${THISPATH}qse/StartupSession;${CITAPATH}StartupSession",
             }
         },
         {
             id:'basic_19',
-            test:'./Test/dtestrunner.aplf',
-            dtestmodifiers:'-SuccessValue=apl!1',
             dyalogversions:  "19+",
-            env:{
-                CITA_APIDEV:0,
-                DYALOGLINK: "${THISPATH}"
+            env: {
+                DYALOGLINK: "${THISPATH}",
             }
         },
         {
             id:'all_19',
-            test:'./Test/dtestrunner.aplf',
-            dtestmodifiers:'-SuccessValue=apl!1',
             dyalogversions:  "19+",
-            env:{
-                CITA_APIDEV:0,
-                DYALOGLINK:"${THISPATH}"
+            env: {
+                DYALOGLINK: "${THISPATH}",
             }
         }
-     ],
-     defaults: {
-        secondstimeout: 600,
-        platforms: ["win","macx86","macarm","pi","linux"]
-     }
+     ]
  }

@@ -20,6 +20,4 @@
      res←¯1
  :EndTrap
 
- ⎕SE.UCMD'GetTools4CITA'
- file←...
  log ⎕SE._cita._LogStatus res
