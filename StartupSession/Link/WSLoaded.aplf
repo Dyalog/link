@@ -14,7 +14,7 @@
 
          ⍝ preserve old links to ⎕SE - drop the rest
          :If ~0∊⍴links←U.GetLinks
-         ⍝ keep links in ⎕SE, but also LINK_DIR/LINK_RUN iff we're just starting now
+         ⍝ keep links in ⎕SE
          :AndIf 0∊keep←(⎕SE=U.RootOf⍎¨links.ns)∨(IsLoad links)∧~2∊⎕NC'⎕SE.Dyalog.Callbacks.loaded'
              ¯1 U.Log'Clearing # links:'(⍕(~keep)/links)
              Watcher.Break(~keep)/links
@@ -31,7 +31,6 @@
          ⍝ restore saved workspace links
          :If ~0∊⍴wslinks
              wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
-             wslinks/⍨←~IsLoad wslinks  ⍝ ignore LOAD
          :AndIf ~0∊⍴wslinks
              links,←wslinks
              wslinks.restored←1 ⋄ wslinks.fsw←⎕NULL  ⍝ fsw re-instancited by Resync
