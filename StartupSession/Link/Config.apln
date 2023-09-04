@@ -73,6 +73,8 @@
      
       m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
+      ⍝ Now remove API/UCMD options which are not save-able settings
+      ns.⎕EX 'Settings.preloaded' 'Settings.ignoreconfig'
      
       json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
       :If json≢'{',(⎕UCS 13),'}' ⍝ Do not create empty config files
@@ -166,8 +168,11 @@
           'config.Settings'⎕NS dir.Settings
           'config.Debug'⎕NS dir.Debug
      
-          :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]
-              →0⊣(msg config)←('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid)config
+          :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]  
+              ##.U.Warn ('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid) 
+              ⍝ Decided NOT to throw an error for this until further notice
+              ⍝ Possibly reinstate the following line when safe to do so
+              ⍝ →0⊣(msg config)←('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid)config
           :EndIf
      
           :If ~∧/(names←config.Debug.⎕NL-2)∊valid←(p←DebugParams)[;1]
