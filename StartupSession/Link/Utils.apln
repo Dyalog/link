@@ -588,6 +588,9 @@
       :EndWhile
       :If linked
           linkns←(nss⍳nsref)⊃links
+          :If 0=⎕NC 'linkns.singlefile'  
+              linkns.singlefile←0 ⍝ Protect against fake links created by StartupSession
+          :EndIf
       :EndIf
     ∇
     ∇ links←{links}LookupLinks nsref;linked;links;mask;nss
