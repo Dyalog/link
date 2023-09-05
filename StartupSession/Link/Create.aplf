@@ -1,10 +1,10 @@
  msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;ext;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
-(container ns dir nsgiven)←preProcessNsDir args
+ (container ns dir nsgiven)←preProcessNsDir args
  (msg setconfig)←dir Config.GetConfig opts
  →(0≠≢msg)⍴0
-:If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
+ :If 2=DEBUG←{6::0 ⋄ ⍵.Debug.debug}setconfig
      (1+⊃⎕LC)⎕STOP⊃⎕SI
  :EndIf
  :Trap DEBUG↓0
@@ -65,12 +65,12 @@ NOHOLD:
                  emptyns←1
              :Else
                  emptyns←0∊⍴U.ListNames nsref←⍎ns
-                 :If~opts.(preloaded∨flatten)
-                    :If ~emptyns                           ⍝ some APL names defined
-                    :AndIf ~emptydir                       ⍝ some dir/files defined
-                    :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
-                     emptyns←emptyns U.EmptyNamespace nsref dir
-                    :EndIf
+                 :If ~opts.(preloaded∨flatten)
+                     :If ~emptyns                           ⍝ some APL names defined
+                     :AndIf ~emptydir                       ⍝ some dir/files defined
+                     :AndIf (⊂opts.source)∊'auto' 'dir'     ⍝ will not erase dir
+                         emptyns←emptyns U.EmptyNamespace nsref dir
+                     :EndIf
                  :EndIf
              :EndIf
          :Else
@@ -132,10 +132,10 @@ NOHOLD:
 
          ⍝ We're all good; do it!
          :If isfile
-              dir←0 U.NormFile fulltarget
+             dir←0 U.NormFile fulltarget
          :Else
-              dir←0 U.NormDir dir
-              ns←U.NormNs ns
+             dir←0 U.NormDir dir
+             ns←U.NormNs ns
          :EndIf
          opts.ns←ns
          opts.dir←dir
@@ -155,7 +155,7 @@ NOHOLD:
          :If ~isfile∨dircreated ⍝ Update source flag cache
              (rc config)←Config.ReadConfigFile dir,'/.linkconfig'
          :AndIf 0=rc
-                 config Config.SetSourceFlags opts
+             config Config.SetSourceFlags opts
          :EndIf
 
          :Select opts.source
