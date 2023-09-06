@@ -2,7 +2,7 @@
 ⍝ Try to find something like "HttpCommand"
 
  r←name ⍝ If we cannot improve it, return argument unchanged
- libs←'[DYALOG]/Library/*'
+ libs←,⊂'[DYALOG]/Library/*'
  :If 0≠≢path←2 ⎕NQ'.' 'GetEnvironment' 'DYALOGCODEPATH'
      libs←U.PATHDEL(≠⊆⊢),(libs/⍨U.PATHDEL=⊃path),path
  :EndIf
