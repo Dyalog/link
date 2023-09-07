@@ -1,0 +1,36 @@
+name: Create Dyalog Link Release and Upload Assets
+
+# Trigger: push of tag starting with 'v'
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract tag name
+      run: echo "REF_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+    - name: Prepare Assets
+      run: |
+        mkdir -p build
+        cp -r StartupSession build/StartupSession
+        zip -r build/link-${{ env.REF_NAME }}.zip build/StartupSession
+        cp -r qse/StartupSession/Dyalog build/StartupSession
+        zip -r build/link-${{ env.REF_NAME }}-v182.zip build/StartupSession
+
+    - name: Create and Upload Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ github.ref }}
+        draft: true  # Note: change this to false when fully operational
+        prerelease: true  # Note: change this to false when fully operational
+        files: ./build/link-${{ env.REF_NAME }}.zip, ./build/link-${{ env.REF_NAME }}-v182.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
