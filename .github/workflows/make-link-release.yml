@@ -11,8 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
     - name: Extract tag name
       run: echo "REF_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
