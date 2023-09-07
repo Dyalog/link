@@ -25,11 +25,12 @@ jobs:
         mkdir -p build
         cp -r StartupSession build/StartupSession
         cd build
-        zip -r build/link-${{ env.REF_NAME }}.zip build/StartupSession
+        zip -r link-${{ env.REF_NAME }}.zip StartupSession
         cd ..
         cp -r qse/StartupSession/Dyalog build/StartupSession
         cd build
-        zip -r build/link-${{ env.REF_NAME }}-v182.zip build/StartupSession
+        zip -r link-${{ env.REF_NAME }}-v182.zip StartupSession
+  
 
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v1
