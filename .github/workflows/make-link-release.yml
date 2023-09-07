@@ -24,8 +24,11 @@ jobs:
       run: |
         mkdir -p build
         cp -r StartupSession build/StartupSession
+        cd build
         zip -r build/link-${{ env.REF_NAME }}.zip build/StartupSession
+        cd ..
         cp -r qse/StartupSession/Dyalog build/StartupSession
+        cd build
         zip -r build/link-${{ env.REF_NAME }}-v182.zip build/StartupSession
 
     - name: Create and Upload Release
