@@ -6,7 +6,9 @@ Link Configuration files are in [JSON5 format](https://json5.org/), which is the
 When performing an action that is related to a directory, Link will read both the user and directory configurations. If a setting is found in both places, the more specific directory setting will override the general user settting.
 
 ### User Configuration Files
-You can have a user configuration file which allows you to record preferences that apply to all links, for example link creation options like -watch= or the `notify` setting. A simple example of a user configuration file would be:
+You can have a user configuration file called `.linkconfig` , which records preferences that apply to all links, for example link creation options like -watch= or the `notify` setting. Under Microsoft Windows, this file is stored in the `Documents` folder, on other systems in the user's home directory.
+
+A simple example of a user configuration file would be:
 
 ```
 {
@@ -18,7 +20,7 @@ You can have a user configuration file which allows you to record preferences th
   },
 }
 ```
-With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and use default to only propagating changes from the namespace to source files (watch:ns), unless a call to [Link.Create](..API/Link.Create.md) includes an explicit setting of that option .
+With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and default to only propagating changes from the namespace to source files (watch:ns). If a call to [Link.Create](..API/Link.Create.md) includes an explicit setting of the `watch` option, that will override the default.
 
 ### Directory Configuration Files
 Each linked directory may contain a `.linkconfig` file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When [Link.Create](..API/Link.Create.md) or [Link.Export](..API/Link.Export.md) create a directory and create files in it, any non-default switch settings provided to tha API function will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.
@@ -131,7 +133,7 @@ An example of a configuration file with information in all three sections is:
 ```
 
 ### The `ignoreconfig` switch
-If you manually edit a `.linkconfig` file and damage it so that it either becomes invalid JSON5 so that Link is unable to read it, or if Link is able to read it but complains that it has invalid contents, or if you simply want to ignore the configuration, several API functions including Create, Import and Export have an `ignoreconfig` option:
+If you manually edit a `.linkconfig` file and damage it so that it either becomes invalid JSON5 so that Link is unable to read it, or if Link is able to read it but complains that it has invalid contents, or if you simply want to ignore the configuration for other reasons, several API functions including Create, Import and Export have an `ignoreconfig` option:
 
 ```
       ]link.create linkdemo c:\tmp\linkdemo
