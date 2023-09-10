@@ -17,7 +17,6 @@ nav:
     - Usage/ConfigFiles.md
     - Usage/Setup.md
     - Usage/WStoLink.md
-    - Usage/SALTtoLink.md
     
   - API & Command Reference:
     - API/index.md
