@@ -905,7 +905,8 @@
 <p>Link Configuration files are in <a href="https://json5.org/">JSON5 format</a>, which is the same format as Dyalog APL configuration files. There is a user configuration file containing options that apply to all links, and directory configuraton files which apply to individual directories.</p>
 <p>When performing an action that is related to a directory, Link will read both the user and directory configurations. If a setting is found in both places, the more specific directory setting will override the general user settting.</p>
 <h3 id="user-configuration-files">User Configuration Files</h3>
-<p>You can have a user configuration file which allows you to record preferences that apply to all links, for example link creation options like -watch= or the <code>notify</code> setting. A simple example of a user configuration file would be:</p>
+<p>You can have a user configuration file called <code>.linkconfig</code> , which records preferences that apply to all links, for example link creation options like -watch= or the <code>notify</code> setting. Under Microsoft Windows, this file is stored in the <code>Documents</code> folder, on other systems in the user's home directory.</p>
+<p>A simple example of a user configuration file would be:</p>
 <pre><code>{
   Debug: {
     notify: 1,
@@ -915,7 +916,7 @@
   },
 }
 </code></pre>
-<p>With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and use default to only propagating changes from the namespace to source files (watch:ns), unless a call to <a href="..API/Link.Create.md">Link.Create</a> includes an explicit setting of that option .</p>
+<p>With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and default to only propagating changes from the namespace to source files (watch:ns). If a call to <a href="..API/Link.Create.md">Link.Create</a> includes an explicit setting of the <code>watch</code> option, that will override the default.</p>
 <h3 id="directory-configuration-files">Directory Configuration Files</h3>
 <p>Each linked directory may contain a <code>.linkconfig</code> file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When <a href="..API/Link.Create.md">Link.Create</a> or <a href="..API/Link.Export.md">Link.Export</a> create a directory and create files in it, any non-default switch settings provided to tha API function will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.</p>
 <p>If you already have a Link folder which was created by an earlier version of Link, you can add a <code>.linkconfig</code> file using <a href="..API/Link.Configure.md">Link.Configure</a>. For example:</p>
@@ -1011,7 +1012,7 @@ documentation for <a href="../../API/Link.Create/">Link.Create</a>.</p>
 }
 </code></pre>
 <h3 id="the-ignoreconfig-switch">The <code>ignoreconfig</code> switch</h3>
-<p>If you manually edit a <code>.linkconfig</code> file and damage it so that it either becomes invalid JSON5 so that Link is unable to read it, or if Link is able to read it but complains that it has invalid contents, or if you simply want to ignore the configuration, several API functions including Create, Import and Export have an <code>ignoreconfig</code> option:</p>
+<p>If you manually edit a <code>.linkconfig</code> file and damage it so that it either becomes invalid JSON5 so that Link is unable to read it, or if Link is able to read it but complains that it has invalid contents, or if you simply want to ignore the configuration for other reasons, several API functions including Create, Import and Export have an <code>ignoreconfig</code> option:</p>
 <pre><code>      ]link.create linkdemo c:\tmp\linkdemo
 Unknown Setting(s) in &quot;c:\tmp\linkdemo/.linkconfig&quot;:  fasten 
       ]link.create linkdemo c:\tmp\linkdemo -ignoreconfig

@@ -311,9 +311,39 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Installation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Installation
       </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#instructions" class="md-nav__link">
+    Instructions
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -732,6 +762,21 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#instructions" class="md-nav__link">
+    Instructions
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -748,25 +793,24 @@
                 
                 
                 <h1 id="installation">Installation</h1>
-<p>Link 4.0 is included with Dyalog version 19.0 or later, and is supported under version 18.2.</p>
+<p>Link 4.0 is included with Dyalog version 19.0 or later, and is supported for use with version 18.2.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.</p>
+<p>For Dyalog to automatically update workspace contents in response to changes to files made using external editors or source code management systems, .NET must be installed.</p>
 <p>The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
-<p>Link 4.0 has been tested with the .NET Framework v4.0 and .NET 6.0, and is expected to work with any later version of .NET.</p>
+<p>Link 4.0 has been tested with the .NET Framework and .NET 6.0, and is expected to work with any later version of .NET.</p>
 </div>
-<p>The instructions on this page only apply if you want to work with a different version that which is distributed with your version of Dyalog APL, for example to test a pre-release.</p>
-<p>If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.</p>
-<p>Link is maintained as an open source project at <a href="https://github.com/dyalog/link">github.com/dyalog/link</a>.</p>
+<p>The instructions on this page only apply if you want to user a different release than that which is distributed with your version of Dyalog APL.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The installation instructions below have not been updated for Link 4.0.</p>
-<p>DO NOT try to use the instructions below, they WILL NOT WORK.</p>
-<p>Please come back soon!</p>
 </div>
-<p><strong>Start by downloading</strong> the latest release from <a href="https://github.com/Dyalog/link/releases">github.com/Dyalog/link/releases</a> and extracting the subfolder called <code>StartupSession</code>. This folder contains the code required to run Link.</p>
+<p>​   If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.</p>
+<h2 id="instructions">Instructions</h2>
+<p>Link is maintained as an open source project at <a href="https://github.com/dyalog/link">github.com/dyalog/link</a>.</p>
+<p><strong>Start by downloading</strong> one of the zip files included with the latest release of Link 4.0 from <a href="https://github.com/Dyalog/link/releases">github.com/Dyalog/link/releases</a>. If you are using Dyalog version 19.0 or later, use the file named <code>link-v4.0.nn.zip</code>; Extract the subfolder called <code>StartupSession</code>, which contains the code required to run Link. </p>
+<p><strong>If you have version 18.2</strong>, follow the same instructions, but use the zip file with the suffix <code>-v182</code>. This file also contains code that is used to populate the <code>⎕SE.Dyalog</code> namespace, it is required because Link 3.0 included this code, which has moved to a separate repository.</p>
 <p>If you have the necessary permissions, you can <strong>OVERWRITE the installed version of Link</strong> by replacing the <code>StartupSession</code> folder that already exists in the main Dyalog program folder with the downloaded folder.</p>
-<p>If you do not have permission to partially overwrite the Dyalog installation, you can keep the code outside the main program folder. You will need to declare the location of the folder by setting the <code>DYALOGSTARTUPSE</code> parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:</p>
+<p>If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the <code>DYALOGSTARTUPSE</code> parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:</p>
 <ul>
 <li>
 <p><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder.</p>
@@ -777,17 +821,6 @@
 </code></pre>
 </li>
 </ul>
-<p><strong>If you are using Dyalog version 18.0</strong>, you will also need to update the user command file used to invoke Link user commands. This only needs to be done once, because the new user command file is designed to pick user command definitions up from the current copy of Link.</p>
-<p>The user command file is <strong>SALT/spice/Link.dyalog</strong>. If you have not done a complete checkout or clone of the repository, you will need to download this file from GitHub, as it is not included in the normal release package file.</p>
-<ul>
-<li>
-<p>If you have permission, you can overwrite the installed version of the Link user commands by copying the file into <strong>$DYALOG/SALT/spice/Link.dyalog</strong>.</p>
-</li>
-<li>
-<p>Alternatively you can place a copy of the file in your <strong>MyUCMDs</strong> folder. This will cause it to take priority over the installed copy. Under Linux or Mac, you may need to create the folder yourself, under Windows the installation of Dyalog APL should have created it for you.</p>
-</li>
-</ul>
-<p>You will need to restart Dyalog APL each time you update any of the files mentioned above.</p>
                 
               
               
