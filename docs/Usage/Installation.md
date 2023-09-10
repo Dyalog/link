@@ -12,8 +12,7 @@ Link 4.0 is included with Dyalog version 19.0 or later, and is supported for use
 The instructions on this page only apply if you want to user a different release than that which is distributed with your version of Dyalog APL.
 
 !!!Note
-
-​	If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.
+	If you use a non-standard Dyalog session (.dse file), contact support@dyalog.com for guidance on enabling Link.
 
 ## Instructions
 

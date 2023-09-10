@@ -1,10 +1,10 @@
-# Setting Up Your Environment
+# Setting Up Your Application
 
-With a small project, you can get by using [`Link.Create`](../API/Link.Create.md) and/or [`Link.Import`](../API/Link.Import.md) to bring your source into the workspace in order to work with it. However, even in a small project, this quickly gets tedious, and as the project grows, you may want to load code from more that one directory, and perhaps run some code in order to set things up or even start the application. Fortunately, the [Link API](../API/index.md) provides all the functions that you need to automate the setup.
+With a small project, you can get by using [`Link.Create`](../API/Link.Create.md) or [`Link.Import`](../API/Link.Import.md) to bring your source into the workspace in order to work with it. However, even in a small project, this quickly gets tedious, and as the project grows, you may want to load code from more that one directory, and perhaps run some code in order to set things up or even start the application. 
 
-## Description of the functions and procedure for automating set up
+Eventually, you may want to look at a project management system like [Cider](https://github.com/aplteam/cider), but that's a different story. Until you reach that point, you can use the [Link API](../API/index.md) to automate the loading and running of your application.
 
-## Worked example
+## Example
 
 To illustrate, we will create a small application that uses the stats library that we created in the [section on basic usage](./index.md#starting-a-new-project). We will put the application into a namespace called `linkdemo`:
 
@@ -57,7 +57,7 @@ Enter some numbers:
 
 ### Automating Startup
 
-Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). From version 18.2, `LOAD` can also indentify a directory, in which case APL will create a link to the directory on startup, and attempt to call the function `#.Run`, with the enclosed name of the directory as the right argument. You can skip the call to `Run` by adding `LX=` to your command line.
+Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the [LOAD parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm) or from a configuration file using the  [CONFIGFILE parameter](https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm). From version 18.2, `LOAD` can also indentify a directory, in which case APL will create a link to the directory on startup, and attempt to call the function `#.Run`, with the enclosed name of the directory as the right argument. You can skip or replace the call to `Run` by adding `LX=` to your command line.
 
 Using `LOAD` to link to a directory on startup is simple way to handle very simple applications or ad-hoc development. However, configuration files allow you to both set a startup expression and include other configuration options for the interpreter and are probably a better solution for applications consisting of more than one source directory. For example, we could start our example application by creating a file `dev.dcfg` in the `linkdemo` folder with the following contents:
 

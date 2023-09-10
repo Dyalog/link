@@ -1,6 +1,6 @@
 # History of source files as text in Dyalog
 
-Link 3.0, released in 2021, is another step in the journey from binary workspaces to APL source in text files.
+Link is another step in the journey from binary workspaces to APL source in text files.
 
 ### Workspaces
 
@@ -41,13 +41,25 @@ After SALT had grown organically for more than a decade, it was decided that thi
 *  Link has no source code management features; the expectation is that users who require SCM will combine Link with an external SCM such as Git or SVN
   * SALT included a simple mechanism for storing and comparing multiple versions of the source for an object by injecting digits into the file name.
 
-### Link 3.0
+### Link 3.0 (Dyalog version 18.2, 2022)
 
-Link 3.0 is the first major revision of Link. It adds:
+Link 3.0 is the first major revision of Link. It added:
 
 * Support for saving workspaces containing links and resuming work after a break.
 * Support for names which differ only in case (for example, `FOO` vs `Foo`) in case-insensitive file systems, by adding "case coding" information to the file name.
 * The `Link.LaunchDir` API function, makes it straightforward to determine the folder that APL was launched on, simplifying the task of  launching the interpreter using a configuration file or single APL source file.
 * Dyalog version 18.2, released at the same time as Link 3.0, supports identifying a directory with the `LOAD=` parameter - as an alternative to a workspace, APL source file, or a configuration file. When `LOAD` identifies a directory, a link will be created on startup (and the function `Run` invoked, if it exists).
 
-A more complete description of the differences between Link 2.0 and 3.0 are described in the guide on [upgrading from 2.0 to 3.0](../Upgradeto30.md).
+A more complete description of Link 3.0 and the differences between Link 2.0 and 3.0 can be found in the [Link 3.0 documentation](https://dyalog.github.io/link/3.0/).
+
+### Link 4.0 (Dyalog version 19.0, 2023)
+
+Link 4.0 was the companion release to Dyalog version 19.0 in 2023. The most important new features are:
+
+* Configuration files to store options for a user or a source code folder
+* The ability to store multi-line character data in "flat" text files
+* Support for linking a single source file defining a namespace or class
+
+More details regarding the new features of Link 4.0 can be found in the [Release Notes](../ReleaseNotes40.md). 
+
+Link 4.0 is upwards compatible with Link 3.0, and can also be used with Dyalog version 18.2.
