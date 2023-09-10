@@ -319,8 +319,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#link-30" class="md-nav__link">
-    Link 3.0
+  <a href="#link-30-dyalog-version-182-2022" class="md-nav__link">
+    Link 3.0 (Dyalog version 18.2, 2022)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#link-40-dyalog-version-190-2023" class="md-nav__link">
+    Link 4.0 (Dyalog version 19.0, 2023)
   </a>
   
 </li>
@@ -451,7 +458,7 @@
   
     <li class="md-nav__item">
       <a href="../../Usage/Setup/" class="md-nav__link">
-        Setting Up Your Environment
+        Setting Up Your Application
       </a>
     </li>
   
@@ -825,8 +832,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#link-30" class="md-nav__link">
-    Link 3.0
+  <a href="#link-30-dyalog-version-182-2022" class="md-nav__link">
+    Link 3.0 (Dyalog version 18.2, 2022)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#link-40-dyalog-version-190-2023" class="md-nav__link">
+    Link 4.0 (Dyalog version 19.0, 2023)
   </a>
   
 </li>
@@ -849,7 +863,7 @@
                 
                 
                 <h1 id="history-of-source-files-as-text-in-dyalog">History of source files as text in Dyalog</h1>
-<p>Link 3.0, released in 2021, is another step in the journey from binary workspaces to APL source in text files.</p>
+<p>Link is another step in the journey from binary workspaces to APL source in text files.</p>
 <h3 id="workspaces">Workspaces</h3>
 <p>Historically, APL systems have used <em>saved workspaces</em> as the way to store the current state of the interpreter in a binary file which contains a collection of code and data. In many ways, a workspace is similar to a workbook saved by a spreadsheet application; a very convenient package that contains everything the application needs to run. Saving the workspace at the end of a run preserves updated data, as well as any code changes that might have been made.</p>
 <h3 id="component-files-and-sql-databases">Component Files and <abbr title="Structured Query Language">SQL</abbr> Databases</h3>
@@ -880,15 +894,24 @@
 </li>
 <li>SALT included a simple mechanism for storing and comparing multiple versions of the source for an object by injecting digits into the file name.</li>
 </ul>
-<h3 id="link-30">Link 3.0</h3>
-<p>Link 3.0 is the first major revision of Link. It adds:</p>
+<h3 id="link-30-dyalog-version-182-2022">Link 3.0 (Dyalog version 18.2, 2022)</h3>
+<p>Link 3.0 is the first major revision of Link. It added:</p>
 <ul>
 <li>Support for saving workspaces containing links and resuming work after a break.</li>
 <li>Support for names which differ only in case (for example, <code>FOO</code> vs <code>Foo</code>) in case-insensitive file systems, by adding "case coding" information to the file name.</li>
 <li>The <code>Link.LaunchDir</code> API function, makes it straightforward to determine the folder that APL was launched on, simplifying the task of  launching the interpreter using a configuration file or single APL source file.</li>
 <li>Dyalog version 18.2, released at the same time as Link 3.0, supports identifying a directory with the <code>LOAD=</code> parameter - as an alternative to a workspace, APL source file, or a configuration file. When <code>LOAD</code> identifies a directory, a link will be created on startup (and the function <code>Run</code> invoked, if it exists).</li>
 </ul>
-<p>A more complete description of the differences between Link 2.0 and 3.0 are described in the guide on <a href="../Upgradeto30.md">upgrading from 2.0 to 3.0</a>.</p>
+<p>A more complete description of Link 3.0 and the differences between Link 2.0 and 3.0 can be found in the <a href="https://dyalog.github.io/link/3.0/">Link 3.0 documentation</a>.</p>
+<h3 id="link-40-dyalog-version-190-2023">Link 4.0 (Dyalog version 19.0, 2023)</h3>
+<p>Link 4.0 was the companion release to Dyalog version 19.0 in 2023. The most important new features are:</p>
+<ul>
+<li>Configuration files to store options for a user or a source code folder</li>
+<li>The ability to store multi-line character data in "flat" text files</li>
+<li>Support for linking a single source file defining a namespace or class</li>
+</ul>
+<p>More details regarding the new features of Link 4.0 can be found in the <a href="../../ReleaseNotes40/">Release Notes</a>. </p>
+<p>Link 4.0 is upwards compatible with Link 3.0, and can also be used with Dyalog version 18.2.</p>
                 
               
               
