@@ -758,27 +758,19 @@
 <h1 id="introduction">Introduction</h1>
 <p><strong><em>Link</em></strong> allows you to use Unicode text files to store APL source code, rather than "traditional" binary workspaces. The benefits of using Link and text files include:</p>
 <ul>
-<li>It is easy to use source code management tools like Git or Subversion to manage your code.</li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although an <abbr title="Source Code Manager">SCM</abbr> is not a requirement for Link, if you are not already using a source code management system, we <strong><em>highly</em></strong> recommend making the effort to learn about and install Git.</p>
-<p>If you choose not to use an <abbr title="Source Code Manager">SCM</abbr> then you just need your own strategy for taking suitable copies of your source files, as you would with workspaces.</p>
-</div>
-<ul>
+<li>
+<p>It is easy to use source code management (SCM) tools like Git or Subversion to manage your code. Although an SCM is not a requirement for Link, Dyalog <strong><em>highly</em></strong> recommends using Git or similar systems to manage source code that Link will load into your APL session.</p>
+</li>
 <li>
 <p>Changes to your code are <strong>immediately</strong> written to file: there is no need to remember to save your work. The assumption is that you will make the record permanent with a <em>commit</em> to your source code management system, when the time is right.</p>
 </li>
 <li>
-<p>Unlike binary workspaces, text source can be shared between different versions of APL - or even with human readers or writers who don't have APL installed at all.</p>
-</li>
-<li>
-<p>Source code stored in external files is preserved exactly as typed, rather than being reconstructed from the tokenised form.</p>
+<p>Unlike binary workspaces, text source can usually be shared between different versions of APL - or even with human readers or writers who don't have APL installed at all.</p>
 </li>
 </ul>
 <h2 id="link-is-not">Link is NOT...</h2>
 <ul>
-<li><strong>A source code management system</strong>: Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.</li>
+<li><strong>A source code management system</strong>: Link itself has no source code management features. As mentioned above, you will need to use a separate tool like Git to manage the source files that Link will allow you to use and modify from Dyalog APL.</li>
 <li><strong>A database management system:</strong> although Link is able to store APL arrays using a pre-release of the <em>literal array notation</em>, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define using the editor will be written to source files by default, source files are only created for arrays by explicit calls to <a href="API/Link.Add/">Link.Add</a> or by specifying optional parameters to <a href="API/Link.Export/">Link.Export</a>. Application data should be stored in a database management system or files managed by the application.</li>
 </ul>
 <h2 id="link-fundamentals">Link fundamentals</h2>
@@ -793,7 +785,7 @@
 <li><strong>Keep source files up-to-date:</strong> 
 Any changes made to code in the active workspace using the tracer and editor are immediately replicated in the corresponding text files.</li>
 <li><strong>Keep the workspace up-to-date:</strong>
-If .NET is available, then any changes made to the external files using a text editor, or resulting from an <abbr title="Source Code Manager">SCM</abbr> action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.</li>
+If .NET is available, then any changes made to the external files using a text editor, or resulting from an SCM action such as rolling back or switching to a different branch, will immediately be reflected in the active workspace.</li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
