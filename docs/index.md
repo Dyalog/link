@@ -1,11 +1,11 @@
 !!! Note
-     Link version 4.0 and associated documentation are under development!
+     Link version 4.0 and its documentation are under development!
      You can track our progress [on GitHub](https://github.com/Dyalog/link/milestone/2).
 
 # Audience
 It is assumed the reader is a user of Dyalog APL using Dyalog APL version 19.0 or later. If you are currently managing text source using SALT or Link versions 1 or 2 and considering moving to Link 4.0, you might want to review documentation which describes differences between early versions of SALT and Link - these can be found in the [Link 3.0 documentation](https://dyalog.github.io/link/3.0/).
 
-If you are migrating from Link 3.0 to 4.0, you may want to begin with a review of the [new features of Link 4.0](ReleaseNotes40.md).
+Link 4.0 is designed to be upwards compatible with 3.0. If you are migrating from Link 3.0 to 4.0, you may want to begin with a review of the [new features of Link 4.0](ReleaseNotes40.md).
 
 # Introduction
 
