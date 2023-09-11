@@ -44,10 +44,14 @@ Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\L
 
 ## Upcoming Features
 
+The following significant features are defined in the [Link 4.0 milestone](https://github.com/Dyalog/link/milestone/2) and expected to be in Link 4.0 before release:
+
 * Storing multi-line character data in "flat" text files.
 * Transfer information about who last changed a source file from Git to `⎕AT` within APL.
-* Use a `.linkignore` file to list names in the active workspace which should be ignored by Link.
 
 ## Deferred Features
 
+The following features were originally in the Link 4.0 milestone, but have been moved to Link 5.0, which will be developed early in 2024.
+
 * The so-called crawler, which will periodically scan for differences between the active workspace and the linked source files, will be implemented immediately after the release of Link 4.0
+* Using a `.linkignore` file to list names in the active workspace which should be ignored by Link and in particular the crawler.
