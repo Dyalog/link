@@ -48,6 +48,7 @@ The following significant features are defined in the [Link 4.0 milestone](https
 
 * Storing multi-line character data in "flat" text files.
 * Transfer information about who last changed a source file from Git to `⎕AT` within APL.
+* The ability to re-establish broken links, possibly using `]link.create -resync`.
 
 ## Deferred Features
 
