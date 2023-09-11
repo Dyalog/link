@@ -11,24 +11,15 @@ Link 4.0 is designed to be upwards compatible with 3.0. If you are migrating fro
 
 ***Link*** allows you to use Unicode text files to store APL source code, rather than "traditional" binary workspaces. The benefits of using Link and text files include:
 
-* It is easy to use source code management tools like Git or Subversion to manage your code.
-
-!!! Note
-	Although an SCM is not a requirement for Link, if you are not already using a source code management system, we ***highly*** recommend making the effort to learn about and install Git.
-	
-	If you choose not to use an SCM then you just need your own strategy for taking suitable copies of your source files, as you would with workspaces.
+* It is easy to use source code management (SCM) tools like Git or Subversion to manage your code. Although an SCM is not a requirement for Link, Dyalog ***highly*** recommends using Git or similar systems to manage source code that Link will load into your APL session.
 
 * Changes to your code are **immediately** written to file: there is no need to remember to save your work. The assumption is that you will make the record permanent with a *commit* to your source code management system, when the time is right.
   
-* Unlike binary workspaces, text source can be shared between different versions of APL - or even with human readers or writers who don't have APL installed at all.
-
-* Source code stored in external files is preserved exactly as typed, rather than being reconstructed from the tokenised form.
-
-*[SCM]: Source Code Manager
+* Unlike binary workspaces, text source can usually be shared between different versions of APL - or even with human readers or writers who don't have APL installed at all.
 
 ## Link is NOT...
 
-- **A source code management system**: Link has no source code management features. You will need to use a separate tool like Git to manage the text files that Link will maintain for you as you work with Dyalog APL.
+- **A source code management system**: Link itself has no source code management features. As mentioned above, you will need to use a separate tool like Git to manage the source files that Link will allow you to use and modify from Dyalog APL.
 - **A database management system:** although Link is able to store APL arrays using a pre-release of the *literal array notation*, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define using the editor will be written to source files by default, source files are only created for arrays by explicit calls to [Link.Add](API/Link.Add.md) or by specifying optional parameters to [Link.Export](API/Link.Export.md). Application data should be stored in a database management system or files managed by the application.
 
 ## Link fundamentals

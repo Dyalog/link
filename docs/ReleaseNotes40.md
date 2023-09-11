@@ -6,8 +6,7 @@
      and instructions on migrating to Link from SALT, can be found in the
      [Link version 3.0 documentation](https://dyalog.github.io/link/3.0/).
 
-Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used with version 18.2. For instructions on using
-Link 4.0 with APL version 18.2, see the [installation instructions](Installation.md).
+Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used with version 18.2. For instructions on using Link 4.0 with APL version 18.2, see the [installation instructions](Installation.md).
 
 This page describes the most important enhancements to Link, delivered in version 4.0. For a complete list of changes, see the [version 4.0 milestone on GitHub](https://github.com/Dyalog/link/milestone/2).
 
@@ -54,5 +53,5 @@ The following significant features are defined in the [Link 4.0 milestone](https
 
 The following features were originally in the Link 4.0 milestone, but have been moved to Link 5.0, which will be developed early in 2024.
 
-* The so-called crawler, which will periodically scan for differences between the active workspace and the linked source files, will be implemented immediately after the release of Link 4.0
+* The so-called crawler, which will periodically scan for differences between the active workspace and the linked source files, will be implemented immediately after the release of Link 4.0. This feature will detect changes made to the workspace using other mechanisms than the editor, and also make Link independent of having a file system watcher available.
 * Using a `.linkignore` file to list names in the active workspace which should be ignored by Link and in particular the crawler.
