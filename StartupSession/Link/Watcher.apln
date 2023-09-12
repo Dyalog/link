@@ -114,26 +114,27 @@
      ⍝ dotnet supports collection of filters on single watcher.
       ⎕USING←',System',(~DOTNETCORE)/'.dll'
       path filters←args
+      watcher←⎕NEW System.IO.FileSystemWatcher
+      watcher.Filter←,'*'
+      watcher.NotifyFilter←System.IO.NotifyFilters.DirectoryName
+      r←,watcher
       :If DOTNETCORE
           watcher←⎕NEW System.IO.FileSystemWatcher
-          watcher.Path←path
           watcher.Filters.Add¨⊂¨⊆filters
-          watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
-          watcher.onError←'WatchError'
-          watcher.IncludeSubdirectories←1
-          r←watcher
-       :Else
-          r←⍬
+          watcher.NotifyFilter←System.IO.NotifyFilters.(FileName+LastWrite)
+          r,←watcher
+      :Else
           :For filter :In ⊆filters
-             watcher←⎕NEW System.IO.FileSystemWatcher
-             watcher.Path←path
-             watcher.Filter←filter
-             watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
-             watcher.onError←'WatchError'
-             watcher.IncludeSubdirectories←1
-             r,←watcher
+              watcher←⎕NEW System.IO.FileSystemWatcher
+              watcher.Filter←filter
+              watcher.NotifyFilter←System.IO.NotifyFilters.(FileName+LastWrite)
+              r,←watcher
           :EndFor
-       :EndIf
+      :EndIf
+      r.Path←⊂path
+      r.(onChanged onCreated onDeleted onRenamed)←⊂⊂'WatchEvent'
+      r.onError←⊂'WatchError'
+      r.IncludeSubdirectories←1
     ∇
 
 
