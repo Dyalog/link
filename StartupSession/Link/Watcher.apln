@@ -109,31 +109,48 @@
       :EndDisposable
     ∇
 
-    ∇ watcher←MakeWatcher args;⎕USING
-     ⍝ Return a FileSystemWatcher object
+    ∇ r←MakeWatcher args;filter;filters;path;watcher;⎕USING
+     ⍝ Return FileSystemWatcher object(s)
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
+     ⍝ Creates a vector of watchers on .Net Framework to watch specific extensions.
+     ⍝ dotnet supports collection of filters on single watcher.
       ⎕USING←',System',(~DOTNETCORE)/'.dll'
-      watcher←⎕NEW System.IO.FileSystemWatcher
-      watcher.(Path Filter)←args
-      watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
-      watcher.onError←'WatchError'
-      watcher.IncludeSubdirectories←1
+      path filters←args
+      :If DOTNETCORE
+          watcher←⎕NEW System.IO.FileSystemWatcher
+          watcher.Path←path
+          watcher.Filters.Add¨⊂¨⊆filters
+          watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
+          watcher.onError←'WatchError'
+          watcher.IncludeSubdirectories←1
+          r←watcher
+       :Else
+          r←⍬
+          :For filter :In ⊆filters
+             watcher←⎕NEW System.IO.FileSystemWatcher
+             watcher.Path←path
+             watcher.Filter←filter
+             watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
+             watcher.onError←'WatchError'
+             watcher.IncludeSubdirectories←1
+             r,←watcher
+          :EndFor
+       :EndIf
     ∇
-
 
 
 
    ⍝⍝⍝⍝⍝ MAIN API ⍝⍝⍝⍝⍝⍝⍝⍝
 
-    ∇ Watch link;args;end;q;r;tid;z
+    ∇ Watch link;filters;end;q;r;tid;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       link.fsw←⎕NULL
       :If ~'dir' 'both'∊⍨⊂link.watch
           :Return
       :EndIf
       :If DOTNET
-          args←link.dir(,'*')
-          r←MakeWatcher args
+          filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊢/typeExtensions)
+          r←MakeWatcher link.dir filters
           r.EnableRaisingEvents←1
           link.fsw←r
       :ElseIf CRAWLER
