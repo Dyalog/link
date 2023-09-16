@@ -2,8 +2,14 @@
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
+⍝ The left argument can have up to three elements, the last two being provided by the editor on a rename
+⍝ When used as an API function, where is usually either a ref or the name of a namespace
+⍝   [1] where:   the namespace to fix the source in
+⍝   [2] name:    the name of the object being created
+⍝   [3] oldname: the previous name
 ⍝ Return the list of names of objects that were fixed
-⍝   NB: in a linked namespace, only single-name sources are supported
+⍝   NB: in a linked namespace, the source must only define a single name
+
  ⎕IO ⎕ML←1 1
  :If U.debug=2
      (1+⊃⎕LC)⎕STOP⊃⎕SI
