@@ -21,7 +21,7 @@
                  r[i]←0
                  :Continue
              :EndIf
-             :If ¯9.1=nc  ⍝ trad ns
+             :If ¯9.1=nc ⍝ namespace linked to directory
              :AndIf (⊂U.NormNs name)∊links.ns  ⍝ is a link root
                  U.ErrorIfRestored links  ⍝ error only in linked namespaces
                  {}Break name  ⍝ github issue #119: tell user about problems
@@ -49,8 +49,8 @@
                          :EndIf
                      :Else
                          :If 9=⎕NC name
-                         :AndIf ~0∊⍴link←links U.LookupRef ⍎name
-                             U.Error 'You may not Expunge a linked namespace, class or interface'
+                         :AndIf ~0∊⍴link←links U.LookupRef ⍎name ⍝ Single linked file
+                             {}Break name
                          :EndIf
                          r[i]←parent.⎕EX name
                      :EndIf
