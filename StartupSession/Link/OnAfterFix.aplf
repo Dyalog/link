@@ -5,7 +5,7 @@
  ⍝ If obj is not linked, Link has no business here, but SALT might
  linked←0 ⍝ Let SALT have a go
 
- :If ~(ns∊# ⎕SE)∨U.IsNamedNs ns
+ :If ~((⊂ns)∊# ⎕SE '⎕SE',⊂'#')∨U.IsNamedNs ⍕ns
      ⍝ Warning removed due to #476 - uncomment this line to restore
      ⍝ U.Warn 'Ignoring Fix in unnamed namespace ',⍕ns
      →0
