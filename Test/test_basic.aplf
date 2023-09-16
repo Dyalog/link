@@ -166,6 +166,13 @@
 
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
+
+ old←⎕CS (⍕ns),'.bus'
+ ⎕SE.Link.Expunge '##.foo' ⍝ Test issue #506 is fixed
+ ⎕CS old
+ assert'0=⎕NC ''ns.foo'''
+ assert '~⎕NEXISTS folder,''/foo.dyalog'''
+
  _←2 QNDELETE folder,'/bus'
  assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
 
@@ -178,7 +185,6 @@
       ⍝ The the functions, one by one
  _←QNDELETE folder,'/nil.dyalog'
  assert'0=ns.⎕NC ''nil'''
- _←QNDELETE folder,'/foo.dyalog'
  assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
 
  _←(⊂'()') QNPUT folder,'/array.apla'

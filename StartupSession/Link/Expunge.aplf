@@ -1,4 +1,4 @@
- {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML;leaf;z
+ {r}←Expunge names;container;file;i;link;links;name;nc;oldfile;parent;ref;scal;shape;⎕IO;⎕ML;leaf;z;ns
 ⍝ Use in place of ⎕EX for linked names - will delete source files where relevant in addition to ⎕EX
  ⎕IO ⎕ML←1 1
  :If U.debug=2
@@ -13,7 +13,9 @@
              :If 0=≢i⊃names
                  nc←¯1
              :Else
-                 nc←container U.NameClass name←(⍕container){(1↑⍵)∊'#⎕':⍵ ⋄ ⍺,'.',⍵}i⊃names
+                 (ns name)←container U.SplitNs i⊃names
+                 ns←⍎ns ⍝ resolve e.g. #.linkdemo.##
+                 nc←container U.NameClass name←(⍕ns){(1↑⍵)∊'#⎕':⍵ ⋄ ⍺,'.',⍵}name
              :EndIf
              :If nc∊0 ¯1
                  r[i]←0
