@@ -5,6 +5,12 @@
  ⍝ If obj is not linked, Link has no business here, but SALT might
  linked←0 ⍝ Let SALT have a go
 
+ :If ~(ns∊# ⎕SE)∨U.IsNamedNs ns
+     ⍝ Warning removed due to #476 - uncomment this line to restore
+     ⍝ U.Warn 'Ignoring Fix in unnamed namespace ',⍕ns
+     →0
+ :EndIf
+
  :If oldname≢name
  :AndIf 1=≢link←U.LookupFile file  ⍝ Single-file link needs special rename handling
  :AndIf link.singlefile
