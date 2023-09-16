@@ -87,10 +87,8 @@
           :If 0∊⍴link←##.U.LookupFile obj.Path
               ##.U.Warn'FileSystemWatcher error on non-linked directory: ',obj.Path
           :Else
-              0 Pause link
-              msg←⊂'FileSystemWatcher error on linked directory: ',link.dir,' - Link has been paused. To recover, do:'
-              msg,←⊂'      ]Link.Refresh ',link.ns,' -source=dir'
-              ##.U.Warn 1↓##.U.FmtLines msg
+              msg←'FileSystemWatcher error on directory: ',link.dir,' watching may no longer be reliable.'
+              ##.U.Warn msg
           :EndIf
       :EndHold
     ∇
