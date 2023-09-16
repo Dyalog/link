@@ -8,6 +8,7 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
  assert '∧/1∊¨''watch: '' ''caseCode: ''⍷¨⊂z'
  config←getj5 ⎕SE.Link.USERCONFIGFILE
  assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert '⎕SE.Link.Version≡config.LinkVersion.ID'
 
 ⍝ --- Link.Create ---
 ⍝ Test that Link.Create uses the user config
