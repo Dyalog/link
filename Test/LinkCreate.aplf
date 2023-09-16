@@ -5,14 +5,18 @@
 :EndIf
 
 z←opts ⎕SE.Link.Create args
-→(1∊'ERRORS ENCOUNTERED'⍷z)⍴0
+
+⍝ →(1∊'ERRORS ENCOUNTERED'⍷z)⍴0 ⍝ This doesn't mean the link was not created
+⍝ e.g. you can have 1 export(s) failed: #.linktest.derived
 
 :If USE_MOCK_FSW ⍝ Disable the FSW
    :If 9≠⎕NC 'ns'⊣ns←1⊃args
+   :AndIf 9=⎕NC ns
        ns←⍎ns
    :EndIf
    i←⎕SE.Link.Links.ns⍳⊂⍕ns
-   :If ⎕SE.Link.Links[i].fsw≢⎕NULL
+   :If i≤≢⎕SE.Link.Links
+   :AndIf ⎕SE.Link.Links[i].fsw≢⎕NULL
       ⎕SE.Link.Links[i].fsw.Dispose
       ⎕SE.Link.Links[i].fsw←⎕NULL
    :EndIf
