@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create <ns> <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig]
+    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -9,8 +9,10 @@
 
 ## Arguments
 
-- `namespace` is either a reference to, or a simple character vector containing the name of a namespace.  
-	In the user command `<ns>` is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing `[namespace]` or similar segments).
+- `namespace` is optional; if it is not provided, `-source=dir` is implied and a link with the name of the directory being linked to will be created within the current namespace. If provided, it must be a reference to, or a simple character vector containing the name of a namespace.  
+	
+	Note that if a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace. Links can not be created to "anonymous" spaces with names containing `[namespace]` or similar segments.
+	
 - `dirorfile` is a simple character vector containing the path to a file system directory (without a trailing backslash), or a single text file defining a namespace, class or interface.
 
 ## Result
@@ -25,7 +27,7 @@ Default: **auto**
 
 The **source** option specifies whether to consider the namespace in the active workspace (ns) or directory on the file system (dir) as the source (also used by a subsequent [Refresh](Link.Refresh.md)).
 
-`source` is a simple character vector, one of `'ns'`, `'dir'` or `'auto'`.
+`source` is a simple character vector, one of `'ns'`, `'dir'` or `'auto'`. From Link version 4.0, a file name can be used to load a namespace, class or interface from a single file, but `dir` is still used in this case.
 
 - **dir** means that the namespace must be non-existent or empty and will be populated from source files.
 - **ns** means that the directory must be non-existent or empty and will be populated by source files for the items in the namespace.
