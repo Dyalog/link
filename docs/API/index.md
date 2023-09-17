@@ -49,6 +49,7 @@ Function | User Command | Right Argument(s) | Left Argument(s) | Result
 --------|-------------|-----------------|----------------|------
 [Add](Link.Add.md) | `]Add` | items | *<none>* | message                                                                                      
 [Break](Link.Break.md) | `]Break` | namespaces | options: `all` `recursive` | message                                                               
+[Configure](Link.Configure.md) | `]Configure` | target settings | <none>                                                       | current or previous settings 
 [Create](Link.Create.md) | `]Create` | namespace directory | options: `source` `watch` `arrays` (and [many more](Link.Create.md#common-options)) | message
 [Export](Link.Export.md) | `]Export` | namespace directory | options: `overwrite` `caseCode` `arrays` `sysVars` | message             
 [Expunge](Link.Expunge.md) | `]Expunge` | items | *<none>* | boolean array                                                             

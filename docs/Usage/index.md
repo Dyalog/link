@@ -10,7 +10,7 @@ The following example loads APL code from the folder **/users/sally/myapp** into
       ⎕SE.Link.Create myapp '/users/sally/myapp'
 ```
 
-For every day use in the session, it might be more convenient to use the user command:
+For ad hoc use in an interactive session, it might be more convenient to use the user command:
 ```APL
       ]LINK.Create myapp /users/sally/myapp
 ```
@@ -22,14 +22,14 @@ With a standard Dyalog 18.2 installation under Microsoft Windows, you can also r
 
 ## Importing code without creating a link
 
-Sometimes you want to experiment and make modifications to your code without saving those changes. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:
+Sometimes you want to load some code in order to run it, without intending to make any modifications - or you might want to experiment and make modifications to the code, but want to be sure that the source files are not updated. Use [Link.Import](../API/Link.Import.md) to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:
 
 ```apl
       ]LINK.Import myapp /users/sally/myapp
 ```
 
 ## Starting a new project
-If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both), and use [Link.Create](../API/Link.Create.md), naming the namespace and the folder, as in the example at the start of this page.
+If you are starting a completely new project, you can either create a namespace in the active workspace, or a folder on the file system (or both), and use [Link.Create](../API/Link.Create.md), naming the namespace and the folder, as in the example at the start of this page.
 
 - If neither of them exist, Link.Create will reject the request on suspicion that there is a typo, in order to avoid silently creating an empty directory by mistake.
 - If both of them exist AND contain code, and the code is not identical on both sides, Link.Create will fail and you will need to specify the  `source` option, whether the namespace or the directory should be considered to be the source. Incorrectly specifying the source will potentially overwrite existing content on the other side, so use this with extreme caution!
@@ -72,26 +72,16 @@ Linked: stats ←→ users/sally/stats
 If your existing code is in a workspace rather than in text files, you should read the section on [converting a workspace to source files](WStoLink.md) before continuing.
 
 ## Saving your work
-Once a link is set up using [Link.Create](../API/Link.Create.md), you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the `stats` namespace are instantly copied to the corresponding source file.
+Once a link is set up using [Link.Create](../API/Link.Create.md), you can work with your code using the Dyalog exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make (using the APL editor) to the code within the `stats` namespace are instantly copied to the corresponding source file.
+
+In the context of this document, the term *Dyalog IDE* includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.
 
 The use of a source code management system like Git is recommended. If you do that, then you effectively save your work by doing a commit.
 
-!!! Note
-	In the context of this document, the term *Dyalog IDE* includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.
+Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any changes that you make will be replicated in the active workspace - assuming that .NET (Framework, or 6.0 and later versions) is available and your APL system is configured to use it.
 
-Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).
-
-!!! Note
-	For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.
-	
-	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
-	
-	To find out which versions are supported, see [section 2.1 of the .NET Core Interface Guide](https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf) and under the heading "Prerequisites" in [chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide](https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf).
-	
-	The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
-	to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is *NOT* a reliable mechanism 
-	for deployment of new code to running systems. For example, running a server
-	with an active link and patching it simply by modifying linked source files IS *NOT RECOMMENDED*.
+!!! Note 
+	Note that, although a so-called .NET *File System Watcher* (FSW) is useful for immediately picking up changes made using an external editor, a FSW is *NOT* a reliable mechanism for deployment of new code to running systems. For example, running a server with an active link and patching it simply by modifying linked source files IS *NOT RECOMMENDED*.
 
 If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a `Median` function to the namespace we created earlier:
 
@@ -122,7 +112,7 @@ The function (and corresponding user command) [Link.Status](../API/Link.Status.m
 
 ```apl
        ]link.status
- Namespace  Directory            Files
+ Namespace  Source                   Files
  #.stats    /users/sally/stats       4  
 ```
 
@@ -135,13 +125,13 @@ See the [technical details on breaking links](../Discussion/TechDetails.md#break
 
 ## Changes made outside the Editor
 
-When changes are made using the editor which is built-in to Dyalog IDE (which includes RIDE), source files are updated immediately. Changes made outside the editor will not immediately be picked up. This includes:
+When changes are made using the editor which is built-in to Dyalog APL (Windows IDE or RIDE), source files are updated immediately. Changes made outside the editor will not immediately be picked up. This includes:
 
-* Definitions created or changed using assignment (`←`), `⎕FX`  or `⎕FIX` - or the APL line "`∇`" editor.
+* Definitions created or changed using assignment (`←`), `⎕FX`  or `⎕FIX`.
 * Definitions moved between workspaces or namespaces using `⎕CY`, `⎕NS` or `)COPY`.
 * Definitions erased using `⎕EX`or `)ERASE`
 
-If you write tools which modify source code under program control, it is a good idea to call the API functions [Link.Fix](../API/Link.Fix.md) or [Link.Expunge](../API/Link.Expunge.md) to inform Link that you have made the change.
+If you write tools which modify source code under program control, such as linters or search/replace tools, you should call the API functions [Link.Fix](../API/Link.Fix.md) or [Link.Expunge](../API/Link.Expunge.md) to update the definitions, so that Link can take appropriate action such as updating source files.
 
 If you update the source files under program control and inbound synchronisation is not enabled, you can use [Link.Notify](../API/Link.Notify.md) to let Link know about an external change that you would like to bring into the workspace.
 
@@ -156,6 +146,8 @@ However, if you have arrays that represent error tables, range definitions or ot
       ]Link.Add stats.Directions
 Added: #.stats.Directions
 ```
+
+Link uses *APL Array Notation* to store arrays in text files.
 
 Once you have created a source file for an array, Link *will* update that file if you use the editor to modify the array. Only if you modify the array using assignment or other means than the editor will you need to call [Link.Add](../API/Link.Add.md) to force an update of the source file.
 

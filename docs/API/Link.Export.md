@@ -1,6 +1,6 @@
 # Link.Export
 
-    ]LINK.Export <ns> <dir> [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars]
+    ]LINK.Export [ns] <dir> [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars]
     
     msg ← {opts} ⎕SE.Link.Export (ns dir) 
 
@@ -14,7 +14,7 @@ If the source is anything else, then the destination is interpreted as a directo
 
 #### Arguments
 
-- ns : unscripted namespace or APL name
+- ns : unscripted namespace or APL name. If ns is not provided, the default is to use the current namespace.
 - dir: directory or file name
 
 #### Options

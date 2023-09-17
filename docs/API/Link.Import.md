@@ -1,6 +1,6 @@
 # Link.Import
 
-    ]LINK.Import <ns> <dir> [-overwrite] [-flatten] [-fastload] 
+    ]LINK.Import [ns] <dir> [-overwrite] [-flatten] [-fastload] 
     
     msg ← {opts} ⎕SE.Link.Import (ns dir)
 
@@ -14,7 +14,7 @@ If source is a single file, then the corresponding APL name is created in the de
 
 #### Arguments
 
-- ns: namespace
+- ns: namespace. If `ns` is not provided, it defaults to the current namespace.
 - dir: directory or file name
 
 #### Options
