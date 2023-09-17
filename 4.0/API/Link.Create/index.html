@@ -1098,7 +1098,7 @@
                 
                 <h1 id="linkcreate">Link.Create</h1>
 <h2 id="syntax">Syntax</h2>
-<pre><code>]LINK.Create &lt;ns&gt; &lt;dirorfile&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig]
+<pre><code>]LINK.Create [ns] &lt;dirorfile&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig]
 
 message ← {options} ⎕SE.Link.Create (namespace directory)
 </code></pre>
@@ -1107,9 +1107,13 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 </div>
 <h2 id="arguments">Arguments</h2>
 <ul>
-<li><code>namespace</code> is either a reference to, or a simple character vector containing the name of a namespace.<br />
-    In the user command <code>&lt;ns&gt;</code> is simply the name of the namespace. If a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace (as opposed to an "anonymous" space with a name containing <code>[namespace]</code> or similar segments).</li>
-<li><code>dirorfile</code> is a simple character vector containing the path to a file system directory (without a trailing backslash), or a single text file defining a namespace, class or interface.</li>
+<li>
+<p><code>namespace</code> is optional; if it is not provided, <code>-source=dir</code> is implied and a link with the name of the directory being linked to will be created within the current namespace. If provided, it must be a reference to, or a simple character vector containing the name of a namespace.  </p>
+<p>Note that if a reference is used, it must refer to a namespace which has a display form which has name class 9 and can be used to locate the namespace. Links can not be created to "anonymous" spaces with names containing <code>[namespace]</code> or similar segments.</p>
+</li>
+<li>
+<p><code>dirorfile</code> is a simple character vector containing the path to a file system directory (without a trailing backslash), or a single text file defining a namespace, class or interface.</p>
+</li>
 </ul>
 <h2 id="result">Result</h2>
 <ul>
@@ -1124,7 +1128,7 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <h3 id="source"><strong>source</strong></h3>
 <p>Default: <strong>auto</strong></p>
 <p>The <strong>source</strong> option specifies whether to consider the namespace in the active workspace (ns) or directory on the file system (dir) as the source (also used by a subsequent <a href="../Link.Refresh/">Refresh</a>).</p>
-<p><code>source</code> is a simple character vector, one of <code>'ns'</code>, <code>'dir'</code> or <code>'auto'</code>.</p>
+<p><code>source</code> is a simple character vector, one of <code>'ns'</code>, <code>'dir'</code> or <code>'auto'</code>. From Link version 4.0, a file name can be used to load a namespace, class or interface from a single file, but <code>dir</code> is still used in this case.</p>
 <ul>
 <li><strong>dir</strong> means that the namespace must be non-existent or empty and will be populated from source files.</li>
 <li><strong>ns</strong> means that the directory must be non-existent or empty and will be populated by source files for the items in the namespace.</li>

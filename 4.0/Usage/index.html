@@ -939,18 +939,18 @@
 <p>The following example loads APL code from the folder <strong>/users/sally/myapp</strong> into a namespace called <code>myapp</code>.</p>
 <pre><code class="language-APL">      ⎕SE.Link.Create myapp '/users/sally/myapp'
 </code></pre>
-<p>For every day use in the session, it might be more convenient to use the user command:</p>
+<p>For ad hoc use in an interactive session, it might be more convenient to use the user command:</p>
 <pre><code class="language-APL">      ]LINK.Create myapp /users/sally/myapp
 </code></pre>
 <h2 id="linking-a-directory-on-startup">Linking a directory on startup</h2>
 <p>If you are using Dyalog version 18.2 or later, you can cause a link to be created to the root of your workspace (<code>#</code>) as APL starts, by setting the <code>LOAD</code> parameter on the command line or as an environment variable. After establishing the link, the system will call the function <code>Run</code> with a right argument containing the name of the directory. You can disable the call to <code>Run</code> by including the <code>-x</code> switch on the command line (in the same way that the <code>-x</code> switch inhibits the execution of the latent expression when loading a workspace).</p>
 <p>With a standard Dyalog 18.2 installation under Microsoft Windows, you can also right click on a directory and select "Open with Dyalog" or "Run with Dyalog" to create a link on startup and optionally call <code>Run</code>.</p>
 <h2 id="importing-code-without-creating-a-link">Importing code without creating a link</h2>
-<p>Sometimes you want to experiment and make modifications to your code without saving those changes. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:</p>
+<p>Sometimes you want to load some code in order to run it, without intending to make any modifications - or you might want to experiment and make modifications to the code, but want to be sure that the source files are not updated. Use <a href="../API/Link.Import/">Link.Import</a> to bring code from text source files into the active workspace without creating a link. The syntax of Import is almost identical to Create. The important difference being that changes to code in the workspace or in source files are not tracked or acted upon following an Import. For example:</p>
 <pre><code class="language-apl">      ]LINK.Import myapp /users/sally/myapp
 </code></pre>
 <h2 id="starting-a-new-project">Starting a new project</h2>
-<p>If you are starting a completely new project, create either a namespace in the active workspace or a folder on the file system (or both), and use <a href="../API/Link.Create/">Link.Create</a>, naming the namespace and the folder, as in the example at the start of this page.</p>
+<p>If you are starting a completely new project, you can either create a namespace in the active workspace, or a folder on the file system (or both), and use <a href="../API/Link.Create/">Link.Create</a>, naming the namespace and the folder, as in the example at the start of this page.</p>
 <ul>
 <li>If neither of them exist, Link.Create will reject the request on suspicion that there is a typo, in order to avoid silently creating an empty directory by mistake.</li>
 <li>If both of them exist AND contain code, and the code is not identical on both sides, Link.Create will fail and you will need to specify the  <code>source</code> option, whether the namespace or the directory should be considered to be the source. Incorrectly specifying the source will potentially overwrite existing content on the other side, so use this with extreme caution!</li>
@@ -982,22 +982,13 @@ Linked: stats ←→ users/sally/stats
 <h2 id="starting-a-project-from-a-workspace">Starting a project from a workspace</h2>
 <p>If your existing code is in a workspace rather than in text files, you should read the section on <a href="WStoLink/">converting a workspace to source files</a> before continuing.</p>
 <h2 id="saving-your-work">Saving your work</h2>
-<p>Once a link is set up using <a href="../API/Link.Create/">Link.Create</a>, you can work with your code using the Dyalog IDE exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make to the code, using the Dyalog editor, within the <code>stats</code> namespace are instantly copied to the corresponding source file.</p>
-<p>The use of a source code management system like Git is recommended. If you do that, then you effectively save your work by doing a commit.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
+<p>Once a link is set up using <a href="../API/Link.Create/">Link.Create</a>, you can work with your code using the Dyalog exactly as you would if you were not using Link; the only difference being that Link will ensure that any changes you make (using the APL editor) to the code within the <code>stats</code> namespace are instantly copied to the corresponding source file.</p>
 <p>In the context of this document, the term <em>Dyalog IDE</em> includes both the Windows IDE and the Remote IDE (RIDE), which is tightly integrated with the interpreter.</p>
-</div>
-<p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any change that you make will be replicated in the active workspace (assuming that a .NET File System Watcher is available).</p>
+<p>The use of a source code management system like Git is recommended. If you do that, then you effectively save your work by doing a commit.</p>
+<p>Conversely, if you are new to Dyalog APL, and have a favourite editor, you can use it to edit the source files directly, and any changes that you make will be replicated in the active workspace - assuming that .NET (Framework, or 6.0 and later versions) is available and your APL system is configured to use it.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For Dyalog to automatically update workspace contents due to file changes requires Microsoft .NET.</p>
-<p>The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
-<p>To find out which versions are supported, see <a href="https://docs.dyalog.com/latest/dotNET%20Core%20Interface%20Guide.pdf">section 2.1 of the .NET Core Interface Guide</a> and under the heading "Prerequisites" in <a href="https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf">chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide</a>.</p>
-<p>The File System Watcher (FSW) is useful for immediately picking up changes made using an external editor, allowing you
-to combine the best features of the Dyalog IDE with a favourite external editor. However, an FSW is <em>NOT</em> a reliable mechanism 
-for deployment of new code to running systems. For example, running a server
-with an active link and patching it simply by modifying linked source files IS <em>NOT RECOMMENDED</em>.</p>
+<p>Note that, although a so-called .NET <em>File System Watcher</em> (FSW) is useful for immediately picking up changes made using an external editor, a FSW is <em>NOT</em> a reliable mechanism for deployment of new code to running systems. For example, running a server with an active link and patching it simply by modifying linked source files IS <em>NOT RECOMMENDED</em>.</p>
 </div>
 <p>If you use editors inside or outside the APL system to add new functions, operators, namespaces or classes,  the corresponding change will be made on the other side of the link. For example, we could add a <code>Median</code> function to the namespace we created earlier:</p>
 <pre><code class="language-apl">      )ED stats.Median
@@ -1016,7 +1007,7 @@ with an active link and patching it simply by modifying linked source files IS <
 <h2 id="viewing-the-status-of-links">Viewing the status of links</h2>
 <p>The function (and corresponding user command) <a href="../API/Link.Status/">Link.Status</a> will show namespaces that are currently linked and the folders to which they are linked. For example:</p>
 <pre><code class="language-apl">       ]link.status
- Namespace  Directory            Files
+ Namespace  Source                   Files
  #.stats    /users/sally/stats       4  
 </code></pre>
 <h2 id="un-linking-a-namespace">Un-Linking a namespace</h2>
@@ -1024,13 +1015,13 @@ with an active link and patching it simply by modifying linked source files IS <
 <p>Clearing the workspace, for example using <code>)CLEAR</code>, or exiting Dyalog, for example with <code>)OFF</code>, will also break all links in the active workspace.</p>
 <p>See the <a href="../Discussion/TechDetails/#breaking-links">technical details on breaking links</a> for more information, for example about what happens when you delete a linked namespace from the active workspace.</p>
 <h2 id="changes-made-outside-the-editor">Changes made outside the Editor</h2>
-<p>When changes are made using the editor which is built-in to Dyalog IDE (which includes RIDE), source files are updated immediately. Changes made outside the editor will not immediately be picked up. This includes:</p>
+<p>When changes are made using the editor which is built-in to Dyalog APL (Windows IDE or RIDE), source files are updated immediately. Changes made outside the editor will not immediately be picked up. This includes:</p>
 <ul>
-<li>Definitions created or changed using assignment (<code>←</code>), <code>⎕FX</code>  or <code>⎕FIX</code> - or the APL line "<code>∇</code>" editor.</li>
+<li>Definitions created or changed using assignment (<code>←</code>), <code>⎕FX</code>  or <code>⎕FIX</code>.</li>
 <li>Definitions moved between workspaces or namespaces using <code>⎕CY</code>, <code>⎕NS</code> or <code>)COPY</code>.</li>
 <li>Definitions erased using <code>⎕EX</code>or <code>)ERASE</code></li>
 </ul>
-<p>If you write tools which modify source code under program control, it is a good idea to call the API functions <a href="../API/Link.Fix/">Link.Fix</a> or <a href="../API/Link.Expunge/">Link.Expunge</a> to inform Link that you have made the change.</p>
+<p>If you write tools which modify source code under program control, such as linters or search/replace tools, you should call the API functions <a href="../API/Link.Fix/">Link.Fix</a> or <a href="../API/Link.Expunge/">Link.Expunge</a> to update the definitions, so that Link can take appropriate action such as updating source files.</p>
 <p>If you update the source files under program control and inbound synchronisation is not enabled, you can use <a href="../API/Link.Notify/">Link.Notify</a> to let Link know about an external change that you would like to bring into the workspace.</p>
 <h2 id="arrays">Arrays</h2>
 <p>By default, Link does not consider arrays to be part of the source code of an application and will not write arrays to source files unless you explicitly request it. Link is not intended to be used as a database management system; if you have arrays that are modified during the normal running of your application, we recommend that you store that data in an RDBMS or other files that are managed by the application code, rather than using Link for this.</p>
@@ -1039,6 +1030,7 @@ with an active link and patching it simply by modifying linked source files IS <
       ]Link.Add stats.Directions
 Added: #.stats.Directions
 </code></pre>
+<p>Link uses <em>APL Array Notation</em> to store arrays in text files.</p>
 <p>Once you have created a source file for an array, Link <em>will</em> update that file if you use the editor to modify the array. Only if you modify the array using assignment or other means than the editor will you need to call <a href="../API/Link.Add/">Link.Add</a> to force an update of the source file.</p>
 <p>Changes made to source files, including the addition of new <code>.apla</code>files, will always be reflected in the workspace, if the link has been set up to watch the file system.</p>
 <h2 id="setting-up-development-and-runtime-environments">Setting up Development and Runtime Environments</h2>

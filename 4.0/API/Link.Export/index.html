@@ -821,7 +821,7 @@
                 
                 
                 <h1 id="linkexport">Link.Export</h1>
-<pre><code>]LINK.Export &lt;ns&gt; &lt;dir&gt; [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars]
+<pre><code>]LINK.Export [ns] &lt;dir&gt; [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars]
 
 msg ← {opts} ⎕SE.Link.Export (ns dir)
 </code></pre>
@@ -833,7 +833,7 @@ msg ← {opts} ⎕SE.Link.Export (ns dir)
 <p>If the source is anything else, then the destination is interpreted as a directory (and a correctly named file will be created there), <em>unless</em> it ends with a recognised extension (like <code>.aplf</code>), in which case it is interpreted as a file name.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>ns : unscripted namespace or APL name</li>
+<li>ns : unscripted namespace or APL name. If ns is not provided, the default is to use the current namespace.</li>
 <li>dir: directory or file name</li>
 </ul>
 <h4 id="options">Options</h4>

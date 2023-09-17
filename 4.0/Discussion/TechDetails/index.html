@@ -947,24 +947,45 @@
 <h2 id="supported-objects">Supported Objects</h2>
 <p>In the following, for want of a better word, the term <em>object</em> will be used to refer to any kind of named entity that can exist in an APL workspace - not limited to classes or instances.</p>
 <p><strong>Supported:</strong> Link supports objects of name class 2.1 (array), 3.1 (traditional function), 3.2 (d-function), 4.1 (traditional operator), 4.2 (d-operator), 9.1 (namespace), 9.4 (class) and 9.5 (interface).</p>
-<p><strong>Unscripted Namespaces:</strong> Namespaces created with <code>⎕NS</code> or <code>)NS</code> have no source code of their own and are mapped to directories. In Link version 3.0, one endpoint of a link is always an unscripted namespace and the other endpoint of the link is a directory.</p>
-<p><strong>Scripted Namespaces:</strong> So-called scripted namespaces, created using the editor or <code>⎕FIX</code>, have textual source and are treated the same way as functions and other "code objects". Link 3.0 does not support scripted namespaces, or any other objects that map to a single source file, as <strong><em>endpoints</em></strong> for a link, although they are supported as objects <em>within</em> a linked namespace.</p>
-<p>It is likely that this restriction will be lifted in a future version of Link.</p>
+<p><strong>Unscripted Namespaces:</strong> Namespaces created with <code>⎕NS</code> or <code>)NS</code> have no source code of their own and are mapped to directories.</p>
+<p><strong>Classes and Scripted Namespaces:</strong> Classes and so-called <em>scripted</em> namespaces created using the editor or <code>⎕FIX</code>, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allows only as objects <em>within</em> a an unscripted linked namespace.</p>
+<p>Note that <em>unnamed</em> namespaces are <strong>NOT</strong> supported, either as endpoints of a Link or indeed within a linked namespace: <strong>Changes to - or within - unnamed namespaces will be ignored by Link</strong>. This is discussed in more detail in the next section.</p>
 <p><strong>Variables</strong> are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with <a href="../../API/Link.Add/">Link.Add</a>, or with the <code>-arrays</code> modifier of <a href="../../API/Link.Create/">Link.Create</a> and <a href="../../API/Link.Export/">Link.Export</a>.</p>
 <p><strong>Functions and Operators:</strong> Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.</p>
-<p><strong>Unsupported:</strong> Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).</p>
+<p><strong>Unsupported:</strong> In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).</p>
 <h2 id="other-limitations">Other Limitations</h2>
 <ul>
 <li>Namespaces must be named. To be precise, it must be true that <code>ns≡(⎕NS⍬)⍎⍕ns</code>. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using <code>⎕NS</code> dyadically to name the created namespace (for example <code>'myproject' ⎕NS ⍬</code> rather than <code>myproject←⎕NS ⍬</code>). This allows retrieving namespace reference from its display form (for example <code>#.myproject</code> rather than <code>#.[namespace]</code>).</li>
-<li>There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on <a href="../../API/Link.Create/">Link.Create</a> or <a href="../../API/Link.Import/">Link.Import</a>.</li>
-<li>Names which have source files should not have more than one definition within the same namespace. For example, if you have a global constant linked to a source file, you should not reuse that name for a local variable. If you were to edit the local variable while tracing, Link would be unable to distinguish it from the global name, and overwrite the source file.</li>
-<li>In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The <code>caseCode</code> option can be used to get Link to generate file names which encode case information - see <a href="../../API/Link.Create/">Link.Create</a> for more information.</li>
-<li>Link does not support namespace-tagged functions and operators (e.g. <code>foo←namespace.{function}</code>).</li>
-<li>Changes made using <code>←</code>, <code>⎕NS</code>, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>, <code>)NS</code> and <code>)COPY</code> or the APL line <code>∇</code> editor are not currently detected. For Link to be aware of the change, a call must be made to <a href="../../API/Link.Fix/">Link.Fix</a>. Similarly, deletions with <code>⎕EX</code> or <code>)ERASE</code> must be replaced by a call to <a href="../../API/Link.Expunge/">Link.Expunge</a>.</li>
-<li>Link does not support source files that define multiple names, even though <code>2∘⎕FIX</code> does support this.</li>
-<li>The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor <em>will</em> detect changes to source files on all platforms, when it opens an editor window.</li>
-<li>Source code must not have embedded newlines within character constants. Although <code>⎕FX</code> does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to <code>⎕UCS</code> e.g. <code>newline←⎕UCS 13 10  ⍝ carriage-return + line-feed</code></li>
-<li>Although Link 3.0 will work with Dyalog version 18.0, Dyalog v18.2 or later is recommended if it is important that all source be preserved as typed. Earlier versions of APL may occasionally lose the source as typed under certain circumstances (and revert of source code generated from tokens, which may be formatted slightly differently).</li>
+</ul>
+<p>Changes to - or within - unnamed namespaces will be ignored.</p>
+<ul>
+<li>
+<p>There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on <a href="../../API/Link.Create/">Link.Create</a> or <a href="../../API/Link.Import/">Link.Import</a>.</p>
+</li>
+<li>
+<p>Names which have source files should not have more than one definition within the same namespace. For example, if you have a global constant linked to a source file, you should not reuse that name for a local variable. If you were to edit the local variable while tracing, Link would be unable to distinguish it from the global name, and overwrite the source file.</p>
+</li>
+<li>
+<p>In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The <code>caseCode</code> option can be used to get Link to generate file names which encode case information - see <a href="../../API/Link.Create/">Link.Create</a> for more information.</p>
+</li>
+<li>
+<p>Link does not support namespace-tagged functions and operators (e.g. <code>foo←namespace.{function}</code>).</p>
+</li>
+<li>
+<p>Changes made using <code>←</code>, <code>⎕NS</code>, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>, <code>)NS</code> and <code>)COPY</code> are not currently detected. For Link to be aware of the change, a call must be made to <a href="../../API/Link.Fix/">Link.Fix</a>. Similarly, deletions with <code>⎕EX</code> or <code>)ERASE</code> must be replaced by a call to <a href="../../API/Link.Expunge/">Link.Expunge</a>.</p>
+</li>
+<li>
+<p>In Dyalog versions 18.2 or earlier, changes made using the line or "del" editor are not detected.</p>
+</li>
+<li>
+<p>Link does not support source files that define multiple names, even though <code>2∘⎕FIX</code> does support this.</p>
+</li>
+<li>
+<p>The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor <em>will</em> detect changes to source files on all platforms, when it opens an editor window.</p>
+</li>
+<li>
+<p>Source code must not have embedded newlines within character constants. Although <code>⎕FX</code> does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to <code>⎕UCS</code> e.g. <code>newline←⎕UCS 13 10  ⍝ carriage-return + line-feed</code></p>
+</li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -974,7 +995,7 @@ the creation of a file named <code>ŒIO.apla</code>. Depending on the names of y
 this may make it difficult to share source files between Classic and Unicode interpreters.</p>
 </div>
 <h2 id="how-does-link-work">How does Link work?</h2>
-<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of September 2021.</p>
+<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of September 2023, at the end of the Link 4.0 development cycle.</p>
 <p><strong>Terminology:</strong> In the following, the term <em>object</em> is used very loosely to refer to functions, operators, namespaces, classes and arrays.</p>
 <h3 id="what-exactly-is-a-link">What Exactly is a Link?</h3>
 <p>A link connects a namespace in the active workspace (which can be the root namespace <code>#</code>) to a directory in the file system. </p>
@@ -994,15 +1015,14 @@ this may make it difficult to share source files between Classic and Unicode int
 <p>Link writes textual representations of APL objects to UTF-8 text files (but can load source files created using any Unicode encoding). Most of the time, it uses the system function <code>⎕SRC</code> to extract the source form writing it to file using <code>⎕NPUT</code>. There are two exceptions to this:</p>
 <ul>
 <li>So-called "unscripted" namespaces, which contain other objects but do not themselves have a textual source, are represented as sub-directories in the file system (which may contain source files for the objects within the namespace).</li>
-<li>Arrays are converted to source form using the function <code>⎕SE.Dyalog.Array.Serialise</code>. It is expected that the APL language engine will, in the future, support the "literal array notation", and that <code>⎕SRC</code>will one day be extended to perform this function, but there is as yet no schedule for this.</li>
+<li>Arrays are converted to source form using the function <code>⎕SE.Dyalog.Array.Serialise</code>. It is expected that the APL language engine will, in the future, support the "literal array notation".</li>
 </ul>
 <h4 id="loading-apl-objects-from-source">Loading APL Objects from Source</h4>
 <p>With the exception of variables stored in <code>.apla</code> files, which are processed by <code>⎕SE.Dyalog.Array.Deserialise</code>, Link loads code into the workspace using <code>2 ⎕FIX</code>. </p>
 <p>When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a <em>new</em> function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.</p>
 <p>If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.</p>
 <h3 id="the-source-of-link-itself">The Source of Link itself</h3>
-<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. The code is included with installations of Dyalog version 18.1 or later. </p>
-<p>If you want to use Link with version 18.0 or download and install Link from GitHub, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
+<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed withDyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
 <h3 id="the-crawler">The Crawler</h3>
 <p>In a future version of Link, an optional and configurable crawler will be able to run in the background and occasionally compare linked namespaces and directories, using the same logic as <a href="../../API/Link.Resync/">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
 <ul>
@@ -1019,7 +1039,6 @@ this may make it difficult to share source files between Classic and Unicode int
 <ul>
 <li>Adding the <a href="#the-crawler">crawler</a>, which will automatically run <a href="../../API/Link.Resync/">Link.Resync</a> in the background, in order to detect and help eliminate differences between the contents of linked namespaces and the corresponding directories. It may replace the File System Watcher in environments where it is not available.</li>
 <li>Replacing the use of SALT in Dyalog's tools, including a new implementation of user commands and other mechanisms for loading source code into the interpreter based on Link instead.</li>
-<li>Support for linking individual source files: Link 3.0 is only able to link a namespace to a directory. There are situations where it is practical to create a link to a single source file, particularly in the case of a scripted namespace.</li>
 </ul>
 <p>Over time, it is a strategic goal for Dyalog to move more of the work done by Link into the APL interpreter, such as:</p>
 <ul>

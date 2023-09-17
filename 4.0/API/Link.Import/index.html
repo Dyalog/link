@@ -821,7 +821,7 @@
                 
                 
                 <h1 id="linkimport">Link.Import</h1>
-<pre><code>]LINK.Import &lt;ns&gt; &lt;dir&gt; [-overwrite] [-flatten] [-fastload]
+<pre><code>]LINK.Import [ns] &lt;dir&gt; [-overwrite] [-flatten] [-fastload]
 
 msg ← {opts} ⎕SE.Link.Import (ns dir)
 </code></pre>
@@ -833,7 +833,7 @@ msg ← {opts} ⎕SE.Link.Import (ns dir)
 <p>If source is a single file, then the corresponding APL name is created in the destination namespace.</p>
 <h4 id="arguments">Arguments</h4>
 <ul>
-<li>ns: namespace</li>
+<li>ns: namespace. If <code>ns</code> is not provided, it defaults to the current namespace.</li>
 <li>dir: directory or file name</li>
 </ul>
 <h4 id="options">Options</h4>
