@@ -24,9 +24,11 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 
 - Namespaces must be named. To be precise, it must be true that `ns≡(⎕NS⍬)⍎⍕ns`. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using `⎕NS` dyadically to name the created namespace (for example `'myproject' ⎕NS ⍬` rather than `myproject←⎕NS ⍬`). This allows retrieving namespace reference from its display form (for example `#.myproject` rather than `#.[namespace]`).
 
-  Changes to - or within - unnamed namespaces will be ignored.
+  **Changes to - or within - unnamed namespaces will be ignored.**
 
 - There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on [Link.Create](../API/Link.Create.md) or [Link.Import](../API/Link.Import.md).
+
+  In other words, Link does not support source files that define multiple names, even though `2∘⎕FIX` does support this.
 
 - Names which have source files should not have more than one definition within the same namespace. For example, if you have a global constant linked to a source file, you should not reuse that name for a local variable. If you were to edit the local variable while tracing, Link would be unable to distinguish it from the global name, and overwrite the source file.
 
@@ -37,8 +39,6 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 - Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` are not currently detected. For Link to be aware of the change, a call must be made to [Link.Fix](../API/Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](../API/Link.Expunge.md).
 
 - In Dyalog versions 18.2 or earlier, changes made using the line or "del" editor are not detected.
-
-- Link does not support source files that define multiple names, even though `2∘⎕FIX` does support this.
 
 - The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor *will* detect changes to source files on all platforms, when it opens an editor window.
 
@@ -62,7 +62,7 @@ A link connects a namespace in the active workspace (which can be the root names
 
 When a link is created:
 
-- An entry is created in the table which is stored in the workspace using an undocumented I-Beam, recording the endpoints and all options associated with the Link. [Link.Status](../API/Link.Status.md) can be used to report this information. Earlier versions used `⎕SE.Link.Links`, but version 3.0 only stores information on links with an endpoint in `⎕SE` in that variable.
+- An entry is created in the table which is stored in the workspace using an undocumented I-Beam, recording the endpoints and all options associated with the Link. [Link.Status](../API/Link.Status.md) can be used to report this information. Earlier versions used `⎕SE.Link.Links`, but versions 3.0 and later only store information on links with an endpoint in `⎕SE` in that variable.
 
 - Depending on which end of the link is specified as the source, APL source files are created from workspace definitions, or objects are loaded into the workspace from such files. These processes are described in more detail in the following sections.
 
