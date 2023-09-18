@@ -112,7 +112,7 @@ The function (and corresponding user command) [Link.Status](../API/Link.Status.m
 
 ```apl
        ]link.status
- Namespace  Source                   Files
+ Namespace  Source               Files
  #.stats    /users/sally/stats       4  
 ```
 
