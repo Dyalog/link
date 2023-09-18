@@ -110,7 +110,7 @@
     ∇
 
     ∇ r←MakeWatcher args;filter;filters;path;watcher;⎕USING
-     ⍝ Return FileSystemWatcher object(s)
+     ⍝ Return FileSystemWatcher objects
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
      ⍝ Creates a vector of watchers on .Net Framework to watch specific extensions.
      ⍝ dotnet supports collection of filters on single watcher.
@@ -150,7 +150,7 @@
           :Return
       :EndIf
       :If DOTNET
-          filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊢/typeExtensions)
+          filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions)
           r←MakeWatcher link.dir filters
           r.EnableRaisingEvents←1
           link.fsw←r
