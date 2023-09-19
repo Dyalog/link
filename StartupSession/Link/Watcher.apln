@@ -5,7 +5,7 @@
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'  ⍝ required at ⎕FIX time - can't rely on ##.U
     IS180←18≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
-
+    BUFFER←⍬                                ⍝ event buffer for throttling FSW events
     CRAWLER←0                               ⍝ allow using crawler
 
 
@@ -72,14 +72,27 @@
     ∇ WatchEvent(obj args);ct;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
-      {}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
+      ⍝{}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
       ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
       nargs←⊂0 ##.U.CaseText⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
-      obj ##.Notify&nargs
+      BUFFER,←⊂obj nargs
+      THROTTLE.FireOnce←1
+    ∇
+
+    ∇ WatchEventThrottle args;evts;types;targets
+     ⍝ Throttle calls to Notify and filter/re-order events
+      {}2502⌶0 ⍝ Discard parked thread
+      BUFFER←(≢evts←BUFFER)↓BUFFER
+      types←(⊂2 1)⊃¨evts
+      evts←evts[⍋'deleted' 'created' 'renamed' 'changed'⍳types]
+      targets←(⊂2 2)⊃¨evts
+      evts←evts[∪⍳⍨targets]
+      {##.Notify/↑⍵}&evts
+     ⍝
     ∇
 
     ∇ WatchError(obj args);link;msg
@@ -108,7 +121,7 @@
     ∇
 
     ∇ r←MakeWatcher args;filter;filters;path;watcher;⎕USING
-     ⍝ Return FileSystemWatcher objects
+     ⍝ Return vector of FileSystemWatcher objects
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
      ⍝ Creates a vector of watchers on .Net Framework to watch specific extensions.
      ⍝ dotnet supports collection of filters on single watcher.
@@ -135,6 +148,13 @@
       r.(onChanged onCreated onDeleted onRenamed)←⊂⊂'WatchEvent'
       r.onError←⊂'WatchError'
       r.IncludeSubdirectories←1
+      r.InternalBufferSize←65536 ⍝ Max size is 64KB
+      :If 0=⎕NC'THROTTLE'
+          THROTTLE←⎕NEW⊂'Timer'
+          THROTTLE.FireOnce←2
+          THROTTLE.Interval←200
+          THROTTLE.onTimer←'WatchEventThrottle'
+      :EndIf
     ∇
 
 
