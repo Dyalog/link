@@ -120,6 +120,15 @@
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  (⍎curnsname)U.Untie curactname
                  msg,←'creating 'affected' - unlinking previously linked 'curname
+             :ElseIf dir
+                 :Trap 0 ⋄ children←⊃⎕NINFO⍠1⊢path,'/*'
+                 :Else ⋄ children←0⍴⊂''
+                 :EndTrap
+                 children←(link U.HasExtn children)/children
+                 :If 0<≢children
+                     Notify¨{'created'⍵}¨children
+                 :EndIf
+                 :If link.flatten ⋄ →END⊣msg,←⊂'ignoring created directory' ⋄ :EndIf
              :Else
                  msg,←'creating 'affected
              :EndIf
