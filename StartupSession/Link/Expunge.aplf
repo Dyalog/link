@@ -50,7 +50,7 @@
                      :Else
                          :If 9=⎕NC name
                          :AndIf ~0∊⍴link←links U.LookupRef ⍎name ⍝ Single linked file
-                             {}Break name
+                             U.Error 'You may not Expunge a linked namespace, class or interface'
                          :EndIf
                          r[i]←parent.⎕EX name
                      :EndIf
