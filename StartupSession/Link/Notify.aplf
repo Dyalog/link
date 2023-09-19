@@ -94,7 +94,7 @@
              →END⊣msg,←⊂'file extension not managed by link'
          :ElseIf 0=≢nsref ⋄ warn←1 ⋄ msg,←⊂'unable to find corresponding namespace'
              →(type≢'deleted')×END ⍝ Exit if event was "deleted", else report error
-         :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
+         :ElseIf (~link.flatten∧dir)∧(nc=¯1) ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              warn←~deleted  ⍝ link issue #235 : the delete callback provoked by ⎕SE.Link.Expunge cannot see the expunged name
              →({0::0 ⋄ 0=2 ⎕NINFO ⍵}path)⍴0 ⍝ Ignore empty file
@@ -150,7 +150,7 @@
                  msg,←,'updating previously linked 'affected
              :ElseIf 0≠⎕NC affected  ⍝ redefining existing name
              :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
-                 warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
+                 warn←~dir∧link.flatten ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
              :EndIf
              :If NOTIFY
                  U.Notify oldpath,' renamed as ',path
@@ -172,8 +172,11 @@
                      :EndTrap
                      msg,←'namespace rename 'oldname' → 'affected
                      Notify¨{'changed'⍵}¨children
-                 :Else ⋄ warn←1                                    ⍝ no old ns
-                     msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
+                 :Else
+                     :If ~link.flatten
+                         warn←1                                    ⍝ no old ns
+                         msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
+                     :EndIf
                      :If 0<≢inFail←2⊃link U.FixFiles nsref path 1  ⍝ always overwrite
                          msg,←' - failed to load: '(U.FmtLines inFail)
                      :EndIf
