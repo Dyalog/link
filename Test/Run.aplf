@@ -94,7 +94,7 @@
  ⎕SE.Link.USERCONFIGFILE←''
 
       ⍝ display results
- dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'(|MajorRevision))}''
+ dnv←{0::'none' ⋄ ⎕USING←'' ⋄ System.Environment.Version.(∊⍕¨Major'.'Minor)}''
  core←(1+⎕SE.Link.Watcher.DOTNETCORE)⊃'Framework' 'Core'
  aplv←{⍵↑⍨¯1+2⍳⍨+\'.'=⍵}2⊃'.'⎕WG'APLVersion'
  aplv,←' ',(1+82=⎕DR'')⊃'Unicode' 'Classic'
@@ -103,7 +103,7 @@
 
  oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
  Log z←(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
- 
+
  :If CITA
      ⎕TRAP←0 'S'
      (⊂z) ⎕NPUT (CITA_LOG,'.ok') 1
