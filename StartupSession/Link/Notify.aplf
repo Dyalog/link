@@ -90,6 +90,7 @@
          :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              warn←~deleted  ⍝ link issue #235 : the delete callback provoked by ⎕SE.Link.Expunge cannot see the expunged name
+             →({0::0 ⋄ 0=2 ⎕NINFO ⍵}path)⍴0 ⍝ Ignore empty file
              →END⊣msg,←⊂(1+deleted)⊃'invalid file contents' 'could not determine which object was linked to it'
          :EndIf
 

@@ -9,7 +9,8 @@
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
      :Hold '⎕SE.Link.Notify' '⎕SE.Link.Links'
          :If 0∊⍴links←U.GetLinks ⋄ items←⊃⍣(1=≡,files)⊢(⍴⊆files)⍴⊂'' ⋄ :Return ⋄ :EndIf
-         scal←1=≡,files ⋄ shape←⍴files←⊆files ⋄ items←(≢files←,files)⍴''
+         scal←1=≡,files ⋄ shape←⍴files←⊆files
+         items←(≢files←0 U.NormFile¨,files)⍴''
          :For i :In ⍳≢files
              :If ~0∊⍴link←links U.LookupFile file←i⊃files
                  ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ force inspecting file contents - done by Link.Create

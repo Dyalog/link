@@ -1810,7 +1810,7 @@
       r,←'{"Name":"Status",      "args":"[ns1]",             "Parse":"1S -extended", "Desc":"List active namespace-directory links"},'
       r,←'{"Name":"Stop",        "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on breakpoints"},'
       r,←'{"Name":"Trace",       "args":"item [lines]", "Parse":"1-9999 ","Desc":"Set, clear or report on lines traced"},'
-      r,←'{"Name":"Refresh",     "args":"ns1",          "Parse":"1  -source=ns dir both", "Desc":"Manually synchronise namespace or directory contents"},'
+      r,←'{"Name":"Refresh",     "args":"ns1",          "Parse":"1  -source=ns dir auto", "Desc":"Manually synchronise namespace or directory contents"},'
       r,←'{"Name":"Resync",      "args":"[ns1]",        "Parse":"1S  -proceed -arrays[=] -sysvars", "Desc":"Automatically synchronise namespace-directory differences"},'
       r←⎕JSON']',⍨¯1↓r
       r.Group←⊂'Link'

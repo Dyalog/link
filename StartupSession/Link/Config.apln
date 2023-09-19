@@ -54,7 +54,7 @@
       :EndIf
     ∇
 
-    ∇ {r}←config WriteConfig linkorfile;link;file;json;ns;m;nss;islink
+    ∇ {r}←config WriteConfig linkorfile;link;file;json;ns;m;nss;islink;nl
     ⍝ Clean up and write "minimal" config
       r←0
      
@@ -73,11 +73,12 @@
      
       m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
-      ⍝ Now remove API/UCMD options which are not save-able settings
-      ns.⎕EX 'Settings.preloaded' 'Settings.ignoreconfig'
+      ⍝ Now remove Version and API/UCMD options which are not save-able settings
+      ns.⎕EX 'LinkVersion' 'Settings.preloaded' 'Settings.ignoreconfig'
      
       json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
-      :If json≢'{',(⎕UCS 13),'}' ⍝ Do not create empty config files
+      :If json≢'{',(nl←⎕UCS 13),'}' ⍝ Do not create empty config files 
+          json←'{',nl,'  LinkVersion: { ID: "',##.Version,'"},',nl,1↓json
           (⊂json)⎕NPUT file 1                                      
       :Else
           3 ⎕NDELETE file
@@ -201,8 +202,8 @@
           config←⎕NS''
       :EndIf
      
-      :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags'
-          →0⊣(rc config)←1('Unknown section in "',file,'": valid are ',⍕names~valid)
+      :If ~∧/(names←config.⎕NL-2 9)∊valid←'Settings' 'Debug' 'SourceFlags' 'LinkVersion'
+          →0⊣(rc config)←1('Unknown section in "',file,'": ',⍕names~valid)
       :EndIf
       one←1=≢names←valid~names,⊂'SourceFlags'
       ⍎(×≢names)/'config.(',(⍕names),')←',(one/'⊃'),'⎕NS¨(⍴names)⍴⊂'''''

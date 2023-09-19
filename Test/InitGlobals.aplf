@@ -17,7 +17,7 @@
 
  NAME←'#.linktest'  ⍝ namespace created by link tests
  TESTNS←⍕⎕THIS
- IGNORE_LINKS←'⎕SE.Link' '⎕SE.Dyalog' '⎕SE.LinkTest' ⍝ Pretend these don't exists while testing
+ IGNORE_LINKS←'⎕SE.Link' '⎕SE.Dyalog' '⎕SE.LinkTest' '⎕SE.NuGet' ⍝ Pretend these don't exists while testing
  TESTS_LINKED←{2 6::0 ⋄ (⊂⍕⎕THIS)∊⎕SE.Link.Links.ns}⍬
 
  DO_GUI_TESTS←0     ⍝ Do not run GhostRider based tests by default
