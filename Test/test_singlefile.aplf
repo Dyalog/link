@@ -17,6 +17,14 @@
  z←(⊂source)QNPUT file
  assert'source≡⎕SRC ',name
 
+ ⍝ --- Create file from namespace ---
+ z←⎕SE.Link.Break name
+ ⎕NDELETE file
+ z←LinkCreate name (¯5↓file) ⍝ Do not provide extension
+ link←GetLink name
+ assert'1=link.singlefile'
+ assert'file≡link.dir' ⍝ Check extension was added
+
  ⍝ --- Verify correct behaviour when renaming in the editor
  ⍝ Should end up with two parallel links
 

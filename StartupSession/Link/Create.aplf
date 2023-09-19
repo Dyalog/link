@@ -1,4 +1,4 @@
- msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;ext;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven
+ msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (container ns dir nsgiven)←preProcessNsDir args
@@ -61,7 +61,10 @@ NOHOLD:
          hasns←(|nc)∊singlenc
          :If isfile∨hasns
              :If isfile←nc∊singlenc                 ⍝ Scripted thing
-                 dir←¯1↓⊃⎕NPARTS fulltarget         ⍝ Directory is one up
+                 dir←¯1↓⊃parts←⎕NPARTS fulltarget          ⍝ Directory is one up
+                 :If 0=≢3⊃parts
+                     fulltarget,←'.',opts.typeExtensions{(⍺[;1]⍳⍵)⊃⍺[;2],⊂''}{⌊⍣(⍵<9)⊢⍵}nc
+                 :EndIf
                  emptyns←1
              :Else
                  emptyns←0∊⍴U.ListNames nsref←⍎ns
@@ -185,6 +188,7 @@ NOHOLD:
          ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow,dircreated/⊂'[',z,' was created]'),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
 
          :If ⎕WSID≡'CLEAR WS'
+         :AndIf 9=⎕NC 'nsref'
          :AndIf #=nsref
              ⎕WSID←⎕SE.Link.U.(WinSlash Enslash)opts.dir
          :EndIf
