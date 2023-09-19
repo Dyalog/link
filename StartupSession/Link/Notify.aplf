@@ -80,6 +80,13 @@
              :EndIf
          :EndIf
 
+         :If deleted
+            linkedpaths←⊃¨5176⌶0
+            children←((⊃¨⎕NPARTS linkedpaths)∊⊂path,'/')/linkedpaths
+         :AndIf 0<≢children
+            Notify¨{'deleted'⍵}¨children
+         :EndIf
+
          :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
              →END⊣msg,←⊂'file extension not managed by link'
          :ElseIf 0=≢nsref ⋄ warn←1 ⋄ msg,←⊂'unable to find corresponding namespace'
