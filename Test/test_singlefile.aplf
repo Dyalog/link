@@ -71,6 +71,7 @@
  parent←⊃⎕SE.Link.U.SplitNs name
  (⍎parent) ⎕SE.Link.Fix source        ⍝ Update the ws definition
  assert'(,¨source)≡⊃⎕NGET file 1'     ⍝ Check file WAS updated
+ assertError '⎕SE.Link.Expunge name' 'may not'
  assertError '⎕SE.Link.Expunge name,''.dup''' 'may not'
  (⍎name).⎕FX 'foo' '2+2'
  assertError '⎕SE.Link.Add name,''.foo''' 'may not'
