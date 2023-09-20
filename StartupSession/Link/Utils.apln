@@ -392,8 +392,8 @@
     ⍝ safe name class (avoid clash with our stuff)
     ⍝ return ¯9.1 for trad ns that map to directories and not files
       :If 900⌶⍬ ⋄ nsref←⎕DMX.⎕NS ⍬ ⋄ :EndIf
-      :If this←∨/'⎕THIS'⍷name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-          name←('⎕THIS\.' '\.⎕THIS'⎕R'' '')name
+      :If this←∨/'⎕this'⍷⎕C name   ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
+          name←('⎕THIS\.' '\.⎕THIS'⎕R'' ''⍠'IC' 1)name
           this←name≡'⎕THIS'
       :EndIf
       :If this ⋄ nc←⎕NC⊂'nsref'
@@ -443,8 +443,8 @@
       :If 9=⎕NC'ns' ⋄ r←ns ⋄ :Return ⋄ :EndIf ⍝ already a ref
       r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
       ns←,⍕ns   ⍝ issue #261
-      ns←('⎕THIS\.' '\.⎕THIS'⎕R'' '')ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-      :If ns≡'⎕THIS'
+      ns←('⎕THIS\.' '\.⎕THIS'⎕R'' ''⍠'IC' 1)ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
+      :If '⎕this'≡⎕c ns
           :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing
           :Return
       :EndIf

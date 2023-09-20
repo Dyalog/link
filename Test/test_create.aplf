@@ -5,11 +5,11 @@
       ⍝ test default UCMD to ⎕THIS
  2 QMKDIR subfolder ⋄ name ⎕NS ⍬
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Create ',folder ⋄ :EndWith  ⍝ not goot - :With brings in locals into the target namespace
- z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ⎕THIS.⎕THIS ',folder
+ z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ⎕THIS.⎕this ',folder
  assert'∨/''Linked:''⍷z'
  assert'1=CountLinks'
       ⍝:With name ⋄ z←⎕SE.UCMD']Link.Break ⎕THIS' ⋄ :EndWith
- z←(⍎name).{⎕SE.UCMD ⍵}']Link.Break ⎕THIS.⎕THIS'
+ z←(⍎name).{⎕SE.UCMD ⍵}']Link.Break ⎕ThIs'
  assert'∨/''Unlinked''⍷z'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX name ⋄ 3 ⎕NDELETE folder

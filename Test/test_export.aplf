@@ -1,4 +1,4 @@
- ok←test_export(folder name);ExportCmd;arrays;cmd;foosrc;foosrc2;io;ml;nssrc;nssrc2;opts;ref;subref;varsrc;z;ns
+ ok←test_export(folder name);ExportCmd;arrays;cmd;foosrc;foosrc2;io;ml;nssrc;nssrc2;opts;ref;subref;varsrc;z;ns;here
  ref←⍎name ⎕NS''
  varsrc←⎕SE.Dyalog.Array.Serialise ref.var←(2 3 4⍴○⍳100)(5 6⍴⎕A)
  2 ref.⎕FIX foosrc←,¨'     ∇ res  ←foo arg ; local' 'res←''foo''   arg' '∇'
@@ -20,7 +20,16 @@
  z←⎕SE.Link.Export name folder
  assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  assert'⎕NEXISTS ''',folder,''''
+ 3 ⎕NDELETE folder
+
+ here←⍕⎕THIS
+ ⎕CS name
+ z←⎕SE.Link.Export '⎕This' folder ⍝ Intentionally mixed case
+ ⎕CS here
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'⎕NEXISTS ''',folder,''''
  3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+
  (⊂'This is total garbage !!!!!;;;;')⎕NPUT folder,'/garbage.ini'
  z←⎕SE.Link.Export name folder
  'link issue #175'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
