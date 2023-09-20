@@ -63,7 +63,7 @@ NOHOLD:
              :If isfile←nc∊singlenc                 ⍝ Scripted thing
                  dir←¯1↓⊃parts←⎕NPARTS fulltarget          ⍝ Directory is one up
                  :If 0=≢3⊃parts
-                     fulltarget,←'.',opts.typeExtensions{(⍺[;1]⍳⍵)⊃⍺[;2],⊂''}{⌊⍣(⍵<9)⊢⍵}nc
+                     fulltarget,←opts.typeExtensions U.Tail nc
                  :EndIf
                  emptyns←1
              :Else
