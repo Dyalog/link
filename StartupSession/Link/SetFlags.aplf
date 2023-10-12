@@ -47,10 +47,12 @@
      :Hold '⎕SE.Link.Links'
 NOHOLD:
          (ns leaf)←U.SplitNs name
-         :If 0≠≢links←U.GetLinks
+         :If 0=≢links←U.GetLinks
              link←links U.LookupRef{0=≢ns:⍵ ⋄ ⍵⍎ns}container
+         :OrIf 0=≢link
+             →0
          :EndIf
-         →(0=≢link)⍴0
+
          :If link.singlefile
              →0⊣msg,←' (flags not recorded for single-file links)'
          :EndIf
@@ -68,7 +70,7 @@ NOHOLD:
          fullname←(⍕container⍎ns,(0=≢ns)/'⎕THIS'),'.',leaf
          relname←(1+≢link.ns)↓fullname
          :If (≢flagarray)<i←({0::⍬ ⋄ flagarray.Name}⍬)⍳⊂relname
-             flagarray,←flags←⎕NS ''
+             flagarray,←flags←⎕NS''
              flags.Name←relname
          :EndIf
          flags←i⊃flagarray
