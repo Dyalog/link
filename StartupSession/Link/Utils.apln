@@ -700,9 +700,9 @@
           ⍝ Link             0|1     (default 1)   ⍝ maintain the link to the file - link issue #155
               FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors'force)('Link'(~0∊⍴file))
           :EndIf
-      ⍝:If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
-      ⍝:Else ⋄ stops←trace←monitor←⍬
-      ⍝:EndIf
+          :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
+          :Else ⋄ stops←trace←monitor←⍬
+          :EndIf
       ⍝ attempt to fix as named script because this is the most commly expected format
           :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
           :Else ⋄ names←0⍴⊂''
@@ -711,9 +711,9 @@
               :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
               :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
               :EndIf
-          ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
-          ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
-          ⍝:EndIf
+              :If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
+                  stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
+              :EndIf
               :Return  ⍝ named script fixed
           :EndIf
       ⍝required←11 116≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because cannot read :Required file
