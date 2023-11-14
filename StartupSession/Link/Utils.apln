@@ -820,7 +820,7 @@
       ⍝:If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
       ⍝:Else ⋄ stops←trace←monitor←⍬
       ⍝:EndIf
-      ⍝ attempt to fix as named script because this is the most commly expected format
+      ⍝ attempt to fix as named script because this is the most commonly expected format
       :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
       :Else ⋄ names←0⍴⊂''
       :EndTrap
