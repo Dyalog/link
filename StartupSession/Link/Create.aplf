@@ -94,7 +94,8 @@ NOHOLD:
              :EndIf
          :EndIf
 
-         :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir' ⋄ :AndIf ⎕SE.Link.Test≢⊃⎕RSI  ⍝ ⎕SE.Link.Test is allowed to toy with file watching/crawling
+         :If ~Watcher.CanWatch ⋄ :AndIf (⊂opts.watch)∊'both' 'dir'
+         :AndIf {0=⎕NC'⎕SE.Link.Test':1 ⋄ ⎕SE.Link.Test≢⊃⎕RSI}⍬  ⍝ ⎕SE.Link.Test is allowed to toy with file watching/crawling
              U.Error'Watching directories requires Dyalog v18.0 and either .NET or .NetCore'
          :ElseIf ¯1=nc   ⍝ invalid namespace
              U.Error'Not a properly named namespace: ',,⍕rawns
