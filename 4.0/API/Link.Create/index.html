@@ -1359,7 +1359,10 @@ same folder as the original item.</li>
 <p>Default: <code>6 2⍴2 'apla' 3 'aplf' 4 'aplo' 9.1 'apln' 9.4 'aplc' 9.5 'apli'</code></p>
 <p>The <strong>typeExtensions</strong> table specifies the default extension that should be used when creating a new file to contain the source for an item of a given type. </p>
 <p><strong>typeExtensions</strong> is a two-column matrix with numeric name class numbers in the first column
-nd character vectors of corresponding file extensions in the second column.</p>
+and character vectors of corresponding file extensions in the second column. Note that, although
+you can change the extensions used, Link will add default definitions for any of the types that 
+you do not specify. For example, if you do not include a row for type 9.5, Link will use 'apli'
+for interfaces.</p>
 <p>From a user command, the syntax is <code>-typeExtensions=var</code> where <code>var</code> holds the expected array.</p>
 <p>Note that the <strong>forceExtensions</strong> switch can be used to correct all extensions on pre-existing files when a link is created.</p>
 <p>The default corresponds to:</p>
