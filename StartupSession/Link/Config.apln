@@ -194,7 +194,9 @@
      
           :Trap 0
               config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
-              ⍝⍝ /// reconstitute matrix settings
+              :If 2=⎕NC 'config.Settings.typeExtensions'
+                  config.Settings.(typeExtensions←↑typeExtensions)
+              :EndIf
           :Else
               →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⎕DMX.Message)
           :EndTrap
