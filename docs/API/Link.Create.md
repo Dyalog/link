@@ -236,7 +236,10 @@ Default: `6 2⍴2 'apla' 3 'aplf' 4 'aplo' 9.1 'apln' 9.4 'aplc' 9.5 'apli'`
 The **typeExtensions** table specifies the default extension that should be used when creating a new file to contain the source for an item of a given type. 
 
 **typeExtensions** is a two-column matrix with numeric name class numbers in the first column
-nd character vectors of corresponding file extensions in the second column.
+and character vectors of corresponding file extensions in the second column. Note that, although
+you can change the extensions used, Link will add default definitions for any of the types that 
+you do not specify. For example, if you do not include a row for type 9.5, Link will use 'apli'
+for interfaces.
 
 From a user command, the syntax is `-typeExtensions=var` where `var` holds the expected array.
 
