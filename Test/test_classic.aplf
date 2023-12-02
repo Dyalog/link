@@ -1,27 +1,27 @@
- ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes;nsref
+ ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes;nsref;z;nsbytes
  :If 82≠⎕DR''  ⍝ Classic interpreter required for classic QA !
      Log'Not a classic interpreter - not running ',⊃⎕SI
      ok←1 ⋄ :Return
  :EndIf
  3 QMKDIR folder
 
-      ⍝ check that key and friends are correctly translated in classic edition
+ ⍝ --- check that key and friends are correctly translated in classic edition
  {}⎕SE.Link.Create name folder
- name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⎕U2338 arg'
+ name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⌸         arg'
  read←NREADALL folder,'/foo.aplf'
  foobytes←32 114 101 115 ¯30 ¯122 ¯112 102 111 111 32 97 114 103 13 10 32 114 101 115 ¯30 ¯122 ¯112 123 ¯30 ¯115 ¯70 32 ¯30 ¯115 ¯75 125 ¯30 ¯116 ¯72 32 97 114 103 13 10
- assert'(read~13)≡(foobytes~13)'
+ assert'(read~13 32)≡(foobytes~13 32)'
 
  goobytes←1+@8⊢foobytes  ⍝ turn foo into goo
  goosrc←{'g'@6⊢⍵}¨@1⊢foosrc
  goobytes{tie←⍵ ⎕NCREATE 0 ⋄ _←⍺ ⎕NAPPEND tie 83 ⋄ 1:_←⎕NUNTIE tie}folder,'/goo.aplf'
  Notify 'changed' (folder,'/goo.aplf')
- assert'goosrc≡⎕NR ''',name,'.goo'''
+ assert'goosrc≡⍥{⍵~¨'' ''}⎕NR ''',name,'.goo'''
 
  {}⎕SE.Link.Break name
  CleanUp folder name
 
-          ⍝ test handling of non-default ⎕AVU
+ ⍝ --- test handling of non-default ⎕AVU
  nsref←⍎name ⎕NS''⊣⎕EX name
  assert'nsref.⎕AVU[60]=8866'       ⍝ Default: right tack
  nsref.⎕FX foosrc←' foo' '⍝⊢'
@@ -37,6 +37,15 @@
  assert'(2↑¯4↑read)≡¯62 ¯92'       ⍝ UTF-8 U+00A4 currency symbol
  {}⎕SE.Link.Break name
  ⎕EX name
+
+ ⍝ Check error messages when TRANSLATION ERROR occurs in Classic (issue #603)
+ ⍝ Define :Namespace with comment containing copyright symbol
+
+ nsbytes←¯17 ¯69 ¯65 58 78 97 109 101 83 112 97 99 101 32 105 54 48 51 13 10
+ nsbytes,←¯30 ¯115 ¯99 32 ¯62 ¯87 13 10, 58 69 110 100 78 97 109 101 115 112 97 99 101 13 10
+ nsbytes {tie←⍵ ⎕NCREATE 0 ⋄ _←⍺ ⎕NAPPEND tie 83 ⋄ 1:_←⎕NUNTIE tie}folder,'/i603.apln'
+
+ assertError 'z←⎕SE.Link.Import name (folder,''/i603.apln'')' '(U+00A9) not in ⎕AVU'
 
  {}LinkCreate name folder
  assert'foosrc≡⎕NR ''',name,'.foo'''
