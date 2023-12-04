@@ -7,10 +7,10 @@
 
  ⍝ --- check that key and friends are correctly translated in classic edition
  {}⎕SE.Link.Create name folder
- name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⌸         arg'
+ name'foo'⎕SE.Link.Fix foosrc←' res←foo arg' ' res←{⍺ ⍵}⎕U2338 arg'
  read←NREADALL folder,'/foo.aplf'
  foobytes←32 114 101 115 ¯30 ¯122 ¯112 102 111 111 32 97 114 103 13 10 32 114 101 115 ¯30 ¯122 ¯112 123 ¯30 ¯115 ¯70 32 ¯30 ¯115 ¯75 125 ¯30 ¯116 ¯72 32 97 114 103 13 10
- assert'(read~13 32)≡(foobytes~13 32)'
+ assert'(read~13 32)≡(foobytes~13 32)' ⍝ Also exclude spaces since source may or may not be preserved "as typed"
 
  goobytes←1+@8⊢foobytes  ⍝ turn foo into goo
  goosrc←{'g'@6⊢⍵}¨@1⊢foosrc
