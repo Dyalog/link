@@ -183,7 +183,7 @@
       :EndIf
     ∇
 
-    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json;one
+    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json;one;t
      ⍝ Read a configuration file and return a namespace 
      ⍝ rc←0 on success, 1 on failure in which case config is an error message :-(
      
@@ -194,8 +194,12 @@
      
           :Trap 0
               config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
-              :If 2=⎕NC 'config.Settings.typeExtensions'
-                  config.Settings.(typeExtensions←↑typeExtensions)
+              :If 2=⎕NC'config.Settings.typeExtensions'
+                  t←config.Settings.typeExtensions
+              :AndIf 1=⍴⍴t
+              :AndIf (0 ' ')≡⊃∪{⍬⍴0/⍵}¨¨t                 ⍝ num char pairs
+              :AndIf (0 1)≡⊃∪{⊃⍴⍴⍵}¨¨(2 'blah')(3 'blah') ⍝ scalar vector pairs
+                  config.Settings.typeExtensions←↑t
               :EndIf
           :Else
               →0⊣(rc config)←1('Invalid configuration file: "',file,'": ',⎕DMX.Message)
