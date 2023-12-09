@@ -1,0 +1,89 @@
+ ok←test_text(folder name);cr;lf;pre;z;All
+ ⎕EX name
+
+ pre←'mat' 'vec' 'win' 'pos' 'dya'
+ ⎕SHADOW,pre∘.,⎕D
+
+ All←{'ns.'∘,¨nl/⍨(⊃⍕⍵)∊¨nl←ns.⎕NL ¯2}
+
+ 3 ⎕MKDIR Retry⊢folder
+ (cr lf)←⎕UCS 13 10
+
+ (⊂↓mat0←↑'simple' 'matrices')QNPUT folder,'/mat0.mat.apla'
+ (⊂vec0←'nested' 'vectors')QNPUT folder,'/vec0.vec.apla'
+ (⊂win0←'Win' 'files')QNPUT folder,'/win0.CRLF.apla' ⋄ win0←∊win0,¨⊂cr lf
+ (⊂pos0←'Linux' 'files')QNPUT folder,'/pos0.LF.apla' ⋄ pos0←∊pos0,¨⊂lf
+ (⊂dya0←'Dyalog' 'editor')QNPUT folder,'/dya0.CR.apla' ⋄ dya0←∊dya0,¨⊂cr
+
+ z←LinkCreate name folder
+
+ ns←⍎name
+
+ assert'mat0≡ns.mat0'
+ assert'vec0≡ns.vec0'
+ assert'win0≡ns.win0'
+ assert'pos0≡ns.pos0'
+ assert'dya0≡ns.dya0'
+
+⍝ good ones:
+ ns.mat1←mat0,'y'
+ ns.vec1←vec0,⊂,'y'
+ ns.win1←win0,'y'cr lf
+ ns.pos1←pos0,'y'lf
+ ns.dya1←dya0,'y'cr
+
+ ⎕SE.Link.Add All 1
+⍝ should be using plain text:
+ assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*1.*.apla'''
+ assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*1.apla'''
+
+⍝ bad ones:
+ ns.mat2←mat0,' '      ⍝ trailing all-space col
+ ns.vec2←vec0,'n'      ⍝ one element is scalar
+ ns.win2←lf,win0,'y'cr ⍝ wrap-around sep
+ ns.pos2←pos0,'y'      ⍝ missing trailing sep
+ ns.dya2←dya0,'y'lf    ⍝ mixed seps
+
+ ⎕SE.Link.Add All 2
+⍝ should be using APLAN:
+ assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2.apla'''
+ assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2.*.apla'''
+
+⍝ let's fix them
+ ns.mat2,←'y'    ⍝ trailing non-space col
+ ns.vec2,¨←⊂⍬    ⍝ ravel scalars
+ ns.win2⌽⍨←1     ⍝ un-wrap
+ ns.pos2,←lf     ⍝ add missing sep
+ (¯1↑ns.dya2)←cr ⍝ fix wrong sep
+
+ ⎕SE.Link.Add All 2
+⍝ should now be changed from APLAN to plain text:
+ assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2.*.apla'''
+ assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2.apla'''
+
+⍝ let's unfix them
+ ns.mat2←mat0,' '      ⍝ trailing all-space col
+ ns.vec2←vec0,'n'      ⍝ one element is scalar
+ ns.win2←lf,win0,'y'cr ⍝ wrap-around sep
+ ns.pos2←pos0,'y'      ⍝ missing trailing sep
+ ns.dya2←dya0,'y'lf    ⍝ mixed seps
+
+ ⎕SE.Link.Add All 2
+⍝ should now be changed from plain text to APLAN:
+ assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2.apla'''
+ assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2.*.apla'''
+
+
+⍝ more bad cases:
+ ns.mat3←0⌿mat0         ⍝ no rows
+ ns.vec3←vec0,⊂'c'cr'r' ⍝ has line breaks
+ ns.win3←2⌽⌽win0        ⍝ wrong order
+ ns.pos3←''             ⍝ empty
+ ns.dya3←cr             ⍝ scalar
+
+ ⎕SE.Link.Add All 3
+ assert'~⎕NEXISTS folder∘,¨''/'',¨all,¨''3.''∘,¨all,¨⊂.''apla'''
+ assert' ⎕NEXISTS folder∘,¨''/'',¨all,¨''3.apla'''
+
+ CleanUp folder name
+ ok←1

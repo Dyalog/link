@@ -6,7 +6,7 @@
  :AndIf 0≠CountLinks
      Log'Please break all links and try again.'
      ⎕←⎕SE.UCMD']Link.Status'
-     ⎕←'      ]Link.Break -all=*    ⍝ to break all links'
+     ⎕←'      ]Link.Break',(∊' ',¨⎕SE.Link.Links.ns~IGNORE_LINKS),'  ⍝ to break all links'
      :Return
  :EndIf
  :If 0≠⎕NC name

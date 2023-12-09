@@ -1,14 +1,14 @@
  ok←test_config(folder name);z;config;userfile;ns;files;export;getj5;fn;link;here
 ⍝ Verify that the system is using configuration according to the spex
 
-getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
+ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
 ⍝ --- Link.Configure set user config ---
- SetConfig '' ⍝ Clear user config file
- z←⎕SE.Link.Configure '*' 'watch:ns' 'caseCode:1' ⍝ Set options
- assert '∧/1∊¨''watch: '' ''caseCode: ''⍷¨⊂z'
+ SetConfig'' ⍝ Clear user config file
+ z←⎕SE.Link.Configure'*' 'watch:ns' 'caseCode:1' ⍝ Set options
+ assert'∧/1∊¨''watch: '' ''caseCode: ''⍷¨⊂z'
  config←getj5 ⎕SE.Link.USERCONFIGFILE
- assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
- assert '⎕SE.Link.Version≡config.LinkVersion.ID'
+ assert'(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert'⎕SE.Link.Version≡config.LinkVersion.ID'
 
 ⍝ --- Link.Create ---
 ⍝ Test that Link.Create uses the user config
@@ -16,60 +16,60 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
  ⎕EX name
 
  z←LinkCreate name folder
- assert '''ns''≡(GetLink name).watch' ⍝ Check that user config was used
+ assert'''ns''≡(GetLink name).watch' ⍝ Check that user config was used
  ns←⍎name
- ns.⎕FX 'foo' '2+2' ⍝ Little foo
- ns.⎕FX 'FOO' '3+3' ⍝ Big foo
- 1 ns.⎕STOP 'FOO'   ⍝ Check that Link.Add will register existing stops
+ ns.⎕FX'foo' '2+2' ⍝ Little foo
+ ns.⎕FX'FOO' '3+3' ⍝ Big foo
+ 1 ns.⎕STOP'FOO'   ⍝ Check that Link.Add will register existing stops
  z←⎕SE.Link.Add name∘,¨'.foo' '.FOO'
  files←2⊃¨⎕NPARTS⊃⎕NINFO⍠1⊢folder,'/*'
- assert '''.linkconfig'' ''foo-0'' ''FOO-7'' ≡⍥{⍵[⍋⍵]} files'
+ assert'''.linkconfig'' ''foo-0'' ''FOO-7'' ≡⍥{⍵[⍋⍵]} files'
  link←GetLink name
- assert '(,⊂''FOO'')≡link.flagged'
- assert '(,⊂,1)≡link.flags.Stop'
+ assert'(,⊂''FOO'')≡link.flagged'
+ assert'(,⊂,1)≡link.flags.Stop'
 
 ⍝ Test setting and clearing Stops
  link←GetLink name
  z←⎕SE.Link.Expunge name,'.FOO'           ⍝ Should clear stops
- assert '0=≢link.flagged'
+ assert'0=≢link.flagged'
  config←getj5 folder,'/.linkconfig'
- assert '0=config.⎕NC ''SourceFlags'''
- z←⎕SE.Link.Stop (fn←name,'.foo') (1 2 3) ⍝ Set on foo
- assert '(,1)≡⎕STOP ''',fn,''''
- assert '(,⊂''foo'')≡link.flagged'
- assert '(,1)≡link.flags[1].Stop'
+ assert'0=config.⎕NC ''SourceFlags'''
+ z←⎕SE.Link.Stop(fn←name,'.foo')(1 2 3) ⍝ Set on foo
+ assert'(,1)≡⎕STOP ''',fn,''''
+ assert'(,⊂''foo'')≡link.flagged'
+ assert'(,1)≡link.flags[1].Stop'
  config←getj5 folder,'/.linkconfig'
- assert '(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
- assert '''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
- assert '1≡≢config.SourceFlags'
- assert '(,1)≡config.SourceFlags[1].Stop'
- assert '''foo''≡config.SourceFlags[1].Name'
- assert '(name,''.foo 1'')≡⎕SE.Link.Stop name,''.foo'''  ⍝ This will fail
+ assert'(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert'''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
+ assert'1≡≢config.SourceFlags'
+ assert'(,1)≡config.SourceFlags[1].Stop'
+ assert'''foo''≡config.SourceFlags[1].Name'
+ assert'(name,''.foo 1'')≡⎕SE.Link.Stop name,''.foo'''  ⍝ This will fail
 
- z←⎕SE.Link.Stop (name,'.foo') ⍬
- assert '⍬≡⎕STOP ''',name,'.foo'''
+ z←⎕SE.Link.Stop(name,'.foo')⍬
+ assert'⍬≡⎕STOP ''',name,'.foo'''
  config←getj5 folder,'/.linkconfig'
- assert '0=⎕NC ''config.SourceFlags'''
+ assert'0=⎕NC ''config.SourceFlags'''
 
  z←⎕SE.Link.Break name
  ⎕EX name
 
 ⍝ Test that explicit settings override any configuration
- z←'{watch:''both''}' LinkCreate name folder
- z←⎕SE.Link.Configure name 'fastLoad:1'
- assert '''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
+ z←'{watch:''both''}'LinkCreate name folder
+ z←⎕SE.Link.Configure name'fastLoad:1'
+ assert'''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
  config←getj5 folder,'/.linkconfig'
- assert '''ns'' 1≡config.Settings.(watch fastLoad)' ⍝ Directory setting should NOT be changed
+ assert'''ns'' 1≡config.Settings.(watch fastLoad)' ⍝ Directory setting should NOT be changed
 
  ⍝ Now set up a trace and check that it is restored on re-link
  here←⍕⎕THIS                   ⍝ Do not remove the format or here will not be in scope
  ⎕CS name                      ⍝ Check that it also works with relative names
- z←⎕SE.UCMD 'Link.Trace foo 1' ⍝ Call Trace via UCMD from inside the ns
+ z←⎕SE.UCMD'Link.Trace foo 1' ⍝ Call Trace via UCMD from inside the ns
  ⎕CS here
  link←GetLink name
- assert '(,⊂''foo'')≡link.flagged'
- assert '(,1)≡link.flags[1].Trace'
- assert '(,1)≡⎕TRACE fn'
+ assert'(,⊂''foo'')≡link.flagged'
+ assert'(,1)≡link.flags[1].Trace'
+ assert'(,1)≡⎕TRACE fn'
  z←⎕SE.Link.Break name
 
 ⍝ /// Make a test which verifies that user config does not pollute
@@ -78,55 +78,56 @@ getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
 
 ⍝ Test that folder config is used if user config says nothing
 
- z←⎕SE.Link.Configure '*' 'watch:' 'caseCode:' ⍝ Clear user config settings
- assert '∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
- assert '0=⎕NEXISTS ⎕SE.Link.USERCONFIGFILE' ⍝ No settings
+ z←⎕SE.Link.Configure'*' 'watch:' 'caseCode:' ⍝ Clear user config settings
+ assert'∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
+ assert'0=⎕NEXISTS ⎕SE.Link.USERCONFIGFILE' ⍝ No settings
+ ⎕EX name
 
  z←LinkCreate name folder
- assert '''ns''≡(GetLink name).watch' ⍝ used folder config
- assert '(,1)≡⎕TRACE name,''.foo'''   ⍝ has that trace been restored?
- z←(⊂'foo' '22+22') QNPUT folder,'/foo-0.aplf'
- assert '(,1)≡⎕TRACE name,''.foo'''   ⍝ has that trace been restored after re-fix?
+ assert'''ns''≡(GetLink name).watch' ⍝ used folder config
+ assert'(,1)≡⎕TRACE name,''.foo'''   ⍝ has that trace been restored?
+ z←(⊂'foo' '22+22')QNPUT folder,'/foo-0.aplf'
+ assert'(,1)≡⎕TRACE name,''.foo'''   ⍝ has that trace been restored after re-fix?
  z←⎕SE.Link.Break name
  ⎕EX name
 
 ⍝ /// add test that -ignoreconfig also ignores a valid config
 
 ⍝ Test recovery from unreadable user config file
- (⊂'This is not JSON') ⎕NPUT ⎕SE.Link.USERCONFIGFILE 1
+ (⊂'This is not JSON')⎕NPUT ⎕SE.Link.USERCONFIGFILE 1
  z←LinkCreate name folder
- assert '1∊''Invalid configuration file''⍷z'
+ assert'1∊''Invalid configuration file''⍷z'
 
- z←'{ignoreconfig:1}' LinkCreate name folder
- assert '''Linked:''≡7↑z'
- z←'{ignoreconfig:1}' ⎕SE.Link.Break name
- assert '1∊''-ignoreconfig not allowed''⍷z'
+ z←'{ignoreconfig:1}'LinkCreate name folder
+ assert'''Linked:''≡7↑z'
+ z←'{ignoreconfig:1}'⎕SE.Link.Break name
+ assert'1∊''-ignoreconfig not allowed''⍷z'
  z←⎕SE.Link.Break name
  ⎕EX name
 
 ⍝ Test that it works if there is no user config file
  3 ⎕NDELETE userfile←⎕SE.Link.USERCONFIGFILE ⍝ Delete the damaged file
  z←LinkCreate name folder
- assert '''ns''≡(GetLink name).watch' ⍝ used folder config
+ assert'''ns''≡(GetLink name).watch' ⍝ used folder config
 
 ⍝ --- Link.Export ---
 ⍝ Start by exporting an actively linked namespace
  export←folder,'-export'
- z←'{flatten:0}' ⎕SE.Link.Export name export         ⍝ flatten is meaningless in the context of Export
- z←⎕SE.Link.Configure export 'flatten:1'             ⍝ Test setting option in named file
- assert '1∊''flatten: ''⍷z'                          ⍝ flatten:0 is default so was not stored in config
+ z←'{flatten:0}'⎕SE.Link.Export name export         ⍝ flatten is meaningless in the context of Export
+ z←⎕SE.Link.Configure export'flatten:1'             ⍝ Test setting option in named file
+ assert'1∊''flatten: ''⍷z'                          ⍝ flatten:0 is default so was not stored in config
  config←getj5 export,'/.linkconfig'
- assert '1≡config.Settings.caseCode' ⍝ caseCode should be picked up from re-exported link
+ assert'1≡config.Settings.caseCode' ⍝ caseCode should be picked up from re-exported link
 
  z←⎕SE.Link.Break name
  ⎕EX name
 
 ⍝ --- Link.Import ---
- SetConfig '' ⍝ Recreate (empty) user config
+ SetConfig'' ⍝ Recreate (empty) user config
  ⎕MKDIR export,'/sub'
- (⊂'goo' '4+4') ⎕NPUT export,'/sub/goo-0.aplf'       ⍝ Put goo in a sub-folder/namespace
+ (⊂'goo' '4+4')⎕NPUT export,'/sub/goo-0.aplf'       ⍝ Put goo in a sub-folder/namespace
  z←⎕SE.Link.Import name export
- assert '''foo'' ''goo''≡',name,'.⎕NL -3' ⍝ Should be 2 functions in there after flattening
+ assert'''foo'' ''goo''≡',name,'.⎕NL -3' ⍝ Should be 2 functions in there after flattening
  3 ⎕NDELETE export
  CleanUp folder name
  ok←1
