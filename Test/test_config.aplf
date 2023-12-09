@@ -1,4 +1,4 @@
- ok←test_config(folder name);z;config;userfile;ns;files;export;getj5;fn;link;here
+ ok←test_config(folder name);z;config;userfile;ns;files;export;getj5;fn;link;here;opts
 ⍝ Verify that the system is using configuration according to the spex
 
  getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
@@ -129,5 +129,18 @@
  z←⎕SE.Link.Import name export
  assert'''foo'' ''goo''≡',name,'.⎕NL -3' ⍝ Should be 2 functions in there after flattening
  3 ⎕NDELETE export
+
+⍝ --- Test non-default typeExtensions (fix for #601)
+ 3 ⎕NDELETE folder
+ opts.typeExtensions←3 2⍴2 'zzza' 3 'zzzf' 4 'zzzo' 9.1⊣opts←⎕NS ''
+ z←opts LinkCreate name folder
+ z←⎕SE.Link.Break name
+ z←LinkCreate name folder
+ link←GetLink name
+ assert '(getj5 folder,''/.linkconfig'').Settings.typeExtensions≡↓opts.typeExtensions'
+ assert 'opts.typeExtensions≡3 2↑link.typeExtensions'
+ z←⎕SE.Link.Break name
+ ⎕EX name
+
  CleanUp folder name
  ok←1
