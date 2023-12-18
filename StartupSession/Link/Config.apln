@@ -193,7 +193,7 @@
           :EndIf
      
           :Trap 0
-              config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
+              config←0 ⎕JSON⍠'Dialect' 'JSON5'⊢json←⊃⎕NGET file 0
               :If 2=⎕NC'config.Settings.typeExtensions'
                   t←config.Settings.typeExtensions
               :AndIf 1=⍴⍴t

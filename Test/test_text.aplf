@@ -82,8 +82,8 @@
  ns.dya3←cr             ⍝ scalar
 
  ⎕SE.Link.Add All 3
- assert'~⎕NEXISTS folder∘,¨''/'',¨all,¨''3.''∘,¨all,¨⊂.''apla'''
- assert' ⎕NEXISTS folder∘,¨''/'',¨all,¨''3.apla'''
+ assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*3.apla'''
+ assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2.*.apla'''
 
  CleanUp folder name
  ok←1
