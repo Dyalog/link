@@ -6,6 +6,7 @@
 
  All←{'ns.'∘,¨nl/⍨(⊃⍕⍵)∊¨nl←ns.⎕NL ¯2}
 
+ 3 ⎕NDELETE Retry⊢folder
  3 ⎕MKDIR Retry⊢folder
  (cr lf)←⎕UCS 13 10
 

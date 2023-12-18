@@ -1438,7 +1438,7 @@
               2.1=⍺:nsref ⎕SE.Dyalog.Array.Serialise name
               nsref GetAplSource ⍵
           }
-          namesrc←namenc GetAplSourceCode¨name
+          namesrc←nsref GetAplSource¨name
       :EndIf
       (file filesrc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨filesrc  ⍝ failure to get source should not happen unless race condition
       (name namesrc namenc)/⍨←⊂{~(0∊⍴⍵)∨(1=≡⍵)}¨namesrc  ⍝ failure to get source should not happen unless race condition
