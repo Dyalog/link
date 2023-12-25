@@ -81,7 +81,6 @@
  z←⎕SE.Link.Configure'*' 'watch:' 'caseCode:' ⍝ Clear user config settings
  assert'∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
  assert'0=⎕NEXISTS ⎕SE.Link.USERCONFIGFILE' ⍝ No settings
- ⎕EX name
 
  z←LinkCreate name folder
  assert'''ns''≡(GetLink name).watch' ⍝ used folder config
