@@ -510,24 +510,34 @@
 
     :Section Lookup
 
-    ∇ links←GetLinks;mask;links
+    ∇ links←GetLinks;mask;links;any
       :Trap 0  ⍝ anything broken should mean no links available
-          links←⍬
+     
           :If ×⎕NC'⎕SE.Link.Links'
-          :AndIf ~0∊⍴links,←⎕SE.Link.Links
-          :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie" links
-              0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
-              ¯1 Log'Clearing expunged links:'(⍕mask/links)
+              links←⎕SE.Link.Links
+          :Else
+              links←⍬
+          :EndIf
+          any←~0∊⍴links
+     
+          :If any ⋄ :AndIf 1∊mask←~⎕NEXISTS ⎕SE.Link.Links.dir  ⍝ clean up "zombie dir" links
+              ⍝ Should really do clean shut-down of FSWs but that errors if the dir is already gone
+              ¯1 Log'Clearing links with missing directory:'(⍕mask/links)
               SetLinks links←(~mask)/links
           :EndIf
      
-          :If ×⎕NC'⎕SE.Link.Links'
-          :AndIf ~0∊⍴links
-          :AndIf 1∊mask←~⌽≠⌽⍎¨links.ns  ⍝ clean up duplicate links - keep newest
-              ⍝ Do not break, as later link exists
-              ¯1 Log'Clearing duplicate links:'(⍕mask/links)
+          :If any ⋄ :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie ns" links
+              0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
+              ¯1 Log'Clearing links with missing namespace:'(⍕mask/links)
               SetLinks links←(~mask)/links
           :EndIf
+     
+          :If any ⋄ :AndIf 1∊mask←~⌽≠⌽⍎¨links.ns  ⍝ clean up duplicate links - keep newest
+              ⍝ Do not break, as later link exists
+              ¯1 Log'Clearing links with duplicated namespace:'(⍕mask/links)
+              SetLinks links←(~mask)/links
+          :EndIf
+     
       :Else ⋄ links←⍬
       :EndTrap
     ∇
@@ -544,7 +554,7 @@
           links←⍬
       :Else ⍝ avoid putting duplicate links
           links/⍨←⌽≠⌽⍎¨links.ns ⍝ remove earlier duplicates of later add links
-      :EndIf 
+      :EndIf
       ⎕SE.Link.Links←links
       :If HASSTORE ⍝ update # links in secret # area - they will be read by WSLoaded
           :If ~0∊⍴links
