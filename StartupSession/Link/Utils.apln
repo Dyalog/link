@@ -3,8 +3,8 @@
 
     :Section Constants
     SRC_BEST←62 ⍝ ⎕ATX fact
-    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'                 
-    PATHDEL←':;'[1+ISWIN] 
+    ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
+    PATHDEL←':;'[1+ISWIN]
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
     CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION
@@ -123,7 +123,7 @@
     ∇
     ∇ r←RemoveFileTiesIn rootns;names;parents;scriptitems
      ⍝ Find all file system links to objects below rootns, and remove using 5178⌶
-     ⍝ Return number of links broken         
+     ⍝ Return number of links broken
       (names parents scriptitems)←GetFileTiesIn rootns ⍝ links to be removed
       ⍝ there might be some orphaned script items - interpreter must forget about them
       ⍝ do it first because of mantis 18606
@@ -444,7 +444,7 @@
       r←⍬ ⋄ :If 900⌶⍬ ⋄ where←⎕DMX.⎕NS ⍬ ⋄ :EndIf
       ns←,⍕ns   ⍝ issue #261
       ns←('⎕THIS\.' '\.⎕THIS'⎕R'' ''⍠'IC' 1)ns  ⍝ Mantis 18553 : '⎕THIS' not understood by ⎕NC nor ⎕NS nor ⎕WG
-      :If '⎕this'≡⎕c ns
+      :If '⎕this'≡⎕C ns
           :If ~900⌶⍬ ⋄ r←where ⋄ :EndIf  ⍝ can't have a ⎕THIS relative to nothing
           :Return
       :EndIf
@@ -520,6 +520,14 @@
               ¯1 Log'Clearing expunged links:'(⍕mask/links)
               SetLinks links←(~mask)/links
           :EndIf
+     
+          :If ×⎕NC'⎕SE.Link.Links'
+          :AndIf ~0∊⍴links
+          :AndIf 1∊mask←~⌽≠⌽⍎¨links.ns  ⍝ clean up duplicate links - keep newest
+              ⍝ Do not break, as later link exists
+              ¯1 Log'Clearing duplicate links:'(⍕mask/links)
+              SetLinks links←(~mask)/links
+          :EndIf
       :Else ⋄ links←⍬
       :EndTrap
     ∇
@@ -531,8 +539,12 @@
       :EndIf
     ∇
 
-    ∇ SetLinks links;fsw;mask
-      :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
+    ∇ {links}←SetLinks links;fsw;mask
+      :If 0∊⍴links ⍝ avoid putting empty vectors of references
+          links←⍬
+      :Else ⍝ avoid putting duplicate links
+          links/⍨←⌽≠⌽⍎¨links.ns ⍝ remove earlier duplicates of later add links
+      :EndIf 
       ⎕SE.Link.Links←links
       :If HASSTORE ⍝ update # links in secret # area - they will be read by WSLoaded
           :If ~0∊⍴links
@@ -551,15 +563,15 @@
       n←0
       :If ~0∊⍴links
           ##.Watcher.Break links  ⍝ will ⎕DL slightly
-          :If untie      
-              :For link :In links    
+          :If untie
+              :For link :In links
                   ns←⍎link.ns
                   :If link.singlefile
-                      ns.##.⎕FIX ⎕SRC ns      
-                      n+←1                
+                      ns.##.⎕FIX ⎕SRC ns
+                      n+←1
                   :Else
                       n+←RemoveFileTiesIn ns
-                  :EndIf 
+                  :EndIf
               :EndFor
           :EndIf
       :EndIf
@@ -588,7 +600,7 @@
       :EndWhile
       :If linked
           linkns←(nss⍳nsref)⊃links
-          :If 0=⎕NC 'linkns.singlefile'  
+          :If 0=⎕NC'linkns.singlefile'
               linkns.singlefile←0 ⍝ Protect against fake links created by StartupSession
           :EndIf
       :EndIf
@@ -820,30 +832,30 @@
 
     ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
     ⍝ opts cached for performance on ns lookup
-
-      :If 0=⎕NC 'opts.ignorecurrent' ⋄ opts.ignorecurrent←0 ⋄ :EndIf
+     
+      :If 0=⎕NC'opts.ignorecurrent' ⋄ opts.ignorecurrent←0 ⋄ :EndIf
       :If opts.singlefile
-          (file oldfile nc)←opts.dir '' (⎕NC ⊂opts.ns)
+          (file oldfile nc)←opts.dir''(⎕NC⊂opts.ns)
           ⍝ /// This is questionable: In a singlefile link, the user has provided an explicit file name
           ⍝     However, we currently "enforce" case coding in this case
           :If opts.caseCode
-          :AndIf ~'-'∊2⊃⎕NPARTS file ⍝ Not already case coded?              
-              (file oldfile)←1 (×≢oldfile)/¨((¯1↓⊃⎕NPARTS opts.dir) CaseCode opts.flatten)¨file oldfile
-          :EndIf   
+          :AndIf ~'-'∊2⊃⎕NPARTS file ⍝ Not already case coded?
+              (file oldfile)←1(×≢oldfile)/¨((¯1↓⊃⎕NPARTS opts.dir)CaseCode opts.flatten)¨file oldfile
+          :EndIf
           :If depth
-               (file oldfile)←{,⊂⍵}¨file oldfile
+              (file oldfile)←{,⊂⍵}¨file oldfile
           :EndIf
           :Return
       :EndIf
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
-   
+     
       :If depth
           :If 0∊⍴args←↓⍉↑(where name oldname src)
               (file oldfile nc)←⊂0⍴⊂''
           :Else
               (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
           :EndIf
-      :Else 
+      :Else
           (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
     ∇
@@ -854,10 +866,10 @@
       ⍝ values cached for performance on ns lookup
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       :If 0=⎕NC where ⋄ oldfile←'' ⋄ ref←⊢  ⍝ namespace doesn't exist - src or nc ought to be provided
-      :Else ⋄ ref←⍎where         
+      :Else ⋄ ref←⍎where
           oldfile←(~opts.ignorecurrent)/ref CurrentFileName name     ⍝ Grab file info before ⎕FIX might destroy it
       :EndIf
-      :If 82=⎕DR '' ⍝ Classic
+      :If 82=⎕DR'' ⍝ Classic
       :AndIf 9=⎕NC where
           ⎕AVU←where⍎'⎕AVU'
       :EndIf
@@ -874,7 +886,7 @@
       :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file           ⍝ no existing file name for it
       :OrIf forceFilenames  ⍝ force using the default
-          :If isroot∨opts.singlefile             
+          :If isroot∨opts.singlefile
               file←dir
           :Else
               :If ~flatten          ⍝ flatten prevents subdirectory hierarchy
@@ -882,7 +894,7 @@
               :Else                 ⍝ when flattening, use the same dir as the old file (if any)
                   file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
               :EndIf
-              file←dir,file 
+              file←dir,file
               file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
           :EndIf
           file,←(~opts.singlefile)/typeExtensions Tail nc            ⍝ Add extension
@@ -947,12 +959,12 @@
       :EndIf
       :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
       fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
-      (where expname)←SplitNs fullname 
+      (where expname)←SplitNs fullname
       :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
       :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
-          :If 82=⎕DR '' ⍝ Classic
+          :If 82=⎕DR'' ⍝ Classic
           :AndIf 9=⎕NC where
               ⎕AVU←where⍎'⎕AVU' ⍝ ⎕NGET in Sniff may depend on it
           :EndIf
@@ -1047,7 +1059,7 @@
           :EndIf
       :AndIf 0<count←≢names
           ⍝ determine file names and check for clashes
-          :If file 
+          :If file
               files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
           :Else
               (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
@@ -1090,12 +1102,12 @@
               :If ∨/mask←mask∧(oldfiles≢¨files)∧(0≠≢¨oldfiles)  ⍝ delete oldfilename which was incorrect if write was successful
                   ⎕NDELETE¨mask/oldfiles
               :EndIf
-          :EndIf                             
+          :EndIf
       :EndIf
     ∇
 
     ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order;parts;g
-      :If 0=⎕NC 'opts.singlefile' ⋄ opts.singlefile←0 ⋄ :EndIf ⍝ /// temporary
+      :If 0=⎕NC'opts.singlefile' ⋄ opts.singlefile←0 ⋄ :EndIf ⍝ /// temporary
       list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
       parts←⎕NPARTS¨list[1;]
       list←list[;g←⍋'⎕'≠⊃¨list[3;]]                 ⍝ System names first
@@ -1153,12 +1165,12 @@
       :AndIf actnames≢expnames
           :If classic∧0=≢⊃actnames ⍝ Empty name in Classic?
               :Trap 92 ⍝ TRANSLATION ERROR
-                 z←GetFile ⊃allfiles
+                  z←GetFile⊃allfiles
               :Else
-                 Error ⎕DMX.(EM,' ',Message)
+                  Error ⎕DMX.(EM,' ',Message)
               :EndTrap
           :Else
-              Error 'Source file defines "',actnames,'", rather than "',expnames,'"'
+              Error'Source file defines "',actnames,'", rather than "',expnames,'"'
           :EndIf
       :EndIf
       :If opts.fastLoad  ⍝ do not spend time avoiding name clashes - actnc will be all 0's anyway
