@@ -1,0 +1,39 @@
+ ok←test_attributes(folder name);z;ns;⎕USING;GetTime;SetTime;fn;dt;aplf;tmp;TMatch;at
+⍝ Verify that functions get their attributes (time, author) from the file rather than ⎕FIX
+ ⎕USING←''
+
+ GetTime←⊃∘⊃3 ⎕NINFO⊂
+ SetTime←{System.IO.File.SetLastWriteTime ⍵(⎕NEW System.DateTime ⍺)}
+ TMatch←1>86400×|⍤-⍥(1 ⎕DT⊆) ⍝ <1s ∆t
+
+ CleanUp folder name
+ ⎕MKDIR Retry folder
+ (⊂fn'bar')⎕NPUT aplf←folder,'/',(fn←'foo'),'.aplf'
+ (dt←2345 6 7 10 20 30)SetTime aplf
+
+⍝ Check that we import the special datetime
+ z←LinkCreate name folder
+ ns←⍎name
+ assert'dt TMatch 22 ns.⎕ATX fn'
+
+⍝ Check that FSW does too
+ (⊂fn'baz')⎕NPUT tmp←folder,'/',fn,'.txt'
+ (dt←2000 1 2 3 4 5)SetTime tmp
+ :If 'Win'≡3↑⊃# ⎕WG'APLVersion' ⍝ Windows
+     {}⎕CMD'move /Y "','\'@('/'∘=)tmp,'" "',aplf,'"'
+ :Else ⍝ Posix
+     {}⎕SH'mv -f "',tmp,'" "',aplf,'"'
+ :EndIf
+ ⎕SE.Link.Notify'changed'aplf
+ assert'dt TMatch 22 ns.⎕ATX fn'
+
+⍝ Check that Add updates the file to match when the actual change was made
+ ns.⎕FX(fn←'bar')'-ry'
+ at←ns.⎕AT fn
+ (2⊃at)←1987 6 5 4 3 2 0
+ at ns.(1159⌶)fn
+ {}⎕SE.Link.Add name,'.',fn
+ dt←GetTime folder,'/',fn,'.aplf'
+ assert'dt TMatch 22 ns.⎕ATX fn'
+
+ ok←1
