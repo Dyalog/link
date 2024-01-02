@@ -1437,7 +1437,7 @@
       :EndIf
     ∇
 
-    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f;GetAplSourceCode
+    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
       :ElseIf link.singlefile
