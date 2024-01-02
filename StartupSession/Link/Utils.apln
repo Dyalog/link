@@ -745,10 +745,10 @@
           :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
           :EndIf
-          at←where.⎕AT name
-          at[2 4]←3 5 ⎕NINFO file
-          (4⊃at)(2⊃⎕NPARTS⍨)←0 ⍝ remove domain
-          at where.(1159⌶)name
+          :If ⎕NEXISTS file
+            ⍝ ┌───set attribs───┐ ┌0 ms┐┌remove domain┐┌get file time+name┐┌─get attribs─┐
+              name where.(1159⌶)⍨(0@7¨@1(2⊃⎕NPARTS)¨@2⊢3 5 ⎕NINFO file)@2 4 where.⎕AT name
+          :EndIf
           ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
           ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
           ⍝:EndIf

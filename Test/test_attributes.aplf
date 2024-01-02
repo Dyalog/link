@@ -36,4 +36,6 @@
  dt←GetTime folder,'/',fn,'.aplf'
  assert'dt TMatch 22 ns.⎕ATX fn'
 
+ CleanUp folder name
+
  ok←1
