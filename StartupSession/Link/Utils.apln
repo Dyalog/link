@@ -527,12 +527,13 @@
               links←⍬
           :EndIf
           any←~0∊⍴links
-     
-          :If any ⋄ :AndIf 1∊mask←~⎕NEXISTS ⎕SE.Link.Links.dir  ⍝ clean up "zombie dir" links
-              ⍝ Should really do clean shut-down of FSWs but that errors if the dir is already gone
-              ¯1 Log'Clearing links with missing directory:'(⍕mask/links)
-              SetLinks links←(~mask)/links
-          :EndIf
+
+⍝ To be discussed if we want to do this:     
+⍝          :If any ⋄ :AndIf 1∊mask←~⎕NEXISTS ⎕SE.Link.Links.dir ⍝ clean up "zombie dir" links
+⍝              ⍝ Should really do clean shut-down of FSWs but that errors if the dir is already gone
+⍝              ¯1 Log'Clearing links with missing directory:'(⍕mask/links)
+⍝              SetLinks links←(~mask)/links
+⍝          :EndIf
      
           :If any ⋄ :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie ns" links
               0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
