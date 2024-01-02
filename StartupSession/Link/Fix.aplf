@@ -1,4 +1,4 @@
- {names}←{where} Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;relname;sname;snc
+ {names}←{where}Fix src;RSI;XSI;callback;delete;error;file;fix;fixedname;link;links;name;nc;nosrc;ns;nsname;nsref;oldfile;oldname;this;tie;update;⎕IO;⎕ML;add;parts;n;renamed;new;z;relname;sname;snc
 ⍝ Fix a function/operator or script, preserving any existing source files if in a linked namespace
 ⍝   Used internally by EditorFix "afterfix" processing
 ⍝   May be called by other tools providing the source in ⎕NR/⎕SRC format on the right
@@ -26,7 +26,7 @@
      :If 0=≢ns ⋄ ns←⊃RSI ⋄ :EndIf  ⍝ namespace not specified - do not ravel reference
      oldname,←(0=≢oldname)/name ⍝ oldname not specified
      name,←(0=≢name)/oldname ⍝ name not specified
-     (sname snc)←U.Sniff '' src
+     (sname snc)←U.Sniff''src
      :If 0=≢name ⍝ no names provided at all
          name←oldname←sname
      :EndIf
@@ -72,23 +72,23 @@ NOHOLD:
          update←(⊂link.watch)∊'ns' 'both'
          :If ~update
          :AndIf '⎕SE.Link.Add'≡2⊃2↑⎕XSI
-            U.Warn 'Add will not update files when watch=',link.watch
+             U.Warn'Add will not update files when watch=',link.watch
          :EndIf
 
          tie←U.FixTie link  ⍝ should we tie files when fixing
 
          :If update
-            renamed←(name≢oldname)∧0≠≢oldname
-            new←(link.watch≡'dir')∨0=≢nsref U.CurrentFileName name  ⍝ not currently associated
+             renamed←(name≢oldname)∧0≠≢oldname
+             new←(link.watch≡'dir')∨0=≢nsref U.CurrentFileName name  ⍝ not currently associated
          :AndIf ~link.forceFilenames
          :AndIf renamed∨new∧nc≠2.1
          :AndIf ⎕NEXISTS file          ⍝ And the target file already exists
          :AndIf (name nc)≢z←U.Sniff name file ⍝ And seems to contain something different
-             U.Warn 'Cannot write ',name,' to "',file,'" - that file defines ',⊃z
+             U.Warn'Cannot write ',name,' to "',file,'" - that file defines ',⊃z
              parts←⎕NPARTS file ⋄ n←1
              :Repeat ⋄ n+←1 ⍝ Add ~2, ~3, ~4 ... to file name until free name found
-             :Until ~⎕NEXISTS file←∊parts,¨'' ('~',⍕n) ''
-             U.Warn 'Writing ',name,' to file "',file,'"'
+             :Until ~⎕NEXISTS file←∊parts,¨''('~',⍕n)''
+             U.Warn'Writing ',name,' to file "',file,'"'
          :EndIf
 
 
@@ -96,7 +96,7 @@ NOHOLD:
          :If callback∧(0≠≢oldfile)∧(oldname≢name)  ⍝ Repair damage done by editor on rename - won't happen if oldname is undefined (link issue #190) because oldfile must then be empty
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              ns U.Untie name  ⍝ editor ties newname to oldfile
-             (⊃U.LASTFIX)(nsref U.Into) oldfile   ⍝ editor overwrites oldfile with new definition
+             (⊃U.LASTFIX)(nsref U.Into)oldfile   ⍝ editor overwrites oldfile with new definition
              :If 0>ns U.QFix oldfile oldname tie 1 0 ⍝ FileSystemWatcher will pick up the change but won't fix it since it's already fixed - TODO it means it will re-hash the file
                  U.Error'Could not fix ',(⍕ns),'.',oldname,' from "',oldfile,'"'
              :EndIf
@@ -124,7 +124,7 @@ NOHOLD:
          :EndIf
 
          :If 1∊⊃ns.⎕STATE name ⍝ Is name localised on stack?
-             U.Warn 'Ignoring edit of localised name ',nsname,'.',name
+             U.Warn'Ignoring edit of localised name ',nsname,'.',name
              :Return
          :EndIf
 
@@ -159,7 +159,8 @@ NOHOLD:
                      3 ⎕MKDIR file
                  :Else  ⍝ file
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
-                     src (nsref U.Into) file
+                     src(nsref U.Into)name nsref.{3 4∊⍨⎕NC ⍺:⍵(2⊃⎕AT ⍺) ⋄ ⍵}file
+
                      :If NOTIFY∧callback∧link.watch≡'ns'
                          ⍝ If watching files, notification happens on FSW event
                          U.Notify nsname,'.',name,' written to ',file

@@ -1,49 +1,41 @@
- ok←test_attributes(folder name);here;simple;spaces;hereref;z;link;myapp;source;export;file
-⍝ Verify that short argument handling works
+ ok←test_attributes(folder name);z;ns;⎕USING;GetTime;SetTime;fn;dt;aplf;tmp;TMatch;at
+⍝ Verify that functions get their attributes (time, author) from the file rather than ⎕FIX
+ ⎕USING←''
 
- here←⍕hereref←⎕THIS
- simple←'/myapp'
- myapp←here,'.myapp'
+ GetTime←⊃∘⊃3 ⎕NINFO⊂
+ SetTime←{System.IO.File.SetLastWriteTime ⍵(⎕NEW System.DateTime ⍺)}
+ TMatch←1>86400×|⍤-⍥(1 ⎕DT⊆) ⍝ <1s ∆t
 
- ⍝ Unit test for preProcessNsDir
- ⍝   returns (container targetns directory nsgiven)
+ CleanUp folder name
+ ⎕MKDIR Retry folder
+ (⊂fn'bar')⎕NPUT aplf←folder,'/',(fn←'foo'),'.aplf'
+ (dt←2345 6 7 10 20 30)SetTime aplf
 
- assert '⎕THIS myapp simple 0≡⎕SE.Link.preProcessNsDir simple'
- assert '⎕THIS myapp simple 0≡⎕SE.Link.preProcessNsDir ⊂simple'
- assert '⎕THIS myapp simple 1≡⎕SE.Link.preProcessNsDir myapp simple'
+⍝ Check that we import the special datetime
+ z←LinkCreate name folder
+ ns←⍎name
+ assert'dt TMatch 22 ns.⎕ATX fn'
 
- z←⎕SE.Link.Create 'HttpCommand'
- link←GetLink here,'.HttpCommand'
- assert '⎕NEXISTS link.dir'
- assert '9=⎕NC ''HttpCommand'''
- file←link.dir
+⍝ Check that FSW does too
+ (⊂fn'baz')⎕NPUT tmp←folder,'/',fn,'.txt'
+ (dt←2000 1 2 3 4 5)SetTime tmp
+ :If 'Win'≡3↑⊃# ⎕WG'APLVersion' ⍝ Windows
+     {}⎕CMD'move /Y "','\'@('/'∘=)tmp,'" "',aplf,'"'
+ :Else ⍝ Posix
+     {}⎕SH'mv -f "',tmp,'" "',aplf,'"'
+ :EndIf
+ ⎕SE.Link.Notify'changed'aplf
+ assert'dt TMatch 22 ns.⎕ATX fn'
 
- z←⎕SE.Link.Break HttpCommand
- z←⎕SE.UCMD 'Link.Create HttpCommand'
- assert '9=⎕NC ''HttpCommand'''
- assert 'file≡4⊃5179⌶HttpCommand'
+⍝ Check that Add updates the file to match when the actual change was made
+ ns.⎕FX(fn←'bar')'-ry'
+ at←ns.⎕AT fn
+ (2⊃at)←1987 6 5 4 3 2 0
+ at ns.(1159⌶)fn
+ {}⎕SE.Link.Add name,'.',fn
+ dt←GetTime folder,'/',fn,'.aplf'
+ assert'dt TMatch 22 ns.⎕ATX fn'
 
- z←⎕SE.Link.Break HttpCommand
- ⎕EX 'HttpCommand'
- z←⎕SE.Link.Import 'HttpCommand'
- assert '9=⎕NC ''HttpCommand'''
- assert '0=≢4⊃5179⌶HttpCommand' ⍝ Not linked
- ⎕EX 'HttpCommand' '#.HttpCommand'
-
- z←⎕SE.Link.Import '#' 'HttpCommand'
- assert '9=⎕NC ''#.HttpCommand'''
- ⎕EX '#.HttpCommand'
-
- export←folder,'/export'
- name ⎕NS ''
- 2 (⍎name).⎕FIX source←'r←dup x' 'r←x x'
- ⎕CS name
- z←⎕SE.Link.Export folder
- ⎕CS here
- assert 'source≡⊃⎕NGET (folder,''/dup.aplf'') 1'
- 3 ⎕NDELETE folder
- ⎕EX name
-
- ⎕EX 'HttpCommand'
+ CleanUp folder name
 
  ok←1
