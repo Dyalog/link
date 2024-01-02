@@ -277,15 +277,19 @@
     ∇ name←StripCaseCodePart name;code;length;mask;⎕IO
     ⍝ strip case code from a string
       ⎕IO←0
-      length←(⌽name)⍳'-'
-      →0 If length∊0,≢name   ⍝ case code must be after hyphen
-      code←⎕D⍳(-length)↑name
-      name←((-length+1)↓name)
-      →0 If code∨.>7         ⍝ case code must be octal digits
-      →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
-      mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
-      →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
-      name←((≢name)↑mask)CaseText¨name
+      :If '.'∊name
+          name←1↓∊'.',¨StripCaseCodePart¨'.'(≠⊆⊢)name
+      :Else
+          length←(⌽name)⍳'-'
+          →0 If length∊0,≢name   ⍝ case code must be after hyphen
+          code←⎕D⍳(-length)↑name
+          name←((-length+1)↓name)
+          →0 If code∨.>7         ⍝ case code must be octal digits
+          →0 If(⌈3÷⍨≢name)≠(≢code)  ⍝ case code must be of correct length
+          mask←⌽,⍉2 2 2⊤code     ⍝ boolean mask of upper-case
+          →0 If~(⊂(≢name)↓mask)∊⍬(,0)(0 0)  ⍝ mask must be padded with 0-2 zeros
+          name←((≢name)↑mask)CaseText¨name
+      :EndIf
     ∇
     ∇ name←(dir CaseCode flatten)name;ext;file;parts;path
     ⍝ case-code a file located under linked dir
@@ -700,7 +704,45 @@
           :EndIf
       :EndTrap
     ∇
-    ∇ src←{ns}GetAplSource name;nc
+
+    ∇ sub←SubExt val;cr;lf;Char;crs;lfs;lss
+    ⍝ Takes an array value, then returns the appropriate sub-extension (incl. leading ".") for its source file
+      (cr lf)←⎕UCS 13 10
+      ⍝ Compatible line breaks: LF VT FF CR NEL  LS   PS
+      lss←⎕UCS ⎕AVU∩⍣(82=⎕DR'')⊢10 11 12 13 133 8232 8233
+      Char←⎕DR∊80 82 160 320⍨
+     
+      :If 1=≡val ⍝ simple
+      :AndIf 2=≢⍴val ⍝ matrix
+      :AndIf Char val
+      :AndIf 0≠≢val ⍝ with rows
+      :AndIf ' '∧.≠⊢/val ⍝ all of which have non-space in last column
+      :AndIf ~lss(∨/∊)val ⍝ without line seps
+          sub←'.mat'
+     
+      :ElseIf 1=≡val ⍝ simple
+      :AndIf 1=≢⍴val ⍝ vector
+      :AndIf Char val
+      :AndIf cr lf∊⍨⊃⌽val ⍝ ending with CR or LF
+          crs←cr=val
+          lfs←lf=val
+      :AndIf (~∨/crs)∨(~∨/lfs)∨(0,crs)≡(lfs,0) ⍝ only LF or only CR or only CRLF
+      :AndIf ~(lss~cr lf)(∨/∊)val ⍝ with no other line seps
+          sub←'.','CRLF'/⍨2/∨/¨crs lfs
+     
+      :ElseIf 2=≡val ⍝ even-nested
+      :AndIf 1=≢⍴val ⍝ vector
+      :AndIf 1∧.=(≢⍴)¨val ⍝ of vectors
+      :AndIf ∧/Char¨val
+      :AndIf ~∨/lss∘(∨/∊)¨val ⍝ without line seps
+          sub←'.vec'
+     
+      :Else
+          sub←'' ⍝ APLAN
+      :EndIf
+    ∇
+
+    ∇ src←{ns}GetAplSource name;nc;Cut;val;sub
     ⍝ if OK src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
     ⍝ if failed, src is a text vector holding the error message
     ⍝ name may be empty to get the source of ns
@@ -711,9 +753,25 @@
           nc←|ns NameClass name
           :Select nc
           :Case 2.1 ⍝ variable
-              :Trap 0 ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name
-              :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
-              :EndTrap
+              val←ns⍎name ⍝ what if the var already has a file
+              sub←SubExt val
+              Cut←{lb←⎕UCS ⍺ ⋄ t←lb,⍵ ⋄ (≢⍺)↓¨t⊂⍨lb⍷t}
+              :Select sub ⍝ simple
+              :Case '.mat'
+                  src←↓val
+              :Case '.LF'
+                  src←10 Cut val
+              :Case '.CRLF'
+                  src←13 10 Cut val
+              :Case '.CR'
+                  src←13 Cut val
+              :Case 'vec'
+                  src←val
+              :Else
+                  :Trap 0 ⋄ src←⎕SE.Dyalog.Array.Serialise val
+                  :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
+                  :EndTrap
+              :EndSelect
           :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
               src←⎕NULL
               :If IS181 ⋄ :Trap 11 ⋄ src←SRC_BEST ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
@@ -742,7 +800,7 @@
       :EndIf
     ∇
 
-    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed;at
+    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed;Set;With;at
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
@@ -796,26 +854,65 @@
           :Return  ⍝ trad ns created
       :EndIf
       :Trap 0
-          name where.{⍎⍺,'←⎕SE.Dyalog.Array.Deserialise ⍵'}src  ⍝ array materialised in its namespace
+          Set←name∘where.{⍎⍺,'←⍵'}
+          With←{∊src,¨⊂⎕UCS ⍵}
+          :Select ⎕C(⍳∘'.'↓⊢)2⊃⎕NPARTS file ⍝ sub-ext
+          :Case '.cr'
+              Set With 13
+          :Case '.lf'
+              Set With 10
+          :Case '.crlf'
+              Set With 13 10
+          :Case '.mat'
+              Set↑src
+          :Case '.vec'
+              Set src
+          :Case ''
+              Set where ⎕SE.Dyalog.Array.Deserialise src
+          :Else
+              Error'File "',file,'" has invalid sub-extension'
+          :EndSelect
           nc←where NameClass name
       :Else
           name←'' ⋄ nc←0  ⍝ unknown
       :EndTrap
     ∇
-    ∇ fixed←target QFix(file name tie ignoreErrors ignoreSame);changed;nc;src;tie;value
+    ∇ fixed←target QFix(file name tie ignoreErrors ignoreSame);changed;nc;tie;value;fpath;fname;fext;src;With
     ⍝ fixed=1: fixed source
     ⍝ fixed=0: source already up to date - not fixed
     ⍝ fixed=¯1: failed to fix source
     ⍝ ignoreErrors: 1 to fix scripts containing errors
     ⍝ ignoreSame  : 1 to refix unchanged source files (used by Resync)
      
-      :If '.apla'≡⎕C⊃⌽⎕NPARTS file ⍝ If it is an array, do not try to ⎕FIX
-          :Trap 0 ⍝ Trap any failue in Deserialise
-              value←target.{⎕SE.Dyalog.Array.Deserialise ⍵}⊃⎕NGET file 1
-          :Else
+      (fpath fname fext)←⎕NPARTS file
+      :If '.apla'≡⎕C fext  ⍝ If it is an array, do not try to ⎕FIX
+     
+          src←⊃⎕NGET file 1
+          With←{∊src,¨⊂⎕UCS ⍵}
+          :Select ⎕C(⍳∘'.'↓⊢)fname ⍝ sub-ext
+          :Case 'cr'
+              value←With 13
+          :Case 'lf'
+              value←With 10
+          :Case 'crlf'
+              value←With 13 10
+          :Case 'mat'
+              value←↑src
+          :Case 'vec'
+              value←src
+          :Case ''
+              :Trap 0 ⍝ Trap any failue in Deserialise
+                  value←target ⎕SE.Dyalog.Array.Deserialise src
+              :Else
+                  fixed←¯1
+                  :Return
+              :EndTrap
+          :Else ⍝ invalid sub-ext
               fixed←¯1
               :Return
-          :EndTrap
+          :EndSelect
+     
+          nc←target NameClass name
      
           :If fixed←0=⊃⎕NC'target.',name ⍝ fix if not defined
           :OrIf fixed←value≢⍎'target.',name ⍝ or if value is different
@@ -836,10 +933,21 @@
           fixed←¯1+2×(~nc∊0 ¯1)  ⍝ either 1 or ¯1
       :Else ⋄ fixed←0 ⋄ :EndIf
     ∇
-    ∇ (actname nameclass)←{errors}Sniff(expname src);array
+    ∇ (actname nameclass)←{errors}Sniff(expname src);array;file;dot
       :If 900⌶⍬ ⋄ errors←⊢ ⋄ :EndIf
-      :If (src≢⎕NULL)∧(1=≡,src) ⋄ src←GetFileSource src ⋄ :EndIf
-      :If src≡⍬ ⋄ actname←'' ⋄ nameclass←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+      :If 0∊⍴src ⋄ actname←'' ⋄ nameclass←0 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
+      file←(src≢⎕NULL)∧(1=≡,src)
+      :If file
+          dot←'.'⍳⍨2⊃⎕NPARTS src
+          :Select ⎕C dot↓2⊃⎕NPARTS src
+          :Case ''
+              src←GetFileSource src
+          :CaseList 'cr' 'lf' 'crlf' 'mat' 'vec'
+              actname←StripCaseCodePart 2⊃⎕NPARTS src↓⍨¯1-dot ⋄ nameclass←2.1 ⋄ :Return
+          :Else
+              actname←'' ⋄ nameclass←0 ⋄ :Return
+          :EndSelect
+      :EndIf
       :If src≡⎕NULL ⋄ actname←expname ⋄ nameclass←¯9.1 ⋄ :Return ⋄ :EndIf  ⍝ trad ns
       (actname nameclass)←errors SniffScript(expname src)  ⍝ unfixable yields ('' 0)
       :If 0=nameclass ⋄ :Trap 0
@@ -877,7 +985,7 @@
           (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
       :EndIf
     ∇
-    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile
+    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through NormNs
@@ -923,7 +1031,12 @@
       :If forceExtensions∨0=≢ext
           ext←typeExtensions Tail nc
       :EndIf
-      file←subdir,file,ext
+      :If 2.1=⎕NC⊂ns,'.',name
+          subext←SubExt ns⍎name
+      :Else
+          subext←''
+      :EndIf
+      file←subdir,file,subext,ext
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
       :If 3=(⍎ns).⎕NC getFilename
@@ -971,6 +1084,7 @@
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
       (subdir subfile subext)←⎕NPARTS subfile
+      subfile←'\.(mat|vec|CRLF|CR|LF)'⎕R''⍠1⊢subfile
       :If ⎕NEXISTS file
           subfile,←(1={0::0 ⋄ 1 ⎕NINFO ⍵}file)/subext ⍝ Include extension if a DIRECTORY was renamed
               ⍝ ↑↑ Trap required to avoid timing hole between ⎕NEXISTS and ⎕NINFO
@@ -1307,28 +1421,48 @@
     ∇
 
     ∇ match←CompareSource(src1 src2 nc1 nc2);name1;name2;ns;ns1;ns2
-      :If ~match←src1≡src2  ⍝ source may possibly differ
+      :If match←nc1(≡∨0∊,)nc2  ⍝ a text array could look like the source of a function
+      :AndIf ~match←src1≡src2  ⍝ source may possibly differ; this handles plain text arrays too
           :If ~IS181    ⍝ cannot preserve source as typed
-          :AndIf ∨/3.1 3.2 4.1 4.2∊nc1,nc2  ⍝ attempting to compare functions
+          :AndIf nc1∊3.1 3.2 4.1 4.2  ⍝ attempting to compare functions
                ⍝ double-check that descanned versions match
               (ns1 ns2)←⎕NS¨⍬ ⍬ ⋄ (name1 name2)←(ns1 ns2).⎕FX(src1 src2)
           :AndIf ∧/{''≡0⍴⍵}¨name1 name2  ⍝ if at least one failed to fix - leave it at that
           :AndIf match←name1≡name2  ⍝ if names differ then sources differ
               match←≡/(ns1 ns2).⎕NR name1 name2  ⍝ compare descanned versions
           :EndIf
-          :If 2.1∊nc1,nc2  ⍝ attempting to compare arrays
+          :If 2.1=nc1  ⍝ attempting to compare arrays
               match←≡/⎕SE.Dyalog.Array.(Serialise∘Deserialise)¨src1 src2 ⍝ compare "canonical" representation
           :EndIf
       :EndIf
     ∇
 
-    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i
+    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f;GetAplSourceCode
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
       :ElseIf link.singlefile
           filesrc←GetFileSource¨file←,⊂link.dir
       :Else
           filesrc←GetFileSource¨file←(⊃link(1 ListFiles 0)link.dir)  ⍝ include root dir
+          With←{∊⍺,¨⊂⎕UCS ⍵}
+          :For f i s :InEach file(⍳≢file)filesrc
+              :Select ⎕C(⍳∘'.'↓⊢)2⊃⎕NPARTS f
+              :Case ''
+                  :Continue
+              :Case 'cr'
+                  s With←13
+              :Case 'lf'
+                  s With←10
+              :Case 'crlf'
+                  s With←13 10
+              :Case 'mat'
+                  s←↑s
+              :Case 'vec'
+              :Else
+                  Error'File "',f,'" has invalid sub-extension'
+              :EndSelect
+              (i⊃filesrc)←⎕SE.Dyalog.Array.Serialise s
+          :EndFor
       :EndIf
       :If link.flatten
           mask←2=1 ⎕NINFO file     ⍝ Keep ordinary files
@@ -1443,7 +1577,7 @@
     ⍝ False negatives are bad because we won't fix the script.
     ⍝ False positives are not too bad since the fix will fail anyway.
       :If 900⌶⍬ ⋄ errors←IS181 ⋄ :EndIf  ⍝ v18.0 doesn't have ⎕FIX⍠'FixWithErrors' 1
-      src←,,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
+      src←,⍕⍤,¨⊆,src ⋄ actname←'' ⋄ nameclass←0
       ⍝ define useful regular expressions
       Decase←{,'[',']',⍨(0 CaseText ⍵),[1.5](1 CaseText ⍵)} ⍝ case-insensitive word
       UCP←⍠'UCP' 1                                  ⍝ recognise non-ASCII

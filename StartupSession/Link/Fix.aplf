@@ -107,7 +107,7 @@ NOHOLD:
              :EndIf
          :ElseIf callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
-             :If 2=ns.⎕NC name ⋄ src←⎕SE.Dyalog.Array.Serialise ns⍎name  ⍝ source of array
+             :If 2=ns.⎕NC name ⋄ src←ns U.GetAplSource name  ⍝ source of array
              ⍝:ElseIf ~tie ⋄ :AndIf (ns.⎕NC name)∊3 4 ⍝ functions not tied to file cannot preserve whitespace - Link.Diff would otherwise report a diff between file and namespace
              ⍝    src←ns.⎕NR name    ⍝ use ⎕NR so that workspace matches file
              :Else ⋄ src←⊃U.LASTFIX  ⍝ source as typed
@@ -132,12 +132,14 @@ NOHOLD:
              :If 1=≡src←ns U.GetAplSource name  ⍝ string source means error
                  U.Error src  ⍝ failed to get source
              :ElseIf nc=2.1  ⍝ link issue #205 - check round-trip of serialisation
+             :AndIf ''≡U.SubExt ns⍎name ⍝ APLAN
              :AndIf (ns⍎name){0::1 ⋄ ⎕CT←0 ⋄ ⍺≢⎕SE.Dyalog.Array.Deserialise ⍵}src
                  U.Error'Cannot round-trip serialisation of array: ',nsname,'.',name
              :EndIf
          :EndIf
 
          :If 3=link.(⎕NC beforeWrite)  ⍝ user callback on file write
+             file←'\.(\w+\.)?apla$'⎕R'.apla'⊢file ⍝ remove any sub-extension
              :If ~(⍎link.beforeWrite)'beforeWrite'link file(nsname,'.',name)(|nc)(nsname,'.',oldname)src
                  ¯1 U.Log'name='nsname'.'name' file="'file'" handled by user'
                  :Return
@@ -160,7 +162,6 @@ NOHOLD:
                  :Else  ⍝ file
                      3 ⎕MKDIR 1⊃⎕NPARTS file ⍝ make sure folder is there
                      src(nsref U.Into)name nsref.{3 4∊⍨⎕NC ⍺:⍵(2⊃⎕AT ⍺) ⋄ ⍵}file
-
                      :If NOTIFY∧callback∧link.watch≡'ns'
                          ⍝ If watching files, notification happens on FSW event
                          U.Notify nsname,'.',name,' written to ',file
@@ -170,7 +171,9 @@ NOHOLD:
                  error←'Unable to write ',nsname,'.',name,' to file: ',file
              :EndTrap
              :If delete  ⍝ old file must be removed
-                 ⎕NDELETE oldfile
+                 1 ⎕NDELETE oldfile
+             :ElseIf 2.1=nc  ⍝ might have changed format
+                 1 ⎕NDELETE(⊃⎕NINFO⍠1⊢'\.(\w+\.)?apla$'⎕R'.*apla'⊢file)~⊂file  ⍝ delete all other possible source files
              :EndIf
          :EndIf
 
