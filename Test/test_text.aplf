@@ -1,4 +1,4 @@
- ok←test_text(folder name);cr;lf;pre;z;All;opts;ns;cc
+ ok←test_text(folder name);cr;lf;pre;z;All;opts;ns;cc;tf
 
  pre←'mat' 'vec' 'win' 'pos' 'dya'
  ⎕SHADOW,pre∘.,⎕D
@@ -6,7 +6,9 @@
  All←{'ns.'∘,¨nl/⍨(⊃⍕⍵)∊¨nl←ns.⎕NL ¯2}
  (cr lf)←⎕UCS 13 10
 
- :For opts cc :In ('()' '')('(caseCode:1)' '-0')
+ :For opts cc :In ('()' '')('(caseCode:1)' '-0')('(noTextFiles:1)' '')('(noTextFiles:1 ⋄ caseCode:1)' '-0')
+     tf←~∨/'noTextFiles'⍷opts
+
      CleanUp folder name
      ⎕MKDIR Retry folder
 
@@ -34,9 +36,16 @@
      ns.dya1←dya0,'y'cr
 
      {}⎕SE.Link.Add All 1
-⍝ should be using plain text:
-     assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.*.apla'''
-     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.apla'''
+     :If tf ⍝ should be using plain text:
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.*.apla'''
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.apla'''
+     :Else ⍝ should be using APLAN:
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.*.apla'''
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.apla'''
+         ⍝ but should not have changed unmodified vars:
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*0',cc,'.*.apla'''
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*0',cc,'.apla'''
+     :EndIf
 
 ⍝ bad ones:
      ns.mat2←mat0,' '      ⍝ trailing all-space col
@@ -58,9 +67,13 @@
      (¯1↑ns.dya2)←cr ⍝ fix wrong sep
 
      {}⎕SE.Link.Add All 2
-⍝ should now be changed from APLAN to plain text:
-     assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
-     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     :If tf ⍝ should now be changed from APLAN to plain text:
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     :Else
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     :EndIf
 
 ⍝ let's unfix them
      ns.mat2←mat0,' '      ⍝ trailing all-space col
@@ -70,7 +83,7 @@
      ns.dya2←dya0,'y'lf    ⍝ mixed seps
 
      {}⎕SE.Link.Add All 2
-⍝ should now be changed from plain text to APLAN:
+⍝ should now be (changed from plain text to) APLAN:
      assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
      assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
 
@@ -84,7 +97,7 @@
 
      {}⎕SE.Link.Add All 3
      assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*3',cc,'.apla'''
-     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*3',cc,'.*.apla'''
 
  :EndFor
  CleanUp folder name
