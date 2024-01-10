@@ -131,12 +131,12 @@
       :EndIf
       :If DOTNET
           :Select 1 ⎕NINFO link.dir
-          :Case 1 ⍝ directory 
-               args←link.dir(,'*')
+          :Case 1 ⍝ directory
+              args←link.dir(,'*')
           :Case 2 ⍝ single file
-               args←(¯1↓⊃⎕NPARTS link.dir) (,'*')
+              args←(¯1↓⊃⎕NPARTS link.dir)(,'*')
           :EndSelect
-               
+     
           r←MakeWatcher args
           r.EnableRaisingEvents←1
           link.fsw←r
@@ -422,7 +422,7 @@
           newnc←newfiles←newnames←newmod←newhash←⍬
           :If 1∊mask←~apllist∊oldnames  ⍝ array creation will never be picked up
               (newnames newnc)←mask∘/¨(apllist aplnc)
-              :If ∨/mask←{1=≡⍵}¨newsrc←nsref ##.U.GetAplSource¨newnames
+              :If ∨/mask←{1=≡⍵}¨newsrc←{nsref ##.U.GetAplSource ⍵ link}¨newnames
                   ¯1 LogCrawler'Failures to get APL source:',⍕mask/newnames
                   (newnames newnc newsrc)/⍨←⊂~mask
               :EndIf
@@ -478,7 +478,7 @@
               mask∧←0=≢¨# ##.U.CurrentFileName¨aplnames  ⍝ items tied to files will necessarily have matching ⎕SRC/⎕NGET
           :AndIf ~0∊⍴notchecked←⍸mask
               (aplnames filenames)←↓items[I_NAME I_FILE;notchecked]
-              aplsrc←# ##.U.GetAplSource¨aplnames ⋄ nc←# ##.U.NameClass¨aplnames ⋄ filesrc←##.U.GetFileSource¨filenames
+              aplsrc←{# ##.U.GetAplSource ⍵ link}¨aplnames ⋄ nc←# ##.U.NameClass¨aplnames ⋄ filesrc←##.U.GetFileSource¨filenames
               :If ∨/mask←{1=≡⍵}¨aplsrc ⋄ ¯1 LogCrawler'Failures to get APL source:',⍕mask/aplnames ⋄ :EndIf
               :If ∨/mask←{1=≡⍵}¨filesrc ⋄ ¯1 LogCrawler'Failures to get file source:',⍕mask/filenames ⋄ :EndIf
               mask←~##.U.CompareSource¨aplsrc filesrc nc((⍴filenames)⍴0)            ⍝ items that differ from file definition

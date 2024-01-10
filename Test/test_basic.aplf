@@ -1,7 +1,7 @@
  ok←test_basic(folder name);_;ac;bc;cb;cm;cv;file;foo;goo;goofile;link;m;new;nil;nl;ns;o2file;old;olddd;opts;otfile;start;t;tn;value;z;zoo;zzz;unlikelyname
  'link issue #265'assert'0=⎕NC''unlikelyname'''
- name ⎕NS ''
- (⍎name) ⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
+ name ⎕NS''
+ (⍎name)⎕SE.Link.Fix'res←unlikelyname' 'res←''unlikelyname'''  ⍝ replacement for 2 ⎕FIX in calling namespace
  'link issue #265'assert'3=⎕NC name,''.unlikelyname'''
  'link issue #265'assert'''unlikelyname''≡',name,'.unlikelyname'
  ⎕EX name
@@ -114,7 +114,7 @@
 
       ⍝ Now edit the new file so it defines 'zoo'
  tn←goofile ⎕NTIE 0 ⋄ 'z'⎕NREPLACE tn 5,⎕DR'' ⋄ ⎕NUNTIE tn ⍝ (beware UTF-8 encoded file)
- Notify 'changed' goofile ⍝ No cover for QNREPLACE
+ Notify'changed'goofile ⍝ No cover for QNREPLACE
       ⍝ Validate that this did cause zoo to arrive in the workspace
  zoo←' r←zoo x' ' x x'
  assert'zoo≡ns.⎕NR ''zoo''' 'ns.⎕FX zoo'
@@ -123,7 +123,7 @@
       ⍝ Finally edit the new file so it finally defines 'goo'
  tn←goofile ⎕NTIE 0
  'g'⎕NREPLACE tn 5,⎕DR'' ⍝ (beware UTF-8 encoded file)
- Notify 'changed' goofile ⍝ No cover for ⎕NREPLACE
+ Notify'changed'goofile ⍝ No cover for ⎕NREPLACE
  ⎕NUNTIE tn
       ⍝ Validate that this did cause goo to arrive in the workspace
  goo←' r←goo x' ' x x'
@@ -154,7 +154,9 @@
       ⍝ Now test whether exits implement ".charmat" support
       ⍝ First, write vars in the workspace to file'
       ⍝ prevent thread-switch across the next line to avoid the crawler picking up APL changes before the Fix - they would be mapped to cm.apla and cv.apla because user doesn't declare a getFilename callback
- ns.cm←↑ns.cv←'Line 1' 'Line two' ⋄ ns'cm'⎕SE.Link.Fix ⍬ ⋄ ns'cv'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
+ ns.cm←↑ns.cv←'Line 1' 'Line two'
+ ns'cm'⎕SE.Link.Fix ⍬ ⍝ Inform it charmat was edited
+ ns'cv'⎕SE.Link.Fix ⍬
  assert'ns.cm≡↑⊃⎕NGET (folder,''/cm.charmat'') 1'
  assert'ns.cv≡⊃⎕NGET (folder,''/cv.charvec'') 1'
 
@@ -167,11 +169,11 @@
       ⍝ Now tear it all down again:
       ⍝ First the sub-folder
 
- old←⎕CS (⍕ns),'.bus'
- ⎕SE.Link.Expunge '##.foo' ⍝ Test issue #506 is fixed
+ old←⎕CS(⍕ns),'.bus'
+ ⎕SE.Link.Expunge'##.foo' ⍝ Test issue #506 is fixed
  ⎕CS old
  assert'0=⎕NC ''ns.foo'''
- assert '~⎕NEXISTS folder,''/foo.dyalog'''
+ assert'~⎕NEXISTS folder,''/foo.dyalog'''
 
  _←2 QNDELETE folder,'/bus'
  assert'0=⎕NC ''ns.bus''' '⎕EX ''ns.bus'''
@@ -187,7 +189,7 @@
  assert'0=ns.⎕NC ''nil'''
  assert'0=≢ns.⎕NL -⍳10' ⍝ top level namespace is now empty
 
- _←(⊂'()') QNPUT folder,'/array.apla'
+ _←(⊂'()')QNPUT folder,'/array.apla'
  'link issue #260'assert name,'≡',name,'.array.##'
 
  'link issue #263'assert'''No link to break in arguments''≡⎕SE.Link.Break ⍬'

@@ -453,7 +453,7 @@
       ⍝ test exporting arrays and sysvars
  (name,'.sub')⎕NS''
  name⍎'var←1 2 3 ⋄ sub.subvar←4 5 6'
- files←,'' 'sub/'∘.,'⎕AVU' '⎕CT' '⎕DCT' '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
+ files←,'' 'sub/'∘.,'⎕AVU' '⎕CT' '⎕DCT' '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING.vec' '⎕WX'
  files,←'var' 'sub/subvar'
  files←(folder,'/')∘,¨files,¨(⊂'.apla')
       ⍝(opts←⎕NS'').source←'ns'

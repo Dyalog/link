@@ -29,7 +29,7 @@ NOHOLD:
              :Else ⋄ warnmsg←'Dyalog v18.0 is required to watch directories with .NET or .NetCore - watch defaults to ''ns'''
              :EndIf
          :EndIf  ⍝ otherwise watch defaults to 'both'
-         'setopts' ⎕NS opts ⍝ Record options that were set for writing .linkconfig file
+         'setopts'⎕NS opts ⍝ Record options that were set for writing .linkconfig file
          opts←U.DefaultOpts opts
 
          nc←U.NameClass ns
@@ -83,7 +83,7 @@ NOHOLD:
          :If opts.singlefile←isfile
              z←'forceFilenames' 'forceExtensions' 'flatten' ⍝ Not allowed
          :AndIf ∨/m←opts⍎⍕z
-             U.Error 'Not allowed in single-file links: ',⍕m/z
+             U.Error'Not allowed in single-file links: ',⍕m/z
          :EndIf
 
          :If emptydir⍱emptyns  ⍝ link issue #230
@@ -189,7 +189,7 @@ NOHOLD:
          ¯1 U.Log msg←1↓U.FmtLines(⊂'Linked: ',arrow,dircreated/⊂'[',z,' was created]'),((×≢msg)/⊂'ERRORS ENCOUNTERED:'),msg
 
          :If ⎕WSID≡'CLEAR WS'
-         :AndIf 9=⎕NC 'nsref'
+         :AndIf 9=⎕NC'nsref'
          :AndIf #=nsref
              ⎕WSID←⎕SE.Link.U.(WinSlash Enslash)opts.dir
          :EndIf

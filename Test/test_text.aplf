@@ -1,0 +1,104 @@
+ ok←test_text(folder name);cr;lf;pre;z;All;opts;ns;cc;tf
+
+ pre←'mat' 'vec' 'win' 'pos' 'dya'
+ ⎕SHADOW,pre∘.,⎕D
+
+ All←{'ns.'∘,¨nl/⍨(⊃⍕⍵)∊¨nl←ns.⎕NL ¯2}
+ (cr lf)←⎕UCS 13 10
+
+ :For opts cc :In ('()' '')('(caseCode:1)' '-0')('(noTextFiles:1)' '')('(noTextFiles:1 ⋄ caseCode:1)' '-0')
+     tf←~∨/'noTextFiles'⍷opts
+
+     CleanUp folder name
+     ⎕MKDIR Retry folder
+
+     (⊂↓mat0←↑'simple' 'matrices')QNPUT folder,'/mat0',cc,'.mat.apla'
+     (⊂vec0←'nested' 'vectors')QNPUT folder,'/vec0',cc,'.vec.apla'
+     (⊂win0←'Win' 'files')QNPUT folder,'/win0',cc,'.CRLF.apla' ⋄ win0←∊win0,¨⊂cr lf
+     (⊂pos0←'Posix' 'files')QNPUT folder,'/pos0',cc,'.LF.apla' ⋄ pos0←∊pos0,¨⊂lf
+     (⊂dya0←'Dyalog' 'default')QNPUT folder,'/dya0',cc,'.CR.apla' ⋄ dya0←∊dya0,¨⊂cr
+
+     z←opts LinkCreate name folder
+
+     ns←⍎name
+
+     assert'mat0≡ns.mat0'
+     assert'vec0≡ns.vec0'
+     assert'win0≡ns.win0'
+     assert'pos0≡ns.pos0'
+     assert'dya0≡ns.dya0'
+
+⍝ good ones:
+     ns.mat1←mat0,'y'
+     ns.vec1←vec0,⊂,'y'
+     ns.win1←win0,'y'cr lf
+     ns.pos1←pos0,'y'lf
+     ns.dya1←dya0,'y'cr
+
+     {}⎕SE.Link.Add All 1
+     :If tf ⍝ should be using plain text:
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.*.apla'''
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.apla'''
+     :Else ⍝ should be using APLAN:
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.*.apla'''
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*1',cc,'.apla'''
+         ⍝ but should not have changed unmodified vars:
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*0',cc,'.*.apla'''
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*0',cc,'.apla'''
+     :EndIf
+
+⍝ bad ones:
+     ns.mat2←mat0,' '      ⍝ trailing all-space col
+     ns.vec2←vec0,'n'      ⍝ one element is scalar
+     ns.win2←lf,win0,'y'cr ⍝ wrap-around sep
+     ns.pos2←pos0,'y'      ⍝ missing trailing sep
+     ns.dya2←dya0,'y'lf    ⍝ mixed seps
+
+     {}⎕SE.Link.Add All 2
+⍝ should be using APLAN:
+     assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+
+⍝ let's fix them
+     ns.mat2,←'y'    ⍝ trailing non-space col
+     ns.vec2,¨←⊂⍬    ⍝ ravel scalars
+     ns.win2⌽⍨←1     ⍝ un-wrap
+     ns.pos2,←lf     ⍝ add missing sep
+     (¯1↑ns.dya2)←cr ⍝ fix wrong sep
+
+     {}⎕SE.Link.Add All 2
+     :If tf ⍝ should now be changed from APLAN to plain text:
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     :Else
+         assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+         assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     :EndIf
+
+⍝ let's unfix them
+     ns.mat2←mat0,' '      ⍝ trailing all-space col
+     ns.vec2←vec0,'n'      ⍝ one element is scalar
+     ns.win2←lf,win0,'y'cr ⍝ wrap-around sep
+     ns.pos2←pos0,'y'      ⍝ missing trailing sep
+     ns.dya2←dya0,'y'lf    ⍝ mixed seps
+
+     {}⎕SE.Link.Add All 2
+⍝ should now be (changed from plain text to) APLAN:
+     assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.apla'''
+     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*2',cc,'.*.apla'''
+
+
+⍝ more bad cases:
+     ns.mat3←0⌿mat0         ⍝ no rows
+     ns.vec3←vec0,⊂'c'cr'r' ⍝ has line breaks
+     ns.win3←2⌽⌽win0        ⍝ wrong order
+     ns.pos3←''             ⍝ empty
+     ns.dya3←cr             ⍝ scalar
+
+     {}⎕SE.Link.Add All 3
+     assert'5=≢⊃⎕ninfo⍠1⊢folder,''/*3',cc,'.apla'''
+     assert'0=≢⊃⎕ninfo⍠1⊢folder,''/*3',cc,'.*.apla'''
+
+ :EndFor
+ CleanUp folder name
+ ok←1
