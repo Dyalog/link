@@ -267,7 +267,8 @@
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO
     ⍝ case-code a string
       ⎕IO←0
-      →0 If 0=≢name  ⍝ empty name doesn't get case coded
+      →0 If 0=≢name  ⍝ empty name doesn't get case coded 
+      →0 If '⎕'=⊃name  ⍝ sysvar doesn't get case coded
       bin←name≠0 CaseText name
       len←⌈3÷⍨≢bin
       digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
@@ -418,7 +419,7 @@
       :ElseIf nc=¯1
       :AndIf '⎕'∊name
           (parent name)←SplitNs name
-      :AndIf (⊂name)∊NsSysVars           ⍝ name is a namespace system variable
+      :AndIf (⊂1 ⎕C name)∊NsSysVars           ⍝ name is a namespace system variable
       :AndIf (0∊⍴parent)∨(9=⌊|nsref NameClass parent)  ⍝ parent is a valid namespace
           nc←2.1  ⍝ namespace system variables are treated like arrays
       :EndIf
@@ -747,7 +748,8 @@
     ⍝ if OK src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
     ⍝ if failed, src is a text vector holding the error message
     ⍝ name may be empty to get the source of ns
-      (name opts)←2↑(⊆name_opts),DefaultOpts ⍬
+      name_opts←⊆name_opts
+      (name opts)←name_opts,DefaultOpts⍣(1=≢name_opts)⊢⍬
      
       :If 0∊⍴name
           src←GetRefSource ns
@@ -757,8 +759,7 @@
           :Select nc
           :Case 2.1 ⍝ variable
               val←ns⍎name ⍝ what if the var already has a file
-              :If 2=opts.⎕NC'noTextFiles'
-              :AndIf opts.noTextFiles
+              :If opts.noTextFiles
                   sub←''
               :Else
                   sub←SubExt val
@@ -773,8 +774,8 @@
                   src←13 10 Cut val
               :Case '.CR'
                   src←13 Cut val
-              :Case 'vec'
-                  src←val
+              :Case '.vec'
+                  src←val ⋄ :Return ⍝ skip emptiness test
               :Else
                   :Trap 0 ⋄ src←⎕SE.Dyalog.Array.Serialise val
                   :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
@@ -1035,12 +1036,13 @@
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
       :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
-      (subdir file ext)←⎕NPARTS path←file
+      (subdir file ext)←⎕NPARTS path←file  
+      file←1 ⎕C⍣('⎕'=⊃file)⊢file ⍝ uppercase sysvars
       :If forceExtensions∨0=≢ext
           ext←typeExtensions Tail nc
       :EndIf
       :If opts.noTextFiles
-      :OrIf 2.1≠⎕NC⊂ns,'.',name
+      :OrIf 2.1≠NameClass ns,'.',name
           subext←''
       :Else
           subext←SubExt ns⍎name
