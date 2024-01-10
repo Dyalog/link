@@ -91,7 +91,7 @@
       }
     IsDotNetSpace←{(')'≡⊃⌽⍕⍵)⊣∘⍵.⎕DF ⍵.⎕DF ⎕NULL} ⍝ /// Replace as soon as ⎕ATX allows
     ∇ {ok}←ns Untie name;nc;src
-      :If 1=≡src←ns GetAplSource name  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
+      :If 1=≡src←ns GetAplSource(⊂name),LookupRef ns  ⍝ refix from source because of mantis 18148 - 5178⌶ makes scripts become "sourceless"
           Error src
       :EndIf
       {}ns.(5178⌶)name   ⍝ mants 18606 : ⎕FIX∘⎕SRC may leave ghost ties
@@ -147,7 +147,7 @@
       :EndIf
       :If compsrc ⋄ ⍝ need a closer look
           :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
-          aplsrc←ns GetAplSource name
+          aplsrc←ns GetAplSource(⊂name),LookupRef ns
           changed←~CompareSource aplsrc filesrc nc nc2  ⍝ compare source to be sure - will return 1 where whitespace not preserved
       :EndIf
     ∇
@@ -252,18 +252,23 @@
 
     IsDir←{0::0 ⋄ 1=1 ⎕NINFO ⍵}
 
-      Into←{ ⍝ Put vtv ⍺ into file ⍵ - return success
+      Into←{ ⍝ Put vtv ⍺ into file ⍵ (optionally while setting timestamp) - return success
+          f←⊃⊆⍵
           0::_←0                   ⍝ FAIL: e.g. no file access, or src is for derv
-          ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR ⍵   ⍝ writing traditional ns : just create directory
-          _←3 ⎕MKDIR⊃1 ⎕NPARTS ⍵   ⍝ create dir if needed
-          1:_←1⊣(⊂⍺)⍺⍺.⎕NPUT⍠'ContentType' 'APLCode'⊢⍵ 1
-            ⍝ ⍺⍺.⎕NPUT in order to use the right ⎕AVU under Classic
+          ⎕NULL≡⍺:_←1⊣3 ⎕MKDIR f   ⍝ writing traditional ns : just create directory
+          _←3 ⎕MKDIR⊃1 ⎕NPARTS f   ⍝ create dir if needed
+          _←(⊂⍺)⍺⍺.⎕NPUT⍠'ContentType' 'APLCode'⊢f 1
+          ⍝ ⍺⍺.⎕NPUT in order to use the right ⎕AVU under Classic
+          1=≢⊆⍵:_←1                ⍝ done?
+          ⎕USING←'System'
+          _←1⊣IO.File.SetLastWriteTime f(⎕NEW DateTime,⊢/⍵)
       }
 
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO
     ⍝ case-code a string
       ⎕IO←0
-      →0 If 0=≢name  ⍝ empty name doesn't get case coded
+      →0 If 0=≢name  ⍝ empty name doesn't get case coded 
+      →0 If '⎕'=⊃name  ⍝ sysvar doesn't get case coded
       bin←name≠0 CaseText name
       len←⌈3÷⍨≢bin
       digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
@@ -414,7 +419,7 @@
       :ElseIf nc=¯1
       :AndIf '⎕'∊name
           (parent name)←SplitNs name
-      :AndIf (⊂name)∊NsSysVars           ⍝ name is a namespace system variable
+      :AndIf (⊂1 ⎕C name)∊NsSysVars           ⍝ name is a namespace system variable
       :AndIf (0∊⍴parent)∨(9=⌊|nsref NameClass parent)  ⍝ parent is a valid namespace
           nc←2.1  ⍝ namespace system variables are treated like arrays
       :EndIf
@@ -514,16 +519,35 @@
 
     :Section Lookup
 
-    ∇ links←GetLinks;mask;links
+    ∇ links←GetLinks;mask;links;any
       :Trap 0  ⍝ anything broken should mean no links available
-          links←⍬
+     
           :If ×⎕NC'⎕SE.Link.Links'
-          :AndIf ~0∊⍴links,←⎕SE.Link.Links
-          :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie" links
+              links←⎕SE.Link.Links
+          :Else
+              links←⍬
+          :EndIf
+          any←~0∊⍴links
+     
+⍝ To be discussed if we want to do this:
+⍝          :If any ⋄ :AndIf 1∊mask←~⎕NEXISTS ⎕SE.Link.Links.dir ⍝ clean up "zombie dir" links
+⍝              ⍝ Should really do clean shut-down of FSWs but that errors if the dir is already gone
+⍝              ¯1 Log'Clearing links with missing directory:'(⍕mask/links)
+⍝              SetLinks links←(~mask)/links
+⍝          :EndIf
+     
+          :If any ⋄ :AndIf 1∊mask←~(|# NameClass¨links.ns)∊9.1 9.4 9.5  ⍝ clean up "zombie ns" links
               0 Break mask/links ⍝ disable file watcher - do not untie because namespaces don't exist
-              ¯1 Log'Clearing expunged links:'(⍕mask/links)
+              ¯1 Log'Clearing links with missing namespace:'(⍕mask/links)
               SetLinks links←(~mask)/links
           :EndIf
+     
+          :If any ⋄ :AndIf 1∊mask←~⌽≠⌽⍎¨links.ns  ⍝ clean up duplicate links - keep newest
+              ⍝ Do not break, as later link exists
+              ¯1 Log'Clearing links with duplicated namespace:'(⍕mask/links)
+              SetLinks links←(~mask)/links
+          :EndIf
+     
       :Else ⋄ links←⍬
       :EndTrap
     ∇
@@ -535,8 +559,12 @@
       :EndIf
     ∇
 
-    ∇ SetLinks links;fsw;mask
-      :If 0∊⍴links ⋄ links←⍬ ⋄ :EndIf  ⍝ avoid putting empty vectors of references
+    ∇ {links}←SetLinks links;fsw;mask
+      :If 0∊⍴links ⍝ avoid putting empty vectors of references
+          links←⍬
+      :Else ⍝ avoid putting duplicate links
+          links/⍨←⌽≠⌽⍎¨links.ns ⍝ remove earlier duplicates of later add links
+      :EndIf
       ⎕SE.Link.Links←links
       :If HASSTORE ⍝ update # links in secret # area - they will be read by WSLoaded
           :If ~0∊⍴links
@@ -615,7 +643,7 @@
       :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
       :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
       :EndIf
-      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed' 'preloaded' 'ignoreconfig'
+      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed' 'preloaded' 'ignoreconfig' 'noTextFiles'
       :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
           Error'Unknown modifiers: ',FmtEach mask/nl
@@ -627,8 +655,8 @@
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
       'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Default 0
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Check¨⊂0 1
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' 'noTextFiles'Default 0
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' 'noTextFiles'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
@@ -716,10 +744,13 @@
       :EndIf
     ∇
 
-    ∇ src←{ns}GetAplSource name;nc;Cut;val;sub
+    ∇ src←{ns}GetAplSource name_opts;nc;Cut;val;sub;name;opts
     ⍝ if OK src is a vector of text vectors, unless unscripted namespace with get ⎕NULL
     ⍝ if failed, src is a text vector holding the error message
     ⍝ name may be empty to get the source of ns
+      name_opts←⊆name_opts
+      (name opts)←name_opts,DefaultOpts⍣(1=≢name_opts)⊢⍬
+     
       :If 0∊⍴name
           src←GetRefSource ns
       :Else
@@ -728,8 +759,12 @@
           :Select nc
           :Case 2.1 ⍝ variable
               val←ns⍎name ⍝ what if the var already has a file
-              sub←SubExt val
-              Cut←{lb←⎕UCS ⍺ ⋄ t←lb,⍵ ⋄ (≢⍺)↓¨t⊂⍨lb⍷t}
+              :If opts.noTextFiles
+                  sub←''
+              :Else
+                  sub←SubExt val
+                  Cut←{lb←⎕UCS ⍺ ⋄ t←lb,⍵ ⋄ (≢⍺)↓¨t⊂⍨lb⍷t}
+              :EndIf
               :Select sub ⍝ simple
               :Case '.mat'
                   src←↓val
@@ -739,8 +774,8 @@
                   src←13 10 Cut val
               :Case '.CR'
                   src←13 Cut val
-              :Case 'vec'
-                  src←val
+              :Case '.vec'
+                  src←val ⋄ :Return ⍝ skip emptiness test
               :Else
                   :Trap 0 ⋄ src←⎕SE.Dyalog.Array.Serialise val
                   :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Array cannot be serialised'
@@ -774,7 +809,7 @@
       :EndIf
     ∇
 
-    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed;Set;With
+    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed;Set;With;at
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
@@ -798,6 +833,10 @@
       :If ~0∊⍴names  ⍝ fix succeeded - this is the only case where actual apl name may be different from what was expected
           :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
+          :EndIf
+          :If ⎕NEXISTS file
+            ⍝ ┌───set attribs───┐ ┌0 ms┐┌remove domain┐┌get file time+name┐┌─get attribs─┐
+              name where.(1159⌶)⍨(0@7¨@1(2⊃⎕NPARTS)¨@2⊢3 5 ⎕NINFO file)@2 4 where.⎕AT name
           :EndIf
           ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
           ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
@@ -997,14 +1036,16 @@
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
       :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
-      (subdir file ext)←⎕NPARTS path←file
+      (subdir file ext)←⎕NPARTS path←file  
+      file←1 ⎕C⍣('⎕'=⊃file)⊢file ⍝ uppercase sysvars
       :If forceExtensions∨0=≢ext
           ext←typeExtensions Tail nc
       :EndIf
-      :If 2.1=⎕NC⊂ns,'.',name
-          subext←SubExt ns⍎name
-      :Else
+      :If opts.noTextFiles
+      :OrIf 2.1≠NameClass ns,'.',name
           subext←''
+      :Else
+          subext←SubExt ns⍎name
       :EndIf
       file←subdir,file,subext,ext
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
@@ -1153,7 +1194,7 @@
       :EndIf
       ⍝ Write files
       :If 0≠≢names←∪names
-          src←nsref GetAplSource¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
+          src←{nsref GetAplSource ⍵ opts}¨names←(1+≢ns)↓¨names  ⍝ drop the (ns,'.') prefix
           :If 1∊mask←{1=≡⍵}¨src     ⍝ can't get source
               Warn¨mask/src
               failed,←(ns,'.')∘,¨mask/names
@@ -1407,7 +1448,7 @@
       :EndIf
     ∇
 
-    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f;GetAplSourceCode
+    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
       :ElseIf link.singlefile
@@ -1941,9 +1982,9 @@
       r,←'{"Name":"Add",         "args":"items[←def]",       "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
       r,←'{"Name":"Break",       "args":"[ns1]",             "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",             "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig -notextfiles","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Configure",   "args":"target [settings]", "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig -notextfiles", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"[item]",            "Parse":"9999S",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",              "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",              "Parse":"1L", "Desc":"Return name of item associated with file"},'
@@ -1978,6 +2019,7 @@
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
       m⍪←'-ignoreconfig' '' 'ignore configuration files'
+      m⍪←'-notextfiles' '' 'always use array notation to store arrays, even if value is plain text'
       m⍪←'-overwrite' '' 'overwrite destination if needed'
       m⍪←'-proceed' '' 'perform changes required to resynchronise'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
