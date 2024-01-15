@@ -718,7 +718,7 @@
       :AndIf 2=≢⍴val ⍝ matrix
       :AndIf Char val
       :AndIf 0≠≢val ⍝ with rows
-      :AndIf ' '∧.≠⊢/val ⍝ all of which have non-space in last column
+      :AndIf ' '∨.≠⊢/val ⍝ some of which have non-space in last column
       :AndIf ~lss(∨/∊)val ⍝ without line seps
           sub←'.mat'
      
