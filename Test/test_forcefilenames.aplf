@@ -2,7 +2,7 @@
          ⍝ Test that forceFilenames is handled
 
  name ⎕NS''
- z←'{forceFilenames:1}'LinkCreate name folder
+ z←'(forceFilenames:1)'LinkCreate name folder
  ns←#⍎name
 
       ⍝ Create a monadic function

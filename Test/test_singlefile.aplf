@@ -71,7 +71,7 @@
 
  ⍝ --- Now create a new link where we only watch the ns
  #.⎕FIX source           ⍝ Restore original namespace
- z←'{watch:''ns''}' LinkCreate name file
+ z←'(watch:''ns'')' LinkCreate name file
  link←GetLink name
  assert 'link.dir≡file'
  z←(⊂bare)QNPUT file                  ⍝ Write the truncated source
@@ -91,7 +91,7 @@
  ⍝ (a bit wierd since you specify a specific file name)
  ⍝ First test with a non-case coded name
 
- z←'{caseCode:1}' LinkCreate name file
+ z←'(caseCode:1)' LinkCreate name file
  ccfile←(¯1↓⊃⎕NPARTS file)⎕SE.Link.U.CaseCode 0⊢file
  link←GetLink name
  assert 'link.caseCode=1'
@@ -101,15 +101,15 @@
  3 ⎕NDELETE ccfile
 
  ⍝ --- Now try with an already case coded file name
- z←'{caseCode:1}' LinkCreate name ccfile
+ z←'(caseCode:1)' LinkCreate name ccfile
  link←GetLink name
  assert 'link.dir≡ccfile'
  z←⎕SE.Link.Break name
 
  ⍝ --- Test an invalid flag settings
- assertError '''{forceFilenames:1}'' LinkCreate name file' 'not allowed'
- assertError '''{forceExtensions:1}'' LinkCreate name file' 'not allowed'
- assertError '''{flatten:1}'' LinkCreate name file' 'not allowed'
+ assertError '''(forceFilenames:1)'' LinkCreate name file' 'not allowed'
+ assertError '''(forceExtensions:1)'' LinkCreate name file' 'not allowed'
+ assertError '''(flatten:1)'' LinkCreate name file' 'not allowed'
 
  ⍝ --- Now try to create a class from a file
  (¯4↑file)←'aplc'

@@ -55,7 +55,7 @@
  ⎕EX name
 
 ⍝ Test that explicit settings override any configuration
- z←'{watch:''both''}'LinkCreate name folder
+ z←'(watch:''both'')'LinkCreate name folder
  z←⎕SE.Link.Configure name'fastLoad:1'
  assert'''both''≡(GetLink name).watch' ⍝ Explicit setting overrides config
  config←getj5 folder,'/.linkconfig'
@@ -97,9 +97,9 @@
  z←LinkCreate name folder
  assert'1∊''Invalid configuration file''⍷z'
 
- z←'{ignoreconfig:1}'LinkCreate name folder
+ z←'(ignoreconfig:1)'LinkCreate name folder
  assert'''Linked:''≡7↑z'
- z←'{ignoreconfig:1}'⎕SE.Link.Break name
+ z←'(ignoreconfig:1)'⎕SE.Link.Break name
  assert'1∊''-ignoreconfig not allowed''⍷z'
  z←⎕SE.Link.Break name
  ⎕EX name
@@ -112,7 +112,7 @@
 ⍝ --- Link.Export ---
 ⍝ Start by exporting an actively linked namespace
  export←folder,'-export'
- z←'{flatten:0}'⎕SE.Link.Export name export         ⍝ flatten is meaningless in the context of Export
+ z←'(flatten:0)'⎕SE.Link.Export name export         ⍝ flatten is meaningless in the context of Export
  z←⎕SE.Link.Configure export'flatten:1'             ⍝ Test setting option in named file
  assert'1∊''flatten: ''⍷z'                          ⍝ flatten:0 is default so was not stored in config
  config←getj5 export,'/.linkconfig'

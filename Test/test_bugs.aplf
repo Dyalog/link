@@ -4,7 +4,7 @@
  QMKDIR Retry⊢folder ⍝ folder must be non-existent
 
           ⍝ link issue #335
- z←name'abc'⎕SE.Link.Fix,⊂'[1 2 3]'
+ z←name'abc'⎕SE.Link.Fix,⊂'[1⋄2⋄3]'
  'link issue #335'assert'z≡,⊂''abc'''
  'link issue #335'assert'(name⍎''abc'')≡(3 1⍴1 2 3)'
  ⎕EX name,'.abc'
@@ -19,7 +19,7 @@
  root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
  '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
  {}(⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
- z←'{source:''dir''}'LinkCreate # folder
+ z←'(source:''dir'')'LinkCreate # folder
  :If ~0.6∊1||#.⎕NC #.⎕NL-⍳10  ⍝ Options → Configure → Object Syntax → Expose Root Properties
      Log'"Expose Root Properties" not turned on - cannot QA issue #161'
  :EndIf
@@ -44,11 +44,11 @@
  :Else
      assert'∨/''Cannot break children''⍷⊃⎕DM'
  :EndTrap
- {}'{recursive:''off''}'⎕SE.Link.Break name  ⍝ break only name and not children
+ {}'(recursive:''off'')'⎕SE.Link.Break name  ⍝ break only name and not children
  assert'1=CountLinks'  ⍝ children remains
- z←'{recursive:''off''}'⎕SE.Link.Break name
+ z←'(recursive:''off'')'⎕SE.Link.Break name
  assert'1=CountLinks'
- z←'{recursive:''on''}'⎕SE.Link.Break name
+ z←'(recursive:''on'')'⎕SE.Link.Break name
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX name
 
@@ -76,10 +76,10 @@
  z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ⎕SE
  'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' ''←→'' folder 1 )≡z'
 
- {}'{all:1}'⎕SE.Link.Break ⍬
+ {}'(all:1)'⎕SE.Link.Break ⍬
  'link issue #284'assert'{6::1 ⋄ (⎕SE.Link.Links.ns~IGNORE_LINKS)≡,⊂''⎕SE.unlikelyname''}⍬'
  :If ~TESTS_LINKED
-    {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
+    {}'(all:''⎕SE'')'⎕SE.Link.Break ⍬
     'link issue #284'assert'{6::1 ⋄ 0=CountLinks}⍬'
  :Else
     Log 'Not testing "]link.break -all=⎕SE" because ',(⍕⎕THIS),' is linked'
@@ -90,7 +90,7 @@
  z←LinkCreate'#.unlikelyname'folder
  z←LinkCreate'#.unlikelyname.sub'folder
  assert'3=CountLinks'
- {}'{recursive:''on''}'⎕SE.Link.Break'#.unlikelyname'
+ {}'(recursive:''on'')'⎕SE.Link.Break'#.unlikelyname'
  'link issue #111'assert'1=CountLinks'
  {}⎕SE.Link.Break'⎕SE.unlikelyname'
  'link issue #111'assert'{6::1 ⋄ 0=CountLinks}⍬'
@@ -264,7 +264,7 @@
  Breathe ⋄ Breathe
  'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete' ⍝ source still available
  ⎕SE.Link.Expunge name,'.todelete'
- (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'{var:42 ⋄ list:1 2 3}'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
+ (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'(var:42 ⋄ list:1 2 3)'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
       ⍝'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0 ⍝ UCMD may trigger any error number
  z←(⍎name).{⎕SE.UCMD']Link.Add jsondict.list'}⍬
  'link issue #177'assert'∨/''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error

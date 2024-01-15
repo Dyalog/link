@@ -22,7 +22,7 @@
  opts.source←'ns'
       ⍝ link issue #162 test unknown modifiers and invalid values - ⎕EN is almost impossible to predict : 911 when ⎕SE.Link.DEBUG←1, 701, 702 or 704 when ⎕SE.Link.DEBUG←0
  'link issue #162'assertError('⎕SE.UCMD '']link.create -BADMOD=BADVAL '',name,'' "'',folder,''"'' ')'unknown modifier' 0
- 'link issue #162'assertError'''{BADMOD:1 2 3}''LinkCreate name folder' 'Unknown modifier'
+ 'link issue #162'assertError'''(BADMOD:1 2 3)''LinkCreate name folder' 'Unknown modifier'
  :For mod :In 'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename'
      :Select mod
      :CaseList 'source' 'watch' ⋄ err←1 ⋄ erru←0 ⎕SE.Link.U.CaseText errf←'Invalid value'
@@ -35,7 +35,7 @@
          z←⎕SE.UCMD']link.create -',(0 ⎕SE.Link.U.CaseText mod),'=BADVAL ',name,' "',folder,'"'
          'link issue #162'assert'∨/erru⍷z'
      :EndIf
-     'link issue #162'assertError('''{',mod,':''''BADVAL''''}''LinkCreate name folder')errf
+     'link issue #162'assertError('''(',mod,':''''BADVAL'''')''LinkCreate name folder')errf
  :EndFor
     ⍝ Mantis 18638 - handle lost source
     3 ⎕MKDIR folder
