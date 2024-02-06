@@ -12,8 +12,8 @@
          :If 0=ns.⎕NC oldname
              src←0⍴⊂''
          :Else
-             src←ns U.GetAplSource (⊂oldname),LookupRef ns ⍝ about to rename : get old source as typed before it disappears
-             :If 1=≡src ⋄ error←src ⋄ src←0⍴⊂'' ⋄ :EndIf   ⍝ failed to get source - should not happen
+             src←ns U.GetAplSource (⊂oldname),U.LookupRef ns ⍝ about to rename : get old source as typed before it disappears
+             :If 1=≡src ⋄ error←src ⋄ src←0⍴⊂'' ⋄ :EndIf     ⍝ failed to get source - should not happen
          :EndIf
      :EndIf
      U.LASTFIX←src(⍕ns)oldname  ⍝ format nsref to avoid cross-references between # and ⎕SE
