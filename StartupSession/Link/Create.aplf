@@ -106,7 +106,7 @@ NOHOLD:
          :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
              U.Error'Destination namespace not empty: ',ns
          :ElseIf ~emptydir ⋄ :AndIf opts.source≡'ns'
-             U.Error'Destination directory not empty: ',dir
+             U.Error'Destination directory neither empty nor matches specified namespace: ',dir
          :ElseIf emptydir⍱emptyns ⋄ :AndIf opts.source≡'auto'
              U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'
