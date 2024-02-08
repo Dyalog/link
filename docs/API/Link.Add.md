@@ -23,7 +23,7 @@ It is also useful when a change has been made to a linked item using any mechani
 
 - `name` is a simple character vector or nested vector of character vectors containing the names of items to be added to the link.  
     In the user command, `<name>` is a space-separated list of names.
-- `expression` is an expression that is evaluated and assigned to the single or list of variables before ``]LINK.ADD`` takes affect. That is, that the expression is not saved, but the result of it is. 
+- `expression` is an expression that is evaluated and assigned to the single or list of items before ``]LINK.ADD`` takes affect. That is, that the expression is not saved, but the result of it is. 
 
 ## Result
 
