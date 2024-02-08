@@ -15,16 +15,17 @@ This page describes the most important enhancements to Link, delivered in versio
 The following features have been implemented in the master branch:
 
 * [Configuration files](Usage/ConfigFiles.md):
-    - A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=
-    - Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings
-    - If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.
+  - A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=
+  - Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings
+  - If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.
 
 !!! Note
      Link.Create, Import and Export have a new switch -ignoreconfig, which allows you
      to ignore a damaged or otherwise inappropriate configuration file.
 
 * Creating a Link from single class or namespace files in addition to linking directories.
-    - Note that configuration files cannot be created for single-file links
+  
+  - Note that configuration files cannot be created for single-file links
 
 * Link.Create, Import and Export will default to the current namespace if no namespace is specified. For example,
 
@@ -32,6 +33,7 @@ The following features have been implemented in the master branch:
       )cs #
       ]link.export /tmp/myapp
 ```
+
 ... will export the current workspace to a folder called `/tmp/myapp`.
 
 * Link.Create and Import will search the Dyalog `Library` folders and user folder specified using `DYALOG_LIB_PATH` for source files. Specifying the file extension is not required, if there is no ambiguity. For example,
@@ -39,6 +41,12 @@ The following features have been implemented in the master branch:
 ```
       ]link.import HttpCommand
 Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\Library\Conga\HttpCommand.dyalog
+```
+
+- Link.Add can evaluate an expression and assign to items before the items is added to the workspace.
+
+```
+      ]link.add name←expression 
 ```
 
 ## Upcoming Features
