@@ -10,7 +10,7 @@ Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used wit
 
 This page describes the most important enhancements to Link, delivered in version 4.0. For a complete list of changes, see the [version 4.0 milestone on GitHub](https://github.com/Dyalog/link/milestone/2).
 
-## Implemented Features
+## New Features
 
 The following features have been implemented in the master branch:
 
@@ -43,13 +43,12 @@ The following features have been implemented in the master branch:
 Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\Library\Conga\HttpCommand.dyalog
 ```
 
-- Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in "flat" text files (as opposed to using APL Array Notation). The section on Arrays in the [Basic Usage document](Usage/index.md#Arrays) contains more information about this feature.
+- Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in "flat" text files (as opposed to using APL Array Notation). The section on Arrays in the [Basic Usage document](Usage/index.md) contains more information about this feature.
 
 - When defining functions or operators in the active workspace, `Link.Create` will update information about the most recent change using file information reported by the operating system. This information is reported by `⎕AT`, `20 21 22 ⎕ATX`, and the Workspace Explorer. 
 
 !!! Note
-
-  This is not the information that would be reported by a source code management system like Git - you need to use a Git, SVN or similar client to view more detailed information about changes to the source.
+     This is not the information that would be reported by a source code management system like Git - you need to use a Git, SVN or similar client to view more detailed information about changes to the source.
 
 - Link.Add can evaluate an expression and assign to items before the items are added to the workspace.
 
