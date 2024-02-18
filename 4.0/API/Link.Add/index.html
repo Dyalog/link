@@ -368,6 +368,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../Usage/Arrays/" class="md-nav__link">
+        Array Formats
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../Usage/ConfigFiles/" class="md-nav__link">
         Configuration Files
       </a>
@@ -822,14 +834,14 @@
                 
                 <h1 id="linkadd">Link.Add</h1>
 <h2 id="syntax">Syntax</h2>
-<pre><code class="language-text">]LINK.Add &lt;items&gt;
+<pre><code class="language-text">]LINK.Add name←expression
 
-message ← ⎕SE.Link.Add items
+message ← ⎕SE.Link.Add name←expression 
 </code></pre>
 <div class="admonition ucmdhelp">
 <p class="admonition-title">Show User Command information in the session with <code>]LINK.Add -?</code></p>
 </div>
-<p>This function allows you to add one or more existing APL items to the link, creating the appropriate representation in the linked directory. Note that a source file will only be created or updated if the item is in a linked namespace.</p>
+<p>This function allows you to add one or more APL items to the link, creating the appropriate representation in the linked directory. New in 4.0 is that you can evaluate an expression and assign the result into the items before <code>]LINK.Add</code> is run. Note that a source file will only be created or updated if the item is in a linked namespace.</p>
 <p>This is useful to write a new or modified array to a source file: <a href="../Link.Create/#arrays">arrays are normally not written to file by Link</a>.</p>
 <p>It is also useful when a change has been made to a linked item using any mechanism other than the APL editor, for example the definition of a new dfn using assignment, or the use of <code>)COPY</code> to bring new objects into the workspace.</p>
 <div class="admonition note">
@@ -838,17 +850,16 @@ message ← ⎕SE.Link.Add items
 </div>
 <h2 id="arguments">Arguments</h2>
 <ul>
-<li><code>items</code> is a simple character vector or nested vector of character vectors containing the names of items to be added to the link.<br />
-    In the user command, <code>&lt;items&gt;</code> is a space-separated list of names.</li>
+<li><code>name</code> is a simple character vector or nested vector of character vectors containing the names of items to be added to the link.<br />
+    In the user command, <code>&lt;name&gt;</code> is a space-separated list of names.</li>
+<li><code>expression</code> is an expression that is evaluated and assigned to the single or list of items before <code>]LINK.ADD</code> takes affect. That is, that the expression is not saved, but the result of it is. </li>
 </ul>
 <h2 id="result">Result</h2>
 <ul>
-<li><code>message</code> is a simple character vector describing items that were:<ul>
+<li><code>message</code> is a simple character vector describing items that were:</li>
 <li>Added (they belong in a linked namespace and were successfully added)</li>
 <li>Not linked (they do not belong to a linked namespace)</li>
 <li>Not found (the name doesn't exist at all)</li>
-</ul>
-</li>
 </ul>
                 
               
