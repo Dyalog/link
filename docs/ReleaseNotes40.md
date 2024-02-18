@@ -43,7 +43,7 @@ The following features have been implemented in the master branch:
 Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\Library\Conga\HttpCommand.dyalog
 ```
 
-- Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in "flat" text files (as opposed to using APL Array Notation). The section on Arrays in the [Basic Usage document](Usage/index.md) contains more information about this feature.
+- Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in "flat" text files (as opposed to using APL Array Notation). See [Array Formats](Usage/Arrays.md) for more information.
 
 - When defining functions or operators in the active workspace, `Link.Create` will update information about the most recent change using file information reported by the operating system. This information is reported by `⎕AT`, `20 21 22 ⎕ATX`, and the Workspace Explorer. 
 
