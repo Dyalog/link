@@ -147,7 +147,7 @@ However, if you have arrays that represent error tables, range definitions or ot
 Added: #.stats.Directions
 ```
 
-Link uses *APL Array Notation* to store arrays in text files.
+By default, Link uses *APL Array Notation* to store arrays in text files. Link 4.0 introduces experimental support for storing multi-line character data in simple text files. For more information, see the section on [array formats](../Usage/Arrays.md).
 
 Once you have created a source file for an array, Link *will* update that file if you use the editor to modify the array. Only if you modify the array using assignment or other means than the editor will you need to call [Link.Add](../API/Link.Add.md) to force an update of the source file.
 
