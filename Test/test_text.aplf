@@ -6,8 +6,8 @@
  All←{'ns.'∘,¨nl/⍨(⊃⍕⍵)∊¨nl←ns.⎕NL ¯2}
  (cr lf)←⎕UCS 13 10
 
- :For opts cc :In ('()' '')('(caseCode:1)' '-0')('(noTextFiles:1)' '')('(noTextFiles:1 ⋄ caseCode:1)' '-0')
-     tf←~∨/'noTextFiles'⍷opts
+ :For opts cc :In ('()' '')('(caseCode:1)' '-0')('(text:''plain'')' '')('(text:''plain'' ⋄ caseCode:1)' '-0')
+     tf←∨/'text'⍷opts
 
      CleanUp folder name
      ⎕MKDIR Retry folder

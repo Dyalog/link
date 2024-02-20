@@ -267,8 +267,8 @@
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO
     ⍝ case-code a string
       ⎕IO←0
-      →0 If 0=≢name  ⍝ empty name doesn't get case coded 
-      →0 If '⎕'=⊃name  ⍝ sysvar doesn't get case coded
+      →0 If 0=≢name  ⍝ empty name doesn't get case coded
+      →0 If'⎕'=⊃name  ⍝ sysvar doesn't get case coded
       bin←name≠0 CaseText name
       len←⌈3÷⍨≢bin
       digits←2⊥⌽⍉⌽len 3⍴bin↑⍨3×len
@@ -643,7 +643,7 @@
       :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
       :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
       :EndIf
-      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed' 'preloaded' 'ignoreconfig' 'noTextFiles'
+      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed' 'preloaded' 'ignoreconfig' 'text'
       :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
           Error'Unknown modifiers: ',FmtEach mask/nl
@@ -655,8 +655,9 @@
       Check←Error{(⊂⍵⍵⍎⍺)∊⍵:_←1 ⋄ ⍺⍺'Invalid value ',(⍕⍵⍵⍎⍺),' for modifier "',⍺,'" - must be one of: ',⍕⍵}opts
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
       'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' 'noTextFiles'Default 0
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' 'noTextFiles'Check¨⊂0 1
+      'text'Default'aplan' ⋄ 'text'Check'aplan' 'plain'
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Default 0
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
@@ -759,7 +760,7 @@
           :Select nc
           :Case 2.1 ⍝ variable
               val←ns⍎name ⍝ what if the var already has a file
-              :If opts.noTextFiles
+              :If opts.text≡'aplan'
                   sub←''
               :Else
                   sub←SubExt val
@@ -1036,12 +1037,12 @@
           file←(dir CaseCode flatten)⍣caseCode⊢file ⍝ case coded-name (if required)
       :EndIf
       :If ¯9.1=nc ⋄ file←0 NormDir file ⋄ :EndIf  ⍝ for ⎕NPARTS to work on it
-      (subdir file ext)←⎕NPARTS path←file  
+      (subdir file ext)←⎕NPARTS path←file
       file←1 ⎕C⍣('⎕'=⊃file)⊢file ⍝ uppercase sysvars
       :If forceExtensions∨0=≢ext
           ext←typeExtensions Tail nc
       :EndIf
-      :If opts.noTextFiles
+      :If opts.text≡'aplan'
       :OrIf 2.1≠NameClass ns,'.',name
           subext←''
       :Else
@@ -1982,9 +1983,9 @@
       r,←'{"Name":"Add",         "args":"items[←def]",       "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
       r,←'{"Name":"Break",       "args":"[ns1]",             "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",             "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig -notextfiles","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig -text=aplan plain","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Configure",   "args":"target [settings]", "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig -notextfiles", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig -text=aplan plain", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"[item]",            "Parse":"9999S",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",              "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",              "Parse":"1L", "Desc":"Return name of item associated with file"},'
@@ -2019,7 +2020,7 @@
       m⍪←'-forcefilenames' '' 'rename existing files so their names match their contents'
       m⍪←'-getfilename' '=<fn>' 'name of function to call to specify a custom file name for a given APL item'
       m⍪←'-ignoreconfig' '' 'ignore configuration files'
-      m⍪←'-notextfiles' '' 'always use array notation to store arrays, even if value is plain text'
+      m⍪←'-text' '={aplan|plain}' 'always use array notation to store arrays, even if value is plain text'
       m⍪←'-overwrite' '' 'overwrite destination if needed'
       m⍪←'-proceed' '' 'perform changes required to resynchronise'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
