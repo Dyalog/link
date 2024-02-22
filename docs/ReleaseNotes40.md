@@ -12,12 +12,12 @@ This page describes the most important enhancements to Link, delivered in versio
 
 ## New Features
 
-The following features have been implemented in the master branch:
+The following features have been implemented:
 
 * [Configuration files](Usage/ConfigFiles.md):
-  - A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=
-  - Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings
-  - If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.
+    - A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=
+    - Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings
+    - If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.
 
 !!! Note
      Link.Create, Import and Export have a new switch -ignoreconfig, which allows you
@@ -25,7 +25,7 @@ The following features have been implemented in the master branch:
 
 * Creating a Link from single class or namespace files in addition to linking directories.
   
-  - Note that configuration files cannot be created for single-file links
+    - Note that configuration files cannot be created for single-file links
 
 * Link.Create, Import and Export will default to the current namespace if no namespace is specified. For example,
 
@@ -43,7 +43,7 @@ The following features have been implemented in the master branch:
 Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\Library\Conga\HttpCommand.dyalog
 ```
 
-- Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in "flat" text files (as opposed to using APL Array Notation). See [Array Formats](Usage/Arrays.md) for more information.
+- Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in plain text files (as opposed to using APL Array Notation). See [Array Formats](Usage/Arrays.md) for more information.
 
 - When defining functions or operators in the active workspace, `Link.Create` will update information about the most recent change using file information reported by the operating system. This information is reported by `⎕AT`, `20 21 22 ⎕ATX`, and the Workspace Explorer. 
 
