@@ -999,13 +999,13 @@
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you are still using the pre-Unicode version of Dyalog known as "Classic": Link 3.0 will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
+<p>If you are still using the pre-Unicode version of Dyalog known as "Classic": Link will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
 cause Link to create strange file names. For example <code>]add ⎕IO</code> will cause
 the creation of a file named <code>ŒIO.apla</code>. Depending on the names of your objects, 
 this may make it difficult to share source files between Classic and Unicode interpreters.</p>
 </div>
 <h2 id="how-does-link-work">How does Link work?</h2>
-<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of September 2023, at the end of the Link 4.0 development cycle.</p>
+<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of February 2024, at the end of the Link 4.0 development cycle.</p>
 <p><strong>Terminology:</strong> In the following, the term <em>object</em> is used very loosely to refer to functions, operators, namespaces, classes and arrays.</p>
 <h3 id="what-exactly-is-a-link">What Exactly is a Link?</h3>
 <p>A link connects a namespace in the active workspace (which can be the root namespace <code>#</code>) to a directory in the file system. </p>
@@ -1018,7 +1018,7 @@ this may make it difficult to share source files between Classic and Unicode int
 <p>Depending on which end of the link is specified as the source, APL source files are created from workspace definitions, or objects are loaded into the workspace from such files. These processes are described in more detail in the following sections.</p>
 </li>
 <li>
-<p>If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option it set to prevent this).</p>
+<p>If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option is set to prevent this).</p>
 </li>
 </ul>
 <h4 id="creating-apl-source-files-and-directories">Creating APL Source Files and Directories</h4>
@@ -1028,11 +1028,12 @@ this may make it difficult to share source files between Classic and Unicode int
 <li>Arrays are converted to source form using the function <code>⎕SE.Dyalog.Array.Serialise</code>. It is expected that the APL language engine will, in the future, support the "literal array notation".</li>
 </ul>
 <h4 id="loading-apl-objects-from-source">Loading APL Objects from Source</h4>
-<p>With the exception of variables stored in <code>.apla</code> files, which are processed by <code>⎕SE.Dyalog.Array.Deserialise</code>, Link loads code into the workspace using <code>2 ⎕FIX</code>. </p>
+<p>With the exception of variables stored in <code>.apla</code> files, Link loads code into the workspace using <code>2 ⎕FIX</code>. </p>
+<p>Arrays, stored in <code>.apla</code> files, are either processed by <code>⎕SE.Dyalog.Array.Deserialise</code> or, if in plain text format (in which case they have a "sub-extension", for example <code>.mat.apla</code>), by Link itself.</p>
 <p>When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a <em>new</em> function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.</p>
 <p>If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.</p>
 <h3 id="the-source-of-link-itself">The Source of Link itself</h3>
-<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed withDyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
+<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed with Dyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
 <h3 id="the-crawler">The Crawler</h3>
 <p>In a future version of Link, an optional and configurable crawler will be able to run in the background and occasionally compare linked namespaces and directories, using the same logic as <a href="../../API/Link.Resync/">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
 <ul>
