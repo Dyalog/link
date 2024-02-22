@@ -277,7 +277,7 @@ Default: **off**
 
 Ignores any Link configuration files.
 
-See [Configuration Files](../Usage/ConfigFiles/#the-ignoreconfig-switch) for details.
+See [Configuration Files](../../Usage/ConfigFiles/#the-ignoreconfig-switch) for details.
 
 
 ### **text**
@@ -287,4 +287,4 @@ Chooses whether plain text arrays are stored using APL Array Notation (APLAN) or
 
 `text` is a simple character vector and must be either `'aplan'` or `'plain'`.
 
-See [Array Formats](../Usage/Arrays/) for details.
+See [Array Formats](../../Usage/Arrays/) for details.
