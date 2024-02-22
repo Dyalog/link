@@ -5,9 +5,9 @@ Link 4.0 is included with Dyalog version 19.0 or later, and is supported for use
 !!!Note
 	For Dyalog to automatically update workspace contents in response to changes to files made using external editors or source code management systems, .NET must be installed.
 
-	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
+	The .NET Framework is included with Microsoft Windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
 	
-	Link 4.0 has been tested with the .NET Framework and .NET 6.0, and is expected to work with any later version of .NET.
+	Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.
 
 The instructions on this page only apply if you want to user a different release than that which is distributed with your version of Dyalog APL.
 
@@ -28,6 +28,6 @@ If you do not have permission to overwrite the Dyalog installation, or you do no
 
 - **Set the `DYALOGSTARTUPSE` environment variable** to point to the StartupSession folder.
 
-- **Update the configuration file (or the Windows registry) **, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.180U64.dcfg` for a specific version, to include the line:  
+- **Update the configuration file (or the Windows registry)**, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.180U64.dcfg` for a specific version, to include the line:  
 		
 		    `DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"`
