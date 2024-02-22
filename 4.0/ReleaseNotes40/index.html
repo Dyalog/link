@@ -829,12 +829,14 @@
 <p>Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used with version 18.2. For instructions on using Link 4.0 with APL version 18.2, see the <a href="Installation.md">installation instructions</a>.</p>
 <p>This page describes the most important enhancements to Link, delivered in version 4.0. For a complete list of changes, see the <a href="https://github.com/Dyalog/link/milestone/2">version 4.0 milestone on GitHub</a>.</p>
 <h2 id="new-features">New Features</h2>
-<p>The following features have been implemented in the master branch:</p>
+<p>The following features have been implemented:</p>
 <ul>
-<li><a href="../Usage/ConfigFiles/">Configuration files</a>:</li>
+<li><a href="../Usage/ConfigFiles/">Configuration files</a>:<ul>
 <li>A user configuration file for recording preferences that apply to all links, for example link creation options like -watch=</li>
 <li>Directory configuration files store options that should be re-applied when the directory is subsequently linked, including stop and trace settings</li>
 <li>If you are investigating problems in Link, you can turn off error trapping within Link API functions, or receive notification in the APL session each time Link performs an action related to external files.</li>
+</ul>
+</li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -844,9 +846,9 @@
 <ul>
 <li>
 <p>Creating a Link from single class or namespace files in addition to linking directories.</p>
-</li>
-<li>
-<p>Note that configuration files cannot be created for single-file links</p>
+<ul>
+<li>Note that configuration files cannot be created for single-file links</li>
+</ul>
 </li>
 <li>
 <p>Link.Create, Import and Export will default to the current namespace if no namespace is specified. For example,</p>
@@ -864,7 +866,7 @@ Imported: #.HttpCommand ← C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\L
 </code></pre>
 <ul>
 <li>
-<p>Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in "flat" text files (as opposed to using APL Array Notation). See <a href="../Usage/Arrays/">Array Formats</a> for more information.</p>
+<p>Multi-line character data stored in character vectors, character matrices, and vectors of character vectors can optionally be stored in plain text files (as opposed to using APL Array Notation). See <a href="../Usage/Arrays/">Array Formats</a> for more information.</p>
 </li>
 <li>
 <p>When defining functions or operators in the active workspace, <code>Link.Create</code> will update information about the most recent change using file information reported by the operating system. This information is reported by <code>⎕AT</code>, <code>20 21 22 ⎕ATX</code>, and the Workspace Explorer. </p>

@@ -379,39 +379,9 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Array Formats
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         Array Formats
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#file-extensions-for-simple-text-files" class="md-nav__link">
-    File Extensions for Simple Text Files
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -774,21 +744,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#file-extensions-for-simple-text-files" class="md-nav__link">
-    File Extensions for Simple Text Files
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -805,40 +760,48 @@
                 
                 
                 <h1 id="array-formats">Array Formats</h1>
-<p>By default, Link uses <em>APL Array Notation (APLAN)</em> to store arrays in text files. While APLAN is a good format for describing numeric data, nested arrays and many high rank arrays, it is not ideal for storing character data. Link 4.0 introduces experimental support for storing multi-line character data in simple text files.</p>
-<p>The configuration setting <code>noTextFiles</code> can be used to disable this support: If <code>noTextFiles</code> is set to 1, all arrays will be store using APLAN. You can set this option when a link is created, or using <a href="../API/Link.Configure"><code>Link.Configure</code></a>.</p>
-<h2 id="file-extensions-for-simple-text-files">File Extensions for Simple Text Files</h2>
-<p>Text files which are not in APLAN format will have a penultimate section in the file name which records the format of the original array in the workspace:</p>
+<p>By default, Link uses <em>APL Array Notation (APLAN)</em> to store arrays in text files. While APLAN is a good format for describing numeric data, nested arrays and many high rank arrays, it is not ideal for storing text data. Link 4.0 introduces experimental support for storing multi-line character data in simple text files.</p>
+<p>The configuration setting <code>text</code> can be used to enable this feature: If <code>text</code> is set to <code>'aplan'</code> (the default) then all arrays will be store using APLAN. If <code>text</code> is set to <code>'plain'</code> (the default) then text arrays that adhere to a set of very specific criteria will instead be stored in plain text files. You can set this option when a link is created, or using <a href="../API/Link.Configure"><code>Link.Configure</code></a>.</p>
+<p>Text files which are not in APLAN format will have a penultimate "sub-extension" section in the file name which records the format of the original array in the workspace. The below table describes the array file extensions, what the content represents, and the specific criteria for storage in plain text file.</p>
+<p>For all plain text types, the array must be non-empty.</p>
 <table>
 <thead>
 <tr>
 <th>File Extension</th>
-<th>Array format</th>
+<th>Array Characteristics</th>
+<th>Prohibited characters (<code>⎕UCS</code>)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>.nl.apla</td>
-<td>Simple Vector delimited by ⎕UCS 10</td>
+<td>.CR.apla</td>
+<td>Simple vector with each line terminated by <code>⎕UCS 13</code></td>
+<td><code>10 11 12 133 8232 8233</code></td>
 </tr>
 <tr>
-<td>.cr.apla</td>
-<td>Simple vector delimited by ⎕UCS 13</td>
+<td>.LF.apla</td>
+<td>Simple vector with each line terminated by <code>⎕UCS 10</code></td>
+<td><code>11 12 13 133 8232 8233</code></td>
+</tr>
+<tr>
+<td>.CRLF.apla</td>
+<td>Simple vector with each line terminated by <code>⎕UCS 13 10</code></td>
+<td><code>11 12 133 8232 8233</code><sup>*</sup></td>
 </tr>
 <tr>
 <td>.vec.apla</td>
-<td>Vector of enclosed character vectors</td>
+<td>Vector of simple character vectors (no scalar elements)</td>
+<td><code>11 12 13 133 8232 8233</code></td>
 </tr>
 <tr>
 <td>.mat.apla</td>
-<td>Character matrix</td>
-</tr>
-<tr>
-<td>.apla</td>
-<td>Without one of the above extensions, the file is in APLAN and could represent any APL array.</td>
+<td>Simple character matrix</td>
+<td><code>10 11 12 13 133 8232 8233</code></td>
 </tr>
 </tbody>
 </table>
+<p><sup>* In addition, every occurring <code>⎕UCS 10</code> must be immediately preceded by a <code>⎕UCS 13</code> and every occurring <code>⎕UCS 13</code> must be immediately followed by <code>⎕UCS 10</code>.</sup></p>
+<p>In all other cases, the extension will be just <code>.apla</code> and the file will contain APLAN that can represent any APL array.</p>
                 
               
               
