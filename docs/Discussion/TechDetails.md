@@ -45,14 +45,14 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 - Source code must not have embedded newlines within character constants. Although `⎕FX` does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
 
 !!! Note
-    If you are still using the pre-Unicode version of Dyalog known as "Classic": Link 3.0 will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
+    If you are still using the pre-Unicode version of Dyalog known as "Classic": Link will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
     cause Link to create strange file names. For example `]add ⎕IO` will cause
     the creation of a file named `ŒIO.apla`. Depending on the names of your objects, 
     this may make it difficult to share source files between Classic and Unicode interpreters.
 
 ## How does Link work?
 
-Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of September 2023, at the end of the Link 4.0 development cycle.
+Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of February 2024, at the end of the Link 4.0 development cycle.
 
 **Terminology:** In the following, the term *object* is used very loosely to refer to functions, operators, namespaces, classes and arrays.
 
@@ -66,7 +66,7 @@ When a link is created:
 
 - Depending on which end of the link is specified as the source, APL source files are created from workspace definitions, or objects are loaded into the workspace from such files. These processes are described in more detail in the following sections.
 
-- If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option it set to prevent this).
+- If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option is set to prevent this).
 
 #### Creating APL Source Files and Directories
 
@@ -77,7 +77,9 @@ Link writes textual representations of APL objects to UTF-8 text files (but can 
 
 #### Loading APL Objects from Source
 
-With the exception of variables stored in `.apla` files, which are processed by `⎕SE.Dyalog.Array.Deserialise`, Link loads code into the workspace using `2 ⎕FIX`. 
+With the exception of variables stored in `.apla` files, Link loads code into the workspace using `2 ⎕FIX`. 
+
+Arrays, stored in `.apla` files, are either processed by `⎕SE.Dyalog.Array.Deserialise` or, if in plain text format (in which case they have a "sub-extension", for example `.mat.apla`), by Link itself.
 
 When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a *new* function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.
 
@@ -85,7 +87,7 @@ If .NET is available, Link uses a File System Watcher to monitor linked director
 
 ### The Source of Link itself
 
-Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link`, when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed withDyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the [installation instructions](../Usage/Installation.md).
+Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link`, when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed with Dyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the [installation instructions](../Usage/Installation.md).
 
 ### The Crawler
 
