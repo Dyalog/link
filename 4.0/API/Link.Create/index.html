@@ -684,6 +684,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ignoreconfig_1" class="md-nav__link">
+    ignoreconfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    text
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1086,6 +1100,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ignoreconfig_1" class="md-nav__link">
+    ignoreconfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    text
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1110,7 +1138,7 @@
                 
                 <h1 id="linkcreate">Link.Create</h1>
 <h2 id="syntax">Syntax</h2>
-<pre><code>]LINK.Create [ns] &lt;dirorfile&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig]
+<pre><code>]LINK.Create [ns] &lt;dirorfile&gt; [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=&lt;fn&gt;] [-beforewrite=&lt;fn&gt;] [-getfilename=&lt;fn&gt;] [-codeextensions=&lt;var&gt;] [-typeextensions=&lt;var&gt;] [-fastload] [-ignoreconfig] [-text={aplan|plain}]
 
 message ← {options} ⎕SE.Link.Create (namespace directory)
 </code></pre>
@@ -1420,10 +1448,19 @@ for interfaces.</p>
 <ul>
 <li>good: load will be significantly faster because files won't be inspected to determine their true APL name.</li>
 <li>bad: clashing names won't be detected: files may silently overwrite each other's APL definition if they define the same APL name.</li>
-<li>bad: <a href="#forcefilenames"><strong>forceFileNames</strong></a>/<a href="#forcefileextensions"><strong>forceExtensions</strong></a> won't be observed</li>
+<li>bad: <a href="#forcefilenames"><strong>forceFilenames</strong></a>/<a href="#forceextensions"><strong>forceExtensions</strong></a> won't be observed</li>
 <li>bad: <a href="#beforeread"><strong>beforeRead</strong></a> may report incorrect name class</li>
 </ul>
 <p>This option takes effect only when <strong>source</strong> is <strong>dir</strong>.</p>
+<h3 id="ignoreconfig_1"><strong>ignoreconfig</strong></h3>
+<p>Default: <strong>off</strong></p>
+<p>Ignores any Link configuration files.</p>
+<p>See <a href="../Usage/ConfigFiles/#the-ignoreconfig-switch">Configuration Files</a> for details.</p>
+<h3 id="text"><strong>text</strong></h3>
+<p>Default: <strong>aplan</strong></p>
+<p>Chooses whether plain text arrays are stored using APL Array Notation (APLAN) or as plain text files.</p>
+<p><code>text</code> is a simple character vector and must be either <code>'aplan'</code> or <code>'plain'</code>.</p>
+<p>See <a href="../Usage/Arrays/">Array Formats</a> for details.</p>
                 
               
               
