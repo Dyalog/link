@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig]
+    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -267,7 +267,24 @@ Side effects are (again, only at initial load time, not at subsequent events):
 
 - good: load will be significantly faster because files won't be inspected to determine their true APL name.
 - bad: clashing names won't be detected: files may silently overwrite each other's APL definition if they define the same APL name.
-- bad: [**forceFileNames**](#forcefilenames)/[**forceExtensions**](#forcefileextensions) won't be observed
+- bad: [**forceFilenames**](#forcefilenames)/[**forceExtensions**](#forceextensions) won't be observed
 - bad: [**beforeRead**](#beforeread) may report incorrect name class
 
 This option takes effect only when **source** is **dir**.
+
+### **ignoreconfig**
+Default: **off**
+
+Ignores any Link configuration files.
+
+See [Configuration Files](../Usage/ConfigFiles/#the-ignoreconfig-switch) for details.
+
+
+### **text**
+Default: **aplan**
+
+Chooses whether plain text arrays are stored using APL Array Notation (APLAN) or as plain text files.
+
+`text` is a simple character vector and must be either `'aplan'` or `'plain'`.
+
+See [Array Formats](../Usage/Arrays/) for details.
