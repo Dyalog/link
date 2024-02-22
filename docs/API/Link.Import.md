@@ -1,6 +1,6 @@
 # Link.Import
 
-    ]LINK.Import [ns] <dir> [-overwrite] [-flatten] [-fastload] 
+    ]LINK.Import [ns] <dir> [-overwrite] [-flatten] [-fastload] [-ignoreconfig]
     
     msg ← {opts} ⎕SE.Link.Import (ns dir)
 
