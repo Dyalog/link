@@ -809,8 +809,8 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For Dyalog to automatically update workspace contents in response to changes to files made using external editors or source code management systems, .NET must be installed.</p>
-<p>The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
-<p>Link 4.0 has been tested with the .NET Framework and .NET 6.0, and is expected to work with any later version of .NET.</p>
+<p>The .NET Framework is included with Microsoft Windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
+<p>Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.</p>
 </div>
 <p>The instructions on this page only apply if you want to user a different release than that which is distributed with your version of Dyalog APL.</p>
 <div class="admonition note">
@@ -828,7 +828,7 @@
 <p><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder.</p>
 </li>
 <li>
-<p><strong>Update the configuration file (or the Windows registry) </strong>, to set the parameter there. Typically, you would edit <code>~/.dyalog/dyalog.config</code> to make the change for all versions, or a specific file such as <code>~/.dyalog/dyalog.180U64.dcfg</code> for a specific version, to include the line:  </p>
+<p><strong>Update the configuration file (or the Windows registry)</strong>, to set the parameter there. Typically, you would edit <code>~/.dyalog/dyalog.config</code> to make the change for all versions, or a specific file such as <code>~/.dyalog/dyalog.180U64.dcfg</code> for a specific version, to include the line:  </p>
 <pre><code>    `DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"`
 </code></pre>
 </li>
