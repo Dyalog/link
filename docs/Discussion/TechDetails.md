@@ -10,15 +10,20 @@ In the following, for want of a better word, the term *object* will be used to r
 
 **Unscripted Namespaces:** Namespaces created with `⎕NS` or `)NS` have no source code of their own and are mapped to directories.
 
-**Classes and Scripted Namespaces:** Classes and so-called *scripted* namespaces created using the editor or `⎕FIX`, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allows only as objects *within* a an unscripted linked namespace.
+**Classes and Scripted Namespaces:** Classes and so-called *scripted* namespaces created using the editor or `⎕FIX`, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allowed only as objects *within* a an unscripted linked namespace.
 
 Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a Link or indeed within a linked namespace: **Changes to - or within - unnamed namespaces will be ignored by Link**. This is discussed in more detail in the next section.
 
 **Variables** are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with [Link.Add](../API/Link.Add.md), or with the `-arrays` modifier of [Link.Create](../API/Link.Create.md) and [Link.Export](../API/Link.Export.md).
 
-**Functions and Operators:** Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.
+**Functions and Operators:** Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace. For example, the derived function `Pairs←⊢⌺(⍪2 2)` cannot be represented directly. However, inclusion of the following tradfn will have the desired effect:
+```apl
+∇ F←Pairs
+  F←⊢⌺(⍪2 2)
+∇
+```
 
-**Unsupported:** In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).
+**Unsupported:** In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). These can be listed with `]names 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7` and listed for the namespace `myns` with `]names myns 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7`.
 
 ## Other Limitations
 
@@ -29,8 +34,6 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 - There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on [Link.Create](../API/Link.Create.md) or [Link.Import](../API/Link.Import.md).
 
   In other words, Link does not support source files that define multiple names, even though `2∘⎕FIX` does support this.
-
-- Names which have source files should not have more than one definition within the same namespace. For example, if you have a global constant linked to a source file, you should not reuse that name for a local variable. If you were to edit the local variable while tracing, Link would be unable to distinguish it from the global name, and overwrite the source file.
 
 - In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The `caseCode` option can be used to get Link to generate file names which encode case information - see [Link.Create](../API/Link.Create.md) for more information.
 
