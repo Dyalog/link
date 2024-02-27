@@ -953,7 +953,7 @@
           :Case ''
               src←GetFileSource src
           :CaseList 'cr' 'lf' 'crlf' 'mat' 'vec'
-              actname←StripCaseCodePart 2⊃⎕NPARTS src↓⍨¯1-dot ⋄ nameclass←2.1 ⋄ :Return
+              actname←StripCaseCodePart(¯1+dot)↑2⊃⎕NPARTS src ⋄ nameclass←2.1 ⋄ :Return
           :Else
               actname←'' ⋄ nameclass←0 ⋄ :Return
           :EndSelect
