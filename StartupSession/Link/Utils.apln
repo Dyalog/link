@@ -1043,10 +1043,10 @@
           ext←typeExtensions Tail nc
       :EndIf
       :If opts.text≡'aplan'
-      :OrIf 2.1≠NameClass ns,'.',name
+      :OrIf 2.1≠NameClass where,'.',name
           subext←''
       :Else
-          subext←SubExt ns⍎name
+          subext←SubExt where⍎name
       :EndIf
       file←subdir,file,subext,ext
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
@@ -2083,7 +2083,7 @@
           opts←⊢
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
-          names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch' 'create' 'ignoreconfig'
+          names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch' 'create' 'ignoreconfig' 'text'
           :For name :In names
               lc←0 CaseText name
               :If ×args.⎕NC lc

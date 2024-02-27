@@ -170,7 +170,7 @@
       :Else
           fsw←link.fsw
       :EndIf
-      :If fsw≢⎕NULL ⋄ paused←{90::0 ⋄ ~fsw.EnableRaisingEvents}⍬
+      :If fsw≢⎕NULL ⋄ paused←{6 90::0 ⋄ ~fsw.EnableRaisingEvents}⍬
       :ElseIf CRAWLER ⋄ paused←~IsCrawlerActive link
       :Else ⋄ paused←0
       :EndIf
