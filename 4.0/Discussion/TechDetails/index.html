@@ -960,11 +960,15 @@
 <p>In the following, for want of a better word, the term <em>object</em> will be used to refer to any kind of named entity that can exist in an APL workspace - not limited to classes or instances.</p>
 <p><strong>Supported:</strong> Link supports objects of name class 2.1 (array), 3.1 (traditional function), 3.2 (d-function), 4.1 (traditional operator), 4.2 (d-operator), 9.1 (namespace), 9.4 (class) and 9.5 (interface).</p>
 <p><strong>Unscripted Namespaces:</strong> Namespaces created with <code>⎕NS</code> or <code>)NS</code> have no source code of their own and are mapped to directories.</p>
-<p><strong>Classes and Scripted Namespaces:</strong> Classes and so-called <em>scripted</em> namespaces created using the editor or <code>⎕FIX</code>, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allows only as objects <em>within</em> a an unscripted linked namespace.</p>
+<p><strong>Classes and Scripted Namespaces:</strong> Classes and so-called <em>scripted</em> namespaces created using the editor or <code>⎕FIX</code>, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allowed only as objects <em>within</em> a an unscripted linked namespace.</p>
 <p>Note that <em>unnamed</em> namespaces are <strong>NOT</strong> supported, either as endpoints of a Link or indeed within a linked namespace: <strong>Changes to - or within - unnamed namespaces will be ignored by Link</strong>. This is discussed in more detail in the next section.</p>
 <p><strong>Variables</strong> are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with <a href="../../API/Link.Add/">Link.Add</a>, or with the <code>-arrays</code> modifier of <a href="../../API/Link.Create/">Link.Create</a> and <a href="../../API/Link.Export/">Link.Export</a>.</p>
-<p><strong>Functions and Operators:</strong> Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.</p>
-<p><strong>Unsupported:</strong> In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).</p>
+<p><strong>Functions and Operators:</strong> Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace. For example, the derived function <code>Pairs←⊢⌺(⍪2 2)</code> cannot be represented directly. However, inclusion of the following tradfn will have the desired effect:</p>
+<pre><code class="language-apl">∇ F←Pairs
+  F←⊢⌺(⍪2 2)
+∇
+</code></pre>
+<p><strong>Unsupported:</strong> In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). These can be listed with <code>]names 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7</code> and listed for the namespace <code>myns</code> with <code>]names myns 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7</code>.</p>
 <h2 id="other-limitations">Other Limitations</h2>
 <ul>
 <li>Namespaces must be named. To be precise, it must be true that <code>ns≡(⎕NS⍬)⍎⍕ns</code>. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using <code>⎕NS</code> dyadically to name the created namespace (for example <code>'myproject' ⎕NS ⍬</code> rather than <code>myproject←⎕NS ⍬</code>). This allows retrieving namespace reference from its display form (for example <code>#.myproject</code> rather than <code>#.[namespace]</code>).</li>
@@ -975,9 +979,6 @@
 </ul>
 <p>In other words, Link does not support source files that define multiple names, even though <code>2∘⎕FIX</code> does support this.</p>
 <ul>
-<li>
-<p>Names which have source files should not have more than one definition within the same namespace. For example, if you have a global constant linked to a source file, you should not reuse that name for a local variable. If you were to edit the local variable while tracing, Link would be unable to distinguish it from the global name, and overwrite the source file.</p>
-</li>
 <li>
 <p>In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The <code>caseCode</code> option can be used to get Link to generate file names which encode case information - see <a href="../../API/Link.Create/">Link.Create</a> for more information.</p>
 </li>
