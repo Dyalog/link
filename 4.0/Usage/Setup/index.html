@@ -919,7 +919,7 @@ Enter some numbers:
 <h3 id="automating-startup">Automating Startup</h3>
 <p>Starting with Dyalog APL version 18.0, it is simple to launch the interpreter from a text file: either a source file defining a function, namespace or class using the <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Parameters/Load.htm">LOAD parameter</a> or from a configuration file using the  <a href="https://help.dyalog.com/latest/#UserGuide/Installation%20and%20Configuration/Configuration%20Files.htm">CONFIGFILE parameter</a>. From version 18.2, <code>LOAD</code> can also indentify a directory, in which case APL will create a link to the directory on startup, and attempt to call the function <code>#.Run</code>, with the enclosed name of the directory as the right argument. You can skip or replace the call to <code>Run</code> by adding <code>LX=</code> to your command line.</p>
 <p>Using <code>LOAD</code> to link to a directory on startup is simple way to handle very simple applications or ad-hoc development. However, configuration files allow you to both set a startup expression and include other configuration options for the interpreter and are probably a better solution for applications consisting of more than one source directory. For example, we could start our example application by creating a file <code>dev.dcfg</code> in the <code>linkdemo</code> folder with the following contents:</p>
-<pre><code class="language-json">{
+<pre><code class="language-json5">{
   Settings: {
       MAXWS: &quot;100M&quot;,
       LX: &quot;linkdemo.Start 0 ⊣ ⎕←⎕SE.Link.Create 'linkdemo' ⎕SE.Link.LaunchDir&quot;
@@ -927,13 +927,13 @@ Enter some numbers:
 }
 </code></pre>
 <p>This specifies an APL session with a MAXWS of 100 megabytes, which will start by creating the <code>linkdemo</code>  namespace and calling <code>linkdemo.Start</code>. The namespace will be created using the directory named by the result of the function <code>⎕SE.Link.LaunchDir</code>; this will be the directory that the CONFIGFILE parameter refers to (or, if there is no CONFIGFILE, the directory referred to by the LOAD parameter).</p>
-<p>The function <code>linkdemo.Start</code> will bring in the <code>stats</code> library using <code>Link.Import</code>: since we are not developers of this library, we don't want to create a bi-directional link that might allow us to accidentally modify it during our testing. It also creates the name <code>ST</code> to point to the stats library, which means that our <code>Run</code> function can use more pleasant names, like <code>ST.Mean</code> in place of <code>#.stats.Mean</code> - which also makes it easier to relocate that module in the workspace:</p>
+<p>The function <code>linkdemo.Start</code> will bring in the <code>stats</code> library using <code>Link.Import</code>: since we are not developers of this library, we don't want to create a bi-directional link that might allow us to accidentally modify it during our testing. It also creates the name <code>ST</code> to point to the stats library, which means that our <code>Main</code> function can use more pleasant names, like <code>ST.Mean</code> in place of <code>#.stats.Mean</code> - which also makes it easier to relocate that module in the workspace:</p>
 <pre><code class="language-apl">     ∇ Start run                                                                       
 [1]   ⍝ Establish development environment for the linkdemo application                 
 [2]                                                                                    
 [3]    ⎕IO←⎕ML←1                                                                       
 [4]    ⎕SE.Link.Import '#.stats' '/users/sally/stats' ⍝ Load the stats library
-[5]
+[5]    ST←#.stats
 [6]    :If run                                                                         
 [7]        Main                                                                        
 [8]        ⎕OFF                                                                        
@@ -942,9 +942,9 @@ Enter some numbers:
 </code></pre>
 <p>We can now launch our development environment using <code>dyalog CONFIGFILE=linkdemo/devt.cfg</code>, or on some platforms right-clicking on this file and selecting Run.</p>
 <h3 id="development-vs-runtime">Development vs Runtime</h3>
-<p>The <code>Start</code>function takes a right argument <code>run</code> which decides whether it should just exit after initialising the environment, or it should launch the application by calling <code>Run</code>and terminate the session when the user decides that the job is done.</p>
+<p>The <code>Start</code> function takes a right argument <code>run</code> which decides whether it should just exit after initialising the environment, or it should launch the application by calling <code>Main</code> and terminate the session when the user decides that the job is done.</p>
 <p>This allows us to create a second configuration file, <code>linkdemo/run.dcfg</code>, which differs from <code>dev.dcfg</code> in that we reserve a bigger workspace (since we'll be doing real work rather than just testing), and brings the source code in using <code>Link.Import</code> rather than <code>Link.Create</code>, which means that we won't waste resources setting up a file system watcher, and that accidental changes made by anyone running the application will not update the source files.</p>
-<pre><code class="language-json">{
+<pre><code class="language-json5">{
   Settings: {
       MAXWS: &quot;1G&quot;,
       LX: &quot;linkdemo.Start 1 ⊣ ⎕←⎕SE.Link.Import 'linkdemo' ⎕SE.Link.LaunchDir&quot;
@@ -960,9 +960,9 @@ Enter some numbers:
 <li><code>)SAVE</code> the workspace</li>
 </ul>
 <h3 id="scripted-applications">Scripted Applications</h3>
-<p>Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it intentionally provides you with a completely clean environment without any development tools loaded. This means that the session namespace is not populated, and Link is not loaded. If you add the following expression to the beginning of your script, it will (amongst other things) bring Link into the session so that the API becomes available:</p>
-<p><code>(⎕NS⍬).({}enableSALT⊣⎕CY'salt')</code></p>
-<p>Note that this depends on the interpreter being able to find the salt workspace (<code>salt.dws</code>). You may need to provide a full path name to that file, if you don't have a standard installation.</p>
+<p>Recent versions of Dyalog APL support running APL from a script either by redirecting input to a normal APL interpreter or (recommended from version 18.2) using the new script engine. When the interpreter is running from a script, it intentionally provides you with a completely clean environment without any development tools loaded. This means that the session namespace is not populated, and Link is not loaded. If you add the following line to the top of your script, it will (amongst other things) bring Link into the session so that the API becomes available:</p>
+<pre><code class="language-apl">#! dyalogscript DYALOG_INITSESSION=1
+</code></pre>
                 
               
               
