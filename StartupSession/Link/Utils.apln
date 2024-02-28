@@ -376,7 +376,7 @@
       }
         RootOf←{⍵.##}⍣≡
     IsRoot←{⍵=⍵.##}                         ⍝ is namespace a root
-    SplitNs←{0≠⎕NC'⍺':∇(⍕⍺),'.',⍵ ⋄ t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots - ⍺ may be a namespace where ⍵ should be taken
+    SplitNs←{(0≠⎕NC'⍺')>∨/⊃⍤⍷∘⍵¨'#.' '⎕SE.' '⎕DMX.':∇(⍕⍺),'.',⍵ ⋄ t←1+d←-'.'⍳⍨⌽⍵ ⋄ (d↓⍵)(t↑⍵)}   ⍝ '#.ns' 'name' ← SplitNs '#.ns.name'  - ⍵ must be fully qualified - where will be empty for roots - ⍺ may be a namespace where ⍵ should be taken
     JoinNames←{mask←⍺≡¨⍵ ⋄ (mask/⍵)@{mask}⍺('.'JoinEach)⍵}  ⍝ ⍺,¨'.',¨⍵, excepted when ⍺≡¨⍵ (e.g. DetermineAplName returns #.#)
     IsParent←{p←⍵.## ⋄ ⍺∊p ⍵:1 ⋄ ⍵=p:0 ⋄ ⍺∇p }  ⍝ is ⍺ parent of ⍵
 
