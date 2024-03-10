@@ -6,7 +6,7 @@
      and instructions on migrating to Link from SALT, can be found in the
      [Link version 3.0 documentation](https://dyalog.github.io/link/3.0/).
 
-Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used with version 18.2. For instructions on using Link 4.0 with APL version 18.2, see the [installation instructions](Installation.md).
+Link version 4.0 is distributed with Dyalog APL version 19.0 and can be used with version 18.2. For instructions on using Link 4.0 with APL version 18.2, see the [installation instructions](Usage/Installation.md).
 
 This page describes the most important enhancements to Link, delivered in version 4.0. For a complete list of changes, see the [version 4.0 milestone on GitHub](https://github.com/Dyalog/link/milestone/2).
 
