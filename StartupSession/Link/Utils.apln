@@ -810,7 +810,7 @@
       :EndIf
     ∇
 
-    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed;Set;With;at
+    ∇ (name nc)←{where}Fix(name src force);FIX;file;invalid;monitor;names;nc;stops;trace;unnamed;Set;With;at;modTime;owner
     ⍝ Fix source and return names and nameclass
     ⍝ src may be actual source (⎕NULL or vector of strings) or file name (string)
     ⍝ nameclass is 0 if no valid source was found, ¯1 if name is invalid, ¯9.1 if unscripted namespace
@@ -836,8 +836,11 @@
           :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
           :EndIf
           :If ⎕NEXISTS file
-            ⍝ ┌───set attribs───┐ ┌0 ms┐┌remove domain┐┌get file time+name┐┌─get attribs─┐
-              name where.(1159⌶)⍨(0@7¨@1(2⊃⎕NPARTS)¨@2⊢3 5 ⎕NINFO file)@2 4 where.⎕AT name
+              (modTime owner)←3 5 ⎕NINFO file
+              modTime[7]←0           ⍝ 0 ms
+              owner←2⊃⎕NPARTS owner  ⍝ remove domain: foo/bar → bar; bar → bar
+            ⍝ ┌──set attribs to─┐┌────updated────┐┌─old attribs─┐
+              name where.(1159⌶)⍨modTime owner@2 4 where.⎕AT name
           :EndIf
           ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
           ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
