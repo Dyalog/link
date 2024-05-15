@@ -45,14 +45,7 @@
 
 
     :Section Strings
-    ∇ hascase←_InitCase
-      :If hascase←{2::0 ⋄ 1⊣1 ⎕C'A'}⍬
-          CaseText←{(¯1+2×⍺)⎕C ⍵}           ⍝ Upper/Lower case
-      :Else
-          CaseText←{⍺(819⌶)⍵}               ⍝ Upper/Lower case
-      :EndIf
-    ∇
-    HASCASE←_InitCase
+    CaseText←{(¯1+2×⍺)⎕C ⍵}
     Shortest←{⍵⊃⍨{⍵⍳⌊/⍵}≢¨⍵}                ⍝ Shortest string in list
     ⍝Join←{(⍕⍺),⍺⍺,(⍕⍵)}                     ⍝ Join ⍺ and ⍵ using ⍺⍺
     JoinList←{⊃,/1↓,(⊂⍺⍺),[1.5],⍵}          ⍝ Join list of items with ⍺⍺
