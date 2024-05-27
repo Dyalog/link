@@ -17,6 +17,7 @@
     LinkParams⍪←'customExtensions' ''
     LinkParams⍪←'typeExtensions' ''
     LinkParams⍪←'fastLoad' 0
+    LinkParams⍪←'text' 'aplan'
 
     DebugParams←'notify' 'debug',⍪0 0
 
