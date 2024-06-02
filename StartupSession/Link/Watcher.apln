@@ -57,7 +57,6 @@
       canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
     ∇
 
-
     ∇ RequeuedEvent(obj event args)
      ⍝ Process events redirected via the timer
       :Select event
@@ -72,27 +71,53 @@
     ∇ WatchEvent(obj args);ct;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
-      ⍝{}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
-      ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
       nargs←⊂0 ##.U.CaseText⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
-      BUFFER,←⊂obj nargs
-      THROTTLE.FireOnce←1
+      BUFFER,←⊂obj nargs  ⍝ Add event to the queue
+      THROTTLE.FireOnce←1 ⍝ Restart the timer
     ∇
 
-    ∇ WatchEventThrottle args;evts;types;targets
+    ∇ HandleEventQueue args;evts;types;targets;exist;actions;m;todo;slash;tgts;order;ops;exists;renames;nex;fsw
      ⍝ Throttle calls to Notify and filter/re-order events
-      {}2502⌶0 ⍝ Discard parked thread
-      BUFFER←(≢evts←BUFFER)↓BUFFER
-      types←(⊂2 1)⊃¨evts
-      evts←evts[⍋'deleted' 'created' 'renamed' 'changed'⍳types]
-      targets←(⊂2 2)⊃¨evts
-      evts←evts[∪⍳⍨targets]
-      {##.Notify/↑⍵}&evts
-     ⍝
+      {}2502⌶0 ⍝ Discard the parked thread that was presumably created by the incoming events 
+
+      BUFFER←(≢evts←BUFFER)↓BUFFER  
+      ⎕←' '
+      ⎕←'EventQueue original:'
+      ⎕← ((⍳≢evts),0 1↓↑evts)
+      fsw←⊃⊃evts ⍝ Actually there might be more than one but it probably doesn't matter
+      (actions targets)←2↑↓⍉↑2⊃¨evts             
+
+      ⍝ Eliminate "internal" git folder notifications
+      slash←⊃⌽(1⊃targets)∩'/\' ⍝ slash at tail end of FSW messages are "native"
+      :If ∨/m←∨/¨(slash,'.git',slash)∘⍷¨targets 
+          (actions targets evts)←(~m)∘/¨actions targets evts
+      :EndIf
+
+      ⍝ Separate logic for renames  
+      ⍝ We think Git operations are never renames
+      :If 0≠≢renames←(m←actions∊⊂'renamed')/evts
+          targets←(~m)/targets          
+          :If ~∧/m ⍝ Worried that combining renames with other logic may go badly
+             ##.U.Warn 'Rename batched with other operations'
+          :EndIf
+      :EndIf                      
+                      
+      exists←⎕NEXISTS tgts←∪targets          ⍝ deletions first - matters if flatten=1
+      order←⍋exists,⍪(¯1*nex←~exists)×≢¨tgts ⍝ delete folders after contents, create folders before contents
+      ops←((+/nex),(+/exists))/'deleted' 'changed'
+      ⍝ renames, then deletes, then changed (Link does not distinguish between create and change)  
+      todo←renames,fsw,∘⊂¨↓ops,⍪tgts[order]         
+
+      ⎕←'==> "todo" :'
+      ⎕← ((⍳≢todo),0 1↓↑todo)
+
+      :If 0≠≢todo
+          {##.Notify/↑⍵}&todo
+      :EndIf
     ∇
 
     ∇ WatchError(obj args);link;msg
@@ -153,7 +178,7 @@
           THROTTLE←⎕NEW⊂'Timer'
           THROTTLE.FireOnce←2
           THROTTLE.Interval←200
-          THROTTLE.onTimer←'WatchEventThrottle'
+          THROTTLE.onTimer←'HandleEventQueue'
       :EndIf
     ∇
 
