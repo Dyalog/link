@@ -179,7 +179,7 @@
       :If 0=⎕NC'THROTTLE'
           THROTTLE←⎕NEW⊂'Timer'
           THROTTLE.FireOnce←2
-          THROTTLE.Interval←200
+          THROTTLE.Interval←##.FSWDELAY
           THROTTLE.onTimer←'HandleEventQueue'
       :EndIf
     ∇
