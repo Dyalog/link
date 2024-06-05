@@ -82,38 +82,42 @@
 
     ∇ HandleEventQueue args;evts;types;targets;exist;actions;m;todo;slash;tgts;order;ops;exists;renames;nex;fsw
      ⍝ Throttle calls to Notify and filter/re-order events
-      {}2502⌶0 ⍝ Discard the parked thread that was presumably created by the incoming events 
+      {}2502⌶0 ⍝ Discard the parked thread that was presumably created by the incoming event
 
-      BUFFER←(≢evts←BUFFER)↓BUFFER  
-      ⎕←' '
-      ⎕←'EventQueue original:'
-      ⎕← ((⍳≢evts),0 1↓↑evts)
+      BUFFER←(≢evts←BUFFER)↓BUFFER
+      :If ##.DEBUG
+          ⎕←' '
+          ⎕←'EventQueue original:'
+          ⎕←((⍳≢evts),0 1↓↑evts)
+      :EndIf
       fsw←⊃⊃evts ⍝ Actually there might be more than one but it probably doesn't matter
-      (actions targets)←2↑↓⍉↑2⊃¨evts             
+      (actions targets)←2↑↓⍉↑2⊃¨evts
 
       ⍝ Eliminate "internal" git folder notifications
       slash←⊃⌽(1⊃targets)∩'/\' ⍝ slash at tail end of FSW messages are "native"
-      :If ∨/m←∨/¨(slash,'.git',slash)∘⍷¨targets 
+      :If ∨/m←∨/¨(slash,'.git',slash)∘⍷¨targets
           (actions targets evts)←(~m)∘/¨actions targets evts
       :EndIf
 
-      ⍝ Separate logic for renames  
+      ⍝ Separate logic for renames
       ⍝ We think Git operations are never renames
       :If 0≠≢renames←(m←actions∊⊂'renamed')/evts
-          targets←(~m)/targets          
+          targets←(~m)/targets
           :If ~∧/m ⍝ Worried that combining renames with other logic may go badly
-             ##.U.Warn 'Rename batched with other operations'
+              ##.U.Warn'Rename batched with other operations'
           :EndIf
-      :EndIf                      
-                      
+      :EndIf
+     
       exists←⎕NEXISTS tgts←∪targets          ⍝ deletions first - matters if flatten=1
       order←⍋exists,⍪(¯1*nex←~exists)×≢¨tgts ⍝ delete folders after contents, create folders before contents
       ops←((+/nex),(+/exists))/'deleted' 'changed'
-      ⍝ renames, then deletes, then changed (Link does not distinguish between create and change)  
-      todo←renames,fsw,∘⊂¨↓ops,⍪tgts[order]         
+      ⍝ renames, then deletes, then changed (Link does not distinguish between create and change)
+      todo←renames,fsw,∘⊂¨↓ops,⍪tgts[order]
 
-      ⎕←'==> "todo" :'
-      ⎕← ((⍳≢todo),0 1↓↑todo)
+      :If ##.DEBUG
+          ⎕←'==> "todo" :'
+          ⎕←((⍳≢todo),0 1↓↑todo)
+      :EndIf
 
       :If 0≠≢todo
           {##.Notify/↑⍵}&todo
