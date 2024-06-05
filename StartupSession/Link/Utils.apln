@@ -2,6 +2,7 @@
     ⎕IO ⎕ML←1 1
 
     :Section Constants
+    SRC_NORMALIZED←61 ⍝ ⎕ATX fact
     SRC_BEST←62 ⍝ ⎕ATX fact
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
     PATHDEL←':;'[1+ISWIN]
@@ -20,6 +21,9 @@
       :EndIf
     ∇
     ##.NOTIFY←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\NOTIFY'
+    ##.ALWAYSREFORMAT←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\ALWAYSREFORMAT'
+    ##.FSWDELAY←{⍵+200×⍵=0}⊃2⊃⎕VFI 2 ⎕NQ '.' 'GetEnvironment' 'LINK\FSWDELAY'
+
     LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
 
