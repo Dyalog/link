@@ -5,7 +5,7 @@
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'  ⍝ required at ⎕FIX time - can't rely on ##.U
     IS180←18≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
-
+    BUFFER←⍬                                ⍝ event buffer for throttling FSW events
     CRAWLER←0                               ⍝ allow using crawler
 
 
@@ -57,7 +57,6 @@
       canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
     ∇
 
-
     ∇ RequeuedEvent(obj event args)
      ⍝ Process events redirected via the timer
       :Select event
@@ -72,14 +71,57 @@
     ∇ WatchEvent(obj args);ct;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
-      {}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
-      ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
       nargs←⊂0 ##.U.CaseText⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
-      obj ##.Notify&nargs
+      BUFFER,←⊂obj nargs  ⍝ Add event to the queue
+      THROTTLE.FireOnce←1 ⍝ Restart the timer
+    ∇
+
+    ∇ HandleEventQueue args;evts;types;targets;exist;actions;m;todo;slash;tgts;order;ops;exists;renames;nex;fsw
+     ⍝ Throttle calls to Notify and filter/re-order events
+      {}2502⌶0 ⍝ Discard the parked thread that was presumably created by the incoming event
+
+      BUFFER←(≢evts←BUFFER)↓BUFFER
+      :If ##.DEBUG
+          ⎕←' '
+          ⎕←'EventQueue original:'
+          ⎕←((⍳≢evts),0 1↓↑evts)
+      :EndIf
+      fsw←⊃⊃evts ⍝ Actually there might be more than one but it probably doesn't matter
+      (actions targets)←2↑↓⍉↑2⊃¨evts
+
+      ⍝ Eliminate "internal" git folder notifications
+      slash←⊃⌽(1⊃targets)∩'/\' ⍝ slash at tail end of FSW messages are "native"
+      :If ∨/m←∨/¨(slash,'.git',slash)∘⍷¨targets
+          (actions targets evts)←(~m)∘/¨actions targets evts
+      :EndIf
+
+      ⍝ Separate logic for renames
+      ⍝ We think Git operations are never renames
+      :If 0≠≢renames←(m←actions∊⊂'renamed')/evts
+          targets←(~m)/targets
+          :If ~∧/m ⍝ Worried that combining renames with other logic may go badly
+              ##.U.Warn'Rename batched with other operations'
+          :EndIf
+      :EndIf
+     
+      exists←⎕NEXISTS tgts←∪targets          ⍝ deletions first - matters if flatten=1
+      order←⍋exists,⍪(¯1*nex←~exists)×≢¨tgts ⍝ delete folders after contents, create folders before contents
+      ops←((+/nex),(+/exists))/'deleted' 'changed'
+      ⍝ renames, then deletes, then changed (Link does not distinguish between create and change)
+      todo←renames,fsw,∘⊂¨↓ops,⍪tgts[order]
+
+      :If ##.DEBUG
+          ⎕←'==> "todo" :'
+          ⎕←((⍳≢todo),0 1↓↑todo)
+      :EndIf
+
+      :If 0≠≢todo
+          {##.Notify/↑⍵}&todo
+      :EndIf
     ∇
 
     ∇ WatchError(obj args);link;msg
@@ -109,31 +151,56 @@
       :EndDisposable
     ∇
 
-    ∇ watcher←MakeWatcher args;⎕USING
-     ⍝ Return a FileSystemWatcher object
+    ∇ r←MakeWatcher args;filter;filters;path;watcher;⎕USING
+     ⍝ Return vector of FileSystemWatcher objects
      ⍝ Try .Net Core rather than Framework if non-Windows or DYALOG_NETCORE explicitly set
+     ⍝ Creates a vector of watchers on .Net Framework to watch specific extensions.
+     ⍝ dotnet supports collection of filters on single watcher.
       ⎕USING←',System',(~DOTNETCORE)/'.dll'
+      path filters←args
       watcher←⎕NEW System.IO.FileSystemWatcher
-      watcher.(Path Filter)←args
-      watcher.(onChanged onCreated onDeleted onRenamed)←⊂'WatchEvent'
-      watcher.onError←'WatchError'
-      watcher.IncludeSubdirectories←1
+      watcher.Filter←,'*'
+      watcher.NotifyFilter←System.IO.NotifyFilters.DirectoryName
+      r←,watcher
+      :If DOTNETCORE
+          watcher←⎕NEW System.IO.FileSystemWatcher
+          watcher.Filters.Add¨⊂¨⊆filters
+          watcher.NotifyFilter←System.IO.NotifyFilters.(FileName+LastWrite)
+          r,←watcher
+      :Else
+          :For filter :In ⊆filters
+              watcher←⎕NEW System.IO.FileSystemWatcher
+              watcher.Filter←filter
+              watcher.NotifyFilter←System.IO.NotifyFilters.(FileName+LastWrite)
+              r,←watcher
+          :EndFor
+      :EndIf
+      r.Path←⊂path
+      r.(onChanged onCreated onDeleted onRenamed)←⊂⊂'WatchEvent'
+      r.onError←⊂'WatchError'
+      r.IncludeSubdirectories←1
+      r.InternalBufferSize←65536 ⍝ Max size is 64KB
+      :If 0=⎕NC'THROTTLE'
+          THROTTLE←⎕NEW⊂'Timer'
+          THROTTLE.FireOnce←2
+          THROTTLE.Interval←##.FSWDELAY
+          THROTTLE.onTimer←'HandleEventQueue'
+      :EndIf
     ∇
-
 
 
 
    ⍝⍝⍝⍝⍝ MAIN API ⍝⍝⍝⍝⍝⍝⍝⍝
 
-    ∇ Watch link;args;end;q;r;tid;z
+    ∇ Watch link;filters;end;q;r;tid;z
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       link.fsw←⎕NULL
       :If ~'dir' 'both'∊⍨⊂link.watch
           :Return
       :EndIf
       :If DOTNET
-          args←link.dir(,'*')
-          r←MakeWatcher args
+          filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions)
+          r←MakeWatcher link.dir filters
           r.EnableRaisingEvents←1
           link.fsw←r
       :ElseIf CRAWLER
