@@ -47,6 +47,10 @@ theme:
     - navigation.sections
     - navigation.instant
   name: material
+  
+extra:
+  version:
+    provider: mike
 
 extra_css:
   - style/main.css
