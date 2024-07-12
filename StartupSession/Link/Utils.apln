@@ -2,7 +2,8 @@
     ⎕IO ⎕ML←1 1
     
     :Section Constants
-        SRC_BEST←62 ⍝ ⎕ATX fact
+        SRC_NORMALIZED←61 ⍝ ⎕ATX fact
+        SRC_BEST←      62 ⍝ ⎕ATX fact
         ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
         DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
         IS180←18.0≤DYALOGVERSION
@@ -17,6 +18,9 @@
           :EndIf
         ∇
         ##.NOTIFY←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\NOTIFY'
+        ##.ALWAYSREFORMAT←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\ALWAYSREFORMAT'
+        ##.FSWDELAY←{⍵+200×⍵=0}⊃2⊃⎕VFI 2 ⎕NQ '.' 'GetEnvironment' 'LINK\FSWDELAY'
+
         LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
     
@@ -660,7 +664,7 @@
                   :EndTrap
               :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
                   src←⎕NULL
-                  :If IS181 ⋄ :Trap 11 ⋄ src←SRC_BEST ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
+                  :If IS181 ⋄ :Trap 11 ⋄ src←(SRC_BEST SRC_NORMALIZED)[1+##.ALWAYSREFORMAT] ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
                   :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
               :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
               :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
@@ -700,9 +704,9 @@
           ⍝ Link             0|1     (default 1)   ⍝ maintain the link to the file - link issue #155
               FIX←where.⎕FIX⍠('Quiet' 1)('AllowLateBinding' 1)('FixWithErrors'force)('Link'(~0∊⍴file))
           :EndIf
-      ⍝:If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
-      ⍝:Else ⋄ stops←trace←monitor←⍬
-      ⍝:EndIf
+          :If (⌊|where.⎕NC⊂name)∊3 4 ⋄ (stops trace monitor)←(where.⎕STOP name)(where.⎕TRACE name)(⊣/where.⎕MONITOR name)  ⍝ link issue #148 and #129
+          :Else ⋄ stops←trace←monitor←⍬
+          :EndIf
       ⍝ attempt to fix as named script because this is the most commly expected format
           :Trap 0 ⋄ names←(2 FIX src)  ⍝ fn/op/script - can work from file
           :Else ⋄ names←0⍴⊂''
@@ -711,9 +715,9 @@
               :If 1=≢names ⋄ name←⊃names ⋄ nc←where.⎕NC⊂name
               :Else ⋄ name←'' ⋄ nc←0  ⍝ multiple names in single file not supported
               :EndIf
-          ⍝:If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
-          ⍝    stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
-          ⍝:EndIf
+              :If ((⌊|nc)∊3 4)∧(0∨.<⊃∘⍴¨stops trace monitor)  ⍝ restore stops, traces and monitor - monitor timing information will be lost
+                  stops where.⎕STOP name ⋄ trace where.⎕TRACE name ⋄ monitor where.⎕MONITOR name
+              :EndIf
               :Return  ⍝ named script fixed
           :EndIf
       ⍝required←11 116≡⎕DMX.(EN ENX)  ⍝ 2 ⎕FIX failed because cannot read :Required file
