@@ -15,7 +15,7 @@
      islinked←0
      container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
 
-     :If 9=container.⎕NC target
+     :If (9=container.⎕NC target)∨(⊂target)∊,¨'#' '⎕SE'
          target←⍕container⍎target
      :AndIf 0≠≢links←U.GetLinks
      :AndIf islinked←(⊂target)∊links.ns                  ⍝ If target is a linked namespace
