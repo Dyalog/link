@@ -24,10 +24,11 @@ Link is maintained as an open source project at [github.com/dyalog/link](https:/
 
 If you have the necessary permissions, you can **OVERWRITE the installed version of Link** by replacing the `StartupSession` folder that already exists in the main Dyalog program folder with the downloaded folder.
 
-If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the `DYALOGSTARTUPSE` parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:
+If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the parameter `DYALOGLINK` (v19.0 or later), or `DYALOGSTARTUPSE` (v18.2). You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:
 
-- **Set the `DYALOGSTARTUPSE` environment variable** to point to the StartupSession folder.
+- **Set the `DYALOGLINK` or `DYALOGSTARTUPSE` environment variable** to point to the StartupSession folder.
 
-- **Update the configuration file (or the Windows registry)**, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.180U64.dcfg` for a specific version, to include the line:  
+- **Update the configuration file (or the Windows registry)**, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.182U64.dcfg` for a specific version, to include the line:  
 		
-		    `DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"`
+		`DYALOGLINK: "/Users/mkrom/link/StartupSession"` (version 19.0 or later)
+    	`DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"` (version 18.2)
