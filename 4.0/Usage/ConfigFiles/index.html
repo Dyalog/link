@@ -929,11 +929,11 @@
   },
 }
 </code></pre>
-<p>With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and default to only propagating changes from the namespace to source files (watch:ns). If a call to <a href="..API/Link.Create.md">Link.Create</a> includes an explicit setting of the <code>watch</code> option, that will override the default.</p>
+<p>With the above user configuration file contents, Link will display notifications when processing changes to the source (notify:1), and default to only propagating changes from the namespace to source files (watch:ns). If a call to <a href="../../API/Link.Create/">Link.Create</a> includes an explicit setting of the <code>watch</code> option, that will override the default.</p>
 <p>Note that a configuration contains a <code>LinkVersion</code> section, which identifies the version of Link that wrote the file.</p>
 <h3 id="directory-configuration-files">Directory Configuration Files</h3>
-<p>Each linked directory may contain a <code>.linkconfig</code> file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When <a href="..API/Link.Create.md">Link.Create</a> or <a href="..API/Link.Export.md">Link.Export</a> create a directory and create files in it, any non-default switch settings provided to tha API function will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.</p>
-<p>If you already have a Link folder which was created by an earlier version of Link, you can add a <code>.linkconfig</code> file using <a href="../API/API/Link.Configure.md">Link.Configure</a>. For example:</p>
+<p>Each linked directory may contain a <code>.linkconfig</code> file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When <a href="../../API/Link.Create/">Link.Create</a> or <a href="../../API/Link.Export/">Link.Export</a> create a directory and create files in it, any non-default switch settings provided to tha API function will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.</p>
+<p>If you already have a Link folder which was created by an earlier version of Link, you can add a <code>.linkconfig</code> file using <a href="../../API/Link.Configure/">Link.Configure</a>. For example:</p>
 <pre><code>      ]Link.Create linkdemo /tmp/linkdemo
       ]Link.Configure linkdemo flatten:1
 Was  flatten: 
