@@ -761,7 +761,7 @@
                 
                 <h1 id="array-formats">Array Formats</h1>
 <p>By default, Link uses <em>APL Array Notation (APLAN)</em> to store arrays in text files. While APLAN is a good format for describing numeric data, nested arrays and many high rank arrays, it is not ideal for storing text data. Link 4.0 introduces experimental support for storing multi-line character data in simple text files.</p>
-<p>The configuration setting <code>text</code> can be used to enable this feature: If <code>text</code> is set to <code>'aplan'</code> (the default) then all arrays will be store using APLAN. If <code>text</code> is set to <code>'plain'</code> (the default) then text arrays that adhere to a set of very specific criteria will instead be stored in plain text files. You can set this option when a link is created, or using <a href="../API/Link.Configure"><code>Link.Configure</code></a>.</p>
+<p>The configuration setting <code>text</code> can be used to enable this feature: If <code>text</code> is set to <code>'aplan'</code> (the default) then all arrays will be store using APLAN. If <code>text</code> is set to <code>'plain'</code> then text arrays that adhere to a set of very specific criteria will instead be stored in plain text files. You can set this option when a link is created, or using <a href="../API/Link.Configure"><code>Link.Configure</code></a>.</p>
 <p>Text files which are not in APLAN format will have a penultimate "sub-extension" section in the file name which records the format of the original array in the workspace. The below table describes the array file extensions, what the content represents, and the specific criteria for storage in plain text file.</p>
 <p>For all plain text types, the array must be non-empty.</p>
 <table>

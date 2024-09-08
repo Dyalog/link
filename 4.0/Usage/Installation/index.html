@@ -822,14 +822,15 @@
 <p><strong>Start by downloading</strong> one of the zip files included with the latest release of Link 4.0 from <a href="https://github.com/Dyalog/link/releases">github.com/Dyalog/link/releases</a>. If you are using Dyalog version 19.0 or later, use the file named <code>link-v4.0.nn.zip</code>; Extract the subfolder called <code>StartupSession</code>, which contains the code required to run Link. </p>
 <p><strong>If you have version 18.2</strong>, follow the same instructions, but use the zip file with the suffix <code>-v182</code>. This file also contains code that is used to populate the <code>⎕SE.Dyalog</code> namespace, it is required because Link 3.0 included this code, which has moved to a separate repository.</p>
 <p>If you have the necessary permissions, you can <strong>OVERWRITE the installed version of Link</strong> by replacing the <code>StartupSession</code> folder that already exists in the main Dyalog program folder with the downloaded folder.</p>
-<p>If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the <code>DYALOGSTARTUPSE</code> parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:</p>
+<p>If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the parameter <code>DYALOGLINK</code> (v19.0 or later), or <code>DYALOGSTARTUPSE</code> (v18.2). You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:</p>
 <ul>
 <li>
-<p><strong>Set the <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder.</p>
+<p><strong>Set the <code>DYALOGLINK</code> or <code>DYALOGSTARTUPSE</code> environment variable</strong> to point to the StartupSession folder.</p>
 </li>
 <li>
-<p><strong>Update the configuration file (or the Windows registry)</strong>, to set the parameter there. Typically, you would edit <code>~/.dyalog/dyalog.config</code> to make the change for all versions, or a specific file such as <code>~/.dyalog/dyalog.180U64.dcfg</code> for a specific version, to include the line:  </p>
-<pre><code>    `DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"`
+<p><strong>Update the configuration file (or the Windows registry)</strong>, to set the parameter there. Typically, you would edit <code>~/.dyalog/dyalog.config</code> to make the change for all versions, or a specific file such as <code>~/.dyalog/dyalog.182U64.dcfg</code> for a specific version, to include the line:  </p>
+<pre><code>`DYALOGLINK: "/Users/mkrom/link/StartupSession"` (version 19.0 or later)
+`DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"` (version 18.2)
 </code></pre>
 </li>
 </ul>
