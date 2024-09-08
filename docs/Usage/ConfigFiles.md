@@ -28,7 +28,7 @@ Note that a configuration contains a `LinkVersion` section, which identifies the
 ### Directory Configuration Files
 Each linked directory may contain a `.linkconfig` file containing defaults that will apply when a link is created to that directory, or if the directory is imported. When [Link.Create](..API/Link.Create.md) or [Link.Export](..API/Link.Export.md) create a directory and create files in it, any non-default switch settings provided to tha API function will be recorded in a configuration file within the directory. This means that you no longer need to remember the options used to re-create the original link when continuing work, or importing the link into a runtime environment.
 
-If you already have a Link folder which was created by an earlier version of Link, you can add a `.linkconfig` file using [Link.Configure](..API/Link.Configure.md). For example:
+If you already have a Link folder which was created by an earlier version of Link, you can add a `.linkconfig` file using [Link.Configure](../API/API/Link.Configure.md). For example:
 
 ```
       ]Link.Create linkdemo /tmp/linkdemo
