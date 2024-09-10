@@ -32,3 +32,5 @@ If you do not have permission to overwrite the Dyalog installation, or you do no
 		
 		`DYALOGLINK: "/Users/mkrom/link/StartupSession"` (version 19.0 or later)
     	`DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"` (version 18.2)
+
+**Finally, refresh the User Command Cache** using the `]ureset` user command, to pick up any changes to user command definitions.
