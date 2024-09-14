@@ -26,11 +26,14 @@ If you have the necessary permissions, you can **OVERWRITE the installed version
 
 If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the parameter `DYALOGLINK` (v19.0 or later), or `DYALOGSTARTUPSE` (v18.2). You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:
 
-- **Set the `DYALOGLINK` or `DYALOGSTARTUPSE` environment variable** to point to the StartupSession folder.
+- **Set the `DYALOGLINK` or `DYALOGSTARTUPSE` environment variable** to identify the location of Link. Unfortunately the way this is done
+changed between 18.2 and 19.0:
 
 - **Update the configuration file (or the Windows registry)**, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.182U64.dcfg` for a specific version, to include the line:  
 		
-		`DYALOGLINK: "/Users/mkrom/link/StartupSession"` (version 19.0 or later)
-    	`DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"` (version 18.2)
+		`DYALOGLINK: "/Users/mkrom/link"` (version 19.0 or later - point to the parent of StartupSession)
+    	`DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"` (version 18.2 - point to StartupSession itself)
+
+Note that you should use the full name of the path.
 
 **Finally, refresh the User Command Cache** using the `]ureset` user command, to pick up any changes to user command definitions.
