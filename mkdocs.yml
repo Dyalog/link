@@ -47,10 +47,11 @@ theme:
   favicon: 'img/favicon-32.png'
   logo: 'img/dyalog-white.svg'
   features:
+    - content.tabs.link
     - navigation.sections
     - navigation.instant
   name: material
-  
+
 extra:
   version:
     provider: mike
@@ -63,5 +64,16 @@ plugins:
   - search
 
 markdown_extensions:
-  - admonition
   - abbr
+  - attr_list
+  - def_list
+  - admonition
+  - pymdownx.caret
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.mark
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tilde
