@@ -25,7 +25,7 @@ Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 a
 
 	The .NET Framework is already installed; there is nothing for you to do.
 
-=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux and macOS"
+=== "Other operating systems"
 
 	Download .NET and follow the installation instructions.
 
@@ -99,7 +99,7 @@ In the Windows Registry…
 
 ==FIXME==
 
-### :fontawesome-brands-linux: :fontawesome-brands-apple: Linux and macOS
+### Other operating systems
 
 Select a configuration file. 
 
