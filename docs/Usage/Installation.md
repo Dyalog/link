@@ -1,21 +1,33 @@
 # Installation
 
-Link 4.0 is included with Dyalog version 19.0 and later, and is supported for use with version 18.2.
-It depends on .NET.
+Link 4.0[^opensource] is 
+
+-   **included** with Dyalog version 19.0 and later
+-   **supported** for use with version 18.2
+
+It depends on the .NET Framework – see below.
+
+[^opensource]: Link is maintained as an open-source project at [github.com/dyalog/link](https://github.com/dyalog/link).
 
 Use these instructions to 
 
--   use a different release from that distributed with your version of Dyalog APL, or
--   install Link with Dyalog 18.2
+-   **Install Link** with Dyalog 18.2 or
 
-Link is maintained as an open-source project at [github.com/dyalog/link](https://github.com/dyalog/link).
+-   Install a **different release** from that distributed with your version of Dyalog APL
+
+	??? detail "How to display your installed Link version"
+
+		```apl
+		      ⎕SE.Link.Version
+		4.0.17       
+		```
 
 !!! warning "Non-standard session file"
 
 	If you use a non-standard Dyalog session (`.dse`) file, contact [support@dyalog.com](mailto:support@dyalog.com) for guidance on enabling Link.
 
 
-## Required: .NET Framework
+## Required: the .NET Framework
 
 .NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files.
 
@@ -25,6 +37,13 @@ Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 a
 
 	The .NET Framework is already installed; there is nothing for you to do.
 
+=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
+
+	Download .NET and follow the installation instructions.
+
+	:fontawesome-brands-windows:
+	[dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) 
+
 === "Other operating systems"
 
 	Download .NET and follow the installation instructions.
@@ -33,111 +52,119 @@ Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 a
 	[dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) 
 
 
-## Step 2: Download Link ZIP
+## Step 2: Download a Link ZIP
 
-To use a **different** Link release from that distributed with your version of Dyalog APL, download the corresponding ZIP.
+:fontawesome-solid-download:&nbsp;
+[Download the ZIP](https://github.com/Dyalog/link/releases) for your version
 
-:fontawesome-brands-github:
-[github.com/Dyalog/link/releases](https://github.com/Dyalog/link/releases)
+	link-v4.0.nn.zip       ⍝ Dyalog 19.0+
+	link-v4.0.nn-v182.zip  ⍝ Dyalog 18.2
 
-=== "Dyalog 19.0+"
-
-		link-v4.0.nn.zip
-
-=== "Dyalog 18.2"
-
-		link-v4.0.nn-v182.zip
-
-where `nn` is a patch number.
+where `nn` is a Link patch number.
 
 Extract subfolder `StartupSession/Link`.
 
 
 ## Step 3: Install your Link folder
 
-By default, your Link folder is contained in your home folder in:
+### In the default location
 
-=== "Dyalog 19.0+"
+The Link folder belongs in the `StartupSession` folder.
+By default, this is
 
-		dyalog.190UC64.files/StartupSession
+=== ":fontawesome-brands-windows: Microsoft Windows"
 
-=== "Dyalog 18.2"
+	where Dyalog is installed, e.g.
 
-		dyalog.182UC64.files/StartupSession
+		C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\StartupSession
 
-**If you have write access to this folder**
+=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
 
--   rename its existing child `Link` folder as a fallback
--   copy the extracted `Link` folder here
+	within your home folder, e.g.
 
-For example, if your user name is `judy` the full filepath of the extracted folder would be
+		~/dyalog.190UC64.files/StartupSession  ⍝ Dyalog 19.0+
+		~/dyalog.182UC64.files/StartupSession  ⍝ Dyalog 18.2
 
-=== "Dyalog 19.0+"
+=== "Other operating systems"
 
-		/Users/judy/dyalog.190UC64.files/StartupSession/Link
+	==FIXME==
 
-=== "Dyalog 18.2"
+If you have write access to the default location
 
-		/Users/judy/dyalog.180UC64.files/StartupSession/Link
-
-
-**If you do not have write access to this folder**
-
--   Make a new folder, e.g. `my.dyalog.files` in your home folder
--   Copy the extracted `StartupSession` folder to it
-
-	That would create the filepath
-
-		/Users/judy/my.dyalog.files/StartupSession/Link
+-   move the `Link` folder outside it (as a fallback)
+-   copy into it the extracted `Link` folder
 
 
-## Step 4: Declare the location of your Link folder
+### In a custom location
 
-### :fontawesome-brands-windows: Microsoft Windows
+If you do not have write access to the default location
 
-In the Windows Registry…
+1.  Make a new folder in your home directory
+1.  Copy the extracted `StartupSession` folder to it
 
-==FIXME==
+	E.g.
 
-### Other operating systems
+	=== ":fontawesome-brands-windows: Microsoft Windows"
 
-Select a configuration file. 
+			C:\Users\mkrom\mydyalogfiles\StartupSession\Link
 
-For all versions of Dyalog
+	=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
 
-	~/.dyalog/dyalog.config
+			~/mydyalogfiles/StartupSession/Link
 
-For a specific version, such as 18.2
+	=== "Other operating systems"
 
-	~/.dyalog/dyalog.182U64.dcfg
+		==FIXME==
 
-In your configuration file, declare the Link filepath:
+1.  Declare the custom location of your Link folder
 
+	=== ":fontawesome-brands-windows: Microsoft Windows"
 
-=== "Dyalog 19.0+"
+		In the Windows Registry, [set the environment variable](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them) as below.
 
-	Declare the filepath that contains the `StartupSession` folder.
-	Some examples:
+	=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
 
-		DYALOGLINK: "[HOME]/dyalog.190U64.files",
-		DYALOGLINK: "[HOME]/my.dyalog.files",
-		DYALOGLINK: "/Users/mkrom/link",
+		Select a configuration file. 
 
-=== "Dyalog 18.2"
+			~/.dyalog/dyalog.config       ⍝ all versions of Dyalog
+			~/.dyalog/dyalog.182U64.dcfg  ⍝ specific version, such as 18.2
 
-	Declare the filepath of the `StartupSession` folder.
-	For example:
+		In your configuration file, set the environment variable as below.
 
-		DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession",
+	=== "Other operating systems"
 
-## Step 5: Refresh user commands
+		==FIXME==
+
+	The relevant environment variable changed after Dyalog 18.2.
+
+	=== "Dyalog 19.0+"
+
+		Declare as `DYALOGLINK` the filepath that **contains** the `StartupSession` folder.
+		Some examples:
+
+			DYALOGLINK  C:\Users\mkrom\mydyalogfiles
+
+			DYALOGLINK: "[HOME]/dyalog.190U64.files",
+			DYALOGLINK: "[HOME]/mydyalogfiles",
+			DYALOGLINK: "/Users/mkrom/",
+
+	=== "Dyalog 18.2"
+
+		Declare as `DYALOGSTARTUPSE` the filepath of the `StartupSession` folder.
+		For example:
+
+			DYALOGSTARTUPSE  C:\Users\mkrom\StartupSession",
+
+			DYALOGSTARTUPSE: "/Users/mkrom/StartupSession",
+
+## Step 4: Refresh the user commands
 
 ```apl
       ]ureset
 153 commands reloaded
 ```
 
-## Step 6: Query Link version
+## Step 5: Display the Link version
 
 Test your installation by querying the Link version.
 

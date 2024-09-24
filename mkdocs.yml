@@ -65,10 +65,13 @@ plugins:
 
 markdown_extensions:
   - abbr
+  - admonition
   - attr_list
   - def_list
-  - admonition
+  - footnotes
+  - md_in_html
   - pymdownx.caret
+  - pymdownx.details
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
