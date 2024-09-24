@@ -153,7 +153,7 @@ If you do not have write access to the default location
 		Declare as `DYALOGSTARTUPSE` the filepath of the `StartupSession` folder.
 		For example:
 
-			DYALOGSTARTUPSE  C:\Users\mkrom\StartupSession",
+			DYALOGSTARTUPSE  C:\Users\mkrom\StartupSession
 
 			DYALOGSTARTUPSE: "/Users/mkrom/StartupSession",
 
