@@ -241,7 +241,7 @@
          :EndIf
 
          :If NOTIFY∧fixrc≠¯1
-             src←⊃⎕NGET path
+             src←(~dir)/⊃⎕NGET⍣(~dir)⊢path
              :If 0=⎕NC 'LASTFIX'
              :OrIf LASTFIX≢(⍕nsref) actname src
                  U.Notify 'Updated ',affected,' (',path,')'
