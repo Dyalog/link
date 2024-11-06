@@ -62,10 +62,6 @@
          msg←1↓U.FmtLines msg
      :EndIf
 
-     :If ⎕WSID≡'CLEAR WS'
-     :AndIf #=nsref
-         ⎕WSID←⎕SE.Link.U.(WinSlash Enslash)opts.dir
-     :EndIf
  :Else
      U.Resignal 1
  :EndTrap
