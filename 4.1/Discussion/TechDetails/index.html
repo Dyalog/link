@@ -1,0 +1,1137 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../img/favicon-32.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.7">
+    
+    
+      
+        <title>Technical Details and Limitations - Link User Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ca7ac06f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.f1a3b89f.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../style/main.css">
+    
+      <link rel="stylesheet" href="../../style/admonition-ucmdhelp.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#technical-details-and-limitations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Link User Guide" class="md-header__button md-logo" aria-label="Link User Guide" data-md-component="logo">
+      
+  <img src="../../img/dyalog-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Link User Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technical Details and Limitations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Link User Guide" class="md-nav__button md-logo" aria-label="Link User Guide" data-md-component="logo">
+      
+  <img src="../../img/dyalog-white.svg" alt="logo">
+
+    </a>
+    Link User Guide
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_1" type="checkbox" id="__nav_1" checked>
+      
+      <label class="md-nav__link" for="__nav_1">
+        Overview
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Overview" data-md-level="1">
+        <label class="md-nav__title" for="__nav_1">
+          <span class="md-nav__icon md-icon"></span>
+          Overview
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Technical Details and Limitations
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Technical Details and Limitations
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-objects" class="md-nav__link">
+    Supported Objects
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-limitations" class="md-nav__link">
+    Other Limitations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-link-work" class="md-nav__link">
+    How does Link work?
+  </a>
+  
+    <nav class="md-nav" aria-label="How does Link work?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-exactly-is-a-link" class="md-nav__link">
+    What Exactly is a Link?
+  </a>
+  
+    <nav class="md-nav" aria-label="What Exactly is a Link?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-apl-source-files-and-directories" class="md-nav__link">
+    Creating APL Source Files and Directories
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loading-apl-objects-from-source" class="md-nav__link">
+    Loading APL Objects from Source
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-source-of-link-itself" class="md-nav__link">
+    The Source of Link itself
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-crawler" class="md-nav__link">
+    The Crawler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-links" class="md-nav__link">
+    Breaking Links
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-future" class="md-nav__link">
+    The Future
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Workspaces/" class="md-nav__link">
+        Workspaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../History/" class="md-nav__link">
+        History of source files as text in Dyalog
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        Install and Upgrade
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Install and Upgrade" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Install and Upgrade
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Usage/Installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ReleaseNotes40/" class="md-nav__link">
+        Version 4.0 Release Notes
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      <label class="md-nav__link" for="__nav_3">
+        Working with Link
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Working with Link" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Working with Link
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Usage/" class="md-nav__link">
+        Basic Usage
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Usage/Arrays/" class="md-nav__link">
+        Array Formats
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Usage/ConfigFiles/" class="md-nav__link">
+        Configuration Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Usage/Setup/" class="md-nav__link">
+        Setting Up Your Application
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Usage/WStoLink/" class="md-nav__link">
+        Converting an Existing Workspace to use Link
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      <label class="md-nav__link" for="__nav_4">
+        API & Command Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API & Command Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          API & Command Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/" class="md-nav__link">
+        API Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Add/" class="md-nav__link">
+        Link.Add
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Break/" class="md-nav__link">
+        Link.Break
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.CaseCode/" class="md-nav__link">
+        Link.CaseCode
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Create/" class="md-nav__link">
+        Link.Create
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Configure/" class="md-nav__link">
+        Link.Configure
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Export/" class="md-nav__link">
+        Link.Export
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Expunge/" class="md-nav__link">
+        Link.Expunge
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Fix/" class="md-nav__link">
+        Link.Fix
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.GetFileName/" class="md-nav__link">
+        Link.GetFileName
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.GetItemName/" class="md-nav__link">
+        Link.GetItemName
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Import/" class="md-nav__link">
+        Link.Import
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.LaunchDir/" class="md-nav__link">
+        Link.LaunchDir
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Notify/" class="md-nav__link">
+        Link.Notify
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Refresh/" class="md-nav__link">
+        Link.Refresh
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Resync/" class="md-nav__link">
+        Link.Resync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Status/" class="md-nav__link">
+        Link.Status
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Stop/" class="md-nav__link">
+        Link.Stop
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Trace/" class="md-nav__link">
+        Link.Trace
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.StripCaseCode/" class="md-nav__link">
+        Link.StripCaseCode
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.TypeExtension/" class="md-nav__link">
+        Link.TypeExtension
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API/Link.Version/" class="md-nav__link">
+        Link.Version
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-objects" class="md-nav__link">
+    Supported Objects
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-limitations" class="md-nav__link">
+    Other Limitations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-link-work" class="md-nav__link">
+    How does Link work?
+  </a>
+  
+    <nav class="md-nav" aria-label="How does Link work?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-exactly-is-a-link" class="md-nav__link">
+    What Exactly is a Link?
+  </a>
+  
+    <nav class="md-nav" aria-label="What Exactly is a Link?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-apl-source-files-and-directories" class="md-nav__link">
+    Creating APL Source Files and Directories
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loading-apl-objects-from-source" class="md-nav__link">
+    Loading APL Objects from Source
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-source-of-link-itself" class="md-nav__link">
+    The Source of Link itself
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-crawler" class="md-nav__link">
+    The Crawler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-links" class="md-nav__link">
+    Breaking Links
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-future" class="md-nav__link">
+    The Future
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/dyalog/link/edit/master/docs/Discussion/TechDetails.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="technical-details-and-limitations">Technical Details and Limitations</h1>
+<p>Link enables the use of text files as application source by mapping workspace content to directories and files. There are some types of objects that cannot be supported, and a few other limitations to be aware of.</p>
+<h2 id="supported-objects">Supported Objects</h2>
+<p>In the following, for want of a better word, the term <em>object</em> will be used to refer to any kind of named entity that can exist in an APL workspace - not limited to classes or instances.</p>
+<p><strong>Supported:</strong> Link supports objects of name class 2.1 (array), 3.1 (traditional function), 3.2 (d-function), 4.1 (traditional operator), 4.2 (d-operator), 9.1 (namespace), 9.4 (class) and 9.5 (interface).</p>
+<p><strong>Unscripted Namespaces:</strong> Namespaces created with <code>⎕NS</code> or <code>)NS</code> have no source code of their own and are mapped to directories.</p>
+<p><strong>Classes and Scripted Namespaces:</strong> Classes and so-called <em>scripted</em> namespaces created using the editor or <code>⎕FIX</code>, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allowed only as objects <em>within</em> a an unscripted linked namespace.</p>
+<p>Note that <em>unnamed</em> namespaces are <strong>NOT</strong> supported, either as endpoints of a Link or indeed within a linked namespace: <strong>Changes to - or within - unnamed namespaces will be ignored by Link</strong>. This is discussed in more detail in the next section.</p>
+<p><strong>Variables</strong> are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with <a href="../../API/Link.Add/">Link.Add</a>, or with the <code>-arrays</code> modifier of <a href="../../API/Link.Create/">Link.Create</a> and <a href="../../API/Link.Export/">Link.Export</a>.</p>
+<p><strong>Functions and Operators:</strong> Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace. For example, the derived function <code>Pairs←⊢⌺(⍪2 2)</code> cannot be represented directly. However, inclusion of the following tradfn will have the desired effect:</p>
+<pre><code class="language-apl">∇ F←Pairs
+  F←⊢⌺(⍪2 2)
+∇
+</code></pre>
+<p><strong>Unsupported:</strong> In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). These can be listed with <code>]names 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7</code> and listed for the namespace <code>myns</code> with <code>]names myns 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7</code>.</p>
+<h2 id="other-limitations">Other Limitations</h2>
+<ul>
+<li>Namespaces must be named. To be precise, it must be true that <code>ns≡(⎕NS⍬)⍎⍕ns</code>. Scripted namespaces must not be anonymous. When creating an unscripted namespace, we recommend using <code>⎕NS</code> dyadically to name the created namespace (for example <code>'myproject' ⎕NS ⍬</code> rather than <code>myproject←⎕NS ⍬</code>). This allows retrieving namespace reference from its display form (for example <code>#.myproject</code> rather than <code>#.[namespace]</code>).</li>
+</ul>
+<p><strong>Changes to - or within - unnamed namespaces will be ignored.</strong></p>
+<ul>
+<li>There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on <a href="../../API/Link.Create/">Link.Create</a> or <a href="../../API/Link.Import/">Link.Import</a>.</li>
+</ul>
+<p>In other words, Link does not support source files that define multiple names, even though <code>2∘⎕FIX</code> does support this.</p>
+<ul>
+<li>
+<p>In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The <code>caseCode</code> option can be used to get Link to generate file names which encode case information - see <a href="../../API/Link.Create/">Link.Create</a> for more information.</p>
+</li>
+<li>
+<p>Link does not support namespace-tagged functions and operators (e.g. <code>foo←namespace.{function}</code>).</p>
+</li>
+<li>
+<p>Changes made using <code>←</code>, <code>⎕NS</code>, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>, <code>)NS</code> and <code>)COPY</code> are not currently detected. For Link to be aware of the change, a call must be made to <a href="../../API/Link.Fix/">Link.Fix</a>. Similarly, deletions with <code>⎕EX</code> or <code>)ERASE</code> must be replaced by a call to <a href="../../API/Link.Expunge/">Link.Expunge</a>.</p>
+</li>
+<li>
+<p>In Dyalog versions 18.2 or earlier, changes made using the line or "del" editor are not detected.</p>
+</li>
+<li>
+<p>The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor <em>will</em> detect changes to source files on all platforms, when it opens an editor window.</p>
+</li>
+<li>
+<p>Source code must not have embedded newlines within character constants. Although <code>⎕FX</code> does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to <code>⎕UCS</code> e.g. <code>newline←⎕UCS 13 10  ⍝ carriage-return + line-feed</code></p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are still using the pre-Unicode version of Dyalog known as "Classic": Link will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
+cause Link to create strange file names. For example <code>]add ⎕IO</code> will cause
+the creation of a file named <code>ŒIO.apla</code>. Depending on the names of your objects, 
+this may make it difficult to share source files between Classic and Unicode interpreters.</p>
+</div>
+<h2 id="how-does-link-work">How does Link work?</h2>
+<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of February 2024, at the end of the Link 4.0 development cycle.</p>
+<p><strong>Terminology:</strong> In the following, the term <em>object</em> is used very loosely to refer to functions, operators, namespaces, classes and arrays.</p>
+<h3 id="what-exactly-is-a-link">What Exactly is a Link?</h3>
+<p>A link connects a namespace in the active workspace (which can be the root namespace <code>#</code>) to a directory in the file system. </p>
+<p>When a link is created:</p>
+<ul>
+<li>
+<p>An entry is created in the table which is stored in the workspace using an undocumented I-Beam, recording the endpoints and all options associated with the Link. <a href="../../API/Link.Status/">Link.Status</a> can be used to report this information. Earlier versions used <code>⎕SE.Link.Links</code>, but versions 3.0 and later only store information on links with an endpoint in <code>⎕SE</code> in that variable.</p>
+</li>
+<li>
+<p>Depending on which end of the link is specified as the source, APL source files are created from workspace definitions, or objects are loaded into the workspace from such files. These processes are described in more detail in the following sections.</p>
+</li>
+<li>
+<p>If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option is set to prevent this).</p>
+</li>
+</ul>
+<h4 id="creating-apl-source-files-and-directories">Creating APL Source Files and Directories</h4>
+<p>Link writes textual representations of APL objects to UTF-8 text files (but can load source files created using any Unicode encoding). Most of the time, it uses the system function <code>⎕SRC</code> to extract the source form writing it to file using <code>⎕NPUT</code>. There are two exceptions to this:</p>
+<ul>
+<li>So-called "unscripted" namespaces, which contain other objects but do not themselves have a textual source, are represented as sub-directories in the file system (which may contain source files for the objects within the namespace).</li>
+<li>Arrays are converted to source form using the function <code>⎕SE.Dyalog.Array.Serialise</code>. It is expected that the APL language engine will, in the future, support the "literal array notation".</li>
+</ul>
+<h4 id="loading-apl-objects-from-source">Loading APL Objects from Source</h4>
+<p>With the exception of variables stored in <code>.apla</code> files, Link loads code into the workspace using <code>2 ⎕FIX</code>. </p>
+<p>Arrays, stored in <code>.apla</code> files, are either processed by <code>⎕SE.Dyalog.Array.Deserialise</code> or, if in plain text format (in which case they have a "sub-extension", for example <code>.mat.apla</code>), by Link itself.</p>
+<p>When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a <em>new</em> function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.</p>
+<p>If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.</p>
+<h3 id="the-source-of-link-itself">The Source of Link itself</h3>
+<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed with Dyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
+<h3 id="the-crawler">The Crawler</h3>
+<p>In a future version of Link, an optional and configurable crawler will be able to run in the background and occasionally compare linked namespaces and directories, using the same logic as <a href="../../API/Link.Resync/">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
+<ul>
+<li>The File System Watcher is not available on your platform</li>
+<li>You add functions or operators to the active workspace without using the editor, for example using <code>)COPY</code> or dfn assignment.</li>
+</ul>
+<p>The section on <a href="#supported-objects">supported objects</a> provides much more information about the type of APL objects that are supported by Link.</p>
+<h3 id="breaking-links">Breaking Links</h3>
+<p>If <a href="../../API/Link.Break/">Link.Break</a> is used to explicitly break an existing Link the namespace reverts to being a completely "normal" namespace in the workspace. If file system watcher was active, it is disabled. Any information that the interpreter was keeping about connections to files is removed using <code>5178⌶</code>. None of the definitions in the namespace are modified by the process of breaking a link.</p>
+<p>If you delete a linked namespace using <code>)ERASE</code> or <code>⎕EX</code>, Link may not immediately detect that this has happened. However, if you call <code>Link.Status</code>, or make a change to a watched file that causes the file system watcher to attempt to update the namespace, Link will discover that something is amiss, issue a warning, and delete the link.</p>
+<p>If you completely destroy the active workspace using <code>)LOAD</code> or <code>)CLEAR</code>, all links with an endpoint in the workspace will be deleted - but links to <code>⎕SE</code> will survive.</p>
+<h2 id="the-future">The Future</h2>
+<p>To summarise, the Link road map currently includes the following goals:</p>
+<ul>
+<li>Adding the <a href="#the-crawler">crawler</a>, which will automatically run <a href="../../API/Link.Resync/">Link.Resync</a> in the background, in order to detect and help eliminate differences between the contents of linked namespaces and the corresponding directories. It may replace the File System Watcher in environments where it is not available.</li>
+<li>Replacing the use of SALT in Dyalog's tools, including a new implementation of user commands and other mechanisms for loading source code into the interpreter based on Link instead.</li>
+</ul>
+<p>Over time, it is a strategic goal for Dyalog to move more of the work done by Link into the APL interpreter, such as:</p>
+<ul>
+<li>Serialisation and deserialisation of arrays, using the literal array notation</li>
+<li>File system watching or other mechanisms for detecting changes to source at both ends of a link</li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Introduction" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Introduction
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../Workspaces/" class="md-footer__link md-footer__link--next" aria-label="Next: Workspaces" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Workspaces
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.instant"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.b0710199.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.76f349be.min.js"></script>
+      
+    
+  </body>
+</html>

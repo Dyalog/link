@@ -1,0 +1,1149 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../img/favicon-32.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.7">
+    
+    
+      
+        <title>API Overview - Link User Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ca7ac06f.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.f1a3b89f.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../style/main.css">
+    
+      <link rel="stylesheet" href="../style/admonition-ucmdhelp.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Link User Guide" class="md-header__button md-logo" aria-label="Link User Guide" data-md-component="logo">
+      
+  <img src="../img/dyalog-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Link User Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Link User Guide" class="md-nav__button md-logo" aria-label="Link User Guide" data-md-component="logo">
+      
+  <img src="../img/dyalog-white.svg" alt="logo">
+
+    </a>
+    Link User Guide
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/dyalog/link/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Dyalog/Link
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_1" type="checkbox" id="__nav_1" >
+      
+      <label class="md-nav__link" for="__nav_1">
+        Overview
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Overview" data-md-level="1">
+        <label class="md-nav__title" for="__nav_1">
+          <span class="md-nav__icon md-icon"></span>
+          Overview
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Discussion/TechDetails/" class="md-nav__link">
+        Technical Details and Limitations
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Discussion/Workspaces/" class="md-nav__link">
+        Workspaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Discussion/History/" class="md-nav__link">
+        History of source files as text in Dyalog
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        Install and Upgrade
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Install and Upgrade" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Install and Upgrade
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Usage/Installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ReleaseNotes40/" class="md-nav__link">
+        Version 4.0 Release Notes
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      <label class="md-nav__link" for="__nav_3">
+        Working with Link
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Working with Link" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Working with Link
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Usage/" class="md-nav__link">
+        Basic Usage
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Usage/Arrays/" class="md-nav__link">
+        Array Formats
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Usage/ConfigFiles/" class="md-nav__link">
+        Configuration Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Usage/Setup/" class="md-nav__link">
+        Setting Up Your Application
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Usage/WStoLink/" class="md-nav__link">
+        Converting an Existing Workspace to use Link
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      <label class="md-nav__link" for="__nav_4">
+        API & Command Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API & Command Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          API & Command Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          API Overview
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        API Overview
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#api-function-syntax" class="md-nav__link">
+    API function syntax
+  </a>
+  
+    <nav class="md-nav" aria-label="API function syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-namespaces" class="md-nav__link">
+    Option Namespaces
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-commands" class="md-nav__link">
+    User commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-api-function-reference" class="md-nav__link">
+    Basic API Function reference
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-api-function-reference" class="md-nav__link">
+    Advanced API Function reference
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Add/" class="md-nav__link">
+        Link.Add
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Break/" class="md-nav__link">
+        Link.Break
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.CaseCode/" class="md-nav__link">
+        Link.CaseCode
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Create/" class="md-nav__link">
+        Link.Create
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Configure/" class="md-nav__link">
+        Link.Configure
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Export/" class="md-nav__link">
+        Link.Export
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Expunge/" class="md-nav__link">
+        Link.Expunge
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Fix/" class="md-nav__link">
+        Link.Fix
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.GetFileName/" class="md-nav__link">
+        Link.GetFileName
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.GetItemName/" class="md-nav__link">
+        Link.GetItemName
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Import/" class="md-nav__link">
+        Link.Import
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.LaunchDir/" class="md-nav__link">
+        Link.LaunchDir
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Notify/" class="md-nav__link">
+        Link.Notify
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Refresh/" class="md-nav__link">
+        Link.Refresh
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Resync/" class="md-nav__link">
+        Link.Resync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Status/" class="md-nav__link">
+        Link.Status
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Stop/" class="md-nav__link">
+        Link.Stop
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Trace/" class="md-nav__link">
+        Link.Trace
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.StripCaseCode/" class="md-nav__link">
+        Link.StripCaseCode
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.TypeExtension/" class="md-nav__link">
+        Link.TypeExtension
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Link.Version/" class="md-nav__link">
+        Link.Version
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#api-function-syntax" class="md-nav__link">
+    API function syntax
+  </a>
+  
+    <nav class="md-nav" aria-label="API function syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-namespaces" class="md-nav__link">
+    Option Namespaces
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-commands" class="md-nav__link">
+    User commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-api-function-reference" class="md-nav__link">
+    Basic API Function reference
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-api-function-reference" class="md-nav__link">
+    Advanced API Function reference
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/dyalog/link/edit/master/docs/API/index.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="api-overview">API Overview</h1>
+<h2 id="api-function-syntax">API function syntax</h2>
+<p>The Link API functions all reside in <code>⎕SE.Link</code>.</p>
+<p>The general syntax for Link API functions is as follows:</p>
+<pre><code class="language-APL">      message ← options ⎕SE.Link.FnName args
+</code></pre>
+<p>where:</p>
+<ul>
+<li><code>message</code> is a simple character vector or nested array containing messages related to the effects of the function call.</li>
+<li><code>options</code> is a namespace containing <a href="#option-namespaces">optional parameters</a>. Only certain functions accept an options namespace.</li>
+<li><code>FnName</code> is the name of the API function</li>
+<li><code>args</code> is either a character vector or a nested vector as described in the help section for that API function.</li>
+</ul>
+<h3 id="option-namespaces">Option Namespaces</h3>
+<p>Some API functions accept an option namespace as the left argument. For example, to create a link with non-default <code>source</code> and <code>flatten</code> options,
+you would write:</p>
+<pre><code class="language-apl">      options←⎕NS ⍬                                     ⍝ create empty namespace
+      options.(source flatten)←'dir' 1                  ⍝ set two named options
+      options ⎕SE.Link.Create 'myapp' '/sources/myapp'  ⍝ namespace and director name on the right, options on left
+</code></pre>
+<p>Creating option namespaces will become more elegant once Dyalog APL is enhanced with a notation for namespaces. Until that time (no definite schedule has yet been set), Link API functions will accept a character vector left argument which represents an array in the proposed <a href="https://aplwiki.com/wiki/Array_notation">Literal Array Notation</a>, for example:</p>
+<pre><code>        '(source:''dir'' ⋄ flatten:1)' ⎕SE.Link.Create 'myapp' '/sources/myapp' 
+</code></pre>
+<h2 id="user-commands">User commands</h2>
+<p>Most API functions have a corresponding user command, to make them a little easier to use interactively. The API functions with user command covers are indicated with <sup><code>]</code></sup> in the function reference tables. These user commands all take exactly the same arguments and options as the API functions, specified using user command syntax. The Link.Create call above would thus be written:</p>
+<pre><code class="language-apl">      ]LINK.Create myapp /sources/myapp -source=dir -flatten
+</code></pre>
+<p><strong><em>Lowercase option names:</em></strong> Although option names are case sensitive and some of them contain uppercase letters when provided to API functions via option namespaces, the user command option names are entirely lowercase, to make interactive use more convenient.</p>
+<p><strong><em>Specifying extensions:</em></strong> Two options require arrays identifying file extensions: <code>codeExtensions</code>, <code>customExtensions</code> and <code>typeExtensions</code>. For convenience, the <code>]LINK.Create</code> user command accepts the <em>name</em> of a variable containing the array, rather than the array values. </p>
+<p>A list of available user commands can be viewed in the session with <code>]LINK -?</code>. Help for a particular user command <code>Cmd</code> is displayed using <code>]LINK.Cmd -?</code>.</p>
+<h2 id="basic-api-function-reference">Basic API Function reference</h2>
+<p>The following functions cover the vast majority of normal use-cases:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>User Command</th>
+<th>Right Argument(s)</th>
+<th>Left Argument(s)</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Link.Add/">Add</a></td>
+<td><code>]Add</code></td>
+<td>items</td>
+<td><em><none></em></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Break/">Break</a></td>
+<td><code>]Break</code></td>
+<td>namespaces</td>
+<td>options: <code>all</code> <code>recursive</code></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Configure/">Configure</a></td>
+<td><code>]Configure</code></td>
+<td>target settings</td>
+<td><none></td>
+<td>current or previous settings</td>
+</tr>
+<tr>
+<td><a href="Link.Create/">Create</a></td>
+<td><code>]Create</code></td>
+<td>namespace directory</td>
+<td>options: <code>source</code> <code>watch</code> <code>arrays</code> (and <a href="Link.Create/#common-options">many more</a>)</td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Export/">Export</a></td>
+<td><code>]Export</code></td>
+<td>namespace directory</td>
+<td>options: <code>overwrite</code> <code>caseCode</code> <code>arrays</code> <code>sysVars</code></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Expunge/">Expunge</a></td>
+<td><code>]Expunge</code></td>
+<td>items</td>
+<td><em><none></em></td>
+<td>boolean array</td>
+</tr>
+<tr>
+<td><a href="Link.Import/">Import</a></td>
+<td><code>]Import</code></td>
+<td>namespace directory</td>
+<td>options: <code>overwrite</code> <code>flatten</code> <code>fastLoad</code></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.LaunchDir/">LaunchDir</a></td>
+<td></td>
+<td>none</td>
+<td>none</td>
+<td>directory name</td>
+</tr>
+<tr>
+<td><a href="Link.Refresh/">Refresh</a></td>
+<td><code>]Refresh</code></td>
+<td>namespace</td>
+<td>options: <code>source</code></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Resync/">Resync</a></td>
+<td><code>]Resync</code></td>
+<td>namespace</td>
+<td>options: <code>proceed</code> <code>arrays</code> <code>sysvars</code></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Status/">Status</a></td>
+<td><code>]Status</code></td>
+<td>namespace</td>
+<td>options: <code>extended</code></td>
+<td>message</td>
+</tr>
+<tr>
+<td><a href="Link.Version/">Version</a></td>
+<td></td>
+<td><em><none></em></td>
+<td><em><none></em></td>
+<td>version number as string</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The currently active version of Link is reported by <code>⎕SE.Link.Version</code> and found in the output of <code>]TOOLS.Version</code></p>
+</div>
+<h2 id="advanced-api-function-reference">Advanced API Function reference</h2>
+<p>The "advanced" functions are typically used when building your own tools on top of Link, rather than simply using Link to maintain the source of an application:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>User Command</th>
+<th>Right Argument(s)</th>
+<th>Left Argument(s)</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Link.CaseCode/">CaseCode</a></td>
+<td></td>
+<td>filename</td>
+<td><em>&lt;none&gt;</em></td>
+<td>case-coded filename</td>
+</tr>
+<tr>
+<td><a href="Link.Fix/">Fix</a></td>
+<td></td>
+<td>source</td>
+<td>array: namespace name oldname</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td><a href="Link.GetFileName/">GetFileName</a></td>
+<td><code>]GetFileName</code></td>
+<td>items</td>
+<td><em>&lt;none&gt;</em></td>
+<td>filenames</td>
+</tr>
+<tr>
+<td><a href="Link.GetItemName/">GetItemName</a></td>
+<td><code>]GetItemName</code></td>
+<td>filenames</td>
+<td><em>&lt;none&gt;</em></td>
+<td>items</td>
+</tr>
+<tr>
+<td><a href="Link.Notify/">Notify</a></td>
+<td></td>
+<td>event filename oldfilename</td>
+<td><em>&lt;none&gt;</em></td>
+<td><em>&lt;none&gt;</em></td>
+</tr>
+<tr>
+<td><a href="Link.StripCaseCode/">StripCaseCode</a></td>
+<td></td>
+<td>filename</td>
+<td><em>&lt;none&gt;</em></td>
+<td>filename without case code</td>
+</tr>
+<tr>
+<td><a href="Link.TypeExtension/">TypeExtension</a></td>
+<td></td>
+<td>name class</td>
+<td>option namespace used for <a href="Link.Create/">Create</a></td>
+<td>file extension (without leading <code>'.'</code>)</td>
+</tr>
+</tbody>
+</table>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../Usage/WStoLink/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Converting an Existing Workspace to use Link" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Converting an Existing Workspace to use Link
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="Link.Add/" class="md-footer__link md-footer__link--next" aria-label="Next: Link.Add" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Link.Add
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.instant"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b0710199.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.76f349be.min.js"></script>
+      
+    
+  </body>
+</html>
