@@ -35,7 +35,9 @@
 
 ⍝ Add multiple variables while simultaneously defining them
  ⎕CS name
- z←⎕SE.Link.Add'a b c←1 2 3'
+ a←1
+ z←⎕SE.Link.Add 'a' ⍝ Test scalar name - issue #688
+ z←⎕SE.Link.Add'b c←2 3'
  ⎕CS here
  assert'''123''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc''' ⍝ result is actually a vector of vectors of vectors
 

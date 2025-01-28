@@ -8,6 +8,7 @@
  :EndIf
  :Trap DEBUG↓0
 
+     items←,items
      :If '←'∊items
          ns←⊃⌽⎕RSI ⎕XSI U.ContainerNs''
          ns⍎items
