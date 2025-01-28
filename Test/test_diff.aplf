@@ -1,7 +1,7 @@
  ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z;newvars;aplvars
  3 ⎕MKDIR folder
  MOCK_OFF←1 ⍝ watch:none
- {}'{watch:''none''}'LinkCreate name folder
+ {}'(watch:''none'')'LinkCreate name folder
  assert'0∊⍴⎕SE.Link.Diff name'
  3 ⎕MKDIR¨folders←folder∘,¨'' '/.hidden' '/sub'
  namespaces←name∘,¨'' '.sub'
@@ -15,19 +15,19 @@
  garbfiles←¯2↑files ⋄ vars←2↑2↓names ⋄ varfiles←2↑2↓files
  exp←(⊂''),[1.5]1↓files  ⍝ root namespace was created
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
- {}'{source:''dir''}'⎕SE.Link.Refresh name
+ {}'(source:''dir'')'⎕SE.Link.Refresh name
  exp←(⊂''),[1.5]garbfiles  ⍝ these files will always differ
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  ⎕EX name
  assertError'⎕SE.Link.Diff name' 'Not linked:'
 
- {}'{watch:''none''}'LinkCreate name folder
+ {}'(watch:''none'')'LinkCreate name folder
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
  3 ⎕NDELETE folder
  (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
  exp←(names~vars),[1.5](⊂'')
  assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
- {}'{source:''ns''}'⎕SE.Link.Refresh name
+ {}'(source:''ns'')'⎕SE.Link.Refresh name
  assert'~∨/⎕NEXISTS folders,¨⊂''/var.apla'''  ⍝ refresh doesn't update variables
  assert'0∊⍴⎕SE.Link.Diff name'
  opts←⎕NS ⍬ ⋄ opts.arrays←1

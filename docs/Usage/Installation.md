@@ -5,9 +5,9 @@ Link 4.0 is included with Dyalog version 19.0 or later, and is supported for use
 !!!Note
 	For Dyalog to automatically update workspace contents in response to changes to files made using external editors or source code management systems, .NET must be installed.
 
-	The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
+	The .NET Framework is included with Microsoft Windows. For other platforms, .NET can be downloaded from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
 	
-	Link 4.0 has been tested with the .NET Framework and .NET 6.0, and is expected to work with any later version of .NET.
+	Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.
 
 The instructions on this page only apply if you want to user a different release than that which is distributed with your version of Dyalog APL.
 
@@ -24,10 +24,16 @@ Link is maintained as an open source project at [github.com/dyalog/link](https:/
 
 If you have the necessary permissions, you can **OVERWRITE the installed version of Link** by replacing the `StartupSession` folder that already exists in the main Dyalog program folder with the downloaded folder.
 
-If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the `DYALOGSTARTUPSE` parameter. You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:
+If you do not have permission to overwrite the Dyalog installation, or you do not wish to overwrite the original version of Link that was included with the interpreter (Dyalog recommends keeping the original code in case you need to fall back), you can keep the code outside the main program folder. In this case, you will need to declare the location of the folder by setting the parameter `DYALOGLINK` (v19.0 or later), or `DYALOGSTARTUPSE` (v18.2). You can add it to the command line when you start APL, but it is probably easier to use one of the following alternatives:
 
-- **Set the `DYALOGSTARTUPSE` environment variable** to point to the StartupSession folder.
+- **Set the `DYALOGLINK` or `DYALOGSTARTUPSE` environment variable** to identify the location of Link. Unfortunately the way this is done
+changed between 18.2 and 19.0:
 
-- **Update the configuration file (or the Windows registry) **, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.180U64.dcfg` for a specific version, to include the line:  
+- **Update the configuration file (or the Windows registry)**, to set the parameter there. Typically, you would edit `~/.dyalog/dyalog.config` to make the change for all versions, or a specific file such as `~/.dyalog/dyalog.182U64.dcfg` for a specific version, to include the line:  
 		
-		    `DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"`
+		`DYALOGLINK: "/Users/mkrom/link"` (version 19.0 or later - point to the parent of StartupSession)
+    	`DYALOGSTARTUPSE: "/Users/mkrom/link/StartupSession"` (version 18.2 - point to StartupSession itself)
+
+Note that you should use the full name of the path.
+
+**Finally, refresh the User Command Cache** using the `]ureset` user command, to pick up any changes to user command definitions.

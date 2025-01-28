@@ -17,6 +17,7 @@
     LinkParams⍪←'customExtensions' ''
     LinkParams⍪←'typeExtensions' ''
     LinkParams⍪←'fastLoad' 0
+    LinkParams⍪←'text' 'aplan'
 
     DebugParams←'notify' 'debug',⍪0 0
 
@@ -105,9 +106,9 @@
       :AndIf 0≠≢config.SourceFlags            
           msg,←⊂'Stop/Trace:'
           :For obj :In config.SourceFlags
-              (name stop trace monitor)←obj.{6::⍬ ⋄ ⍎⍵}¨'Name' 'Stop' 'Trace' ⍝ Not 'Monitor'
-              :If (0≠≢name)∧(∨/0≠≢¨stop trace monitor) ⍝ Something to report
-                  msg,←⊂'   ',name,'[',(⍕stop),'/',(⍕trace),'/',⍕monitor']'
+              (name stop trace)←obj.{6::⍬ ⋄ ⍎⍵}¨'Name' 'Stop' 'Trace'
+              :If (0≠≢name)∧(∨/0≠≢¨stop trace) ⍝ Something to report
+                  msg,←⊂'   ',name,'[',(⍕stop),'/',(⍕trace),']'
               :EndIf
           :EndFor
       :EndIf
@@ -193,7 +194,7 @@
           :EndIf
      
           :Trap 0
-              config←0 ⎕JSON⍠('Hierarchy' 0)('Dialect' 'JSON5')⊢json←⊃⎕NGET file 0
+              config←0 ⎕JSON⍠'Dialect' 'JSON5'⊢json←⊃⎕NGET file 0
               :If 2=⎕NC'config.Settings.typeExtensions'
                   t←config.Settings.typeExtensions
               :AndIf 1=⍴⍴t

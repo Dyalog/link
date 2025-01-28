@@ -28,8 +28,8 @@
      :If (⎕NC fullname←(⍕ns),'.',name)∊3 4
          relname←(1+≢link.ns)↓fullname
      :AndIf ((⊂relname)∊link.flagged)∨0≠≢(stop←⎕STOP fullname),trace←⎕TRACE fullname
-         z←'Stop'SetFlags (fullname stop) ns
-         z←'Trace'SetFlags (fullname trace) ns
+         z←'Stop'SetFlags (fullname stop) ns ⍬
+         z←'Trace'SetFlags (fullname trace) ns ⍬
      :EndIf
  :Else
      U.Warn 'Unable to record Stop/Trace settings'

@@ -10,15 +10,20 @@ In the following, for want of a better word, the term *object* will be used to r
 
 **Unscripted Namespaces:** Namespaces created with `⎕NS` or `)NS` have no source code of their own and are mapped to directories.
 
-**Classes and Scripted Namespaces:** Classes and so-called *scripted* namespaces created using the editor or `⎕FIX`, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allows only as objects *within* a an unscripted linked namespace.
+**Classes and Scripted Namespaces:** Classes and so-called *scripted* namespaces created using the editor or `⎕FIX`, have textual source and are treated the same way as functions and other "code objects". Support for scripted namespaces as endpoints for a Link was introduced in Link 4.0. Before 4.0, scripted namespaces were allowed only as objects *within* a an unscripted linked namespace.
 
 Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a Link or indeed within a linked namespace: **Changes to - or within - unnamed namespaces will be ignored by Link**. This is discussed in more detail in the next section.
 
 **Variables** are ignored by default, because most of them are not part of the source code of an application. However, they may be explicitly saved to file with [Link.Add](../API/Link.Add.md), or with the `-arrays` modifier of [Link.Create](../API/Link.Create.md) and [Link.Export](../API/Link.Export.md).
 
-**Functions and Operators:** Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace.
+**Functions and Operators:** Link is not able to represent names which refer to primitive or derived functions or operators, or trains. You will need to define such objects in the source of another function, or a scripted namespace. For example, the derived function `Pairs←⊢⌺(⍪2 2)` cannot be represented directly. However, inclusion of the following tradfn will have the desired effect:
+```apl
+∇ F←Pairs
+  F←⊢⌺(⍪2 2)
+∇
+```
 
-**Unsupported:** In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface).
+**Unsupported:** In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). These can be listed with `]names 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7` and listed for the namespace `myns` with `]names myns 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7`.
 
 ## Other Limitations
 
@@ -29,8 +34,6 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 - There must be exactly one file in the directory per named item to be created in the workspace. In particular, you must not have more than one file defining the same object: this will be reported as an error on [Link.Create](../API/Link.Create.md) or [Link.Import](../API/Link.Import.md).
 
   In other words, Link does not support source files that define multiple names, even though `2∘⎕FIX` does support this.
-
-- Names which have source files should not have more than one definition within the same namespace. For example, if you have a global constant linked to a source file, you should not reuse that name for a local variable. If you were to edit the local variable while tracing, Link would be unable to distinguish it from the global name, and overwrite the source file.
 
 - In a case-insensitive file system, Links created with default options cannot contain names which differ only in case, because the source files would have indistinguishable names. The `caseCode` option can be used to get Link to generate file names which encode case information - see [Link.Create](../API/Link.Create.md) for more information.
 
@@ -45,14 +48,14 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 - Source code must not have embedded newlines within character constants. Although `⎕FX` does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
 
 !!! Note
-    If you are still using the pre-Unicode version of Dyalog known as "Classic": Link 3.0 will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
+    If you are still using the pre-Unicode version of Dyalog known as "Classic": Link will work, but names which contain characters other than a-z, A-Z, 0-9 and _ will
     cause Link to create strange file names. For example `]add ⎕IO` will cause
     the creation of a file named `ŒIO.apla`. Depending on the names of your objects, 
     this may make it difficult to share source files between Classic and Unicode interpreters.
 
 ## How does Link work?
 
-Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of September 2023, at the end of the Link 4.0 development cycle.
+Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of February 2024, at the end of the Link 4.0 development cycle.
 
 **Terminology:** In the following, the term *object* is used very loosely to refer to functions, operators, namespaces, classes and arrays.
 
@@ -66,7 +69,7 @@ When a link is created:
 
 - Depending on which end of the link is specified as the source, APL source files are created from workspace definitions, or objects are loaded into the workspace from such files. These processes are described in more detail in the following sections.
 
-- If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option it set to prevent this).
+- If .NET is available, a .NET File System Watcher is created to watch the directory for changes so that those changes can immediately be replicated in the workspace (unless an option is set to prevent this).
 
 #### Creating APL Source Files and Directories
 
@@ -77,7 +80,9 @@ Link writes textual representations of APL objects to UTF-8 text files (but can 
 
 #### Loading APL Objects from Source
 
-With the exception of variables stored in `.apla` files, which are processed by `⎕SE.Dyalog.Array.Deserialise`, Link loads code into the workspace using `2 ⎕FIX`. 
+With the exception of variables stored in `.apla` files, Link loads code into the workspace using `2 ⎕FIX`. 
+
+Arrays, stored in `.apla` files, are either processed by `⎕SE.Dyalog.Array.Deserialise` or, if in plain text format (in which case they have a "sub-extension", for example `.mat.apla`), by Link itself.
 
 When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a *new* function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.
 
@@ -85,7 +90,7 @@ If .NET is available, Link uses a File System Watcher to monitor linked director
 
 ### The Source of Link itself
 
-Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link`, when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed withDyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the [installation instructions](../Usage/Installation.md).
+Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link`, when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed with Dyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the [installation instructions](../Usage/Installation.md).
 
 ### The Crawler
 

@@ -54,7 +54,7 @@
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
  3 QMKDIR subfolder,'/subsub'
- assertError'opts LinkCreate name folder' 'Destination directory not empty'
+ assertError'opts LinkCreate name folder' 'Destination directory'
  ⎕EX name ⋄ 3 ⎕NDELETE folder
  assert'{6::1 ⋄ 0=CountLinks}⍬'
 
@@ -269,7 +269,7 @@
  {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
  Breathe ⋄ Breathe ⋄ Breathe   ⍝ ensure changes are not reflected
  0 assert_create 1
- z←'{source:''dir''}'⎕SE.Link.Refresh name
+ z←'(source:''dir'')'⎕SE.Link.Refresh name
  1 assert_create 1
  z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
  assert'({6::1 ⋄ 0=CountLinks}⍬)∧(z≡1)'
@@ -477,13 +477,13 @@
  ref.⎕FX'res←foo arg' 'res←arg'
  ref.⎕FIX':Namespace ns' ':EndNamespace'
  ref.var←○⍳3 4
- z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'LinkCreate name folder
+ z←'(caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1)'LinkCreate name folder
  'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  ⎕SE.Link.Expunge name
- z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'LinkCreate name folder
+ z←'(caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1)'LinkCreate name folder
  'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  ⎕SE.Link.Expunge name
- z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'LinkCreate name folder
+ z←'(caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0)'LinkCreate name folder
  'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  ⎕SE.Link.Expunge name
 

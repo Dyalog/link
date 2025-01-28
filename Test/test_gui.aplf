@@ -36,7 +36,7 @@
  {}(⊂varsrc)QNPUT(folder,'/sub/var.apla')1
  {}(⊂foo)QNPUT(folder,'/sub/foo.aplf')1
  {}(⊂class)QNPUT(folder,'/sub/class.aplc')1
- output←ride.APL' ''{flatten:1}'' LinkCreate ',(Stringify name),' ',(Stringify folder)
+ output←ride.APL' ''(flatten:1)'' LinkCreate ',(Stringify name),' ',(Stringify folder)
  assert'(∨/''Linked:''⍷output)'
 
       ⍝ https://github.com/Dyalog/link/issues/48
@@ -202,7 +202,7 @@
  ride.CloseWindow ed
  'link issue #139'assert' (''1'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
  {}ride.APL'#.FIXCOUNT←0'   ⍝ force a Refresh
- {}ride.APL' ''{source:''''dir''''}'' ⎕SE.Link.Refresh ',name
+ {}ride.APL' ''(source:''''dir'''')'' ⎕SE.Link.Refresh ',name
  'link issue #86'assert' (''0'',NL) ≡ ride.APL ''#.FIXCOUNT'' '
  {}ride.APL' ⎕SE.Link.Expunge ''',name,'.FixCount'' '
  {}ride.APL' ⎕EX''#.FIXCOUNT'' '
@@ -307,7 +307,7 @@
      res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
      ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
      assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
-     res←ride.APL'''{proceed:1}''⎕SE.Link.Resync ',name
+     res←ride.APL'''(proceed:1)''⎕SE.Link.Resync ',name
      assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
      assert'func2≡⊃⎕NGET (folder,''/Func2-1.aplf'') 1 '
      {}(⊂ns1←'   :Namespace   ns1   ' '   :EndNamespace   ')QNPUT folder,'/ns1.aplf'

@@ -1,4 +1,4 @@
- {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken
+ {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken;isLoadWs
 ⍝ Action to be taken upon )LOAD or )CLEAR
  ok←0
  :Trap 0  ⍝ can't afford to error
@@ -31,7 +31,10 @@
          ⍝ restore saved workspace links
          :If ~0∊⍴wslinks
              wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
-             wslinks/⍨←(~U.IS190)∧~IsLoad wslinks
+             :If U.IS190
+                 isLoadWS←(,1)≢IsLoad wslinks  ⍝ wslinks is not exactly the LOAD= directory
+                 wslinks/⍨←isLoadWS            ⍝ before 19.0, always restore saved links
+             :EndIf
          :AndIf ~0∊⍴wslinks
              links,←wslinks
              wslinks.restored←1 ⋄ wslinks.fsw←⎕NULL  ⍝ fsw re-instancited by Resync

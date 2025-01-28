@@ -14,6 +14,7 @@ nav:
     
   - Working with Link:
     - Usage/index.md
+    - Usage/Arrays.md
     - Usage/ConfigFiles.md
     - Usage/Setup.md
     - Usage/WStoLink.md
@@ -49,6 +50,10 @@ theme:
     - navigation.sections
     - navigation.instant
   name: material
+  
+extra:
+  version:
+    provider: mike
 
 extra_css:
   - style/main.css

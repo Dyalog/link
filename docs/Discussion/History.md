@@ -52,12 +52,12 @@ Link 3.0 is the first major revision of Link. It added:
 
 A more complete description of Link 3.0 and the differences between Link 2.0 and 3.0 can be found in the [Link 3.0 documentation](https://dyalog.github.io/link/3.0/).
 
-### Link 4.0 (Dyalog version 19.0, 2023)
+### Link 4.0 (Dyalog version 19.0, 2024)
 
-Link 4.0 was the companion release to Dyalog version 19.0 in 2023. The most important new features are:
+Link 4.0 was the companion release to Dyalog version 19.0 in 2024. The most important new features are:
 
 * Configuration files to store options for a user or a source code folder
-* The ability to store multi-line character data in "flat" text files
+* The ability to store multi-line character data in plain text files
 * Support for linking a single source file defining a namespace or class
 
 More details regarding the new features of Link 4.0 can be found in the [Release Notes](../ReleaseNotes40.md). 
