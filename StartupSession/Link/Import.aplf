@@ -21,9 +21,9 @@
      files←opts U.FindFile src  ⍝ candidates for source file
      nsexisted←0≠⎕NC ns
      :If 0=≢files
-         U.Error'Source not found: ',src
+         U.Error'Source not found: ',U.FmtPath src
      :ElseIf 1<≢files
-         U.Error'More than one source found for ',src,': ',U.FmtLines files
+         U.Error'More than one source found for ',src,': ',U.FmtLines U.FmtPath¨files
      :ElseIf 0=≢nsref←(1 U.GetRefTo)ns ⍝ must be normal namespace
          :If ¯1=U.NameClass ns  ⍝ either invalid name or ref to unnamed namespace
              U.Error'Not a properly named namespace: ',,⍕ns
@@ -54,10 +54,10 @@
          (fixed failed)←opts U.FixFiles nsref src opts.overwrite
 
          :If ~single
-             msg←⊂'Imported: ',ns,' ← ',U.WinSlash dir
-             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' import(s) failed:'),U.WinSlash¨failed ⋄ :EndIf
-         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Import failed: ',⊃U.WinSlash failed
-         :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.WinSlash src
+             msg←⊂'Imported: ',ns,' ← ',U.FmtPath dir
+             :If ×≢failed ⋄ msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' import(s) failed:'),U.FmtPath¨failed ⋄ :EndIf
+         :ElseIf ×≢failed ⋄ msg←⊂'ERRORS ENCOUNTERED: Import failed: ',⊃U.FmtPath failed
+         :Else ⋄ msg←⊂'Imported: ',(⊃fixed),' ← ',U.FmtPath src
          :EndIf
          msg←1↓U.FmtLines msg
      :EndIf
