@@ -4,7 +4,7 @@
      res←1
      :If 0∊⍴nsref←#(0 U.GetRefTo)ns
      :OrIf 0∊⍴U.LookupRef nsref
-         →(0∊U.LookupFile file)⍴0
+         →(0∊⍴U.LookupFile file)⍴0
      :EndIf ⍝ Continue only if linked namespace (scripted or unscripted)
 
      error←''
