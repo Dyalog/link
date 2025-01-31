@@ -8,6 +8,7 @@
         DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
         IS180←18.0≤DYALOGVERSION
         IS181←18.1≤DYALOGVERSION
+        IS190←19.0≤DYALOGVERSION
         Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
         HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults

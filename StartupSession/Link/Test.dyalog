@@ -260,9 +260,12 @@
           ⎕NDELETE folder,'/lostclass.aplc'
           (warn ⎕SE.Link.U.WARN)←(⎕SE.Link.U.WARN 1) ⋄ ⎕SE.Link.U.WARNLOG/⍨←0
           z←opts ⎕SE.Link.Create name folder
-          'Mantis 18638'assert'(∨/''ERRORS ENCOUNTERED''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
-          (⍎name).⎕EX'lostclass'
-          'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
+          :If ~⎕SE.Link.U.IS190 ⍝ Don't test this in v19.0 or later
+             'Mantis 18638'assert'(∨/''ERRORS ENCOUNTERED''⍷z)∧(∨/''',name,'.lostclass''⍷z)'
+             (⍎name).⎕EX'lostclass'
+             'Mantis 18638'assert'~0∊⍴(''File not found: '',folder,''/lostclass.aplc'')⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
+          :EndIf
+          1 ⎕NDELETE folder,'/lostclass.aplc' ⍝ Whatever happened above, make sure it is not there
           ⎕SE.Link.U.WARN←warn
           assertError('name ''foo'' ⎕SE.Link.Fix '';;;'' '';;;'' ')('Invalid source')
           assertError('name ''foo'' ⎕SE.Link.Fix '''' ')('No source')
