@@ -2820,7 +2820,7 @@
           :If ~0∊⍴⎕SE.Link.U.ListNames to ⋄ 'Destination must be empty'⎕SIGNAL 11 ⋄ :EndIf
           :For name :In nl←⎕SE.Link.U.ListNames from
               :Select nc←⊃from.⎕NC⊂name
-              :CaseList 2.1 9.1 9.4 9.5  ⍝ array (or scalar ref)
+              :CaseList 2.1 9.1 9.2 9.4 9.5  ⍝ array (or scalar ref)
                   name(to{⍺⍺⍎⍺,'←⍵'})from⍎name
               :CaseList 3.1 3.2 4.1 4.2  ⍝ function or operator - won't work if anything was 2 ⎕FIX'file://...'
                   :If ~0∊⍴file←4⊃from.(5179⌶)'foo' ⋄ 2 to.⎕FIX'file://',file
