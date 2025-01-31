@@ -187,7 +187,7 @@
                  :EndIf
                  →END
              :EndIf
-             :If ~oldnc∊0 ¯1    ⍝ old apl name must be expunged
+             :If (expname≢oldexpname)∧~oldnc∊0 ¯1    ⍝ old apl name must be expunged
                  oldnsref.⎕EX oldexpname
              :EndIf
              :If ~curnc∊0 ¯1     ⍝ new file already tied to a name
