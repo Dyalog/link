@@ -137,6 +137,11 @@
  z←opts LinkCreate name folder
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
+ (⊂'Hello') ⎕NPUT folder,'/hello.txt'
+ z←opts LinkCreate name folder
+ 'link issue #554'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ {}⎕SE.Link.Break name
+ ⎕NDELETE folder,'/hello.txt'
  subname⍎'foo←{⍺+⍵}'
  assertError'opts LinkCreate name folder' 'Cannot link a non-empty namespace to a non-empty directory'
  ⎕EX subname,'.foo'

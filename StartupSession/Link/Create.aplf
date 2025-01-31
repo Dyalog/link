@@ -1,4 +1,4 @@
- msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext
+ msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext;name;type
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (container ns dir nsgiven)←preProcessNsDir args
@@ -51,7 +51,8 @@ NOHOLD:
                  nsref←container
                  emptydir←0
              :Else
-                 emptydir←0∊⍴⊃(⎕NINFO⍠1)dir,'/*'
+                 (name type)←0 1 (⎕NINFO⍠('Wildcard' 1)('Recurse' 2))dir,'/*'
+                 emptydir←0=≢(opts.codeExtensions,⊂'apla')∩1↓¨3⊃¨⎕NPARTS¨(type=2)/name
              :EndIf
          :Else
              emptydir←1 ⋄ isfile←0
