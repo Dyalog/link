@@ -211,7 +211,7 @@
       :If DOTNET
           :Select 1 ⎕NINFO link.dir
           :Case 1 ⍝ directory
-              filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊢/typeExtensions)
+              filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊂'apla')
               args←link.dir filters
           :Case 2 ⍝ single file
               args←(¯1↓⊃⎕NPARTS link.dir)(,'*')
