@@ -2705,6 +2705,7 @@
           :If ⎕SE.Link.Watcher.DOTNET ⋄ ⎕DL 0.1  ⍝ FileSystemWatcher
           :Else ⋄ ⎕DL 2.1×⎕SE.Link.Watcher.INTERVAL ⍝ ensure two runs
           :EndIf
+          ⎕SE.Link.Watcher.HandleEventQueue ''
         ∇
         
         assertMsg←{
@@ -2736,9 +2737,11 @@
           (expr clean)←2↑(⊆args),⊂''
           end←3000+3⊃⎕AI ⍝ allow three seconds of wait time
           timeout←0
+          ⎕SE.Link.Watcher.HandleEventQueue ⍬
           
           :While 0∊{0::0 ⋄ ⍎⍵}expr
               Breathe
+              ⎕SE.Link.Watcher.HandleEventQueue ⍬
           :Until timeout←end<3⊃⎕AI
           
           :If 900⌶⍬ ⍝ Monadic
