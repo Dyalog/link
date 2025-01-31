@@ -2604,9 +2604,10 @@
     
     :Section Setup and Utils
         
-        ∇ r←Setup(folder name);udebug
+        ∇ r←Setup(folder name);udebug;z
           r←'' ⍝ Run will abort if empty
           :If 0≠⎕NC'⎕SE.Link.Links'
+          z←⎕SE.Link.Status '' ⍝ Make sure dead links disappear
           :AndIf 0≠≢⎕SE.Link.Links
               Log'Please break all links and try again.'
               ⎕←⎕SE.UCMD']Link.Status'
