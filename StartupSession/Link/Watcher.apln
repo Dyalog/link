@@ -211,7 +211,7 @@
           :Return
       :EndIf
       :If DOTNET
-          filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions)
+          filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊂'apla')
           r←MakeWatcher link.dir filters
           r.EnableRaisingEvents←1
           link.fsw←r
