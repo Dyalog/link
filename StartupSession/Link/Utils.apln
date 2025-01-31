@@ -1,4 +1,4 @@
-﻿:Namespace U ⍝ Utilities
+:Namespace U ⍝ Utilities
     ⎕IO ⎕ML←1 1
     
     :Section Constants
@@ -73,6 +73,9 @@
         Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
             lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
             ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
+        }            
+        LinkDisplay←{                           ⍝ Display form of ns-dir connection
+          ⍵.ns,' ',(Arrow ⍵),' ',WinSlash ⍵.dir
         }
         HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
         FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
