@@ -1,4 +1,4 @@
-﻿:Namespace Test
+:Namespace Test
 ⍝ Put the Link system and FileSystemWatcher through it's paces
 ⍝ Call Run with a right argument containing a folder name which can be used for the test
 ⍝ For example:
@@ -238,7 +238,7 @@
           opts.source←'ns'
       ⍝ link issue #162 test unknown modifiers and invalid values - ⎕EN is almost impossible to predict : 911 when ⎕SE.Link.DEBUG←1, 701, 702 or 704 when ⎕SE.Link.DEBUG←0
           'link issue #162'assertError('⎕SE.UCMD '']link.create -BADMOD=BADVAL '',name,'' "'',folder,''"'' ')'unknown modifier' 0
-          'link issue #162'assertError'''{BADMOD:1 2 3}''⎕SE.Link.Create name folder' 'Unknown modifier'
+          'link issue #162'assertError'''(BADMOD:1 2 3)''⎕SE.Link.Create name folder' 'Unknown modifier'
           :For mod :In 'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename'
               :Select mod
               :CaseList 'source' 'watch' ⋄ err←1 ⋄ erru←0 ⎕SE.Link.U.CaseText errf←'Invalid value'
@@ -251,7 +251,7 @@
                   z←⎕SE.UCMD']link.create -',(0 ⎕SE.Link.U.CaseText mod),'=BADVAL ',name,' "',folder,'"'
                   'link issue #162'assert'∨/erru⍷z'
               :EndIf
-              'link issue #162'assertError('''{',mod,':''''BADVAL''''}''⎕SE.Link.Create name folder')errf
+              'link issue #162'assertError('''(',mod,':''''BADVAL'''')''⎕SE.Link.Create name folder')errf
           :EndFor
       ⍝ Mantis 18638 - handle lost source
           3 ⎕MKDIR folder
@@ -769,7 +769,7 @@
          ⍝ Test that forceFilenames is handled
           
           name ⎕NS ''
-          z←'{forceFilenames:1}' ⎕SE.Link.Create name folder
+          z←'(forceFilenames:1)' ⎕SE.Link.Create name folder
           ns←#⍎name
           
       ⍝ Create a monadic function
@@ -1126,7 +1126,7 @@
           root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
           '#.unlikelyname must be non-existent'assert'0∧.=⎕NC''#.unlikelyname'' ''⎕SE.unlikelyname'''
           {}(⊂unlikelyclass←,¨':Class unlikelyname' '∇ foo x' ' ⎕←x' '∇' '∇ goo ' '∇' ':Field var←123' ':EndClass')⎕NPUT unlikelyfile←folder,'/unlikelyname.dyalog'
-          z←'{source:''dir''}'⎕SE.Link.Create # folder
+          z←'(source:''dir'')'⎕SE.Link.Create # folder
           :If ~0.6∊1||#.⎕NC #.⎕NL-⍳10  ⍝ Options → Configure → Object Syntax → Expose Root Properties
               Log'"Expose Root Properties" not turned on - cannot QA issue #161'
           :EndIf
@@ -1151,11 +1151,11 @@
           :Else
               assert'∨/''Cannot break children''⍷⊃⎕DM'
           :EndTrap
-          {}'{recursive:''off''}'⎕SE.Link.Break name  ⍝ break only name and not children
+          {}'(recursive:''off'')'⎕SE.Link.Break name  ⍝ break only name and not children
           assert'1=≢⎕SE.Link.Links'  ⍝ children remains
-          z←'{recursive:''off''}'⎕SE.Link.Break name
+          z←'(recursive:''off'')'⎕SE.Link.Break name
           assert'1=≢⎕SE.Link.Links'
-          z←'{recursive:''on''}'⎕SE.Link.Break name
+          z←'(recursive:''on'')'⎕SE.Link.Break name
           assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           ⎕EX name
           
@@ -1181,9 +1181,9 @@
           'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 2⍴folder 1)≡⎕SE.Link.Status '''''
           'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' folder 1 )≡⎕SE.Link.Status ⎕SE'
           
-          {}'{all:1}'⎕SE.Link.Break ⍬
+          {}'(all:1)'⎕SE.Link.Break ⍬
           'link issue #284'assert'{6::1 ⋄ ⎕SE.Link.Links.ns≡,⊂''⎕SE.unlikelyname''}⍬'
-          {}'{all:''⎕SE''}'⎕SE.Link.Break ⍬
+          {}'(all:''⎕SE'')'⎕SE.Link.Break ⍬
           'link issue #284'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
           
           ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
@@ -1191,7 +1191,7 @@
           z←⎕SE.Link.Create'#.unlikelyname'folder
           z←⎕SE.Link.Create'#.unlikelyname.sub'folder
           assert'3=≢⎕SE.Link.Links'
-          {}'{recursive:''on''}'⎕SE.Link.Break'#.unlikelyname'
+          {}'(recursive:''on'')'⎕SE.Link.Break'#.unlikelyname'
           'link issue #111'assert'1=≢⎕SE.Link.Links'
           {}⎕SE.Link.Break'⎕SE.unlikelyname'
           'link issue #111'assert'{6::1 ⋄ 0=≢⎕SE.Link.Links}⍬'
@@ -1361,7 +1361,7 @@
           Breathe ⋄ Breathe
           'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete' ⍝ source still available
           ⎕SE.Link.Expunge name,'.todelete'
-          (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'{var:42 ⋄ list:1 2 3}'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
+          (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'(var:42 ⋄ list:1 2 3)'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
       ⍝'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0 ⍝ UCMD may trigger any error number
           z←(⍎name).{⎕SE.UCMD']Link.Add jsondict.list'}⍬
           'link issue #177'assert'∨/''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
@@ -1768,7 +1768,7 @@
           {}(⊂newvarsrc)QNPUT(subfolder,'/var.apla')1
           Breathe ⋄ Breathe ⋄ Breathe   ⍝ ensure changes are not reflected
           0 assert_create 1
-          z←'{source:''dir''}'⎕SE.Link.Refresh name
+          z←'(source:''dir'')'⎕SE.Link.Refresh name
           1 assert_create 1
           z←⎕SE.Link.Expunge name  ⍝ expunge whole linked namespace
           assert'({6::1 ⋄ 0=≢⎕SE.Link.Links}⍬)∧(z≡1)'
@@ -1974,13 +1974,13 @@
           ref.⎕FX'res←foo arg' 'res←arg'
           ref.⎕FIX':Namespace ns' ':EndNamespace'
           ref.var←○⍳3 4
-          z←'{caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1}'⎕SE.Link.Create name folder
+          z←'(caseCode:1 ⋄ source:''ns'' ⋄ arrays:1 ⋄ sysVars:1)'⎕SE.Link.Create name folder
           'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           ⎕SE.Link.Expunge name
-          z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1}'⎕SE.Link.Create name folder
+          z←'(caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:1)'⎕SE.Link.Create name folder
           'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           ⎕SE.Link.Expunge name
-          z←'{caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0}'⎕SE.Link.Create name folder
+          z←'(caseCode:1 ⋄ source:''dir'' ⋄ fastLoad:0)'⎕SE.Link.Create name folder
           'link issue #249'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
           ⎕SE.Link.Expunge name
           
@@ -2002,7 +2002,7 @@
         
         ∇ ok←test_diff(folder name);diff;exp;filemask;files;folders;garbfiles;namemask;names;namespaces;ns;opts;varfiles;vars;z;newvars;aplvars
           3 ⎕MKDIR folder
-          {}'{watch:''none''}'⎕SE.Link.Create name folder
+          {}'(watch:''none'')'⎕SE.Link.Create name folder
           assert'0∊⍴⎕SE.Link.Diff name'
           3 ⎕MKDIR¨folders←folder∘,¨'' '/.hidden' '/sub'
           namespaces←name∘,¨'' '.sub'
@@ -2016,18 +2016,18 @@
           garbfiles←¯2↑files ⋄ vars←2↑2↓names ⋄ varfiles←2↑2↓files
           exp←(⊂''),[1.5]1↓files  ⍝ root namespace was created
           assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
-          {}'{source:''dir''}'⎕SE.Link.Refresh name
+          {}'(source:''dir'')'⎕SE.Link.Refresh name
           exp←(⊂''),[1.5]garbfiles  ⍝ these files will always differ
           assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
           ⎕EX name
           assertError'⎕SE.Link.Diff name' 'Not Linked:'
-          {}'{watch:''none''}'⎕SE.Link.Create name folder
+          {}'(watch:''none'')'⎕SE.Link.Create name folder
           assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
           3 ⎕NDELETE folder
           (aplvars←namespaces,¨⊂'.aplvar'){⍎⍺,'←⍵'}¨⊂(3 2 1)  ⍝ apl-only variables should be ignored
           exp←(names~vars),[1.5](⊂'')
           assert'({⍵[⍋⍵;]}{⍵[;2 3]}⎕SE.Link.Diff name)≡({⍵[⍋⍵;]}exp)'
-          {}'{source:''ns''}'⎕SE.Link.Refresh name
+          {}'(source:''ns'')'⎕SE.Link.Refresh name
           assert'~∨/⎕NEXISTS folders,¨⊂''/var.apla'''  ⍝ refresh doesn't update variables
           assert'0∊⍴⎕SE.Link.Diff name'
           opts←⎕NS ⍬ ⋄ opts.arrays←1
