@@ -623,13 +623,10 @@
     ⍝ lookup which linked namespaces are children of nsref
       :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
       :If 0∊⍴links ⋄ :Return ⋄ :EndIf
-      mask←(⍴links)⍴0
-      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
+      mask←nsref=nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
       :Repeat
-          mask∨←nss=nsref
-          :If 0∊⍴nss←(~IsRoot nss)/nss ⋄ :Leave ⋄ :EndIf
-          nss←nss.##
-      :EndRepeat
+          mask∨←nsref=nss←nss.##
+      :Until ∧/IsRoot nss
       links←mask/links
     ∇
     ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;arrays;mask;modifiers;nl;ok;watch
