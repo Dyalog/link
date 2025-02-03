@@ -1,4 +1,4 @@
- msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext;name;type
+ msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext;name;type;suppliedopts
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (container ns dir nsgiven)←preProcessNsDir args
@@ -22,6 +22,7 @@ NOHOLD:
          dircreated←0
          msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
 
+         suppliedopts←opts
          opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
          :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works
              opts.watch←'ns' ⍝ default to watch='ns' and warn about it
@@ -101,17 +102,17 @@ NOHOLD:
          :ElseIf ¯1=nc   ⍝ invalid namespace
              U.Error'Not a properly named namespace: ',,⍕rawns
          :ElseIf ~hasdir ⋄ :AndIf opts.source≡'dir'
-             U.Error'Source directory not found: ',dir
+             U.Error'Source directory not found: ',U.FmtPath dir
          :ElseIf ~hasns ⋄ :AndIf opts.source≡'ns'
              U.Error'Source namespace not found: ',ns
          :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
              U.Error'Destination namespace not empty: ',ns
          :ElseIf ~emptydir ⋄ :AndIf opts.source≡'ns'
-             U.Error'Destination directory neither empty nor matches specified namespace: ',dir
+             U.Error'Destination directory neither empty nor matches specified namespace: ',U.FmtPath dir
          :ElseIf emptydir⍱emptyns ⋄ :AndIf opts.source≡'auto'
-             U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',dir
+             U.Error'Cannot link a non-empty namespace to a non-empty directory: ',ns,' ←→ ',U.FmtPath dir
          :ElseIf hasdir⍱hasns ⋄ :AndIf opts.source≡'auto'
-             U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',dir
+             U.Error'Cannot link a non-existent namespace to a non-existent directory: ',ns,' ←→ ',U.FmtPath dir
          :ElseIf isfile
              z←3 ⎕MKDIR dir
          :ElseIf 0=≢nsref←1 U.GetRefTo ns  ⍝ attempt to create namespace if it doesn't exist
@@ -121,7 +122,7 @@ NOHOLD:
          :ElseIf nsref∊nsrefs
              U.Error'Already linked: ',ns
          :ElseIf ~hasdir ⋄ :AndIf ~dircreated←3 ⎕MKDIR dir  ⍝ attempt to create directory if it doesn't exist
-             U.Error'Directory not found: ',dir
+             U.Error'Directory not found: ',U.FmtPath dir
          :ElseIf U.Slash⊃⌽dir
              U.Error'Trailing slash reserved for future extension'
          :EndIf
@@ -170,11 +171,11 @@ NOHOLD:
              fail←2⊃opts U.WriteFiles ns dir 1 ⍝ we already checked the overwrite condition
              :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' export(s) failed:'),fail ⋄ :EndIf
          :Case 'dir'
-             :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
-             :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
+             :If 0≢suppliedopts.{6::0 ⋄ arrays}⍬ ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
+             :If 0≢suppliedopts.{6::0 ⋄ sysVars}⍬ ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 1≢opts.preloaded
                  fail←2⊃opts U.FixFiles nsref fulltarget 1 ⍝ we already checked the overwrite condition
-                 :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.WinSlash¨fail ⋄ :EndIf
+                 :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.FmtPath¨fail ⋄ :EndIf
              :EndIf
          :Else
              U.Error'Unknown source setting:'opts.source

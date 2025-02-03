@@ -1,6 +1,7 @@
-dir←LaunchDir;Env;Parent;s
+ dir←LaunchDir;Env;Parent;s;path
 ⍝ Return the folder that APL was launched on
 
  Env←{2 ⎕NQ'.' 'GetEnvironment'⍵}
  Parent←{¯1↓⊃1 ⎕NPARTS ⍵}
- dir←Parent ⊃s/⍨×≢¨s←Env¨'LOAD' 'LINK_RUN' 'LINK_DIR' 'CONFIGFILE' ⍝ current directory if nothing else
+ path←⊃s/⍨×≢¨s←Env¨'LOAD' 'LINK_RUN' 'LINK_DIR' 'CONFIGFILE' ⍝ current directory if nothing else
+ dir←Parent path,'/'⍴⍨1=1 ⎕NINFO path ⍝ avoid stripping leaf if dir

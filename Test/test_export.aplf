@@ -20,6 +20,13 @@
  z←⎕SE.Link.Export name folder
  assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  assert'⎕NEXISTS ''',folder,''''
+
+ 'needs overwrite' assertError'z←⎕SE.Link.Export name folder' 'Files already exist'
+
+ z←'(overwrite:1)' ⎕SE.Link.Export name folder
+ z←⎕SE.Link.Configure folder
+ 'link issue #681' assert'1=⊃''No configuration options set''⍷z'
+
  3 ⎕NDELETE folder
 
  here←⍕⎕THIS

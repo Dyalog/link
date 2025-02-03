@@ -74,8 +74,11 @@
      
       m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
-      ⍝ Now remove Version and API/UCMD options which are not save-able settings
-      ns.⎕EX 'LinkVersion' 'Settings.preloaded' 'Settings.ignoreconfig'
+      ⍝ Now remove Version and API/UCMD options which are not save-able settings 
+      ns.⎕EX 'LinkVersion'
+      :If 9=⎕NC 'ns.Settings' ⍝ Expunge all Settings which are not LinkParams
+          ns.Settings.⎕EX (ns.Settings.⎕NL -2)~LinkParams[;1]
+      :EndIf 
      
       json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
       :If json≢'{',(nl←⎕UCS 13),'}' ⍝ Do not create empty config files 

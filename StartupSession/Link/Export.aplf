@@ -29,7 +29,7 @@
      :If ¯1=nc←container U.NameClass src ⍝ either invalid name or ref to unnamed namespace
          U.Error'Not a properly named namespace: ',,⍕src
      :ElseIf 0=nc
-         U.Error'Source not found: ',src
+         U.Error'Source not found: ',U.FmtPath src
      :ElseIf U.Slash⊃⌽src
          U.Error'Trailing slash reserved for future extension'
      :Else
@@ -56,12 +56,12 @@
          :If ×≢failed
              msg,←(⊂'ERRORS ENCOUNTERED: ',(⍕≢failed),' export(s) failed:'),failed
          :ElseIf single
-             msg←⊂'Exported: ',src,' → ',U.WinSlash fixed
+             msg←⊂'Exported: ',src,' → ',U.FmtPath fixed
          :Else
              z←⎕NS''
              z.Settings←Config.ExpungeDefaultParams setopts
              z Config.WriteConfig dir,'/.linkconfig'
-             msg←⊂'Exported: ',ns,' → ',U.WinSlash dir
+             msg←⊂'Exported: ',ns,' → ',U.FmtPath dir
          :EndIf
          msg←1↓U.FmtLines msg
      :EndIf

@@ -59,12 +59,13 @@
     NsExpr←{'''',⍵,'''⎕NS⍬'}                ⍝ Expression to create namespace
     Begins←{⊃⍺⍷⍵}                           ⍝ ⍵ starts with ⍺
     WinSlash←'\'@Slash⍣ISWIN                ⍝ force windows slashes only on windows machines
+    FmtPath←WinSlash 1∘⎕JSON                ⍝ Quote and escape quotes, then fix slashes
     DotSlash←'.'@Slash                      ⍝ Convert dots to slashes
         Combine←{(⍕⍺),⍨(326≠⎕DR ⍺)/'.',⍨⍕⍵}/
     List←{∊{' ',⍕⍵}¨⍵}
     Arrows←{'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵} ⍝ Watch arrow display
       LinkDisplay←{                           ⍝ Display form of ns-dir connection
-          ⍵.ns,' ',(Arrows ⍵.watch),' ',WinSlash ⍵.dir
+          ⍵.ns,' ',(Arrows ⍵.watch),' ',FmtPath ⍵.dir
       }
     HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
     FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
@@ -622,13 +623,10 @@
     ⍝ lookup which linked namespaces are children of nsref
       :If 900⌶⍬ ⋄ links←GetLinks ⋄ :EndIf
       :If 0∊⍴links ⋄ :Return ⋄ :EndIf
-      mask←(⍴links)⍴0
-      nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
+      mask←nsref=nss←⍎¨links.ns    ⍝ caller must ensure that links can't change   ⍝ nss←#(0 GetRefTo)¨links.ns
       :Repeat
-          mask∨←nss=nsref
-          :If 0∊⍴nss←(~IsRoot nss)/nss ⋄ :Leave ⋄ :EndIf
-          nss←nss.##
-      :EndRepeat
+          mask∨←nsref=nss←nss.##
+      :Until ∧/IsRoot nss
       links←mask/links
     ∇
     ∇ {opts}←{defopts}DefaultOpts opts;Check;Default;arrays;mask;modifiers;nl;ok;watch
@@ -1187,7 +1185,7 @@
       dir←{⊃⎕NPARTS ⍵}⍣opts.singlefile⊢opts.dir ⍝ One level higher when linking a single file
       3 ⎕MKDIR dir ⋄ failed,←(~ok←⎕NEXISTS dir)/⊂ns  ⍝ can't create directory
       :If (overwrite≡¯1)∧(ok) ⋄ :AndIf ~0∊⍴⊃opts(0 ListFiles 0)dir  ⍝ exclude root dir
-          Error'Destination not empty: "',(WinSlash⍕dir),'"'
+          Error'Destination not empty: ',FmtPath⍕dir
       :EndIf
       ⍝ Write files
       :If 0≠≢names←∪names
