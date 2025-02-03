@@ -1,4 +1,4 @@
- msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext
+ msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext;suppliedopts
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (container ns dir nsgiven)←preProcessNsDir args
@@ -22,6 +22,7 @@ NOHOLD:
          dircreated←0
          msg←⍕⍬⊤⍬ ⋄ rawns←ns ⋄ warnmsg←''
 
+         suppliedopts←opts
          opts←opts Config.MergeOpts setconfig ⍝ Merge configured options in
          :If 0=opts.⎕NC⊂'watch' ⋄ :AndIf ~Watcher.CanWatch ⍝ warn if not watching directory by default - will disappear when file crawler works
              opts.watch←'ns' ⍝ default to watch='ns' and warn about it
@@ -169,8 +170,8 @@ NOHOLD:
              fail←2⊃opts U.WriteFiles ns dir 1 ⍝ we already checked the overwrite condition
              :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' export(s) failed:'),fail ⋄ :EndIf
          :Case 'dir'
-             :If 0≢opts.arrays ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
-             :If 0≢opts.sysVars ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
+             :If 0≢suppliedopts.{6::0 ⋄ arrays}⍬ ⋄ U.Warn'arrays modifier ignored when source≡''dir''' ⋄ :EndIf
+             :If 0≢suppliedopts.{6::0 ⋄ sysVars}⍬ ⋄ U.Warn'sysVars modifier ignored when source≡''dir''' ⋄ :EndIf
              :If 1≢opts.preloaded
                  fail←2⊃opts U.FixFiles nsref fulltarget 1 ⍝ we already checked the overwrite condition
                  :If ×≢fail ⋄ msg,←(⊂(⍕≢fail),' import(s) failed:'),U.FmtPath¨fail ⋄ :EndIf
