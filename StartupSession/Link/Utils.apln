@@ -789,6 +789,8 @@
           :If 1=type←1 ⎕NINFO file ⋄ src←⎕NULL  ⍝ directory → namespace
           :ElseIf 2=type ⋄ src←GetFile file     ⍝ file
           :EndIf
+      :Else
+          Warn 'Unable to read "',file,'": ',⎕DMX.Message
       :EndTrap
     ∇
 
