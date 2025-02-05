@@ -1,4 +1,4 @@
-﻿:Namespace U ⍝ Utilities
+:Namespace U ⍝ Utilities
     ⎕IO ⎕ML←1 1
     
     :Section Constants
@@ -8,6 +8,7 @@
         DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
         IS180←18.0≤DYALOGVERSION
         IS181←18.1≤DYALOGVERSION
+        IS190←19.0≤DYALOGVERSION
         Store←5170⌶ ⍝ Undocumented I-Beam providing access to a "secret" Link storage location in the workspace
         HASSTORE←{11::0 ⋄ 1⊣Store 0}⍬
     ⍝ constants with defaults
@@ -73,6 +74,9 @@
         Arrow←{                               ⍝ appropriate symbol to show ns-dir connection
             lr←'←→'/⍨2 2⊤'ns' 'dir' 'both'⍳⊂⍵.watch
             ⍵.ns,' ',lr,' ',WinSlash ⍵.dir
+        }            
+        LinkDisplay←{                           ⍝ Display form of ns-dir connection
+          ⍵.ns,' ',(Arrow ⍵),' ',WinSlash ⍵.dir
         }
         HasNewlines←{∨/10 11 12 13 133 8232 8233∊⎕UCS ⍵}  ⍝ will confuse ⎕NGET/⎕NPUT and 2 ⎕FIX 'file://...'
         FmtEach←' '∘{∊⍺,∘⍕¨⍵}                    ⍝ error messages should not use (⍕'hello' 'world') because the UCMD framework detects the 2-spaces and wrap text "smartly"
