@@ -21,7 +21,7 @@
       :EndIf
     ∇
     ##.NOTIFY←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\NOTIFY'
-    ##.ALWAYSREFORMAT←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\ALWAYSREFORMAT'
+    ##.ALWAYSREFORMAT←⊃2⊃⎕VFI 2 ⎕NQ '.' 'GetEnvironment' 'LINK\ALWAYSREFORMAT'
     ##.FSWDELAY←{⍵+200×⍵=0}⊃2⊃⎕VFI 2 ⎕NQ '.' 'GetEnvironment' 'LINK\FSWDELAY'
 
     LASTFIX←⍬  ⍝ remember last onFix event
