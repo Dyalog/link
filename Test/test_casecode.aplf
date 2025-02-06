@@ -41,7 +41,7 @@
       ⍝ now do it properly
  opts.caseCode←1
  z←opts ⎕SE.Link.Export name folder
- assert'z≡''Exported: ',name,' → ',winfolder,''''
+ assert'z≡''Exported: ',name,' → "',winfolder,'"'''
  actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder    ⍝ NB sorting is different in classic VS unicode
  expfiles←{⍵[⍋⍵]}'SUB-7/DUP-7.aplf' 'SUB-7/SUBSUB-77/DUPDUP-77.aplf' 'sub-0/dup-0.aplf'
  'link issue #43'assert'actfiles≡expfiles'
@@ -50,7 +50,7 @@
 
       ⍝ try variables too
  z←opts LinkCreate name folder
- assert'z≡''Linked: ',name,' ←→ ',winfolder,' [directory was created] '''
+ assert'z≡''Linked: ',name,' ←→ "',winfolder,'" [directory was created] '''
  actfiles←{⍵[⍋⍵]}(1+≢folder)↓¨0 NTREE folder
  'link issue #43'assert'actfiles≡expfiles'
  {}⎕SE.Link.Add name,'.var'
@@ -64,7 +64,7 @@
  opts.caseCode←0
  opts.source←'dir'
  z←opts ⎕SE.Link.Import name folder
- assert'z≡''Imported: ',name,' ← ',winfolder,''''
+ assert'z≡''Imported: ',name,' ← "',winfolder,'"'''
  actnames←{⍵[⍋⍵]}0 NSTREE name
  expnames←{⍵[⍋⍵]}(name,'.')∘,¨'SUB.DUP' 'SUB.SUBSUB.DUPDUP' 'sub.dup' 'var'
  assert'actnames≡expnames'
