@@ -134,7 +134,7 @@
       :If DOTNETCORE
           watcher←⎕NEW System.IO.FileSystemWatcher
           watcher.Filters.Add¨⊂¨⊆filters
-          watcher.NotifyFilter←System.IO.NotifyFilters.(FileName+LastWrite)
+          watcher.NotifyFilter←System.IO.NotifyFilters.(FileName.value__+LastWrite.value__)
           r,←watcher
       :Else
           :For filter :In ⊆filters
@@ -220,7 +220,8 @@
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW
+      :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW   
+          links.fsw.EnableRaisingEvents←0
           (⍕¨links.ns)DisposeFSW&¨links.fsw
           links.fsw←⎕NULL
       :EndIf
