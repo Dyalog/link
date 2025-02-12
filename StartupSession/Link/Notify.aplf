@@ -1,4 +1,4 @@
- {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src;w
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
@@ -59,7 +59,9 @@
          :EndIf  ⍝ dir cannot yet be tested for deleted files
 
          ⍝ determine expected apl name from file name, and actual apl name from source
+         (w U.WARN)←U.WARN×1 (~deleted) ⍝ Do not warn of inability to read deleted file source
          (nsname expname actname nc)←link U.DetermineAplName path
+         U.WARN←w ⍝ Restore WARNING selection
          nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
 
          ⍝ determine current name tied to file (if any)
