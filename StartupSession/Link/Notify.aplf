@@ -1,4 +1,4 @@
- {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src;w
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
@@ -59,7 +59,9 @@
          :EndIf  ⍝ dir cannot yet be tested for deleted files
 
          ⍝ determine expected apl name from file name, and actual apl name from source
+         (w U.WARN)←U.WARN×1 (~deleted) ⍝ Do not warn of inability to read deleted file source
          (nsname expname actname nc)←link U.DetermineAplName path
+         U.WARN←w ⍝ Restore WARNING selection
          nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
 
          ⍝ determine current name tied to file (if any)
@@ -83,11 +85,18 @@
              :EndIf
          :EndIf
 
+         :If deleted
+            linkedpaths←⊃¨5176⌶0
+            children←((⊃¨⎕NPARTS linkedpaths)∊⊂path,'/')/linkedpaths
+         :AndIf 0<≢children
+            Notify¨{'deleted'⍵}¨children
+         :EndIf
+
          :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
              →END⊣msg,←⊂'file extension not managed by link'
          :ElseIf 0=≢nsref ⋄ warn←1 ⋄ msg,←⊂'unable to find corresponding namespace'
              →(type≢'deleted')×END ⍝ Exit if event was "deleted", else report error
-         :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
+         :ElseIf (~link.flatten∧dir)∧(nc=¯1) ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              warn←~deleted  ⍝ link issue #235 : the delete callback provoked by ⎕SE.Link.Expunge cannot see the expunged name
              →({0::0 ⋄ 0=2 ⎕NINFO ⍵}path)⍴0 ⍝ Ignore empty file
@@ -113,6 +122,15 @@
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  (⍎curnsname)U.Untie curactname
                  msg,←'creating 'affected' - unlinking previously linked 'curname
+             :ElseIf dir
+                 :Trap 0 ⋄ children←⊃⎕NINFO⍠1⊢path,'/*'
+                 :Else ⋄ children←0⍴⊂''
+                 :EndTrap
+                 children←(link U.HasExtn children)/children
+                 :If 0<≢children
+                     Notify¨{'created'⍵}¨children
+                 :EndIf
+                 :If link.flatten ⋄ →END⊣msg,←⊂'ignoring created directory' ⋄ :EndIf
              :Else
                  msg,←'creating 'affected
              :EndIf
@@ -143,7 +161,7 @@
                  msg,←,'updating previously linked 'affected
              :ElseIf 0≠⎕NC affected  ⍝ redefining existing name
              :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
-                 warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
+                 warn←~dir∧link.flatten ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
              :EndIf
              :If NOTIFY
                  U.Notify oldpath,' renamed as ',path
@@ -164,9 +182,15 @@
                      :Else ⋄ children←0⍴⊂''
                      :EndTrap
                      msg,←'namespace rename 'oldname' → 'affected
-                     Notify¨{'changed'⍵}¨children
-                 :Else ⋄ warn←1                                    ⍝ no old ns
-                     msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
+                     children←(link U.HasExtn children)/children
+                     :If 0<≢children
+                         Notify¨{'changed'⍵}¨children
+                     :EndIf
+                 :Else
+                     :If ~link.flatten
+                         warn←1                                    ⍝ no old ns
+                         msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
+                     :EndIf
                      :If 0<≢inFail←2⊃link U.FixFiles nsref path 1  ⍝ always overwrite
                          msg,←' - failed to load: '(U.FmtLines inFail)
                      :EndIf
