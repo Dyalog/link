@@ -37,7 +37,7 @@ do
     fi
 done
 
-raw_version=`cat $VERSION_SOURCE | grep -o "^version\s\?←\s\?'[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?"`
+raw_version=`cat $VERSION_SOURCE | grep -o "^\s\?version\s\?←\s\?'[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+-\?\w\+\?"`
 
 major_minor=`echo ${raw_version} | grep -o "[0-9]\+\.[0-9]\+"`
 special=""
