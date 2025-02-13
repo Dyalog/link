@@ -2,6 +2,7 @@
     ⎕IO ⎕ML←1 1
 
     :Section Constants
+    SRC_NORMALIZED←61 ⍝ ⎕ATX fact
     SRC_BEST←62 ⍝ ⎕ATX fact
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
     PATHDEL←':;'[1+ISWIN]
@@ -20,6 +21,9 @@
       :EndIf
     ∇
     ##.NOTIFY←'1'∊2 ⎕NQ '.' 'GetEnvironment' 'LINK\NOTIFY'
+    ##.ALWAYSREFORMAT←⊃2⊃⎕VFI 2 ⎕NQ '.' 'GetEnvironment' 'LINK\ALWAYSREFORMAT'
+    ##.FSWDELAY←{⍵+200×⍵=0}⊃2⊃⎕VFI 2 ⎕NQ '.' 'GetEnvironment' 'LINK\FSWDELAY'
+
     LASTFIX←⍬  ⍝ remember last onFix event
     :EndSection
 
@@ -775,7 +779,16 @@
               :EndSelect
           :CaseList 3.1 3.2 4.1 4.2 ⍝ tradfn/dfn/tradop/dop - v18.0 cannot get source of functions "as typed"
               src←⎕NULL
-              :If IS181 ⋄ :Trap 11 ⋄ src←SRC_BEST ns.⎕ATX name ⋄ :EndTrap ⋄ :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
+              :If IS181 
+                  :Select a←##.ALWAYSREFORMAT
+                  :CaseList 0 1
+                      :Trap 11 
+                          src←(SRC_BEST SRC_NORMALIZED)[1+a] ns.⎕ATX name 
+                      :EndTrap 
+                  :Case 2
+                      src←ns.⎕NR name
+                  :EndSelect
+              :EndIf ⍝ ⎕ATX returns ⎕NULL if source not available - ⎕ATX errors if name doesn't exist
               :If src≡⎕NULL ⋄ src←ns.⎕NR name ⋄ :EndIf  ⍝ de-tokenised source - not "as typed" - ⎕NR never errors
           :CaseList 9.1 9.4 9.5 ⋄ src←GetRefSource ns⍎name ⍝ ns/class/interface
           :Else ⋄ src←'Cannot get source of ',(⍕ns),'.',name,': Invalid name class (',(⍕nc),')'
