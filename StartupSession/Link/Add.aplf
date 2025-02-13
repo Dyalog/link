@@ -21,8 +21,8 @@
          :If ~(# U.NameClass item)∊0 ¯1
              (ns name)←U.SplitNs item
              :If (⎕NC item)∊3 4
-                 z←Stop item (⎕STOP item)
-                 z←Trace item (⎕TRACE item)
+                 z←Stop item(⎕STOP item)
+                 z←Trace item(⎕TRACE item)
              :EndIf
 
              :If ~0∊⍴ns name Fix''  ⍝ was linked and fixed

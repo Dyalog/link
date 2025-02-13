@@ -790,7 +790,7 @@
           :ElseIf 2=type ⋄ src←GetFile file     ⍝ file
           :EndIf
       :Else
-          Warn 'Unable to read "',file,'": ',⎕DMX.Message
+          Warn'Unable to read "',file,'": ',⎕DMX.Message
       :EndTrap
     ∇
 

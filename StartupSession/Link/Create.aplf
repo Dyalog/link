@@ -52,7 +52,7 @@ NOHOLD:
                  nsref←container
                  emptydir←0
              :Else
-                 (name type)←0 1 (⎕NINFO⍠('Wildcard' 1)('Recurse' 2))dir,'/*'
+                 (name type)←0 1(⎕NINFO⍠('Wildcard' 1)('Recurse' 2))dir,'/*'
                  emptydir←~(1∊type)∨∨/(1↓¨3⊃¨⎕NPARTS(type=2)/name)∊opts.codeExtensions,⊂'apla' ⍝ Any namespaces or code here?
              :EndIf
          :Else

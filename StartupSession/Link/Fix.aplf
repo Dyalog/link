@@ -132,7 +132,7 @@ NOHOLD:
              :If 1=≡src←ns U.GetAplSource name link ⍝ string source means error
                  U.Error src  ⍝ failed to get source
              :ElseIf nc=2.1  ⍝ link issue #205 - check round-trip of serialisation
-             :AndIf {link.text≡'aplan': 1 ⋄ ''≡U.SubExt ns⍎name}⍬ ⍝ APLAN
+             :AndIf {link.text≡'aplan':1 ⋄ ''≡U.SubExt ns⍎name}⍬ ⍝ APLAN
              :AndIf (ns⍎name){0::1 ⋄ ⎕CT←0 ⋄ ⍺≢⎕SE.Dyalog.Array.Deserialise ⍵}src
                  U.Error'Cannot round-trip serialisation of array: ',nsname,'.',name
              :EndIf

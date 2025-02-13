@@ -48,7 +48,7 @@
              msg←(⊂'Contents of "',file,'":'),'   '∘,¨msg
          :EndIf
          →END
-      :EndIf
+     :EndIf
 
      (rc msg)←config Config.ApplySettings settings
      :If 0≠rc
