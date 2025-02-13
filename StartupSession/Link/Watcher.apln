@@ -261,8 +261,10 @@
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW
-          links.fsw.EnableRaisingEvents←0
+      :AndIf ~0∊⍴links←(~⎕NULL∊¨links.fsw)/links  ⍝ links that have a FSW   
+          :Trap 90
+              links.fsw.EnableRaisingEvents←0 ⍝ Ignore if this fails - as it will after a )CLEAR    
+          :EndTrap
           (⍕¨links.ns)DisposeFSW&¨links.fsw
           links.fsw←⎕NULL
       :EndIf
