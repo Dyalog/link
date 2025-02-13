@@ -57,7 +57,6 @@
       canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
     ∇
 
-
     ∇ RequeuedEvent(obj event args)
      ⍝ Process events redirected via the timer
       :Select event
@@ -72,27 +71,69 @@
     ∇ WatchEvent(obj args);ct;nargs;timers
      ⍝ Callback for System.IO.FileSystemWatcher instance
      ⍝ Passes info on to ⎕SE.Link.Notify for processing
-      ⍝{}2501⌶0 ⍝ Reap the thread on exit - triggers mantis 17628
-      ⍝{}2502⌶0  ⍝ Discard parked thread - workaround mantis 17628
       nargs←⊂0 ##.U.CaseText⍕args.ChangeType
       nargs,←⊂args.FullPath
       :If 0≠⎕NC⊂'args.OldFullPath'
           nargs,←⊂args.OldFullPath
       :EndIf
-      BUFFER,←⊂obj nargs
-      THROTTLE.FireOnce←1
+      BUFFER,←⊂obj nargs  ⍝ Add event to the queue
+      THROTTLE.FireOnce←1 ⍝ Restart the timer
     ∇
 
-    ∇ WatchEventThrottle args;evts;types;targets
+    ∇ HandleEventQueue args;evts;types;targets;exist;actions;m;todo;slash;tgts;order;ops;exists;renames;nex;fsw
      ⍝ Throttle calls to Notify and filter/re-order events
-      {}2502⌶0 ⍝ Discard parked thread
+      {}2502⌶0 ⍝ Discard the parked thread that was presumably created by the incoming event
+
       BUFFER←(≢evts←BUFFER)↓BUFFER
-      types←(⊂2 1)⊃¨evts
-      evts←evts[⍋'deleted' 'created' 'renamed' 'changed'⍳types]
-      targets←(⊂2 2)⊃¨evts
-      evts←evts[∪⍳⍨targets]
-      {##.Notify/↑⍵}&evts
-     ⍝
+      →(0=≢evts)⍴0 ⍝ During QA, the queue may be empty
+      :If ##.DEBUG
+          ⎕←' '
+          ⎕←'EventQueue original:'
+          ⎕←((⍳≢evts),0 1↓↑evts)
+      :EndIf
+      fsw←⊃⊃evts ⍝ There may be multiple FSW objects but it does not impact Notify
+      (actions targets)←2↑↓⍉↑2⊃¨evts
+
+      ⍝ Eliminate "internal" git folder notifications
+      slash←⊃⌽(1⊃targets)∩'/\' ⍝ slash at tail end of FSW messages are "native"
+      :If ∨/m←∨/¨(slash,'.git',slash)∘⍷¨targets
+          (actions targets evts)←(~m)∘/¨actions targets evts
+      :EndIf
+
+      ⍝ Handle Renames separately
+      ⍝      We think Git operations are never renames
+      :If 0≠≢renames←(m←actions∊⊂'renamed')/evts   ⍝ Any renames at all?  
+          renames←m/evts ⋄ targets←(~m)/targets
+          renames←(⎕NEXISTS 2 2∘⊃¨renames)/renames ⍝ Ignore rename if target no longer exists
+          renames←fsw,¨∪1↓¨renames ⍝ Duplicates can occur when extension is changed (e.g. .aplf → .aplo)
+          :If (0≠≢targets)∧0≠≢renames ⍝ Worried that combining renames with other logic may go badly
+              ##.U.Warn'Rename batched with other operations'
+          :EndIf
+      :EndIf
+
+      ⍝ Creations and Deletions.
+      ⍝ Generate "Deleted" event for files mentioned in an FSW event which do not exist
+      ⍝          "Changed" events for files mentioned which DO exist
+      ⍝ We must process deletions first:
+      ⍝    Otherwise if flatten=1 and a file is moved between folders it will disappear
+      ⍝ Order deletions by decreasing length of file name to delete folders AFTER contents
+      ⍝ Order changes by increasing length of file name to create folders/namespaces BEFORE contents
+      ⍝    Note that Link does not distinguish between created and changed 
+
+      exists←⎕NEXISTS tgts←∪targets          
+      order←⍋exists,⍪(¯1*nex←~exists)×≢¨tgts ⍝ delete folders after contents, create folders before contents
+      ops←((+/nex),(+/exists))/'deleted' 'changed'
+      ⍝ renames, then deletes, then created-or-changed
+      todo←renames,fsw,∘⊂¨↓ops,⍪tgts[order]
+
+      :If ##.DEBUG
+          ⎕←'==> "todo" :'
+          ⎕←((⍳≢todo),0 1↓↑todo)
+      :EndIf
+
+      :If 0≠≢todo
+          {##.Notify/↑⍵}todo
+      :EndIf
     ∇
 
     ∇ WatchError(obj args);link;msg
@@ -152,8 +193,8 @@
       :If 0=⎕NC'THROTTLE'
           THROTTLE←⎕NEW⊂'Timer'
           THROTTLE.FireOnce←2
-          THROTTLE.Interval←200
-          THROTTLE.onTimer←'WatchEventThrottle'
+          THROTTLE.Interval←##.FSWDELAY
+          THROTTLE.onTimer←'HandleEventQueue'
       :EndIf
     ∇
 
@@ -170,7 +211,7 @@
       :If DOTNET
           :Select 1 ⎕NINFO link.dir
           :Case 1 ⍝ directory
-              filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊢/typeExtensions)
+              filters←(⊂'*.'),¨∪link.(codeExtensions,customExtensions,⊂'apla')
               args←link.dir filters
           :Case 2 ⍝ single file
               args←(¯1↓⊃⎕NPARTS link.dir)(,'*')
@@ -220,7 +261,7 @@
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW   
+      :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW
           links.fsw.EnableRaisingEvents←0
           (⍕¨links.ns)DisposeFSW&¨links.fsw
           links.fsw←⎕NULL
