@@ -261,8 +261,10 @@
     ⍝ Called by ⎕SE.Link.Break
       :If CRAWLER ⋄ RemoveCrawler links ⋄ :EndIf  ⍝ can't hurt on empty links or non-crawled links
       :If ~0∊⍴links
-      :AndIf ~0∊⍴links←(⎕NULL≢¨links.fsw)/links  ⍝ links that have a FSW
-          links.fsw.EnableRaisingEvents←0
+      :AndIf ~0∊⍴links←(~⎕NULL∊¨links.fsw)/links  ⍝ links that have a FSW   
+          :Trap 90
+              links.fsw.EnableRaisingEvents←0 ⍝ Ignore if this fails - as it will after a )CLEAR    
+          :EndTrap
           (⍕¨links.ns)DisposeFSW&¨links.fsw
           links.fsw←⎕NULL
       :EndIf
@@ -489,7 +491,7 @@
           ⍝    delmask∧←delmask\mask\0=#.⎕NC mask/delmask/oldnames    ⍝ variables in directory may not appear in ListLinkedNs - delete only if name class is zero
           ⍝:EndIf
           :If 1∊delmask ⋄ :AndIf watchns
-              delfiles←⊃link(1 ##.U.DetermineFileName)((+/delmask)⍴⊂ns)((1+≢ns)↓¨delmask/oldnames)((+/delmask)⍴⊂'')(delmask/items[I_NC;])
+              delfiles←⊃link(1 ##.U.DetermineFileName)((+/delmask)⍴⊂ns)((1+≢ns)↓¨delmask/oldnames)((+/delmask)⍴⊂'')(delmask/items[I_NC;]) ⍬
               allfiles←4⊃¨5177⌶⍬
               :If 1∊mask←delfiles∊allfiles  ⍝oldfiles∩allfiles  ⍝ some oldfiles still tied - should not happen
                   (mask/delmask/oldnames){1 LogCrawler'Deleted APL item: file still in use: '⍺' → '⍵}¨(mask/delfiles)
@@ -508,7 +510,7 @@
                   (newnames newnc newsrc)/⍨←⊂~mask
               :EndIf
           :AndIf ~0∊⍴newnames
-              newfiles←⊃link(1 ##.U.DetermineFileName)((≢newnames)⍴⊂ns)((1+≢ns)↓¨newnames)((≢newnames)⍴⊂'')newnc
+              newfiles←⊃link(1 ##.U.DetermineFileName)((≢newnames)⍴⊂ns)((1+≢ns)↓¨newnames)((≢newnames)⍴⊂'')newnc ⍬
               newnames{0 LogCrawler'Created APL item: '⍺' → '⍵}¨newfiles
               newsrc ##.U.Into¨newfiles ⋄ newhash←##.U.FileHash¨newfiles ⋄ newmod←EncodeTS↑3 ⎕NINFO newfiles
               delmask∨←(items[I_FILE;]∊newfiles)  ⍝ remove previous entries on those files - newfiles can never be ''

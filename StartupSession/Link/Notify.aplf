@@ -104,7 +104,7 @@
          :EndIf
 
          ⍝ determine current file tied to name we plan to use
-         expfile←⊃link(0 U.DetermineFileName)nsname actname oldname nc
+         expfile←⊃link(0 U.DetermineFileName)nsname actname oldname nc path
          :If 0∊⍴curfile←0 U.NormFile nsref U.CurrentFileName actname ⍝ not tied by interpreter
          :AndIf 2.1 ¯9.1∊⍨nc   ⍝ only arrays and tradnamespaces don't have ties
              curfile←U.Deslash(⎕NEXISTS expfile)/expfile ⍝ ns source may be folder with trailing /

@@ -34,7 +34,7 @@
                          :If link.singlefile
                              U.Error'You may not Expunge an object within a linked namespace, class or interface'
                          :EndIf
-                         (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)leaf leaf nc  ⍝ U.NormNs parent
+                         (file oldfile)←2↑link(0 U.DetermineFileName)(⍕parent)leaf leaf nc ⍬ ⍝ U.NormNs parent
                          :If (parent.⎕NC leaf)∊3 4
                              z←Stop name ⍬
                              z←Trace name ⍬

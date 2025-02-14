@@ -59,7 +59,7 @@ NOHOLD:
          :AndIf (⍕where)≢⊃U.SplitNs link.ns ⍝ Target space is parent of link.ns
              U.Error'May not Fix inside a linked namespace, class or interface'
          :EndIf
-         (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src
+         (file oldfile nc)←link(0 U.DetermineFileName)nsname name oldname src ⍬
 
          :If nc=¯1 ⋄ U.Error'Invalid name: ',nsname,'.',name
          :ElseIf (0=nc)∧(~nosrc) ⋄ U.Error'Invalid source for ',nsname,'.',name ⍝ ,': ',⍕src
