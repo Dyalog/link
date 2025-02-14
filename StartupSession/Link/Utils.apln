@@ -1061,7 +1061,7 @@
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
       :If 3=(⍎ns).⎕NC getFilename
-      :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(ns,'.',name)(|nc)(ns,'.',oldname)
+      :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(where,'.',name)(|nc)(ns,'.',oldname)
           file←userfile
       :EndIf
     ∇
