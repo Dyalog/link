@@ -975,7 +975,7 @@
           :EndTrap ⋄ :EndIf
     ∇
 
-    ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src);args;cache
+    ∇ (file oldfile nc)←opts(depth DetermineFileName)(where name oldname src curfile);args;cache
     ⍝ opts cached for performance on ns lookup
      
       :If 0=⎕NC'opts.ignorecurrent' ⋄ opts.ignorecurrent←0 ⋄ :EndIf
@@ -995,16 +995,16 @@
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
      
       :If depth
-          :If 0∊⍴args←↓⍉↑(where name oldname src)
+          :If 0∊⍴args←↓⍉↑(where name oldname src curfile)
               (file oldfile nc)←⊂0⍴⊂''
           :Else
               (file oldfile nc)←↓⍉↑cache∘DetermineFileNameSub¨args
           :EndIf
       :Else
-          (file oldfile nc)←cache DetermineFileNameSub(where name oldname src)
+          (file oldfile nc)←cache DetermineFileNameSub(where name oldname src curfile)
       :EndIf
     ∇
-    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext
+    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src curfile);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through NormNs
@@ -1060,6 +1060,9 @@
       file←subdir,file,subext,ext
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
+      :If opts.flatten∧0≠≢curfile ⍝ Notify passes file name down
+          file←curfile
+      :EndIf
       :If 3=(⍎ns).⎕NC getFilename
       :AndIf 0<≢userfile←(ns⍎getFilename)'getFilename'opts file(where,'.',name)(|nc)(ns,'.',oldname)
           file←userfile
@@ -1215,7 +1218,7 @@
           :If file
               files←,⊂dest ⋄ oldfiles←,⊂''  ⍝ file name explicitly provided
           :Else
-              (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'')  ⍝ names are known to exist so don't provide source
+              (files oldfiles)←2↑opts(1 DetermineFileName)(count/⊂ns)names names(count/⊂'') ⍬ ⍝ names are known to exist so don't provide source
               :If opts.(singlefile∧caseCode)
                   opts.dir←⊃files ⍝ replace with case coded name
               :EndIf
@@ -1343,7 +1346,7 @@
      
       ⍝ rename files if incorrectly named - cannot work with opts.fastLoad
       :If (0<≢allfiles)∧opts.(fastLoad<forceExtensions∨forceFilenames)
-          expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs
+          expfiles←⊃opts(1 DetermineFileName)parents actnames actnames actncs ⍬
           expfiles←expfiles(opts.forceFilenames MergeFileName opts.forceExtensions)¨allfiles
           :If ∨/mask←expfiles≢¨allfiles
               :If (≢expfiles)≠(≢∪0 CaseText expfiles)
@@ -1502,7 +1505,7 @@
       expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
       (mask/expname)←(mask←where≡¨actname)/where  ⍝ roots have where≡expname≡actname
       subname←(1+≢link.ns)↓¨name
-      expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc
+      expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc ⍬
       ⍝ expfile←(⎕NEXISTS expfile)/¨expfile  ⍝ not necesary since file shouldn't be listed anyways
       (filemask namemask)←0<(nameifile fileiname)←name file{(0<≢¨⍵)×(0@((1+≢⍺)∘=)⍺⍳⍵)}¨expname expfile  ⍝ 0 for not found
       filemask∧←filemask\(⍸filemask)=fileiname[filemask/nameifile]  ⍝ link must be both ways

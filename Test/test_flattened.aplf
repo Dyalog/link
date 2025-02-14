@@ -26,8 +26,14 @@
  assert'dupfile≡4⊃5179⌶''ns.dup'''             ⍝   ... await callback & link established
 
  goofile←folder,'/app/goo.aplf'
+ goo←' r←goo x' ' r←x x x'
+ (⊂goo) QNPUT goofile                           ⍝ Create a new function by writing to file
+ assert '''/app/goo.aplf''≡¯13↑3⊃ONFLATFILENAMEARGS' ⍝ Test fix for #536
 
- ns'goo'⎕SE.Link.Fix↑goo←' r←goo x' ' r←x x x'  ⍝ Add a new function, this time using a matrix
+ QNDELETE goofile                               ⍝ Get rid of it again
+ assert'0=ns.⎕NC ''goo'''
+
+ ns'goo'⎕SE.Link.Fix↑goo    ⍝ Recreate the new function, this time using a matrix
  assert'goo≡⊃⎕NGET goofile 1'
  assert'goofile≡4⊃5179⌶''ns.goo'''             ⍝   ... await callback & link established
 

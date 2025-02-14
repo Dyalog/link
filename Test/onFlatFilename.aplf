@@ -1,6 +1,6 @@
  r←onFlatFilename args;event;ext;file;link;name;nc;oldname
     ⍝ Callback functions to implement determining target folder for flattened link
- (event link file name nc oldname)←6↑args
+ (event link file name nc oldname)←ONFLATFILENAMEARGS←6↑args
  :If 0≠≢r←4⊃5179⌶oldname     ⍝ we could find info for oldname
      :If name≢oldname ⍝ copy / rename of an existing function
          name←(⌽∧\⌽name≠'.')/name  ⍝ drop namespace specification
