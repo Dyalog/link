@@ -48,4 +48,4 @@ jobs:
           git fetch origin gh-pages --depth=1
           
           mike deploy ${MAJMIN}
-          mike alias --update-aliases --push ${MAJMIN} dev
+          mike alias --update-aliases --push --allow-empty ${MAJMIN} dev
