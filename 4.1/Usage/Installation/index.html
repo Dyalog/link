@@ -1348,7 +1348,7 @@
 <h2 id="required-the-net-framework">Required: the .NET Framework</h2>
 <p>.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files. Without .NET, <a href="../../API/Link.Create/#watch">watch</a> can only be set to <code>ns</code> and Link can only update files with changes made by the Dyalog editor or using <a href="../../API/Link.Add/">Link.Add</a>.</p>
 <p>Link has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Microsoft Windows</label><label for="__tabbed_1_2">Linux, macOS</label><label for="__tabbed_1_3">AIX</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="microsoft-windows" name="__tabbed_1" type="radio" /><input id="linux-macos" name="__tabbed_1" type="radio" /><input id="aix" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="microsoft-windows">Microsoft Windows</label><label for="linux-macos">Linux, macOS</label><label for="aix">AIX</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>The .NET Framework is already installed; there is nothing for you to do.</p>
@@ -1374,7 +1374,7 @@ link-v4.0.nn-v182.zip  ⍝ Dyalog 18.2
 <h3 id="in-the-default-location">In the default location</h3>
 <p>The Link folder belongs in the <code>StartupSession</code> folder.
 By default, this is</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Microsoft Windows</label><label for="__tabbed_2_2">Linux, macOS, AIX</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="microsoft-windows_1" name="__tabbed_2" type="radio" /><input id="linux-macos-aix" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="microsoft-windows_1">Microsoft Windows</label><label for="linux-macos-aix">Linux, macOS, AIX</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>where Dyalog is installed, e.g.</p>
@@ -1401,7 +1401,7 @@ By default, this is</p>
 <li>
 <p>Copy the extracted <code>StartupSession</code> folder to it</p>
 <p>E.g.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Microsoft Windows</label><label for="__tabbed_3_2">Linux, macOS, AIX</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="microsoft-windows_2" name="__tabbed_3" type="radio" /><input id="linux-macos-aix_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="microsoft-windows_2">Microsoft Windows</label><label for="linux-macos-aix_1">Linux, macOS, AIX</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <pre><code>C:\Users\mkrom\mydyalogfiles\StartupSession\Link
@@ -1416,7 +1416,7 @@ By default, this is</p>
 </li>
 <li>
 <p>Declare the custom location of your Link folder</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Microsoft Windows</label><label for="__tabbed_4_2">Linux, macOS, AIX</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="microsoft-windows_3" name="__tabbed_4" type="radio" /><input id="linux-macos-aix_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="microsoft-windows_3">Microsoft Windows</label><label for="linux-macos-aix_2">Linux, macOS, AIX</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>In the Windows Registry, <a href="https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them">set the environment variable</a> as below.</p>
@@ -1431,7 +1431,7 @@ By default, this is</p>
 </div>
 </div>
 <p>The relevant environment variable changed after Dyalog 18.2.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Dyalog 19.0+</label><label for="__tabbed_5_2">Dyalog 18.2</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="dyalog-190" name="__tabbed_5" type="radio" /><input id="dyalog-182" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="dyalog-190">Dyalog 19.0+</label><label for="dyalog-182">Dyalog 18.2</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Declare as <code>DYALOGLINK</code> the filepath that <strong>contains</strong> the <code>StartupSession</code> folder.
