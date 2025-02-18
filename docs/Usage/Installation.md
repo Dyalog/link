@@ -27,7 +27,7 @@ Use these instructions to
 
 ## Required: the .NET Framework
 
-.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files. Without .NET, [watch](http://localhost:8000/Usage/api/Link.Create.md#watch) can only be set to `ns` and Link can only update files with changes made by the Dyalog editor or using [Link.Add](../API/Link.Add.md).
+.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files. Without .NET, [watch](../API/Link.Create.md#watch) can only be set to `ns` and Link can only update files with changes made by the Dyalog editor or using [Link.Add](../API/Link.Add.md).
 
 Link has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.
 
@@ -43,7 +43,7 @@ Link has been tested with the .NET Framework version 4 and .NET versions 6 and 8
 
 === "AIX"
 
-	.NET is not available for AIX. Therefore [watch](../api/Link.Create.md#watch) can only be set to **ns** and Link can only update files with changes made by the Dyalog editor. The workspace contents will not be updated as a result of changes made by external editors.
+	.NET is not available for AIX. Therefore [watch](../API/Link.Create.md#watch) can only be set to **ns** and Link can only update files with changes made by the Dyalog editor. The workspace contents will not be updated as a result of changes made by external editors.
 
 
 ## Step 2: Download a Link ZIP

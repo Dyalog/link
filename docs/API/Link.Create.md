@@ -228,7 +228,7 @@ From a user command, the syntax is `-customExtensions=var` where `var` holds the
 
 If you have specified a **beforeRead** handler function, and your code supports the use of custom file extensions to store source data in application-specific formats, you need to set **customExtensions** so that Link does not ignore changes to these file types.
 
-The reason for splitting the list of extensions into two parts ([**codeExtensions**](#code-extensions) and **customExtensions**) is to avoid your code having to repeat the list of standard extensions, or update this list if it should be extended in the future.
+The reason for splitting the list of extensions into two parts ([**codeExtensions**](#codeextensions) and [**customExtensions**](#customextensions)) is to avoid your code having to repeat the list of standard extensions, or update this list if it should be extended in the future.
 
 ### **typeExtensions**
 Default: `6 2⍴2 'apla' 3 'aplf' 4 'aplo' 9.1 'apln' 9.4 'aplc' 9.5 'apli'`
@@ -277,8 +277,7 @@ Default: **off**
 
 Ignores any Link configuration files.
 
-See [Configuration Files](../../Usage/ConfigFiles/#the-ignoreconfig-switch) for details.
-
+See [Configuration Files](../Usage/ConfigFiles.md#the-ignoreconfig-switch) for details.
 
 ### **text**
 Default: **aplan**
@@ -287,4 +286,4 @@ Chooses whether plain text arrays are stored using APL Array Notation (APLAN) or
 
 `text` is a simple character vector and must be either `'aplan'` or `'plain'`.
 
-See [Array Formats](../../Usage/Arrays/) for details.
+See [Array Formats](../Usage/Arrays.md) for details.
