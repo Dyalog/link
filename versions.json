@@ -1,1 +1,26 @@
-[{"version": "4.1", "title": "4.1", "aliases": ["dev"]}, {"version": "4.0", "title": "4.0", "aliases": ["latest"]}, {"version": "3.1", "title": "3.1", "aliases": []}, {"version": "3.0", "title": "3.0", "aliases": []}]
+[
+  {
+    "version": "4.1",
+    "title": "4.1",
+    "aliases": [
+      "dev"
+    ]
+  },
+  {
+    "version": "4.0",
+    "title": "4.0",
+    "aliases": [
+      "latest"
+    ]
+  },
+  {
+    "version": "3.1",
+    "title": "3.1",
+    "aliases": []
+  },
+  {
+    "version": "3.0",
+    "title": "3.0",
+    "aliases": []
+  }
+]
