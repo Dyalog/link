@@ -1,5 +1,5 @@
- msg←{opts} Stop args;container
+ msg←{opts}Stop args;container
  ⍝ Set or report on Stop flags
  container←⊃⎕RSI ⎕XSI U.ContainerNs ⍬
  preProcessOpts
- msg←'Stop' SetFlags args container opts
+ msg←'Stop'SetFlags args container opts

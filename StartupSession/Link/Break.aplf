@@ -35,7 +35,7 @@ NOHOLD:
 
          all←(0 1 1 2 3 ¯1)[(,¨0 1 '#' '⎕SE' '*')⍳⊂,opts.all]
          :If all=¯1
-             U.Error '''all'' flag must be one of ''#'' ''⎕SE'' ''*'''
+             U.Error'''all'' flag must be one of ''#'' ''⎕SE'' ''*'''
          :ElseIf all≠0 ⍝ Any kind of "all" option?
              tobreak←(∨⌿((2 2⊤all)/⎕SE #)∘.U.IsParent linked)/linked ⍝ break children of either ⎕SE, #, or both
          :ElseIf 0∊⍴refs
@@ -57,7 +57,7 @@ NOHOLD:
          :If ~0∊⍴tobreak  ⍝ stop the file watcher
              →nohold⍴NOHOLD2
              :Hold '⎕SE.Link.Notify'  ⍝ about to change file ties
- NOHOLD2:
+NOHOLD2:
                  ⍝ because we're :Hold-ing '⎕SE.Link.Notify' '⎕SE.Link.Links', the Notify events will happen after we're done breaking the link
                  1 U.Break∪(mask←linked∊tobreak)/links  ⍝ will ⎕DL slightly - unti because we know they exist
                  U.SetLinks(~mask)/links

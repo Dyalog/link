@@ -34,16 +34,16 @@
               :If 2=⎕NC'f.',type
               :AndIf (⎕NC nm←config.ns,'.',f.Name)∊3 4
                   :Trap 11
-                       ⍎'f.',type,' ⎕',type,' ''',nm,''''
+                      ⍎'f.',type,' ⎕',type,' ''',nm,''''
                   :Else
-                       ##.U.Warn 'Unable to set ',type,' to ',(1 ⎕JSON f⍎type),' for ',nm
+                      ##.U.Warn'Unable to set ',type,' to ',(1 ⎕JSON f⍎type),' for ',nm
                   :EndTrap
               :EndIf
           :EndFor
       :EndFor
     ∇
 
-    ∇ {r}←config SetSourceFlags link 
+    ∇ {r}←config SetSourceFlags link
     ⍝ Cache source flags in link definition namespace
       r←0
       :If 2=⎕NC'config.SourceFlags'
@@ -74,16 +74,16 @@
      
       m←0=≢¨{0::⍬ ⋄ ns⍎⍵,'.⎕NL -2 9'}¨nss←'Debug' 'Settings'
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
-      ⍝ Now remove Version and API/UCMD options which are not save-able settings 
-      ns.⎕EX 'LinkVersion'
-      :If 9=⎕NC 'ns.Settings' ⍝ Expunge all Settings which are not LinkParams
-          ns.Settings.⎕EX (ns.Settings.⎕NL -2)~LinkParams[;1]
-      :EndIf 
+      ⍝ Now remove Version and API/UCMD options which are not save-able settings
+      ns.⎕EX'LinkVersion'
+      :If 9=⎕NC'ns.Settings' ⍝ Expunge all Settings which are not LinkParams
+          ns.Settings.⎕EX(ns.Settings.⎕NL-2)~LinkParams[;1]
+      :EndIf
      
       json←1 ⎕JSON⍠('Dialect' 'JSON5')('HighRank' 'Split')('Compact' 0)⊢ns
-      :If json≢'{',(nl←⎕UCS 13),'}' ⍝ Do not create empty config files 
+      :If json≢'{',(nl←⎕UCS 13),'}' ⍝ Do not create empty config files
           json←'{',nl,'  LinkVersion: { ID: "',##.Version,'"},',nl,1↓json
-          (⊂json)⎕NPUT file 1                                      
+          (⊂json)⎕NPUT file 1
       :Else
           3 ⎕NDELETE file
       :EndIf
@@ -96,17 +96,17 @@
     ∇ msg←FormatOptions config;obj;trace;stop;name;monitor
       msg←''
       :If 9=⎕NC'config.Debug'
-      :AndIf 0≠≢config.Debug.⎕NL -2
+      :AndIf 0≠≢config.Debug.⎕NL-2
           msg,←⊂'Debug     : ',⍕config.Debug.({⍵,':',⍕⍎⍵}¨⎕NL-2)
       :EndIf
      
       :If 9=⎕NC'config.Settings'
-      :AndIf 0≠≢config.Settings.⎕NL -2      
+      :AndIf 0≠≢config.Settings.⎕NL-2
           msg,←⊂'Settings  : ',⍕config.Settings.({⍵,':',⍕⍎⍵}¨⎕NL-2)
       :EndIf
      
-      :If 2=⎕NC'config.SourceFlags'   
-      :AndIf 0≠≢config.SourceFlags            
+      :If 2=⎕NC'config.SourceFlags'
+      :AndIf 0≠≢config.SourceFlags
           msg,←⊂'Stop/Trace:'
           :For obj :In config.SourceFlags
               (name stop trace)←obj.{6::⍬ ⋄ ⍎⍵}¨'Name' 'Stop' 'Trace'
@@ -117,7 +117,7 @@
       :EndIf
     ∇
 
-    ∇ ns←ExpungeDefaultParams ns;values;names;m    
+    ∇ ns←ExpungeDefaultParams ns;values;names;m
     ⍝ Ensure config file does not include defaults
       :If 0≠≢names←ns.⎕NL-2
           values←¯1↓ns⍎⍕names,1↑names
@@ -143,12 +143,12 @@
               →0⊣msg←'ERRORS ENCOUNTERED: -ignoreconfig not allowed with this API function'⊣config←⎕NS''
           :EndIf
       :EndIf
-      
-      :If 2=##.⎕NC 'USERCONFIGFILE'        ⍝ Has QA or something else set an override for user config?
+     
+      :If 2=##.⎕NC'USERCONFIGFILE'        ⍝ Has QA or something else set an override for user config?
       :AndIf 0≠≢z←##.USERCONFIGFILE
-          userfile←z 
+          userfile←z
       :Else
-          userfile←##.U.UserConfigFile  
+          userfile←##.U.UserConfigFile
       :EndIf
      
       :If ⎕NEXISTS userfile
@@ -173,8 +173,8 @@
           'config.Settings'⎕NS dir.Settings
           'config.Debug'⎕NS dir.Debug
      
-          :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]  
-              ##.U.Warn ('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid) 
+          :If ~∧/(names←config.Settings.⎕NL-2)∊valid←(p←LinkParams)[;1]
+              ##.U.Warn('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid)
               ⍝ Decided NOT to throw an error for this until further notice
               ⍝ Possibly reinstate the following line when safe to do so
               ⍝ →0⊣(msg config)←('Unknown Setting(s) in "',linkfile,'": ',⍕names~valid)config
@@ -188,7 +188,7 @@
     ∇
 
     ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json;one;t
-     ⍝ Read a configuration file and return a namespace 
+     ⍝ Read a configuration file and return a namespace
      ⍝ rc←0 on success, 1 on failure in which case config is an error message :-(
      
       :If 0≠≢file
@@ -252,7 +252,7 @@
      
       :For (ns key) :In ('Settings' 1)('Debug' 2)
           :If 0≠≢j←⍸key=params[i;1] ⍝ Settings or Debug
-              ref←config⍎ns                                              
+              ref←config⍎ns
               old[j]←ref.{0=⎕NC ⍵:'' ⋄ ⍎⍵}¨names[j]
               ref.⎕EX delete
           :AndIf 0≠≢j←(~d[j])/j     ⍝ only assign names not deleted

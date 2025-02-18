@@ -1,4 +1,4 @@
- {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src
+ {name}←{obj}Notify args;actname;affected;children;curactname;curfile;curname;curnc;curnsname;deleted;dir;expfile;expname;exppath;forcefix;hidden;hold;i;inFail;link;linked;links;msg;nc;nsname;nsref;oldexpname;oldfile;oldname;oldnc;oldnsname;oldnsref;oldpath;parents;path;regex;retry;type;warn;z;⎕IO;⎕ML;fixrc;src;w
 ⍝ Notify Link system that an external file has changed
 ⍝ Usually called by FileSystemWatcher
 ⍝ returns the name affected by the file
@@ -9,7 +9,7 @@
  :Case 2 ⋄ (1+⊃⎕LC)⎕STOP⊃⎕SI ⍝ ⋄ ⎕←'Notify'args
  :EndSelect
  :Trap DEBUG↓0
-     :If 0=⎕NC 'NOTIFY' ⋄ NOTIFY←0 ⋄ :EndIf ⍝ Does user want confirmation of notifications?
+     :If 0=⎕NC'NOTIFY' ⋄ NOTIFY←0 ⋄ :EndIf ⍝ Does user want confirmation of notifications?
 
      links←U.ErrorIfRestored U.GetLinks ⍝ never allow file notifications
 
@@ -34,7 +34,7 @@
              →END⊣msg,←⊂'path not in a linked directory'
          :EndIf
 
-         :If 0=⎕NC 'link.singlefile' ⋄ link.singlefile←0 ⋄ :EndIf
+         :If 0=⎕NC'link.singlefile' ⋄ link.singlefile←0 ⋄ :EndIf
 
          →((⊂link.watch)∊'dir' 'both')↓0 ⍝ Not watching
          ⍝ link←⎕NS link ⋄ link.fastLoad←0  ⍝ fastLoad not observed at Notify time - done by Link.Create
@@ -59,7 +59,9 @@
          :EndIf  ⍝ dir cannot yet be tested for deleted files
 
          ⍝ determine expected apl name from file name, and actual apl name from source
+         (w U.WARN)←U.WARN×1(~deleted) ⍝ Do not warn of inability to read deleted file source
          (nsname expname actname nc)←link U.DetermineAplName path
+         U.WARN←w ⍝ Restore WARNING selection
          nsref←#(0 U.GetRefTo)nsname  ⍝ we know nsname is fully qualified
 
          ⍝ determine current name tied to file (if any)
@@ -83,11 +85,18 @@
              :EndIf
          :EndIf
 
+         :If deleted
+             linkedpaths←⊃¨5176⌶0
+             children←((⊃¨⎕NPARTS linkedpaths)∊⊂path,'/')/linkedpaths
+         :AndIf 0<≢children
+             Notify¨{'deleted'⍵}¨children
+         :EndIf
+
          :If dir⍱link U.HasExtn path  ⍝ must be directory or have correct extension
              →END⊣msg,←⊂'file extension not managed by link'
          :ElseIf 0=≢nsref ⋄ warn←1 ⋄ msg,←⊂'unable to find corresponding namespace'
              →(type≢'deleted')×END ⍝ Exit if event was "deleted", else report error
-         :ElseIf nc=¯1 ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
+         :ElseIf (~link.flatten∧dir)∧(nc=¯1) ⋄ warn←1 ⋄ →END⊣msg,←'invalid name defined by file: 'path
          :ElseIf (deleted∨~link.fastLoad)∧(nc=0)  ⍝ cannot trust nc returned by DetermineAplName when opts.fastLoad
              warn←~deleted  ⍝ link issue #235 : the delete callback provoked by ⎕SE.Link.Expunge cannot see the expunged name
              →({0::0 ⋄ 0=2 ⎕NINFO ⍵}path)⍴0 ⍝ Ignore empty file
@@ -95,10 +104,10 @@
          :EndIf
 
          ⍝ determine current file tied to name we plan to use
-         expfile←⊃link(0 U.DetermineFileName)nsname actname oldname nc
+         expfile←⊃link(0 U.DetermineFileName)nsname actname oldname nc path
          :If 0∊⍴curfile←0 U.NormFile nsref U.CurrentFileName actname ⍝ not tied by interpreter
          :AndIf 2.1 ¯9.1∊⍨nc   ⍝ only arrays and tradnamespaces don't have ties
-             curfile←U.Deslash (⎕NEXISTS expfile)/expfile ⍝ ns source may be folder with trailing /
+             curfile←U.Deslash(⎕NEXISTS expfile)/expfile ⍝ ns source may be folder with trailing /
          :EndIf
 
          name←affected   ⍝ return APL name affected by the Notify
@@ -113,6 +122,15 @@
              :ElseIf ~curnc∊0 ¯1    ⍝ file already tied to another name
                  (⍎curnsname)U.Untie curactname
                  msg,←'creating 'affected' - unlinking previously linked 'curname
+             :ElseIf dir
+                 :Trap 0 ⋄ children←⊃⎕NINFO⍠1⊢path,'/*'
+                 :Else ⋄ children←0⍴⊂''
+                 :EndTrap
+                 children←(link U.HasExtn children)/children
+                 :If 0<≢children
+                     Notify¨{'created'⍵}¨children
+                 :EndIf
+                 :If link.flatten ⋄ →END⊣msg,←⊂'ignoring created directory' ⋄ :EndIf
              :Else
                  msg,←'creating 'affected
              :EndIf
@@ -143,7 +161,7 @@
                  msg,←,'updating previously linked 'affected
              :ElseIf 0≠⎕NC affected  ⍝ redefining existing name
              :AndIf curfile≢oldpath  ⍝ name not bound to old file (TODO won't work for arrays)
-                 warn←1 ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
+                 warn←~dir∧link.flatten ⋄ name←'' ⋄ →END⊣msg,←'ignoring attempt to redefine 'affected,(0<≢curfile)/' which is linked to 'curfile
              :EndIf
              :If NOTIFY
                  U.Notify oldpath,' renamed as ',path
@@ -164,9 +182,15 @@
                      :Else ⋄ children←0⍴⊂''
                      :EndTrap
                      msg,←'namespace rename 'oldname' → 'affected
-                     Notify¨{'changed'⍵}¨children
-                 :Else ⋄ warn←1                                    ⍝ no old ns
-                     msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
+                     children←(link U.HasExtn children)/children
+                     :If 0<≢children
+                         Notify¨{'changed'⍵}¨children
+                     :EndIf
+                 :Else
+                     :If ~link.flatten
+                         warn←1                                    ⍝ no old ns
+                         msg,←'namespace 'oldname' not found. Loading 'affected' from 'path
+                     :EndIf
                      :If 0<≢inFail←2⊃link U.FixFiles nsref path 1  ⍝ always overwrite
                          msg,←' - failed to load: '(U.FmtLines inFail)
                      :EndIf
@@ -187,7 +211,7 @@
              :If 0=⎕NC affected  ⍝ object didn't exist
                  msg,←'not found: 'affected
              :ElseIf ⎕NEXISTS curfile  ⍝ file still exists - don't expunge
-                 name←'' ⋄ →END⊣msg,←'not expunging 'affected' because 'curfile 'still exists'
+                 name←'' ⋄ →END⊣msg,←'not expunging 'affected' because 'curfile'still exists'
              :ElseIf (0<≢curfile)∧(path≢curfile)  ⍝ name tied to another file - don't expunge
                  name←'' ⋄ →END⊣msg,←'not expunging 'affected' linked to 'curfile
              :ElseIf (~curnc∊0 ¯1)∧(curname≢affected)     ⍝ a different file was tied to a name
@@ -198,7 +222,7 @@
              :EndIf
              ⎕EX affected
              :If NOTIFY
-                 U.Notify 'Deleted ',affected,' (',path,')'
+                 U.Notify'Deleted ',affected,' (',path,')'
              :EndIf
              →END
 
@@ -216,40 +240,40 @@
                  warn←1 ⋄ name←'' ⋄ →END⊣msg,←' - file clash: cannot move file to existing 'exppath' - cannot fix 'affected
              :Else
                  msg,←' - moving to 'exppath
-                 (,⊂exppath) U.Relocate ,⊂path
+                 (,⊂exppath)U.Relocate,⊂path
                  path←exppath
                  ⍝ If we do the line below, then occasionally the watcher fails to callback on move, making the new file definition not fixed
                  ⍝→END U.If 'dir' 'both'∊⍨⊂link.watch      ⍝ file watcher will take care of the rest
                  :While ~⎕NEXISTS exppath ⋄ ⎕DL 0.000001 ⋄ :EndWhile    ⍝ ensure file effectively moved before fixing
                  :If NOTIFY
-                     U.Notify 'Renaming ',path,' to ',exppath
+                     U.Notify'Renaming ',path,' to ',exppath
                  :EndIf
              :EndIf
          :EndIf
 
          ⍝ fix file
-         :Select fixrc←nsref U.QFix path actname(U.FixTie link) 1 forcefix
+         :Select fixrc←nsref U.QFix path actname(U.FixTie link)1 forcefix
          :Case 1 ⋄ msg,←⊂' - fixed from file'
          :Case 0 ⋄ msg,←⊂' - APL already up to date'
          :Case ¯1 ⋄ warn←1 ⋄ msg,←⊂' - failed to fix file'
          :EndSelect
 
          :If (nsref.⎕NC actname)∊3 4   ⍝ Fn or Op
-         :AndIf 2=⎕NC 'link.flagged'
+         :AndIf 2=⎕NC'link.flagged'
          :AndIf (⊂actname)∊link.flagged ⍝ Stops or Trace set?
              actname Config.RestoreFlags link
          :EndIf
 
          :If NOTIFY∧fixrc≠¯1
              src←(~dir)/⊃⎕NGET⍣(~dir)⊢path
-             :If 0=⎕NC 'LASTFIX'
-             :OrIf LASTFIX≢(⍕nsref) actname src
-                 U.Notify 'Updated ',affected,' (',path,')'
+             :If 0=⎕NC'LASTFIX'
+             :OrIf LASTFIX≢(⍕nsref)actname src
+                 U.Notify'Updated ',affected,' (',path,')'
              :EndIf
-             LASTFIX←(⍕nsref) actname src
+             LASTFIX←(⍕nsref)actname src
          :EndIf
 
-         END:
+END:
          :If warn ⋄ 1 U.Warn msg
          :Else ⋄ 1 U.Log msg
          :EndIf

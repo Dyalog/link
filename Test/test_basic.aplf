@@ -75,6 +75,7 @@
       ⍝ Put a copy of foo in the folder
  _←(⊂foo)QNPUT folder,'/sub/foo.dyalog'
  assert'foo≡ns.sub.⎕NR ''foo'''
+ assert '''#.linktest.sub.onetwo''≡4⊃ONBASICWRITEARGS' ⍝ Verify fix to #537
 
       ⍝ Create a class with missing dependency
  _←(⊂ac←':Class aClass : bClass' ':EndClass')QNPUT folder,'/sub/aClass.dyalog'

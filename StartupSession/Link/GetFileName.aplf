@@ -15,7 +15,7 @@
              (parent name)←U.SplitNs name
              :If ~nc∊0 ¯1
              :AndIf ~0∊⍴link←links U.LookupRef parent←⍎parent
-                 (file oldfile nc)←link(0 U.DetermineFileName)(⍕parent)name name ⍬  ⍝ U.NormNs parent
+                 (file oldfile nc)←link(0 U.DetermineFileName)(⍕parent)name name ⍬ ⍬ ⍝ U.NormNs parent
                  (i⊃files)←(~nc∊0 ¯1)/(1+0<≢oldfile)⊃file oldfile
              :Else
                  (i⊃files)←''
