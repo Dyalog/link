@@ -91,7 +91,7 @@ To get started using Link, please read:
 If you have an existing APL application that you want to move to Link, you might want to read one of the following texts first:
 
 * [Converting Your Workspace to Text Source:](Usage/WStoLink.md) if you already have an existing body of APL code in binary workspaces.
-* [Migrating to Link 3.0 from SALT:](Usage/SALTtoLink.md) if you are already managing text source using Link's predecessor SALT.
+* [Migrating to Link 3.0 from SALT:](https://dyalog.github.io/link/3.0/Usage/SALTtoLink/) if you are already managing text source using Link's predecessor SALT.
 
 ## Frequently Asked Questions
 
