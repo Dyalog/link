@@ -1,19 +1,17 @@
 # Installation
 
-Link 4.0[^opensource] is 
+Link is 
 
 -   **included** with Dyalog version 19.0 and later
 -   **supported** for use with version 18.2
 
 It depends on the .NET Framework – see below.
 
-[^opensource]: Link is maintained as an open-source project at [github.com/dyalog/link](https://github.com/dyalog/link).
-
 Use these instructions to 
 
 -   **Install Link** with Dyalog 18.2 or
 
--   Install a **different release** from that distributed with your version of Dyalog APL
+-   Install a **different Link version** from that distributed with your version of Dyalog
 
 	??? detail "How to display your installed Link version"
 
@@ -29,27 +27,23 @@ Use these instructions to
 
 ## Required: the .NET Framework
 
-.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files.
+.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files. Without .NET, [watch](http://localhost:8000/Usage/api/Link.Create.md#watch) can only be set to `ns` and Link can only update files with changes made by the Dyalog editor or using [Link.Add](../API/Link.Add.md).
 
-Link 4.0 has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.
+Link has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.
 
-=== ":fontawesome-brands-windows:" Microsoft Windows"
+=== "Microsoft Windows"
 
 	The .NET Framework is already installed; there is nothing for you to do.
 
-=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
+=== "Linux, macOS"
 
 	Download .NET and follow the installation instructions.
 
-	:fontawesome-brands-windows:
 	[dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) 
 
-=== "Other operating systems"
+=== "AIX"
 
-	Download .NET and follow the installation instructions.
-
-	:fontawesome-brands-windows:
-	[dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) 
+	.NET is not available for AIX. Therefore [watch](../api/Link.Create.md#watch) can only be set to **ns** and Link can only update files with changes made by the Dyalog editor. The workspace contents will not be updated as a result of changes made by external editors.
 
 
 ## Step 2: Download a Link ZIP
@@ -72,28 +66,23 @@ Extract subfolder `StartupSession/Link`.
 The Link folder belongs in the `StartupSession` folder.
 By default, this is
 
-=== ":fontawesome-brands-windows: Microsoft Windows"
+=== "Microsoft Windows"
 
 	where Dyalog is installed, e.g.
 
 		C:\Program Files\Dyalog\Dyalog APL-64 19.0 Unicode\StartupSession
 
-=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
+=== "Linux, macOS, AIX"
 
 	within your home folder, e.g.
 
 		~/dyalog.190UC64.files/StartupSession  ⍝ Dyalog 19.0+
 		~/dyalog.182UC64.files/StartupSession  ⍝ Dyalog 18.2
 
-=== "Other operating systems"
-
-	==FIXME==
-
 If you have write access to the default location
 
 -   move the `Link` folder outside it (as a fallback)
--   copy into it the extracted `Link` folder
-
+-   copy the extracted `Link` folder into it
 
 ### In a custom location
 
@@ -104,25 +93,21 @@ If you do not have write access to the default location
 
 	E.g.
 
-	=== ":fontawesome-brands-windows: Microsoft Windows"
+	=== "Microsoft Windows"
 
 			C:\Users\mkrom\mydyalogfiles\StartupSession\Link
 
-	=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
+	=== "Linux, macOS, AIX"
 
 			~/mydyalogfiles/StartupSession/Link
 
-	=== "Other operating systems"
-
-		==FIXME==
-
 1.  Declare the custom location of your Link folder
 
-	=== ":fontawesome-brands-windows: Microsoft Windows"
+	=== "Microsoft Windows"
 
 		In the Windows Registry, [set the environment variable](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them) as below.
 
-	=== ":fontawesome-brands-linux: :fontawesome-brands-apple: Linux, macOS"
+	=== "Linux, macOS, AIX"
 
 		Select a configuration file. 
 
@@ -130,10 +115,6 @@ If you do not have write access to the default location
 			~/.dyalog/dyalog.182U64.dcfg  ⍝ specific version, such as 18.2
 
 		In your configuration file, set the environment variable as below.
-
-	=== "Other operating systems"
-
-		==FIXME==
 
 	The relevant environment variable changed after Dyalog 18.2.
 
