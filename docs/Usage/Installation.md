@@ -1,17 +1,13 @@
 # Installation
 
-Link is 
+Link 4.1 is 
 
--   **included** with Dyalog version 19.0 and later
--   **supported** for use with version 18.2
+-   **included** with Dyalog version 20.0
+-   **supported** for use with version 19.0
 
-It depends on the .NET Framework – see below.
+Some Link functionality needs .NET – see below.
 
-Use these instructions to 
-
--   **Install Link** with Dyalog 18.2 or
-
--   Install a **different Link version** from that distributed with your version of Dyalog
+Use these instructions install a **different Link version** from that distributed with your version of Dyalog
 
 	??? detail "How to display your installed Link version"
 
@@ -20,16 +16,12 @@ Use these instructions to
 		4.0.17       
 		```
 
-!!! warning "Non-standard session file"
 
-	If you use a non-standard Dyalog session (`.dse`) file, contact [support@dyalog.com](mailto:support@dyalog.com) for guidance on enabling Link.
+## .NET
 
+.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files. Without .NET, [watch](../API/Link.Create.md#watch) can only be set to `ns` and Link can only update files with changes made by the Dyalog editor or using [Link.Add](../API/Link.Add.md). That said, you can always [resync](../API/Link.Resync.md) manually.
 
-## Required: the .NET Framework
-
-.NET allows Dyalog to update workspace contents automatically when you use external editors or source code management systems to edit the files. Without .NET, [watch](../API/Link.Create.md#watch) can only be set to `ns` and Link can only update files with changes made by the Dyalog editor or using [Link.Add](../API/Link.Add.md).
-
-Link has been tested with the .NET Framework version 4 and .NET versions 6 and 8, and is expected to work with any later version of .NET.
+Link has been tested with .NET Framework version 4 and .NET version 8, and is expected to work with any later version of .NET.
 
 === "Microsoft Windows"
 
@@ -43,18 +35,13 @@ Link has been tested with the .NET Framework version 4 and .NET versions 6 and 8
 
 === "AIX"
 
-	.NET is not available for AIX. Therefore [watch](../API/Link.Create.md#watch) can only be set to **ns** and Link can only update files with changes made by the Dyalog editor. The workspace contents will not be updated as a result of changes made by external editors.
+	.NET is not available for AIX. Therefore [watch](../API/Link.Create.md#watch) can only be set to **ns** and Link can only update files with changes made by the Dyalog editor. The workspace contents will not be updated as a result of changes made by external editors. That said, you can always [resync](../API/Link.Resync.md) manually.
 
 
 ## Step 2: Download a Link ZIP
 
 :fontawesome-solid-download:&nbsp;
-[Download the ZIP](https://github.com/Dyalog/link/releases) for your version
-
-	link-v4.0.nn.zip       ⍝ Dyalog 19.0+
-	link-v4.0.nn-v182.zip  ⍝ Dyalog 18.2
-
-where `nn` is a Link patch number.
+[Download the link-v4.1.nn.zip](https://github.com/Dyalog/link/releases) (`nn` is a Link patch number).
 
 Extract subfolder `StartupSession/Link`.
 
@@ -76,8 +63,8 @@ By default, this is
 
 	within your home folder, e.g.
 
-		~/dyalog.190UC64.files/StartupSession  ⍝ Dyalog 19.0+
-		~/dyalog.182UC64.files/StartupSession  ⍝ Dyalog 18.2
+		~/dyalog.200U64.files/StartupSession  ⍝ Dyalog 20.0
+		~/dyalog.190U64.files/StartupSession  ⍝ Dyalog 19.0
 
 If you have write access to the default location
 
@@ -112,31 +99,19 @@ If you do not have write access to the default location
 		Select a configuration file. 
 
 			~/.dyalog/dyalog.config       ⍝ all versions of Dyalog
-			~/.dyalog/dyalog.182U64.dcfg  ⍝ specific version, such as 18.2
+			~/.dyalog/dyalog.200U64.dcfg  ⍝ specific version, such as 20.0
 
 		In your configuration file, set the environment variable as below.
 
-	The relevant environment variable changed after Dyalog 18.2.
+	Declare as `DYALOGLINK` the filepath that **contains** the `StartupSession` folder.
+	Some examples:
 
-	=== "Dyalog 19.0+"
+		DYALOGLINK  C:\Users\mkrom\mydyalogfiles
 
-		Declare as `DYALOGLINK` the filepath that **contains** the `StartupSession` folder.
-		Some examples:
+		DYALOGLINK: "[HOME]/dyalog.190U64.files",
+		DYALOGLINK: "[HOME]/mydyalogfiles",
+		DYALOGLINK: "/Users/mkrom/",
 
-			DYALOGLINK  C:\Users\mkrom\mydyalogfiles
-
-			DYALOGLINK: "[HOME]/dyalog.190U64.files",
-			DYALOGLINK: "[HOME]/mydyalogfiles",
-			DYALOGLINK: "/Users/mkrom/",
-
-	=== "Dyalog 18.2"
-
-		Declare as `DYALOGSTARTUPSE` the filepath of the `StartupSession` folder.
-		For example:
-
-			DYALOGSTARTUPSE  C:\Users\mkrom\StartupSession
-
-			DYALOGSTARTUPSE: "/Users/mkrom/StartupSession",
 
 ## Step 4: Refresh the user commands
 
@@ -154,5 +129,5 @@ Confirm you see the Link version you intended to install.
 
 ```apl
       ⎕SE.Link.Version
-4.0.20
+4.1.3
 ```
