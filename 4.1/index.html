@@ -1354,7 +1354,7 @@
 <h2 id="link-is-not">Link is NOT...</h2>
 <ul>
 <li><strong>A source code management system</strong>: Link itself has no source code management features. As mentioned above, you will need to use a separate tool like Git to manage the source files that Link will allow you to use and modify from Dyalog APL.</li>
-<li><strong>A database management system:</strong> although Link is able to store APL arrays using a pre-release of the <em>literal array notation</em>, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define using the editor will be written to source files by default, source files are only created for arrays by explicit calls to <a href="API/Link.Add/">Link.Add</a> or by specifying optional parameters to <a href="API/Link.Export/">Link.Export</a>. Application data should be stored in a database management system or files managed by the application.</li>
+<li><strong>A database management system:</strong> although Link is able to store APL arrays using <em>array notation</em>, this is only intended to be used for constants which you consider to be part of the source code of your applications. Although all functions and operators that you define using the editor will be written to source files by default, source files are only created for arrays by explicit calls to <a href="API/Link.Add/">Link.Add</a> or by specifying optional parameters to <a href="API/Link.Export/">Link.Export</a>. Application data should be stored in a database management system or files managed by the application.</li>
 </ul>
 <h2 id="link-fundamentals">Link fundamentals</h2>
 <p>Link establishes <strong><em>links</em></strong> between one or more <strong>namespaces</strong> in the active APL workspace and corresponding <strong>directories</strong> containing APL source code in Unicode test files. For example, the following user command invocation will link a namespace called <code>myapp</code> to the folder <code>/home/sally/myapp</code>:</p>
@@ -1373,7 +1373,9 @@ If .NET is available, then any changes made to the external files using a text e
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For Dyalog to automatically update workspace contents due to file changes requires .NET.</p>
-<p>The .NET Framework is included with Microsoft windows. For other platforms, .NET can be downloaded from <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
+<p>The .NET Framework is included with Microsoft windows. For other platforms
+ or more recent versions of .NET, .NET can be downloaded from
+ <a href="https://dotnet.microsoft.com/download">dotnet.microsoft.com/download</a>.</p>
 <p>To find out which versions are supported, see <a href="https://docs.dyalog.com/latest/dotNET%20Interface%20Guide.pdf">section 2.1 of the .NET Interface Guide</a> and under the heading "Prerequisites" in <a href="https://docs.dyalog.com/latest/Dyalog%20for%20Microsoft%20Windows%20.NET%20Framework%20Interface%20Guide.pdf">chapter 1 of the Dyalog for Microsoft Windows .NET Framework Interface Guide</a>.</p>
 </div>
 <p>You can invoke <a href="API/Link.Create/">Link.Create</a> several times to create multiple links, and you can also use <a href="API/Link.Import/">Link.Import</a> or <a href="API/Link.Export/">Link.Export</a> to import source code into the workspace or export code to external files <em>without</em> creating links that will respond to subsequent changes. </p>

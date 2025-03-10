@@ -1441,9 +1441,6 @@
 <p>Changes made using <code>←</code>, <code>⎕NS</code>, <code>⎕FX</code>, <code>⎕FIX</code>, <code>⎕CY</code>, <code>)NS</code> and <code>)COPY</code> are not currently detected. For Link to be aware of the change, a call must be made to <a href="../../API/Link.Fix/">Link.Fix</a>. Similarly, deletions with <code>⎕EX</code> or <code>)ERASE</code> must be replaced by a call to <a href="../../API/Link.Expunge/">Link.Expunge</a>.</p>
 </li>
 <li>
-<p>In Dyalog versions 18.2 or earlier, changes made using the line or "del" editor are not detected.</p>
-</li>
-<li>
 <p>The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor <em>will</em> detect changes to source files on all platforms, when it opens an editor window.</p>
 </li>
 <li>
@@ -1458,7 +1455,7 @@ the creation of a file named <code>ŒIO.apla</code>. Depending on the names of y
 this may make it difficult to share source files between Classic and Unicode interpreters.</p>
 </div>
 <h2 id="how-does-link-work">How does Link work?</h2>
-<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of February 2024, at the end of the Link 4.0 development cycle.</p>
+<p>Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of March 2025, at the end of the Link 4.1 development cycle.</p>
 <p><strong>Terminology:</strong> In the following, the term <em>object</em> is used very loosely to refer to functions, operators, namespaces, classes and arrays.</p>
 <h3 id="what-exactly-is-a-link">What Exactly is a Link?</h3>
 <p>A link connects a namespace in the active workspace (which can be the root namespace <code>#</code>) to a directory in the file system. </p>
@@ -1486,7 +1483,7 @@ this may make it difficult to share source files between Classic and Unicode int
 <p>When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a <em>new</em> function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.</p>
 <p>If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.</p>
 <h3 id="the-source-of-link-itself">The Source of Link itself</h3>
-<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed with Dyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
+<p>Link consists of a set of API functions which are loaded into the namespace <code>⎕SE.Link</code>, when APL starts, from <strong>$DYALOG/StartupSession/Link</strong>. The user command file <strong>$DYALOG/SALT/SPICE/Link.dyalog</strong> provides access to the interactive user command covers that exist for most of the API functions. Link 4.1 is pre-installed with Dyalog version 20.0 or later. To use version 4.1 with Dyalog 19.0, see the <a href="../../Usage/Installation/">installation instructions</a>.</p>
 <h3 id="the-crawler">The Crawler</h3>
 <p>In a future version of Link, an optional and configurable crawler will be able to run in the background and occasionally compare linked namespaces and directories, using the same logic as <a href="../../API/Link.Resync/">Link.Resync</a>, and deal with anything that might have been missed by the automatic mechanisms. This will be especially useful if:</p>
 <ul>
