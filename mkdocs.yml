@@ -4,13 +4,14 @@ repo_name: Dyalog/Link
 nav:
   - Overview:
     - index.md
+    - ReleaseNotes41.md
     - Discussion/TechDetails.md
     - Discussion/Workspaces.md
     - Discussion/History.md
     
   - Install and Upgrade:
     - Usage/Installation.md
-    - ReleaseNotes40.md
+    - ReleaseNotes41.md
     
   - Working with Link:
     - Usage/index.md

@@ -4,6 +4,9 @@ Link enables the use of text files as the primary storage mechanism for APL sour
 # Link Versions
 Although Link is developed as a GitHub project and it is possible to fork or clone it and configure Dyalog APL to use it in this fashion, most users of Link will be using a version which is delivered via the Dyalog installer and updated using the Dyalog patch mechanism. Currently supported versions are:
 
+## Version 4.1 (Dyalog v20.0 - compatible with v19.0)
+Version 4.1 will be shipped with Dyalog 20.0 and is being tested with Dyalog v19.0.
+
 ## Version 4.0 (Dyalog v19.0 - compatible with v18.2)
 Version 4.0 was shipped with Dyalog 19.0 and works with version 18.2.  The [online documentation](https://dyalog.github.io/link/) is maintained using markdown files which can be found in `docs` folder and deployed using `mkdocs` and `mike`, hosted with GitHub Pages.
 
