@@ -67,3 +67,6 @@ Link 4.0 is upwards compatible with Link 3.0, and can also be used with Dyalog v
 ### Link 4.1 (Dyalog version 20.0, 2025)
 
 Link 4.1 was the companion release to Dyalog version 20.0 in 2025. In this release, we've focused on improving stability and preformance, expecially when a large number files are changed simultaneously. We've also fixed a number of bugs.
+
+Link 4.1 is upwards compatible with Link 4.0, and can also be used with Dyalog version 19.0.
+
