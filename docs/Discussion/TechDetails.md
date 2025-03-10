@@ -23,6 +23,10 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 ∇
 ```
 
+!!! Note
+    If you use assignment (rather than the editor) to turn an operator into a function, the file
+    extension will not be changed. You will need to rename the file by hand for consistency.
+
 **Unsupported:** In addition to unnamed namespaces, Link has no support for name classes 2.2 (field), 2.3 (property), 2.6 (external/shared variable), 3.3 (primitive or derived function or train), 4.3 (primitive or derived operator), 3.6 (external function) 9.2 (instance), 9.6 (external class) and 9.7 (external interface). These can be listed with `]names 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7` and listed for the namespace `myns` with `]names myns 2.2 2.3 2.6 3.3 4.3 3.6 9.2 9.6 9.7`.
 
 ## Other Limitations

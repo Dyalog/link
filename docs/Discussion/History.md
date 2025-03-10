@@ -60,8 +60,6 @@ Link 4.0 was the companion release to Dyalog version 19.0 in 2024. The most impo
 * The ability to store multi-line character data in plain text files
 * Support for linking a single source file defining a namespace or class
 
-More details regarding the new features of Link 4.0 can be found in the [Release Notes](../ReleaseNotes40.md). 
-
 Link 4.0 is upwards compatible with Link 3.0, and can also be used with Dyalog version 18.2.
 
 ### Link 4.1 (Dyalog version 20.0, 2025)
