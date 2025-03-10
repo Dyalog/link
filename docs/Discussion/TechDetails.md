@@ -41,8 +41,6 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 
 - Changes made using `←`, `⎕NS`, `⎕FX`, `⎕FIX`, `⎕CY`, `)NS` and `)COPY` are not currently detected. For Link to be aware of the change, a call must be made to [Link.Fix](../API/Link.Fix.md). Similarly, deletions with `⎕EX` or `)ERASE` must be replaced by a call to [Link.Expunge](../API/Link.Expunge.md).
 
-- In Dyalog versions 18.2 or earlier, changes made using the line or "del" editor are not detected.
-
 - The detection of external changes to files and directories is currently only supported if a supported flavour of .NET is available to the interpreter. Note that the built-in APL editor *will* detect changes to source files on all platforms, when it opens an editor window.
 
 - Source code must not have embedded newlines within character constants. Although `⎕FX` does allow this, Link will error if this is attempted. This restriction comes because newline characters would be interpreted as a new line when saved as text file. When newline characters are needed in source code, they should be implemented by a call to `⎕UCS` e.g. `newline←⎕UCS 13 10  ⍝ carriage-return + line-feed`
@@ -55,7 +53,7 @@ Note that *unnamed* namespaces are **NOT** supported, either as endpoints of a L
 
 ## How does Link work?
 
-Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of February 2024, at the end of the Link 4.0 development cycle.
+Some people need to know what is happening under the covers before they can relax and move on. If you are not one of those people, do not waste any further time on this section. If you do read it, understand that things may change under the covers without notice, and we will not allow a requirement to keep this document up-to-date to delay work on the code. It is reasonably accurate as of March 2025, at the end of the Link 4.1 development cycle.
 
 **Terminology:** In the following, the term *object* is used very loosely to refer to functions, operators, namespaces, classes and arrays.
 
@@ -90,7 +88,7 @@ If .NET is available, Link uses a File System Watcher to monitor linked director
 
 ### The Source of Link itself
 
-Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link`, when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. Link 4.0 is pre-installed with Dyalog version 19.0 or later. To use version 4.0 with Dyalog 18.2, see the [installation instructions](../Usage/Installation.md).
+Link consists of a set of API functions which are loaded into the namespace `⎕SE.Link`, when APL starts, from **$DYALOG/StartupSession/Link**. The user command file **$DYALOG/SALT/SPICE/Link.dyalog** provides access to the interactive user command covers that exist for most of the API functions. Link 4.1 is pre-installed with Dyalog version 20.0 or later. To use version 4.1 with Dyalog 19.0, see the [installation instructions](../Usage/Installation.md).
 
 ### The Crawler
 
