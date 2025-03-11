@@ -86,11 +86,6 @@
 
       BUFFER←(≢evts←BUFFER)↓BUFFER
       →(0=≢evts)⍴0 ⍝ During QA, the queue may be empty
-      :If ##.DEBUG
-          ⎕←' '
-          ⎕←'EventQueue original:'
-          ⎕←((⍳≢evts),0 1↓↑evts)
-      :EndIf
       fsw←⊃⊃evts ⍝ There may be multiple FSW objects but it does not impact Notify
       (actions targets)←2↑↓⍉↑2⊃¨evts
 
@@ -125,11 +120,6 @@
       ops←((+/nex),(+/exists))/'deleted' 'changed'
       ⍝ renames, then deletes, then created-or-changed
       todo←renames,fsw,∘⊂¨↓ops,⍪tgts[order]
-
-      :If ##.DEBUG
-          ⎕←'==> "todo" :'
-          ⎕←((⍳≢todo),0 1↓↑todo)
-      :EndIf
 
       :If 0≠≢todo
           {##.Notify/↑⍵}todo
