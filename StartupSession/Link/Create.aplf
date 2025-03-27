@@ -1,4 +1,4 @@
- msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext;name;type;suppliedopts;names
+ msg←{opts}Create args;ns;dir;arrow;container;emptydir;emptyns;fail;hasdir;hasns;links;nc;nsref;nsrefs;overwrite;rawns;rsi;warnmsg;xsi;⎕IO;⎕ML;dircreated;DEBUG;setconfig;setopts;z;json;config;rc;isfile;actname;actclass;leaf;file;fulltarget;singlefile;singlenc;nohold;m;nsgiven;up;parts;ext;name;type;suppliedopts;names;onstack;local
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (container ns dir nsgiven)←preProcessNsDir args
@@ -69,11 +69,12 @@ NOHOLD:
                  :EndIf
                  emptyns←1
              :Else
-                 :If 0≠≢names←U.ListNames nsref←⍎ns
-                     m←(((⍕nsref),'.')∘,¨names)∊⎕XSI          ⍝ Name on the stack
-                     names←(~m∨∨/¨⊃¨nsref.⎕STATE¨names)/names ⍝ Allow localised names in fns calling Link.Create
+                 emptyns←0=≢names←U.ListNames nsref←⍎ns
+                 :If ~emptyns
+                     onstack←((ns,'.')∘,¨names)∊⎕XSI        ⍝ Name on the stack
+                     local←{∨/⊃nsref.⎕STATE ⍵}¨names        ⍝ Localised on the stack
+                     names/⍨←onstack⍱local                  ⍝ ... are allowed in target ns
                  :EndIf
-                 emptyns←0∊⍴names
 
                  :If ~opts.(preloaded∨flatten)
                      :If ~emptyns                           ⍝ some APL names defined
