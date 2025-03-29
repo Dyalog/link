@@ -74,6 +74,7 @@ NOHOLD:
                      onstack←((ns,'.')∘,¨names)∊⎕XSI        ⍝ Name on the stack
                      local←{∨/⊃nsref.⎕STATE ⍵}¨names        ⍝ Localised on the stack
                      names/⍨←onstack⍱local                  ⍝ ... are allowed in target ns
+                     emptyns←0=≢names
                  :EndIf
 
                  :If ~opts.(preloaded∨flatten)
