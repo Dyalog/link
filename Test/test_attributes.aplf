@@ -9,7 +9,7 @@
  CleanUp folder name
  ⎕MKDIR Retry folder
  (⊂fn'bar')⎕NPUT aplf←folder,'/',(fn←'foo'),'.aplf'
- (dt←2345 6 7 10 20 30)SetTime aplf
+ (dt←2105 6 7 10 20 30)SetTime aplf
 
 ⍝ Check that we import the special datetime
  z←LinkCreate name folder
