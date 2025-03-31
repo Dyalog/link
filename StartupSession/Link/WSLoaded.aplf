@@ -11,12 +11,9 @@
          ⍝ retrieve saved workspace links before the GetLinks which may overwrite Store 0
          :If ~U.HASSTORE
          :OrIf ⎕NULL≡wslinks←U.Store 0
+         :OrIf (∨/preload∊'1yY')∧load≡⍥{⎕C ∊¯1↓1 ⎕NPARTS ⍵}⎕WSID
+         ⍝ Above: PRELOAD=Y means application intends to recreate links with preloaded:1
              wslinks←⍬
-         :EndIf
-
-         :If ok←(∨/preload∊'1yY')∧load≡⍥{⎕C ∊¯1↓1 ⎕NPARTS ⍵}⎕WSID
-             U.SetLinks ⍬ ⍝ PRELOADED=Y means application intends to recreate links with preloaded:1
-             →0           ⍝ Exit if we are in a preloaded workspace
          :EndIf
 
          ⍝ preserve old links to ⎕SE - drop the rest
