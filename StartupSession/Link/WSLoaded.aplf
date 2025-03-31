@@ -1,14 +1,18 @@
- {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken;isLoadWs
+ {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken;isLoadWs;preload
 ⍝ Action to be taken upon )LOAD or )CLEAR
  ok←0
- :Trap 0  ⍝ can't afford to error
-     load←2 ⎕NQ #'GetEnvironment' 'LOAD'
+
+ :Trap 0 ⍝ can't afford to error
+     (load preload)←{2 ⎕NQ #'GetEnvironment' ⍵}¨'LOAD' 'PRELOAD'
      IsLoad←load∘{⍵.dir∊⍥(1 ⎕NPARTS⊆)⍺}
+
      :Hold '⎕SE.Link.Links'
 
          ⍝ retrieve saved workspace links before the GetLinks which may overwrite Store 0
          :If ~U.HASSTORE
          :OrIf ⎕NULL≡wslinks←U.Store 0
+         :OrIf (∨/preload∊'1yY')∧load≡⍥{⎕C ∊¯1↓1 ⎕NPARTS ⍵}⎕WSID
+         ⍝ Above: PRELOAD=Y means application intends to recreate links with preloaded:1
              wslinks←⍬
          :EndIf
 
