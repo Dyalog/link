@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}]
+    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-preloaded] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -112,6 +112,14 @@ same folder as the original item.
 A suggested workflow is to always create a stub source file in the correct directory and edit the function that appears in the workspace, rather than creating new functions in the workspace.
 
 This option takes effect only when **source** is **dir**.
+
+### **preloaded**
+Default: **off**
+
+The **preloaded** flag skips the reading of source files when creating
+links. This is useful if you have loaded a saved workspace which is known
+to contain the latest version of the source, or have materialised the
+source using other mechanisms such as shared code files.
 
 ### **caseCode**
 
