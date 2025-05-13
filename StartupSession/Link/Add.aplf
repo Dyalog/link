@@ -1,4 +1,4 @@
- msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type;⎕TRAP
+ msg←{api}Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type;⎕TRAP
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (msg setconfig)←Config.GetConfig opts
@@ -27,6 +27,9 @@
 
              :If ~0∊⍴ns name Fix''  ⍝ was linked and fixed
                  added,←⊂item
+                 :If 9 ''≡40 62 ⎕ATX item ⍝ unscripted namespace
+                     (added unlinked unfound),←1 Add(item,'.')∘,¨(⍎item).⎕NL-⍳9
+                 :EndIf
              :Else
                  unlinked,←⊂item
              :EndIf
@@ -34,11 +37,16 @@
              unfound,←⊂item
          :EndIf
      :EndFor
-     msg←0⍴⊂''
-     :If ×≢added ⋄ msg,←⊂'Added:',∊' ',¨added ⋄ :EndIf
-     :If ×≢unlinked ⋄ msg,←⊂'Not in a linked namespace:',∊' ',¨unlinked ⋄ :EndIf
-     :If ×≢unfound ⋄ msg,←⊂'Not found:',∊' ',¨unfound ⋄ :EndIf
-     msg←1↓U.FmtLines msg
+     :If 900⌶⍬
+     :OrIf 0≡api
+         msg←0⍴⊂''
+         :If ×≢added ⋄ msg,←⊂'Added:',∊' ',¨added ⋄ :EndIf
+         :If ×≢unlinked ⋄ msg,←⊂'Not in a linked namespace:',∊' ',¨unlinked ⋄ :EndIf
+         :If ×≢unfound ⋄ msg,←⊂'Not found:',∊' ',¨unfound ⋄ :EndIf
+         msg←1↓U.FmtLines msg
+     :Else
+         msg←added unlinked unfound
+     :EndIf
  :Else
      U.Resignal 1
  :EndTrap
