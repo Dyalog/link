@@ -36,7 +36,7 @@
 ⍝ Add multiple variables while simultaneously defining them
  ⎕CS name
  a←1
- z←⎕SE.Link.Add 'a' ⍝ Test scalar name - issue #688
+ z←⎕SE.Link.Add'a' ⍝ Test scalar name - issue #688
  z←⎕SE.Link.Add'b c←2 3'
  ⎕CS here
  assert'''123''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc''' ⍝ result is actually a vector of vectors of vectors
@@ -46,6 +46,12 @@
  z←⎕SE.Link.Add'(a b)c←⊂1 2'
  ⎕CS here
  assert'''121 2''≡∊{⊃⎕NGET(''',folder,'/'',⍵,''.apla'')1}¨''abc''' ⍝ 1 2 (1 2)
+
+⍝ Add children
+ 'sub1.sub2'ns.⎕NS ⍬
+  2 ns.sub1.sub2.⎕FIX src←,⊂'foo←{ five }'
+ z←⎕SE.Link.Add name,'.sub1'
+ assert'src≡⊃⎕NGET''',folder,'/sub1/sub2/foo.aplf'' 1'
 
  CleanUp folder name
  ok←1

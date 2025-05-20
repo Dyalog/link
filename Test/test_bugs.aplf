@@ -1,7 +1,8 @@
  ok←test_bugs(folder name);engine;foo;newbody;nr;opts;props;ref;root;search;server;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;warn;z;f;b
     ⍝ Github issues
  name ⎕NS''
- QMKDIR Retry⊢folder ⍝ folder must be non-existent
+ 3 ⎕NDELETE folder    ⍝ folder must be non-existent
+ QMKDIR Retry⊢folder
 
           ⍝ link issue #335
  z←name'abc'⎕SE.Link.Fix,⊂'[1⋄2⋄3]'
@@ -71,7 +72,7 @@
  z←LinkCreate'#.unlikelyname.sub'folder
  assert'3=CountLinks'
  props←'Namespace' '' 'Source' 'Files'
- z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ''
+ z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status''
  'link issue #142'assert'(props⍪ ''⎕SE.unlikelyname'' ''#.unlikelyname'' ''#.unlikelyname.sub'',3 3⍴''←→'' folder 1)≡z'
  z←{(~⍵[;1]∊IGNORE_LINKS)⌿⍵}⎕SE.Link.Status ⎕SE
  'link issue #142'assert'(props,[.5] ''⎕SE.unlikelyname'' ''←→'' folder 1 )≡z'
@@ -79,10 +80,10 @@
  {}'(all:1)'⎕SE.Link.Break ⍬
  'link issue #284'assert'{6::1 ⋄ (⎕SE.Link.Links.ns~IGNORE_LINKS)≡,⊂''⎕SE.unlikelyname''}⍬'
  :If ~TESTS_LINKED
-    {}'(all:''⎕SE'')'⎕SE.Link.Break ⍬
-    'link issue #284'assert'{6::1 ⋄ 0=CountLinks}⍬'
+     {}'(all:''⎕SE'')'⎕SE.Link.Break ⍬
+     'link issue #284'assert'{6::1 ⋄ 0=CountLinks}⍬'
  :Else
-    Log 'Not testing "]link.break -all=⎕SE" because ',(⍕⎕THIS),' is linked'
+     Log'Not testing "]link.break -all=⎕SE" because ',(⍕⎕THIS),' is linked'
  :EndIf
 
  ⎕EX'⎕SE.unlikelyname' '#.unlikelyname'
@@ -212,8 +213,8 @@
  z←⎕SE.Link.GetItemName f←1 NTREE folder
  'link issue #128'assert'({⍵[⍋⍵]}z)≡({⍵[⍋⍵]} 1 NSTREE name)'
  :If ⎕SE.Link.U.ISWIN
-     b←('/' ⎕R '\\')f ⍝ file names with backslashes
-     'link issue #482' assert 'z≡⎕SE.Link.GetItemName b'
+     b←('/'⎕R'\\')f ⍝ file names with backslashes
+     'link issue #482'assert'z≡⎕SE.Link.GetItemName b'
  :EndIf
  z←⎕SE.Link.GetFileName'⎕SE.nope' '⎕SE.nope.nope',name∘,¨'.nope' '.sub.nope' '.nope.nope'
  z,←⎕SE.Link.GetItemName'/nope.aplf' '/nope/nope.aplf',folder∘,¨'/nope.nope' '/sub/nope.nope' '/nope/nope.nope'
@@ -267,7 +268,7 @@
  (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'(var:42 ⋄ list:1 2 3)'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
       ⍝'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0 ⍝ UCMD may trigger any error number
  z←(⍎name).{⎕SE.UCMD']Link.Add jsondict.list'}⍬
- 'link issue #177'assert'∨/''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
+ 'link issue #177'assert'∨/''properly named''⍷z'  ⍝ link issue #217 - UCMD must not error
 
  ⎕EX name,'.jsondict'
  {}⎕SE.Link.Break name
@@ -294,7 +295,7 @@
  #.jsondict←#.⎕JSON'{"var":42,"list":[1,2,3]}'
       ⍝'link issue #177'assertError'#.{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬' 'Not a properly named namespace' 0  ⍝ UCMD may trigger any error number
  z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
- 'link issue #177'assert'∨/''⎕SE.Link.Add: Not a properly named namespace:''⍷z'  ⍝ link issue #217 - UCMD must not error
+ 'link issue #177'assert'∨/''properly named''⍷z'  ⍝ link issue #217 - UCMD must not error
  ⎕EX'#.jsondict' ⋄ '#.jsondict'⎕NS'' ⋄ #.jsondict.(var list)←42(1 2 3)
  z←#.{⎕SE.UCMD']Link.Add jsondict.list'}⍬
  'link issue #177'assert'⎕NEXISTS ''',folder,'/jsondict-0/list-0.apla'''

@@ -1,4 +1,4 @@
- msg←Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type;⎕TRAP
+ msg←{api}Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type;⎕TRAP;unnamed
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (msg setconfig)←Config.GetConfig opts
@@ -16,7 +16,7 @@
      :EndIf
      items←' '(≠⊆⊢)⍣(1=≡,items)⊢items
      items←{⊃⌽⍵}¨⎕RSI ⎕XSI∘U.ContainerNs¨items  ⍝ fully qualified name
-     added←unlinked←unfound←0⍴⊂''
+     added←unlinked←unfound←unnamed←0⍴⊂''
      :For item :In items
          :If ~(# U.NameClass item)∊0 ¯1
              (ns name)←U.SplitNs item
@@ -24,9 +24,17 @@
                  z←Stop item(⎕STOP item)
                  z←Trace item(⎕TRACE item)
              :EndIf
-
-             :If ~0∊⍴ns name Fix''  ⍝ was linked and fixed
+             :If ~U.IsNamedRef ns⍎'⎕THIS'
+                 unnamed,←⊂ns
+             :ElseIf ~0∊⍴ns name Fix''  ⍝ was linked and fixed
                  added,←⊂item
+                 :If 9(0⍴⊂'')≡40 62 ⎕ATX item ⍝ unscripted namespace
+                     :If U.IsNamedNs item
+                         (added unlinked unfound unnamed),←1 Add(item,'.')∘,¨(⍎item).⎕NL-⍳9
+                     :Else
+                         unnamed,←⊂item
+                     :EndIf
+                 :EndIf
              :Else
                  unlinked,←⊂item
              :EndIf
@@ -34,11 +42,17 @@
              unfound,←⊂item
          :EndIf
      :EndFor
-     msg←0⍴⊂''
-     :If ×≢added ⋄ msg,←⊂'Added:',∊' ',¨added ⋄ :EndIf
-     :If ×≢unlinked ⋄ msg,←⊂'Not in a linked namespace:',∊' ',¨unlinked ⋄ :EndIf
-     :If ×≢unfound ⋄ msg,←⊂'Not found:',∊' ',¨unfound ⋄ :EndIf
-     msg←1↓U.FmtLines msg
+     :If 900⌶⍬
+     :OrIf 1≢api ⍝ can be an opts ns
+         msg←0⍴⊂''
+         :If ×≢added ⋄ msg,←⊂'Added:',∊' ',¨added ⋄ :EndIf
+         :If ×≢unlinked ⋄ msg,←⊂'Not in a linked namespace:',∊' ',¨unlinked ⋄ :EndIf
+         :If ×≢unfound ⋄ msg,←⊂'Not found:',∊' ',¨unfound ⋄ :EndIf
+         :If ×≢unnamed ⋄ msg,←⊂'Not properly named:',∊' ',¨unnamed ⋄ :EndIf
+         msg←1↓U.FmtLines msg
+     :Else
+         msg←added unlinked unfound unnamed
+     :EndIf
  :Else
      U.Resignal 1
  :EndTrap
