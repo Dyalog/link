@@ -25,12 +25,7 @@ jobs:
         mkdir -p build
         cp -r StartupSession build/StartupSession
         cd build
-        zip -r link-${{ env.REF_NAME }}.zip StartupSession
-        cd ..
-        cp -r qse/StartupSession/Dyalog build/StartupSession
-        cd build
-        zip -r link-${{ env.REF_NAME }}-v182.zip StartupSession
-  
+        zip -r link-${{ env.REF_NAME }}.zip StartupSession        
 
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v1
@@ -38,6 +33,6 @@ jobs:
         name: ${{ env.REF_NAME }}
         draft: false  # Note: change this to false when fully operational
         prerelease: false  # Note: change this to false when fully operational
-        files: ./build/link-${{ env.REF_NAME }}.zip, ./build/link-${{ env.REF_NAME }}-v182.zip
+        files: ./build/link-${{ env.REF_NAME }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
