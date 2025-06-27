@@ -105,7 +105,7 @@ NOHOLD:
              :If oldname≢⊃ns U.Fix oldname(ns.⎕NR oldname)1  ⍝ repair damage done by editor - 0 ⎕ATX may hold an incorrect version, compared to ⎕NR
                  U.Error'Could not fix ',(⍕ns),'.',oldname
              :EndIf
-         :ElseIf callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
+         :ElseIf (ALWAYSREFORMAT=0)∧callback∧(0=≢oldfile)∧(oldname≡name)  ⍝ new name - link issue #196 v18.0 needs to preserve source as typed
              :If (1↓U.LASTFIX)≢(⍕ns)(oldname) ⋄ U.Error'Fixing error: last fix is ',(⍕2⊃U.LASTFIX),'.',(3⊃U.LASTFIX),' instead of ',(⍕ns),'.',(oldname) ⋄ :EndIf
              :If 2=ns.⎕NC name ⋄ src←ns U.GetAplSource name link ⍝ source of array
              ⍝:ElseIf ~tie ⋄ :AndIf (ns.⎕NC name)∊3 4 ⍝ functions not tied to file cannot preserve whitespace - Link.Diff would otherwise report a diff between file and namespace
