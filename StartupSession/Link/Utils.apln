@@ -2080,7 +2080,7 @@
           r,←⊂''
       :EndIf
       r/⍨←~'' ''⍷r
-      r,←⊂']FILE.Open https://dyalog.github.io/link/4.0/API/Link.',cmd ⍝ for full documentation'
+      r,←⊂']FILE.Open https://dyalog.github.io/link/4.1/API/Link.',cmd ⍝ for full documentation'
      
       :If 1.31>⎕SE.Dyalog.Utils.Version ⋄ :AndIf ⎕PW<80   ⍝ link issue #199 - fixed in Utils v1.31
           r←,⊂'Cannot display help with ⎕PW<80'
