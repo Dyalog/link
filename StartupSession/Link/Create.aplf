@@ -165,7 +165,7 @@ NOHOLD:
              z Config.WriteConfig opts
          :EndIf
 
-         :If ~isfile∨dircreated ⍝ Update source flag cache
+         :If ~isfile∨dircreated∨opts.ignoreconfig ⍝ Update source flag cache
              (rc config)←Config.ReadConfigFile dir,'/.linkconfig'
          :AndIf 0=rc
              config Config.SetSourceFlags opts
