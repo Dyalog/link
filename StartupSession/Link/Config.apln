@@ -187,7 +187,7 @@
       :EndIf
     ∇
 
-    ∇ (rc config)←ReadConfigFile file;valid;names;m;p;json;one;t
+    ∇ (rc config)←ReadConfigFile file;valid;names;p;json;one;t;mask;i;sf;badNames;member;val
      ⍝ Read a configuration file and return a namespace
      ⍝ rc←0 on success, 1 on failure in which case config is an error message :-(
      
@@ -217,7 +217,35 @@
       :EndIf
       one←1=≢names←valid~names,⊂'SourceFlags'
       ⍎(×≢names)/'config.(',(⍕names),')←',(one/'⊃'),'⎕NS¨(⍴names)⍴⊂'''''
-      :If 0=⎕NC'config.SourceFlags' ⋄ config.SourceFlags←⍬ ⋄ :EndIf
+      :If 0=⎕NC'config.SourceFlags'
+          config.SourceFlags←⍬
+      :ElseIf 1≠≢⍴config.SourceFlags
+          (rc config)←1('SourceFlags in "',file,'" must be a vector')
+      :ElseIf 0=≢config.SourceFlags
+      :ElseIf ≠/mask←9≠{40 ⎕ATX'⍵'}¨config.SourceFlags
+          →0⊣(rc config)←1('SourceFlags[',(⍕⍸mask),'] in "',file,'" must be objects'↓⍨1=+/mask)
+      :Else
+          :For i sf :InEach (⍳≢config.SourceFlags)config.SourceFlags
+              :If 0=40 sf.⎕ATX'Name'
+                  →0⊣(rc config)←1('SourceFlags[',(⍕i),'] in "',file,'" has no Name member')
+              :ElseIf 2≠40 sf.⎕ATX'Name'
+              :OrIf 1≠≡sf.Name
+              :OrIf ¯1=⎕NC⍕sf.Name
+                  →0⊣(rc config)←1('SourceFlags[',(⍕i),'] in "',file,'" has invalid Name member')
+              :ElseIf ×≢badNames←'Name' 'Stop' 'Trace'~⍨sf.⎕NL-⍳9
+                  →0⊣(rc config)←1('SourceFlags[',(⍕i),'] in "',file,'" has invalid member',(1=≢badNames)↓'s:',∊' ',¨badNames)
+              :Else
+                  :For member :In 'Stop' 'Trace'∩sf.⎕NL ¯2
+                      val←sf⍎member
+                      :If 1≠≡val
+                      :OrIf ⍬≢0/val
+                      :OrIf val≢⌊val
+                          →0⊣(rc config)←1('SourceFlags[',(⍕i),'].',member,' in "',file,'" is not a vector of line numbers')
+                      :EndIf
+                  :EndFor
+              :EndIf
+          :EndFor
+      :EndIf
       rc←0
     ∇
 
