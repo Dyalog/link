@@ -2,7 +2,7 @@
      defaults: {
         secondstimeout: 600,
         platforms: ["win","macx86","macarm","pi","linux"],
-        email: "mkrom@dyalog.com",
+        //email: "mkrom@dyalog.com",
         dyalogversions: "18-",
         },
 
@@ -22,7 +22,7 @@
         {
             id:"all_19",
             test:"./Test/RunTests.aplf",
-            dyalogversions:  "19+",
+            dyalogversions:  "19-",
             env:{
                 DEBUG_LINKQA: "N",
                 DYALOGLINK: "${THISPATH}",
