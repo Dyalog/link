@@ -21,10 +21,10 @@
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  3 ⎕NDELETE folder ⋄ ⎕EX name
  2 ⎕MKDIR subfolder
- (⊂,'0')⎕NPUT folder,'/⎕IO.apla'
- (⊂'foo' '2+2')⎕NPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place
- (⊂'goo' '2+2')⎕NPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
- (⊂'bar' '2+2')⎕NPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
+ (⊂,'0')QNPUT folder,'/⎕IO.apla'
+ (⊂'foo' '2+2')QNPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place
+ (⊂'goo' '2+2')QNPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
+ (⊂'bar' '2+2')QNPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
  z←opts LinkCreate name folder
  'system variables not inherited'assert'0=subname⍎''⎕IO'''
  'expected functions not found'assert'3.1=',name,'.⎕NC ''foo'' ''goo'' ''bar'''
@@ -61,7 +61,7 @@
  opts.source←'auto'
  ⍎name,'←⎕NS ⍬'  ⍝ unnamed namespace name
  2 ⎕MKDIR subfolder
- (⊂':Namespace ns' ':EndNamespace')⎕NPUT folder,'/ns.apln'
+ (⊂':Namespace ns' ':EndNamespace')QNPUT folder,'/ns.apln'
  'link issue #197'assertError'opts LinkCreate name folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import name folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import name (folder,''/ns.apln'')' 'Not a properly named namespace'
@@ -74,8 +74,8 @@
       ⍝ link issue #163
  2 ⎕MKDIR folder
  root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
- (⊂' uc←{' ' ⍝ uppercase conversion' '     1 ⎕C ⍵' ' }')⎕NPUT folder,'/uc.aplf'
- (⊂' lc←{' ' ⍝ lowercase conversion' '     ¯1 ⎕C ⍵' ' }')⎕NPUT folder,'/lc.aplf'
+ (⊂' uc←{' ' ⍝ uppercase conversion' '     1 ⎕C ⍵' ' }')QNPUT folder,'/uc.aplf'
+ (⊂' lc←{' ' ⍝ lowercase conversion' '     ¯1 ⎕C ⍵' ' }')QNPUT folder,'/lc.aplf'
  z←#.{⎕SE.UCMD ⍵}']Link.Create # ',folder  ⍝ Run UCMD from #
  'link issue #163'assert'1=CountLinks'
  'link issue #163'assert'3.2 3.2≡#.⎕NC''uc'' ''lc'''
@@ -137,7 +137,7 @@
  z←opts LinkCreate name folder
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
- (⊂'Hello') ⎕NPUT folder,'/hello.txt'
+ (⊂'Hello') QNPUT folder,'/hello.txt'
  z←opts LinkCreate name folder
  'link issue #554'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
@@ -154,7 +154,7 @@
  2 ⎕MKDIR subfolder
       ⍝ actual contents
  quadvars←':Namespace quadVars' '##.(⎕IO ⎕ML ⎕WX)←0 2 1' ':EndNamespace'  ⍝ link issue #206 - try unusual values
- (⊂quadvars)⎕NPUT folder,'/quadVars.apln'  ⍝ link issue #206
+ (⊂quadvars)QNPUT folder,'/quadVars.apln'  ⍝ link issue #206
  :If ⎕SE.Link.U.IS181
      foosrc←'  r ← foo  x  ⍝  header  comment ' '   ⍝  comment  ' '  r ← ''foo'' x '  ⍝ source-as-typed (⎕ATX)
      newfoosrc←('  ⍝  new  comment  ' '  r ← ''newfoo'' x ')@2 3⊢foosrc
@@ -166,32 +166,32 @@
          newfoosrc←(0 0 1/¨' '),¨newfoosrc  ⍝ AUTOFORMAT=0 adds a space excepted where commented
      :EndIf
  :EndIf
- (⊂foosrc)∘⎕NPUT¨folder subfolder,¨⊂'/foo.aplf'
- (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘⎕NPUT¨folder subfolder,¨⊂'/var.apla'
- (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo ← { ''foo'' ⍵ } ' ':EndNamespace')∘⎕NPUT¨folder subfolder,¨⊂'/ns.apln'
- (⊂';some text')⎕NPUT folder,'/config.ini'  ⍝ should be ignored
- (⊂badsrc1←,¨':Namespace badns1' '  ∇  res  ←  foo  arg  ;  ' '  res  ←  arg  ' '∇' ':EndNamespace')⎕NPUT folder,'/badns1.apln'
- (⊂badsrc2←,¨':Namespace badns2' '  ∇  res  ←  foo  arg  ' '  res  ←  arg  ' '∇' ':EndClass')⎕NPUT folder,'/badns2.apln'
+ (⊂foosrc)∘QNPUT¨folder subfolder,¨⊂'/foo.aplf'
+ (⊂varsrc←⎕SE.Dyalog.Array.Serialise var←((⊂'hello')@2)¨⍳1 1 2)∘QNPUT¨folder subfolder,¨⊂'/var.apla'
+ (⊂nssrc←':Namespace ns' ' ⍝ comment' 'foo ← { ''foo'' ⍵ } ' ':EndNamespace')∘QNPUT¨folder subfolder,¨⊂'/ns.apln'
+ (⊂';some text')QNPUT folder,'/config.ini'  ⍝ should be ignored
+ (⊂badsrc1←,¨':Namespace badns1' '  ∇  res  ←  foo  arg  ;  ' '  res  ←  arg  ' '∇' ':EndNamespace')QNPUT folder,'/badns1.apln'
+ (⊂badsrc2←,¨':Namespace badns2' '  ∇  res  ←  foo  arg  ' '  res  ←  arg  ' '∇' ':EndClass')QNPUT folder,'/badns2.apln'
  newvarsrc←⎕SE.Dyalog.Array.Serialise newvar←((⊂'new hello')@2)¨var
  newnssrc←('  ⍝  new  comment  ' 'foo ← { ''newfoo'' ⍵ } ')@2 3⊢nssrc
       ⍝ bug from Morten
  ns2←,¨':Namespace ns2' '∇res←{larg}fn rarg' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{' '1:∇⍵⋄⍵' '}rarg' '∇' 'dfn←{' 'sub←{1:∇⍵⋄⍵}' 'sub←{1:∇⍵' '⍵}' 'sub←{' '1:∇⍵⋄⍵' '}' 'res←{1:∇⍵⋄⍵}rarg' 'res←{1:∇⍵' '⍵}rarg' 'res←{1:∇⍵⋄⍵}rarg' 'res←{' '1:⍵⋄⍵' '}rarg' '}' ':EndNamespace'
- (⊂ns2)⎕NPUT folder,'/ns2.apln'
+ (⊂ns2)QNPUT folder,'/ns2.apln'
       ⍝ some more tests with :Require and Class/Interface inheritance - in particular that it survives all possible grading orders byt name and by timestamp
  dl←0.1  ⍝ delay between creation in case files are ordered by time rather than by name
- ⎕DL dl ⋄ (⊂':Namespace REQ1A' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/AREQ1A.apln'
- ⎕DL dl ⋄ (⊂(':Require file://',folder,'/AREQ1A.apln')':Namespace REQ1B' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')⎕NPUT folder,'/AREQ1B.apln'
- ⎕DL dl ⋄ (⊂':Interface CLASS1A' '∇ res←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS1A.aplc'
- ⎕DL dl ⋄ (⊂':Class CLASS1B:,CLASS1A' ':Include REQ1B' '∇ res←foo arg' ':Implements Method CLASS1A.foo' 'res←''foo''arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS1B.aplc'
- ⎕DL dl ⋄ (⊂':Interface CLASS1C' '∇ res←goo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS1C.aplc'
- ⎕DL dl ⋄ (⊂':Class CLASS1D:CLASS1B,CLASS1C' ':Include REQ1B' '∇ res←goo arg' ':Implements Method CLASS1C.goo' 'res←''goo'' arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS1D.aplc'
- ⎕DL dl ⋄ (⊂':Class CLASS2A:CLASS2C,CLASS2B' ':Include REQ2A' '∇ res←goo arg' ':Implements Method CLASS2B.goo' 'res←''goo'' arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS2A.aplc'
- ⎕DL dl ⋄ (⊂':Interface CLASS2B' '∇ res←goo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS2B.aplc'
- ⎕DL dl ⋄ (⊂':Class CLASS2C:,CLASS2D' ':Include REQ2A' '∇ res←foo arg' ':Implements Method CLASS2D.foo' 'res←''foo''arg' '∇' ':EndClass')⎕NPUT folder,'/CLASS2C.aplc'
- ⎕DL dl ⋄ (⊂':Interface CLASS2D' '∇ res←foo arg' '∇' ':EndInterface')⎕NPUT folder,'/CLASS2D.aplc'
- ⎕DL dl ⋄ (⊂(':Require file://',folder,'/ZREQ2B.apln')':Namespace REQ2A' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')⎕NPUT folder,'/ZREQ2A.apln'
- ⎕DL dl ⋄ (⊂':Namespace REQ2B' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/ZREQ2B.apln'
- (⊂':Namespace required' 'testvar←1234' ':EndNamespace')⎕NPUT folder,'/required.apln'
+ ⎕DL dl ⋄ (⊂':Namespace REQ1A' 'testvar←1234' ':EndNamespace')QNPUT folder,'/AREQ1A.apln'
+ ⎕DL dl ⋄ (⊂(':Require file://',folder,'/AREQ1A.apln')':Namespace REQ1B' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')QNPUT folder,'/AREQ1B.apln'
+ ⎕DL dl ⋄ (⊂':Interface CLASS1A' '∇ res←foo arg' '∇' ':EndInterface')QNPUT folder,'/CLASS1A.aplc'
+ ⎕DL dl ⋄ (⊂':Class CLASS1B:,CLASS1A' ':Include REQ1B' '∇ res←foo arg' ':Implements Method CLASS1A.foo' 'res←''foo''arg' '∇' ':EndClass')QNPUT folder,'/CLASS1B.aplc'
+ ⎕DL dl ⋄ (⊂':Interface CLASS1C' '∇ res←goo arg' '∇' ':EndInterface')QNPUT folder,'/CLASS1C.aplc'
+ ⎕DL dl ⋄ (⊂':Class CLASS1D:CLASS1B,CLASS1C' ':Include REQ1B' '∇ res←goo arg' ':Implements Method CLASS1C.goo' 'res←''goo'' arg' '∇' ':EndClass')QNPUT folder,'/CLASS1D.aplc'
+ ⎕DL dl ⋄ (⊂':Class CLASS2A:CLASS2C,CLASS2B' ':Include REQ2A' '∇ res←goo arg' ':Implements Method CLASS2B.goo' 'res←''goo'' arg' '∇' ':EndClass')QNPUT folder,'/CLASS2A.aplc'
+ ⎕DL dl ⋄ (⊂':Interface CLASS2B' '∇ res←goo arg' '∇' ':EndInterface')QNPUT folder,'/CLASS2B.aplc'
+ ⎕DL dl ⋄ (⊂':Class CLASS2C:,CLASS2D' ':Include REQ2A' '∇ res←foo arg' ':Implements Method CLASS2D.foo' 'res←''foo''arg' '∇' ':EndClass')QNPUT folder,'/CLASS2C.aplc'
+ ⎕DL dl ⋄ (⊂':Interface CLASS2D' '∇ res←foo arg' '∇' ':EndInterface')QNPUT folder,'/CLASS2D.aplc'
+ ⎕DL dl ⋄ (⊂(':Require file://',folder,'/ZREQ2B.apln')':Namespace REQ2A' '∇ res←TestVar' ':Access Public Shared' 'res←##.REQ1A.testvar' '∇' ':EndNamespace')QNPUT folder,'/ZREQ2A.apln'
+ ⎕DL dl ⋄ (⊂':Namespace REQ2B' 'testvar←1234' ':EndNamespace')QNPUT folder,'/ZREQ2B.apln'
+ (⊂':Namespace required' 'testvar←1234' ':EndNamespace')QNPUT folder,'/required.apln'
  reqfile←subfolder,'/require.apln'
  reqsrc←'' '   ⍝ :Namespace notyet '(':Require "file://',folder,'/required.apln"')':Namespace require' 'testvar←##.required.testvar' ':EndNamespace'
 
@@ -204,7 +204,7 @@
  :EndIf
 
       ⍝ Link issue #173
- (⊂reqsrc)⎕NPUT reqfile 1 ⋄ opts.source←'dir'
+ (⊂reqsrc)QNPUT reqfile 1 ⋄ opts.source←'dir'
  opts.watch←'dir' ⋄ 'link issue #173'assertError'opts LinkCreate name folder' ':Require' ⋄ ⎕EX name
  opts.watch←'ns' ⋄ 'link issue #173'assertError'opts LinkCreate name folder' ':Require' ⋄ ⎕EX name
  opts.watch←'none' ⋄ 'link issue #173'assertError'opts LinkCreate name folder' ':Require' ⋄ ⎕EX name
