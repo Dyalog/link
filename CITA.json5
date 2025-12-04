@@ -2,7 +2,7 @@
      defaults: {
         secondstimeout: 600,
         platforms: ["win","macx86","macarm","pi","linux"],
-        //email: "mkrom@dyalog.com",
+        email: "mkrom@dyalog.com",
         dyalogversions: "18-",
         },
 
