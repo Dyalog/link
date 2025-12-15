@@ -2,8 +2,9 @@
      defaults: {
         secondstimeout: 600,
         platforms: ["win","macx86","macarm","pi","linux"],
-        email: "mkrom@dyalog.com",
+        email: "linkdev@dyalog.com",
         dyalogversions: "18-",
+        errorextractor: "^.*\n.*∧", // a regex to extract error messages from output logs (just take the last two lines to extract something that we can do a ∪ on)
         },
 
    tests: [
