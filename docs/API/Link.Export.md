@@ -1,6 +1,6 @@
 # Link.Export
 
-    ]LINK.Export [ns] <dir> [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars] [-ignoreconfig] [-text={aplan|plain}]
+    ]LINK.Export [ns] <dir> [-overwrite] [-casecode] [-arrays{=name1,name2,...}] [-sysvars] [-ignoreconfig] [-text={aplan|plain}] [-recordflags]
     
     msg ← {opts} ⎕SE.Link.Export (ns dir) 
 

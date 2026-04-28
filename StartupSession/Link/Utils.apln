@@ -638,7 +638,7 @@
       :If ''≡0⍴opts ⋄ opts←⎕SE.Dyalog.Array.Deserialise opts ⍝ pseudo array notation (experimental)
       :Else ⋄ opts←⎕SE.Link.⎕NS opts  ⍝ duplicate namespace to avoid changing caller's, and to avoid having cross-refs between # and ⎕SE
       :EndIf
-      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed' 'preloaded' 'ignoreconfig' 'text'
+      modifiers←'source' 'watch' 'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'arrays' 'sysVars' 'fastLoad' 'beforeWrite' 'beforeRead' 'getFilename' 'customExtensions' 'codeExtensions' 'typeExtensions' 'proceed' 'preloaded' 'ignoreconfig' 'text' 'recordFlags'
       :If ~900⌶⍬ ⋄ modifiers,←defopts.⎕NL ¯2 ⋄ :EndIf
       :If ∨/mask←~(nl←opts.⎕NL ¯2)∊modifiers
           Error'Unknown modifiers: ',FmtEach mask/nl
@@ -651,8 +651,8 @@
       'source'Default'auto' ⋄ 'source'Check'auto' 'dir' 'ns'
       'watch'Default'both' ⋄ 'watch'Check'both' 'dir' 'ns' 'none'
       'text'Default'aplan' ⋄ 'text'Check'aplan' 'plain'
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Default 0
-      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig'Check¨⊂0 1
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' 'recordFlags'Default 0
+      'flatten' 'caseCode' 'forceExtensions' 'forceFilenames' 'fastLoad' 'sysVars' 'preloaded' 'ignoreconfig' 'recordFlags'Check¨⊂0 1
       Check←Error{''≢0⍴v←⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector' ⋄ (~0∊⍴v)∧(3≠⎕NC v):Error'Modifier ',⍵,' must be the name of an APL function' ⋄ 1:_←1}opts
       'beforeWrite' 'beforeRead' 'getFilename'Default'' ⋄ Check¨'beforeWrite' 'beforeRead' 'getFilename'
       Check←Error{∨/{''≢0⍴⍵}¨⊆⍵⍵⍎⍵:⍺⍺'Modifier "',⍵,'" must be a text vector or vector of text vectors' ⋄ 1:_←1}opts
@@ -1995,9 +1995,9 @@
       r,←'{"Name":"Add",         "args":"items[←def]",       "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
       r,←'{"Name":"Break",       "args":"[ns1]",             "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",             "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig -text=aplan plain","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig -text=aplan plain -recordflags","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Configure",   "args":"target [settings]", "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
-      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig -text=aplan plain", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
+      r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig -text=aplan plain -recordflags", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"[item]",            "Parse":"9999S",  "Desc":"Erase item and associated file"},'
       r,←'{"Name":"GetFileName", "args":"item",              "Parse":"1",  "Desc":"Return name of file associated with item"},'
       r,←'{"Name":"GetItemName", "args":"file",              "Parse":"1L", "Desc":"Return name of item associated with file"},'
@@ -2040,6 +2040,7 @@
       m⍪←'-sysvars' '' 'Export namespace-scoped system variables to file for all unscripted namespaces'
       m⍪←'-typeextensions' '=<var>' 'name of two-column matrix with name classes and extensions'
       m⍪←'-watch' '={none|ns|dir|both}' 'which source to track for changes so the other can be synchronised'
+      m⍪←'-recordflags' '' 'save stop and trace flags to configuration file'
       (mods modVals modTxts)←↓⍉m
       myMods←'-\pL+'⎕S'&'⊢info.Parse
       myModI←⊂mods⍳myMods
@@ -2098,7 +2099,7 @@
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
           :If 9=40 ⎕ATX'args' ⍝ args has been parsed
-              names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch' 'create' 'ignoreconfig' 'text'
+              names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch' 'create' 'ignoreconfig' 'text' 'recordFlags'
               :For name :In names
                   lc←0 CaseText name
                   :If ×args.⎕NC lc
