@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-preloaded] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}]
+    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-preloaded] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}] [-recordflags]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -94,6 +94,7 @@ Default: **off**
 
 The **ignoreconfig** allows you to ignore the `.linkconfig` file in the linked directory. This can be useful during debugging, especially if you have a damaged configuration file.
 
+See [Configuration Files](../Usage/ConfigFiles.md#the-ignoreconfig-switch) for details.
 
 ### **flatten**
 Default: **off**
@@ -280,12 +281,12 @@ Side effects are (again, only at initial load time, not at subsequent events):
 
 This option takes effect only when **source** is **dir**.
 
-### **ignoreconfig**
+### **recordFlags**
 Default: **off**
 
-Ignores any Link configuration files.
+Saves `⎕STOP` and `⎕TRACE` values as part of the configuration file.
 
-See [Configuration Files](../Usage/ConfigFiles.md#the-ignoreconfig-switch) for details.
+See [Configuration Files](../Usage/ConfigFiles.md#stop-and-trace-flags) for details.
 
 ### **text**
 Default: **aplan**

@@ -2,16 +2,34 @@
 ⍝ Verify that the system is using configuration according to the spex
 
  getj5←{⎕JSON⍠'Dialect' 'JSON5'⊢⊃⎕NGET ⍵}
+
+ SetConfig'' ⍝ Clear user config file
+ 3 ⎕NDELETE Retry⊢folder
+ 3 ⎕MKDIR Retry⊢folder
+ ⎕EX name
+ z←LinkCreate name folder
+ ns←⍎name
+ ns.⎕FX'foo' '2+2'
+ ns.⎕FX'bar' '3+3'
+ 1 ns.⎕STOP'foo'   ⍝ Check that Link.Add will NOT register existing stops
+ z←⎕SE.Link.Add name∘,¨'.foo' '.bar'
+ files←2⊃¨⎕NPARTS⊃⎕NINFO⍠1⊢folder,'/*'
+ ⎕SE.Link.Stop'bar' 1  ⍝ Check that Link.Stop will NOT register new stops
+ assert'''foo'' ''bar'' ≡⍥{⍵[⍋⍵]} files'
+ link←GetLink name
+ assert'0=≢link.flagged'
+
 ⍝ --- Link.Configure set user config ---
  SetConfig'' ⍝ Clear user config file
- z←⎕SE.Link.Configure'*' 'watch:ns' 'caseCode:1' ⍝ Set options
+ z←⎕SE.Link.Configure'*' 'watch:ns' 'caseCode:1' 'recordFlags:1' ⍝ Set options
  assert'∧/1∊¨''watch: '' ''caseCode: ''⍷¨⊂z'
  config←getj5 ⎕SE.Link.USERCONFIGFILE
- assert'(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert'(''caseCode'' ''recordFlags'' ''watch'')≡config.Settings.⎕NL -2'
  assert'⎕SE.Link.Version≡config.LinkVersion.ID'
 
 ⍝ --- Link.Create ---
 ⍝ Test that Link.Create uses the user config
+ 3 ⎕NDELETE Retry⊢folder
  3 ⎕MKDIR Retry⊢folder
  ⎕EX name
 
@@ -39,7 +57,7 @@
  assert'(,⊂''foo'')≡link.flagged'
  assert'(,1)≡link.flags[1].Stop'
  config←getj5 folder,'/.linkconfig'
- assert'(''caseCode'' ''watch'')≡config.Settings.⎕NL -2'
+ assert'(''caseCode'' ''recordFlags'' ''watch'')≡config.Settings.⎕NL -2'
  assert'''ns'' 1≡config.Settings.(watch caseCode)' ⍝ Check that settings ended up in the directory config
  assert'1≡≢config.SourceFlags'
  assert'(,1)≡config.SourceFlags[1].Stop'
@@ -78,8 +96,8 @@
 
 ⍝ Test that folder config is used if user config says nothing
 
- z←⎕SE.Link.Configure'*' 'watch:' 'caseCode:' ⍝ Clear user config settings
- assert'∧/1∊¨''watch:ns'' ''caseCode:1''⍷¨⊂z'
+ z←⎕SE.Link.Configure'*' 'watch:' 'caseCode:' 'recordFlags:' ⍝ Clear user config settings
+ assert'∧/1∊¨''watch:ns'' ''caseCode:1'' ''recordFlags:1''⍷¨⊂z'
  assert'0=⎕NEXISTS ⎕SE.Link.USERCONFIGFILE' ⍝ No settings
 
  z←LinkCreate name folder
@@ -131,13 +149,13 @@
 
 ⍝ --- Test non-default typeExtensions (fix for #601)
  3 ⎕NDELETE folder
- opts.typeExtensions←3 2⍴2 'zzza' 3 'zzzf' 4 'zzzo' 9.1⊣opts←⎕NS ''
+ opts.typeExtensions←3 2⍴2 'zzza' 3 'zzzf' 4 'zzzo' 9.1⊣opts←⎕NS''
  z←opts LinkCreate name folder
  z←⎕SE.Link.Break name
  z←LinkCreate name folder
  link←GetLink name
- assert '(getj5 folder,''/.linkconfig'').Settings.typeExtensions≡↓opts.typeExtensions'
- assert 'opts.typeExtensions≡3 2↑link.typeExtensions'
+ assert'(getj5 folder,''/.linkconfig'').Settings.typeExtensions≡↓opts.typeExtensions'
+ assert'opts.typeExtensions≡3 2↑link.typeExtensions'
  z←⎕SE.Link.Break name
  ⎕EX name
 

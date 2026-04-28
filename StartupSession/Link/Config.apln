@@ -18,6 +18,7 @@
     LinkParams⍪←'typeExtensions' ''
     LinkParams⍪←'fastLoad' 0
     LinkParams⍪←'text' 'aplan'
+    LinkParams⍪←'recordFlags' 0
 
     DebugParams←'notify' 'debug',⍪0 0
 
@@ -69,6 +70,7 @@
      
       :If 2=⎕NC'ns.SourceFlags'
       :AndIf 0=≢ns.SourceFlags
+      :AndIf islink
           ns.⎕EX'SourceFlags' ⍝ No flags
       :EndIf
      
@@ -76,6 +78,10 @@
       ns.⎕EX m/nss ⍝ Expunge empty namepaces
       ⍝ Now remove Version and API/UCMD options which are not save-able settings
       ns.⎕EX'LinkVersion'
+      :If 0=⎕NC'ns.Settings.recordFlags'
+      :OrIf ~ns.Settings.recordFlags
+          ns.⎕EX'SourceFlags'
+      :EndIf
       :If 9=⎕NC'ns.Settings' ⍝ Expunge all Settings which are not LinkParams
           ns.Settings.⎕EX(ns.Settings.⎕NL-2)~LinkParams[;1]
       :EndIf
@@ -89,6 +95,8 @@
       :EndIf
      
       :If islink
+      :AndIf 0≠⎕NC'ns.Settings.recordFlags'
+      :AndIf ns.Settings.recordFlags
           ns SetSourceFlags linkorfile
       :EndIf
     ∇

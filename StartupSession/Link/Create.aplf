@@ -90,7 +90,7 @@ NOHOLD:
          :EndIf
 
          :If opts.singlefile←isfile
-             z←'forceFilenames' 'forceExtensions' 'flatten' ⍝ Not allowed
+             z←'forceFilenames' 'forceExtensions' 'flatten' 'recordFlags' ⍝ Not allowed
          :AndIf ∨/m←opts⍎⍕z
              U.Error'Not allowed in single-file links: ',⍕m/z
          :EndIf
