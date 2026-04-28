@@ -14,7 +14,7 @@
  1 ns.⎕STOP'foo'   ⍝ Check that Link.Add will NOT register existing stops
  z←⎕SE.Link.Add name∘,¨'.foo' '.bar'
  files←2⊃¨⎕NPARTS⊃⎕NINFO⍠1⊢folder,'/*'
- ⎕SE.Link.Stop'bar' 1  ⍝ Check that Link.Stop will NOT register new stops
+ z←⎕SE.Link.Stop(name,'.bar')1  ⍝ Check that Link.Stop will NOT register new stops
  assert'''foo'' ''bar'' ≡⍥{⍵[⍋⍵]} files'
  link←GetLink name
  assert'0=≢link.flagged'
