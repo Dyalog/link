@@ -1,4 +1,4 @@
- {linked}←OnAfterFix(obj evt src ns oldname name file);nss;z;stop;trace;link;fullname;relname;nsref;err;new;old;newfile
+ {linked}←OnAfterFix(obj evt src ns oldname name file);nss;z;stop;trace;link;fullname;relname;nsref;err;new;old;newfile;msg;error
  ⍝ Thin cover for editor onAfterFix event
  ⍝ Returns 1 if a link was found for the name, else 0
  ⍝   NB: if 0 is returned, no ⎕FX/⎕FIX was done
@@ -24,16 +24,20 @@
      :Return
  :EndIf
 
+ error←0
  :Trap 0
      :If (⎕NC fullname←(⍕ns),'.',name)∊3 4
          relname←(1+≢link.ns)↓fullname
      :AndIf ((⊂relname)∊link.flagged)∨0≠≢(stop←⎕STOP fullname),trace←⎕TRACE fullname
-         z←'Stop'SetFlags(fullname stop)ns ⍬
-         z←'Trace'SetFlags(fullname trace)ns ⍬
+     :AndIf ~error←∨/'ERRORS'⍷msg←'Stop'SetFlags(fullname stop)ns ⍬
+     :AndIf ~error←∨/'ERRORS'⍷msg←'Trace'SetFlags(fullname trace)ns ⍬
      :EndIf
  :Else
-     U.Warn'Unable to record Stop/Trace settings'
+     msg←'Internal error (',(⊃⎕DMX.Message),')'⊣error←1
  :EndTrap
+ :If error
+     U.Warn 'Unable to record stop/trace bits: ',msg
+ :EndIf
 
  :Trap 501 ⍝ We do not want to crash inside the editor if Fix signals an error
      {}ns name oldname ⎕SE.Link.Fix ⍬ ⍝ on error, we'll bubble up now
