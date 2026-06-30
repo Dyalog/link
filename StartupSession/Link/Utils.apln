@@ -138,10 +138,14 @@
     ∇ changed←FileHasChanged(ns name file filesrc);compsrc;file2;hash;line;lines;name2;nameref;nc;parent;ts;nc2;aplsrc
       compsrc←0 ⋄ changed←0
       (name2 parent nc2 file2 line lines hash ts)←ns.(5179⌶)name  ⍝ name2 may be a name or a ref - parent is a ref
-      :If 0=nc←ns NameClass name ⋄ changed←1  ⍝ name not defined - need to update from file
-      :ElseIf 0∊⍴name2 ⋄ compsrc←1 ⍝ not tied at all - need to compare sources directly
-      :ElseIf file≢file2 ⋄ changed←1  ⍝ not the same file
-      :ElseIf hash≢FileHash file ⋄ changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
+      :If 0=nc←ns NameClass name
+          changed←1  ⍝ name not defined - need to update from file
+      :ElseIf 0∊⍴name2
+          compsrc←1 ⍝ not tied at all - need to compare sources directly
+      :ElseIf file≢⍥(∊1 ⎕NPARTS⊢)file2
+          changed←1  ⍝ not the same file
+      :ElseIf hash≢FileHash file
+          changed←1 ⍝ not the same hash - unfortunately, there could be a false negative with CRC32 - e.g. swap two bytes that are offset by 4 bytes : '⌈,⌊'→'⌊,⌈' or 'A,B,C'→'C,B,A'
       :EndIf
       :If compsrc ⋄ ⍝ need a closer look
           :If 0∊⍴filesrc ⋄ filesrc←GetFileSource file ⋄ :EndIf
