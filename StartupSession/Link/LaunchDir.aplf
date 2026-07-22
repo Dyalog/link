@@ -3,5 +3,5 @@
 
  Env←{2 ⎕NQ'.' 'GetEnvironment'⍵}
  Parent←{¯1↓⊃1 ⎕NPARTS ⍵}
- path←⊃s/⍨×≢¨s←Env¨'LOAD' 'LINK_RUN' 'LINK_DIR' 'CONFIGFILE' ⍝ current directory if nothing else
+ path←⊃s/⍨×≢¨s←(Env¨'LOAD' 'LINK_RUN' 'LINK_DIR' 'CONFIGFILE'),1⌷1 ⎕NPARTS'' ⍝ current directory if nothing else
  dir←Parent path,'/'⍴⍨1=1 ⎕NINFO path ⍝ avoid stripping leaf if dir
