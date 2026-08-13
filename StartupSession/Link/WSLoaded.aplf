@@ -70,7 +70,7 @@
              U.Warn(⊂msg),(⍕¨wslinks.ns)
          :EndIf
      :ElseIf 0≠≢wslinks
-         msg←(⍕≢wslinks),' namespace',('s '/⍨1≠≢wslinks),'linked in this workspace: '
+         msg←(⍕≢wslinks),' namespace',('s'/⍨1≠≢wslinks),' linked in this workspace: '
          'IMPORTANT'U.Warn(⊂msg),⍕¨wslinks.ns
          'IMPORTANT'U.Warn'Link.Resync is required'
      :Else

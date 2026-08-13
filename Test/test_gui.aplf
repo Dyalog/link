@@ -306,6 +306,7 @@
      {}ride.APL')SAVE "',folder,'/linked_workspace.dws"'
      res←ride.APL')LOAD "',folder,'/linked_workspace.dws"'
      ⎕DL 0.1 ⋄ res,←ride.Output  ⍝ ⎕SE.Link.WSLoaded
+     'link issue #766'assert'(''1'',NL)≡ride.APL''1∊''''1 namespace linked in this workspace:''''⍷↑⎕SE.Link.U.WARNLOG'' '
      assert'(''1'',NL)≡ride.APL''1∊''''Link.Resync is required''''⍷↑⎕SE.Link.U.WARNLOG'' '
      res←ride.APL'''(proceed:1)''⎕SE.Link.Resync ',name
      assert'(,(↑ns1),NL)≡ride.APL''↑⎕SRC '',name,''.ns1'' '
