@@ -100,7 +100,9 @@
       :If 0≠≢renames←(m←actions∊⊂'renamed')/evts   ⍝ Any renames at all?  
           renames←m/evts ⋄ targets←(~m)/targets
           renames←(⎕NEXISTS 2 2∘⊃¨renames)/renames ⍝ Ignore rename if target no longer exists
-          renames←fsw,¨∪1↓¨renames ⍝ Duplicates can occur when extension is changed (e.g. .aplf → .aplo)
+          :If 0≠≢renames
+              renames←fsw,¨∪1↓¨renames ⍝ Duplicates can occur when extension is changed (e.g. .aplf → .aplo)
+          :EndIf
           :If (0≠≢targets)∧0≠≢renames ⍝ Worried that combining renames with other logic may go badly
               ##.U.Warn'Rename batched with other operations'
           :EndIf

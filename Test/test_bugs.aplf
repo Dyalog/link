@@ -4,6 +4,10 @@
  3 ⎕NDELETE folder    ⍝ folder must be non-existent
  QMKDIR Retry⊢folder
 
+      ⍝ link issue #774: rename targets can disappear before the queue is processed
+ ⎕SE.Link.Watcher.BUFFER←⊂0('renamed'(folder,'/missing-new.aplf')(folder,'/missing-old.aplf'))
+ 'link issue #774'assert'{0::0 ⋄ ⎕SE.Link.Watcher.HandleEventQueue ⍬ ⋄ 1}⍬'
+
           ⍝ link issue #335
  z←name'abc'⎕SE.Link.Fix,⊂'[1⋄2⋄3]'
  'link issue #335'assert'z≡,⊂''abc'''
