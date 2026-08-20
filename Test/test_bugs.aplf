@@ -5,8 +5,14 @@
  QMKDIR Retry⊢folder
 
       ⍝ link issue #774: rename targets can disappear before the queue is processed
- ⎕SE.Link.Watcher.BUFFER←⊂0('renamed'(folder,'/missing-new.aplf')(folder,'/missing-old.aplf'))
- 'link issue #774'assert'{0::0 ⋄ ⎕SE.Link.Watcher.HandleEventQueue ⍬ ⋄ 1}⍬'
+ ⎕SE.Link.Watcher.BUFFER←,⊂0('renamed'(folder,'/missing-new.aplf')(folder,'/missing-old.aplf'))
+ :Trap 0
+     ⎕SE.Link.Watcher.HandleEventQueue ⍬
+     ok←0=≢⎕SE.Link.Watcher.BUFFER
+ :Else
+     ok←0
+ :EndTrap
+ 'link issue #774 test failed' assert 'ok'
 
           ⍝ link issue #335
  z←name'abc'⎕SE.Link.Fix,⊂'[1⋄2⋄3]'
