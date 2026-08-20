@@ -1325,9 +1325,9 @@
 <h1 id="converting-an-existing-workspace-to-use-link">Converting an Existing Workspace to use Link</h1>
 <p>In order to start using Link to maintain code that resides in a workspace, you first need to export the code in the workspace to one or more folders.</p>
 <p>The simplest way to do this is to use <a href="../../API/Link.Export/">Link.Export</a>. In principle, it should be possible to write the entire contents of any workspace to an empty folder called <code>/folder/name</code> using the following:</p>
-<div class="highlight"><pre><span></span><code><span class="w">      </span><span class="s1">&#39;options&#39;</span><span class="w"> </span><span class="nf">⎕NS</span><span class="w"> </span><span class="no">⍬</span>
+<div class="highlight"><pre><span></span><code><span class="w">      </span><span class="s1">'options'</span><span class="w"> </span><span class="nf">⎕NS</span><span class="w"> </span><span class="no">⍬</span>
 <span class="w">      </span><span class="nv">options</span><span class="na">.</span><span class="p">(</span><span class="nv">arrays</span><span class="w"> </span><span class="nv">sysVars</span><span class="p">)</span><span class="kd">←</span><span class="m">1</span>
-<span class="w">      </span><span class="nv">options</span><span class="w"> </span><span class="nf">⎕SE</span><span class="na">.</span><span class="nv">Link</span><span class="na">.</span><span class="nv">Export</span><span class="w"> </span><span class="c1"># &#39;/folder/name&#39;</span>
+<span class="w">      </span><span class="nv">options</span><span class="w"> </span><span class="nf">⎕SE</span><span class="na">.</span><span class="nv">Link</span><span class="na">.</span><span class="nv">Export</span><span class="w"> </span><span class="c1"># '/folder/name'</span>
 </code></pre></div>
 <p>or equivalently, using the user command:</p>
 <div class="highlight"><pre><span></span><code><span class="w">      </span><span class="sr">]</span><span class="nv">link</span><span class="na">.</span><span class="nv">export</span><span class="w"> </span><span class="c1"># /folder/name -arrays -sysvars</span>

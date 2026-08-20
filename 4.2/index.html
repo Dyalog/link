@@ -1361,7 +1361,7 @@
 <div class="highlight"><pre><span></span><code><span class="w">      </span><span class="sr">]</span><span class="nv">LINK</span><span class="na">.</span><span class="nv">Create</span><span class="w"> </span><span class="nv">myapp</span><span class="w"> </span><span class="na">/</span><span class="nv">home</span><span class="na">/</span><span class="nv">sally</span><span class="na">/</span><span class="nv">myapp</span>
 </code></pre></div>
 <p>A set of API functions is available in the session namespace <code>⎕SE</code>, for performing Link operations under programme control. Using the API, the above would be written:</p>
-<div class="highlight"><pre><span></span><code><span class="w">      </span><span class="nf">⎕SE</span><span class="na">.</span><span class="nv">Link</span><span class="na">.</span><span class="nv">Create</span><span class="w"> </span><span class="s1">&#39;myapp&#39;</span><span class="w"> </span><span class="s1">&#39;/home/sally/myapp&#39;</span>
+<div class="highlight"><pre><span></span><code><span class="w">      </span><span class="nf">⎕SE</span><span class="na">.</span><span class="nv">Link</span><span class="na">.</span><span class="nv">Create</span><span class="w"> </span><span class="s1">'myapp'</span><span class="w"> </span><span class="s1">'/home/sally/myapp'</span>
 </code></pre></div>
 <p>If <code>myapp</code> contains sub-directories, a namespace hierarchy corresponding to the directory structure will be created within the <code>myapp</code> namespace. By default, the link is bi-directional, which means that Link will:</p>
 <ul>
@@ -1395,7 +1395,7 @@ If .NET is available, then any changes made to the external files using a text e
 </code></pre></div>
 <p>where <code>options</code> is a namespace with variables, named according to the option they set, containing their corresponding values. The <code>-name=value</code> option can be set by <code>options.name←value</code>, and switches with values (e.g. <code>-name</code>) can be set by <code>options.name←1</code>. Unset options will assume their default value.</p>
 <p>Options can also be provided as a character vector with the literal array representation of the option workspace, for example:</p>
-<div class="highlight"><pre><span></span><code><span class="w">     </span><span class="s1">&#39;(name: 1)&#39;</span><span class="w"> </span><span class="nv">FnName</span><span class="w"> </span><span class="nv">arguments</span>
+<div class="highlight"><pre><span></span><code><span class="w">     </span><span class="s1">'(name: 1)'</span><span class="w"> </span><span class="nv">FnName</span><span class="w"> </span><span class="nv">arguments</span>
 </code></pre></div>
 <p>The details of the arguments and options can be found in the <a href="API/">API Reference</a>.</p>
 <h2 id="further-reading">Further reading</h2>

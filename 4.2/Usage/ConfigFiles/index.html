@@ -1360,12 +1360,12 @@
 <p>You can have a user configuration file called <code>.linkconfig</code> , which records preferences that apply to all links, for example link creation options like -watch= or the <code>notify</code> setting. Under Microsoft Windows, this file is stored in the <code>Documents</code> folder, on other systems in the user's home directory.</p>
 <p>A simple example of a user configuration file would be:</p>
 <p><div class="highlight"><pre><span></span><code>{
-  LinkVersion: { ID: &quot;4.0.11&quot;},
+  LinkVersion: { ID: "4.0.11"},
   Debug: {
     notify: 1,
   },
   Settings: {
-    watch: &quot;ns&quot;,
+    watch: "ns",
   },
 }
 </code></pre></div>
@@ -1380,7 +1380,7 @@ Was  flatten:
 </code></pre></div>
 The result documents that there was no previous setting for the option. A file called <code>/tmp/linkdemo/.linkconfig</code> is created, with the following contents:</p>
 <div class="highlight"><pre><span></span><code>{
-  LinkVersion: { ID: &quot;4.0.11&quot;},
+  LinkVersion: { ID: "4.0.11"},
   Settings: {
     flatten: 1,
   },
@@ -1395,13 +1395,13 @@ Was linkdemo.stats.Mean 1
 </code></pre></div>
 These settings are recorded in a <code>SourceFlags</code> section of our configuration file, which now looks like this:</p>
 <div class="highlight"><pre><span></span><code>{
-  LinkVersion: { ID: &quot;4.0.11&quot;},
+  LinkVersion: { ID: "4.0.11"},
   Settings: {
     flatten: 1,
   },
   SourceFlags: [
     {
-      Name: &quot;stats.Mean&quot;,
+      Name: "stats.Mean",
       Stop: [
         2,        
       ],
@@ -1413,11 +1413,11 @@ These settings are recorded in a <code>SourceFlags</code> section of our configu
 <h2 id="linkconfigure">Link.Configure</h2>
 <p>The <a href="../../API/Link.Configure/">Link.Configure</a> API function and the corresponding user command, can be used to query and set the contents of both user and directory configuration files. For example, following on from the above example, we can query the current settings:</p>
 <div class="highlight"><pre><span></span><code>      ]link.configure linkdemo
-Contents of &quot;c:/tmp/linkdemo/.linkconfig&quot;:
+Contents of "c:/tmp/linkdemo/.linkconfig":
    Settings  :  flatten:1 
 
       ]link.configure *
-Contents of &quot;C:\Users\mkrom\Documents\.linkconfig&quot;:
+Contents of "C:\Users\mkrom\Documents\.linkconfig":
    Debug     :  notify:1 
    Settings  :  watch:ns 
 </code></pre></div>
@@ -1425,12 +1425,12 @@ Contents of &quot;C:\Users\mkrom\Documents\.linkconfig&quot;:
 <div class="highlight"><pre><span></span><code>      ]link.configure linkdemo flatten:0
 Was  flatten:1 
       ]link.configure linkdemo
-Contents of &quot;c:/tmp/linkdemo/.linkconfig&quot;:
+Contents of "c:/tmp/linkdemo/.linkconfig":
    Settings  :  flatten:0
       ]link.configure linkdemo flatten:
 Was  flatten:1 
       ]link.configure linkdemo
-No configuration options set in &quot;c:/tmp/linkdemo/.linkconfig&quot;
+No configuration options set in "c:/tmp/linkdemo/.linkconfig"
 </code></pre></div>
 <h2 id="the-configuration-file-format">The Configuration File Format</h2>
 <p>User and directory configuration files have the same format, with up to four top level names:</p>
@@ -1448,16 +1448,16 @@ No configuration options set in &quot;c:/tmp/linkdemo/.linkconfig&quot;
 </ul>
 <p>An example of a configuration file with information in all sections is:</p>
 <div class="highlight"><pre><span></span><code>{
-  LinkVersion: { ID: &quot;4.0.11&quot;},
+  LinkVersion: { ID: "4.0.11"},
   Debug: {
     notify:1,
   },
   Settings: {
-    watch: &quot;ns&quot;1,
+    watch: "ns"1,
   },
   SourceFlags: [
     {
-      Name: &quot;stats.Mean&quot;,
+      Name: "stats.Mean",
       Stop: [
         2,        
       ],
@@ -1468,7 +1468,7 @@ No configuration options set in &quot;c:/tmp/linkdemo/.linkconfig&quot;
 <h3 id="the-ignoreconfig-switch">The <code>ignoreconfig</code> switch</h3>
 <p>If you manually edit a <code>.linkconfig</code> file and damage it so that it either becomes invalid JSON5 so that Link is unable to read it, or if Link is able to read it but complains that it has invalid contents, or if you simply want to ignore the configuration for other reasons, several API functions including Create, Import and Export have an <code>ignoreconfig</code> option:</p>
 <div class="highlight"><pre><span></span><code>      ]link.create linkdemo c:\tmp\linkdemo
-Unknown Setting(s) in &quot;c:\tmp\linkdemo/.linkconfig&quot;:  fasten 
+Unknown Setting(s) in "c:\tmp\linkdemo/.linkconfig":  fasten 
       ]link.create linkdemo c:\tmp\linkdemo -ignoreconfig
 Linked: #.linkdemo ←→ c:\tmp\linkdemo
 </code></pre></div>
