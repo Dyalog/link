@@ -1387,7 +1387,7 @@ The result documents that there was no previous setting for the option. A file c
 }
 </code></pre></div>
 <h3 id="stop-and-trace-flags">Stop and Trace flags</h3>
-<p>Directory configuration files can record stop and trace settings for functions and operators in the linked directory. This is enabled with <a href="../../API/Link.Create/#recordFlags">the <code>recordConfig</code> setting</a>. You can either manipulate the settings in the editor, or using the API functions <a href="../../API/Link.Stop/">Link.Stop</a> and <a href="../../API/Link.Trace/">Link.Trace</a>:</p>
+<p>Directory configuration files can record stop and trace settings for functions and operators in the linked directory. This is enabled with <a href="../../API/Link.Create/#recordFlags">the <code>recordFlags</code> setting</a>. You can either manipulate the settings in the editor, or using the API functions <a href="../../API/Link.Stop/">Link.Stop</a> and <a href="../../API/Link.Trace/">Link.Trace</a>:</p>
 <p><div class="highlight"><pre><span></span><code>      ]link.create linkdemo c:\tmp\linkdemo -recordflags
       …
       ]link.stop linkdemo.stats.Mean 2
