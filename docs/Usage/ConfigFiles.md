@@ -47,7 +47,7 @@ The result documents that there was no previous setting for the option. A file c
 ```
 ### Stop and Trace flags
 
-Directory configuration files can record stop and trace settings for functions and operators in the linked directory. This is enabled with [the `recordConfig` setting](../API/Link.Create.md#recordFlags). You can either manipulate the settings in the editor, or using the API functions [Link.Stop](../API/Link.Stop.md) and [Link.Trace](../API/Link.Trace.md):
+Directory configuration files can record stop and trace settings for functions and operators in the linked directory. This is enabled with [the `recordFlags` setting](../API/Link.Create.md#recordFlags). You can either manipulate the settings in the editor, or using the API functions [Link.Stop](../API/Link.Stop.md) and [Link.Trace](../API/Link.Trace.md):
 
 ```
       ]link.create linkdemo c:\tmp\linkdemo -recordflags
