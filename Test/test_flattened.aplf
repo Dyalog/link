@@ -1,5 +1,6 @@
- ok←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_
+ ok←test_flattened(folder name);main;dup;opts;ns;goo;goofile;dupfile;foo;foofile;z;_;Layout;layouts;expected;fastLoad;i
      ⍝ Test the flattened scenario
+
  FLAT_TARGET←'app' ⍝ simulated user input to onFlatWrite: declare target folder for new function
 
  {}3 QMKDIR Retry⊢folder
@@ -40,6 +41,49 @@
  Breathe ⍝ Allow backlog of FSW events to clear on slow machines
  _←QNDELETE foofile
  assert'''dup'' ''goo'' ''main''≡ns.⎕nl -3' '⎕EX ''ns.foo'''
+      ⍝ link issue #781: when flattening, directories define no APL name and must not clash with same-named files
+ {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
+ Layout←{ ⍝ create files in folder from relative paths - a function or scripted namespace named after each file
+     _←3 ⎕MKDIR folder
+     {(dir base ext)←⎕NPARTS folder,'/',⍵
+         _←3 ⎕MKDIR dir
+         src←((' r←',base)'r←1')((':Namespace ',base)':EndNamespace')⊃⍨1+ext≡'.apln'
+         (⊂src)⎕NPUT(folder,'/',⍵)1
+     }¨⍵
+ }
+ layouts←('FOO.aplf' 'FOO/code.aplf')('FOO/FOO.aplf' 'bar.aplf')('util.apln' 'util/x.aplf')
+ expected←('FOO' 'code')('FOO' 'bar')('util'(,'x'))
+ :For fastLoad :In 0 1
+     opts←⎕NS'' ⋄ opts.(source flatten fastLoad)←'dir' 1 fastLoad
+     :For i :In ⍳≢layouts                                ⍝ A, B and C link, with flattened names
+         Layout i⊃layouts
+         z←opts LinkCreate name folder
+         'link issue #781'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+         z←(⍎name).⎕NL-3 9
+         'link issue #781'assert'(i⊃expected)≡z[⍋↑z]'
+         {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
+     :EndFor
+     opts.flatten←0                                       ⍝ without flatten, B links: FOO is a namespace containing a function FOO
+     Layout 2⊃layouts
+     z←opts LinkCreate name folder
+     'link issue #781'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+     'link issue #781'assert'9.1 3.1≡',name,'.⎕NC''FOO'' ''bar'''
+     'link issue #781'assert'3=',name,'.FOO.⎕NC''FOO'''
+     {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
+ :EndFor
+      ⍝ genuine clashes are still detected (fastLoad does not detect clashes and fails later, leaving fixed items behind - not tested here)
+ opts.(flatten fastLoad)←1 0
+ Layout'a/Foo.aplf' 'b/Foo.aplf'                         ⍝ two files defining the same flattened name
+ 'link issue #781'assertError'opts LinkCreate name folder' 'clashing APL names'
+ assert'{6::1 ⋄ 0=CountLinks}⍬'
+ ⎕EX name ⋄ 3 ⎕NDELETE folder
+ opts.flatten←0                                           ⍝ without flatten, A and C clash
+ :For i :In 1 3
+     Layout i⊃layouts
+     'link issue #781'assertError'opts LinkCreate name folder' 'clashing APL names'
+     assert'{6::1 ⋄ 0=CountLinks}⍬'
+     ⎕EX name ⋄ 3 ⎕NDELETE folder
+ :EndFor
 
  CleanUp folder name
  ok←1

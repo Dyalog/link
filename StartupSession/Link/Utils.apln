@@ -1281,7 +1281,7 @@
       :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
     ∇
 
-    ∇ (fixed failed)←opts FixFiles(target source overwrite);⎕AVU;FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo;classic;z
+    ∇ (fixed failed)←opts FixFiles(target source overwrite);⎕AVU;FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo;classic;z;named;names
     ⍝ Load items from files in folders
     ⍝ overwrite=¯1 : empty target - no overwrite
     ⍝ overwrite=0 : non-empty target - no overwrite
@@ -1318,13 +1318,16 @@
           failed,←mask/allfiles
           (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
           allnames←parents JoinNames expnames  ⍝ do not infer true apl name from source
+          named←~opts.flatten∧'/'=⊢/¨allfiles  ⍝ when flattening, directories define no APL name (link issue #781)
       :Else
           mask←actncs∊¯1 0    ⍝ invalid names or source
           failed,←(mask∧mask\1≠1 ⎕NINFO mask/allfiles)/allfiles   ⍝ report invalid file names, except directories
           (allfiles parents expnames actnames actncs)/⍨←⊂~mask    ⍝ keep only names that are valid
           allnames←parents JoinNames actnames  ⍝ fully qualified names
-          :If ∨/mask←(inx←⍳⍨allnames)≠(⍳≢allnames)
-              Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨allfiles),(⊂'←→'),[1.5]allnames)[,(mask/inx),[1.5]⍸mask;]
+          named←~opts.flatten∧'/'=⊢/¨allfiles  ⍝ when flattening, directories define no APL name - they must not clash with same-named files (link issue #781)
+          names←named/allnames
+          :If ∨/mask←(inx←⍳⍨names)≠(⍳≢names)
+              Error'Files produce clashing APL names:',FmtLines↓⍕((WinSlash¨named/allfiles),(⊂'←→'),[1.5]names)[,(mask/inx),[1.5]⍸mask;]
           :EndIf
       :EndIf
      
@@ -1350,15 +1353,16 @@
               mask[i]←(opts⍎opts.beforeRead)'beforeRead'opts(i⊃allfiles)(i⊃allnames)(|i⊃actncs) ⍝ return 1 to continue else 0
           :EndFor
           (allfiles parents expnames actnames actncs allnames)/⍨←⊂mask    ⍝ keep what was not processed by user
+          named/⍨←mask
       :EndIf
      
       :Select overwrite
       :Case ¯1 ⋄ :If ~EmptyNamespace target source   ⍝ target must be empty (or already linked to the matching file)
               Error'Destination namespace not empty: ',(⍕target) ⋄ :EndIf
-      :Case 0 ⋄ :If ∨/mask←0<⎕NC allnames~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
-              Error'Names already exist: use -overwrite flag to force overwriting the following names:',FmtLines mask/allnames~⊂⍕target ⋄ :EndIf
+      :Case 0 ⋄ :If ∨/mask←0<⎕NC names←(named/allnames)~⊂⍕target   ⍝ no new name must be already defined - excepted the root which may have non-imported stsuff
+              Error'Names already exist: use -overwrite flag to force overwriting the following names:',FmtLines mask/names ⋄ :EndIf
       :Else ⋄ ⍝ otherwise silently overwrite - excepted root namespace
-          ⎕EX(⊂⍕target)~⍨(⌊|actncs){(⍺≠(⌊|⎕NC ⍵))/⍵}allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
+          ⎕EX(⊂⍕target)~⍨(⌊|named/actncs){(⍺≠(⌊|⎕NC ⍵))/⍵}named/allnames  ⍝ allow changing nameclass where necessary - do not expunge all to avoid issue #86
       :EndSelect
      
       (alldirs _ allexts)←↓⍉↑⎕NPARTS allfiles
