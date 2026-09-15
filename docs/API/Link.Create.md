@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-preloaded] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}] [-recordflags]
+    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-merge] [-preloaded] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}] [-recordflags]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -111,6 +111,24 @@ same folder as the original item.
 - It is also possible to use the **getFilename** setting to add application-specific logic to determine the file name to be used (or prompt the user for a decision).
 
 A suggested workflow is to always create a stub source file in the correct directory and edit the function that appears in the workspace, rather than creating new functions in the workspace.
+
+This option takes effect only when **source** is **dir**.
+
+### **merge**
+Default: **off**
+
+The **merge** flag allows a link to be created into a namespace which is not empty. This is typically used together with **flatten**, to add a directory of utilities to an existing "flat" workspace:
+
+      ]link.create # /repos/tools -flatten -merge
+
+Without **merge**, a directory can only be linked to an empty namespace, or to a namespace whose contents exactly match the directory. At present that comparison does not work for flattened links, so re-linking a flattened directory into a namespace which already holds its code also requires **merge**.
+
+When **merge** is set:
+
+- Items defined in the source files are loaded as usual. If an item of the same name already exists in the namespace, the file replaces it.
+- All other items in the namespace are left alone, and are not linked to any file. As with any link, if such an item is subsequently edited it is written to the root of the linked directory (or wherever **getFilename** decides).
+- The namespace can still have only one link. Linking a second directory into the same namespace reports "Already linked".
+- If **source** is **auto**, it resolves to **dir**: the namespace is never exported to the directory, and the directory must exist.
 
 This option takes effect only when **source** is **dir**.
 

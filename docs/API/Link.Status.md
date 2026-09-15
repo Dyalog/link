@@ -29,6 +29,7 @@ This function provides information about existing links.
    > If `extended` was specified, options settings for each link:
    - case code
    - flatten
+   - merge
    - force extensions
    - force filenames
    - watch

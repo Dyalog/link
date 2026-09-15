@@ -10,6 +10,7 @@
     LinkParams⍪←'forceFilenames' 0
     LinkParams⍪←'caseCode' 0
     LinkParams⍪←'flatten' 0
+    LinkParams⍪←'merge' 0
     LinkParams⍪←'beforeWrite' ''
     LinkParams⍪←'beforeRead' ''
     LinkParams⍪←'getFilename' ''

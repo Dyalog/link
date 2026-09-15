@@ -1,0 +1,76 @@
+ ok←test_merge(folder name);ns;opts;z;tools;more;dup;status;_;empty
+     ⍝ Test the merge option: a link into a namespace which is not empty (link issue #472)
+
+ {}3 QMKDIR Retry⊢folder
+ (tools more)←folder∘,¨'/tools' '/more'
+ {}3 QMKDIR¨tools more,⊂tools,'/sub'
+
+      ⍝ ↓↓↓ Do not use QNPUT for these, they must NOT be asynchonous
+ _←(⊂dup←' r←dup x' ' r←x x')⎕NPUT tools,'/sub/dup.aplf'   ⍝ One utility in a subdirectory
+ _←(⊂' r←tri x' ' r←x x x')⎕NPUT tools,'/tri.aplf'        ⍝ Another utility in the root
+ _←(⊂' r←tri x' ' r←x+x+x')⎕NPUT more,'/tri.aplf'         ⍝ A second directory redefining tri
+
+ ns←⍎name ⎕NS''
+ ns.⎕FX' r←app x' 'r←x'                                 ⍝ Pre-existing application code
+ ns.⎕FX' r←tri x' 'r←0'                                 ⍝ Pre-existing definition of a name which is also in a file
+
+ opts←⎕NS''
+ opts.(source flatten)←'dir' 1
+ assertError'opts LinkCreate name tools' 'not empty'    ⍝ flatten alone still requires an empty namespace
+ assert'0=CountLinks'
+ opts.source←'auto'
+ assertError'opts LinkCreate name tools' 'non-empty namespace'
+ assert'0=CountLinks'
+
+ opts.merge←1                                            ⍝ merge with source≡'auto' must load the files, not export the namespace
+ z←opts LinkCreate name tools
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'1=CountLinks'
+ assert'''app'' ''dup'' ''tri''≡ns.⎕NL ¯3'              ⍝ Existing code is left alone, files are loaded flat
+ assert'1=ns.app 1'                                     ⍝ ... and app is untouched
+ assert'3 3 3≡ns.tri 3'                                 ⍝ ... but the file replaces the existing definition of tri
+ assert'~⎕NEXISTS tools,''/app.aplf'''                  ⍝ Nothing is written to the directory
+ assertError'opts LinkCreate name more' 'already linked' ⍝ Still only one link per namespace
+
+ (z←⎕NS'').extended←1
+ status←z ⎕SE.Link.Status name
+ assert'1=status[2;status[1;]⍳⊂''Merge'']'
+
+ ns'new'⎕SE.Link.Fix' r←new x' ' r←x'                     ⍝ New names go to the root of the link
+ assert'⎕NEXISTS tools,''/new.aplf'''
+
+ z←⎕SE.Link.Break name
+ assert'0=CountLinks'
+ assert'''app'' ''dup'' ''new'' ''tri''≡ns.⎕NL ¯3'      ⍝ Break leaves everything in place
+
+ opts.(source flatten)←'auto' 1                          ⍝ merge with source≡'auto' always loads files - it never exports the namespace
+ {}3 ⎕MKDIR empty←folder,'/empty'
+ z←opts LinkCreate name empty                            ⍝ ... even into an empty directory
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'0=≢⊃0 ⎕NINFO⍠1⊢empty,''/*.apl?'''                ⍝ nothing was exported (only a .linkconfig was written)
+ assert'''app'' ''dup'' ''new'' ''tri''≡ns.⎕NL ¯3'
+ z←⎕SE.Link.Break name
+ assertError'opts LinkCreate name(folder,''/missing'')' 'Source directory not found'  ⍝ ... and a missing directory is an error, as with source≡''dir''
+ assert'0=CountLinks'
+      ⍝ merge affects source≡'dir' only: a namespace which matches its directory still links with source≡'ns'
+ 'm'ns.⎕NS'' ⋄ ns.m.⎕FX' r←f x' 'r←x'
+ opts.(source flatten merge)←'ns' 0 0
+ z←opts LinkCreate(name,'.m')(folder,'/m')                ⍝ export m to a new directory
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'⎕NEXISTS folder,''/m/f.aplf'''
+ z←⎕SE.Link.Break name,'.m'
+ opts.merge←1
+ z←opts LinkCreate(name,'.m')(folder,'/m')                ⍝ matching namespace and directory: reconciliation still applies
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'1=CountLinks'
+ z←⎕SE.Link.Break name,'.m'
+ ns.⎕EX'm'
+ opts.(source flatten)←'dir' 0                           ⍝ merge does not require flatten: sub becomes a namespace
+ z←opts LinkCreate name tools
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'9=ns.⎕NC''sub'''
+ assert'3=ns.sub.⎕NC''dup'''
+ assert'3 3 3≡ns.tri 3'
+
+ CleanUp folder name
+ ok←1

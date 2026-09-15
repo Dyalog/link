@@ -32,6 +32,7 @@ NOHOLD:
          :EndIf  ⍝ otherwise watch defaults to 'both'
          'setopts'⎕NS opts ⍝ Record options that were set for writing .linkconfig file
          opts←U.DefaultOpts opts
+         :If opts.merge ⋄ :AndIf opts.source≡'auto' ⋄ opts.source←'dir' ⋄ :EndIf  ⍝ merge loads files into the namespace - never export it
 
          nc←U.NameClass ns
          :If hasdir←⎕NEXISTS dir
@@ -95,7 +96,7 @@ NOHOLD:
              U.Error'Not allowed in single-file links: ',⍕m/z
          :EndIf
 
-         :If emptydir⍱emptyns  ⍝ link issue #230
+         :If emptydir⍱emptyns ⋄ :AndIf ~opts.merge∧opts.source≡'dir'  ⍝ link issue #230 - merge into a namespace needs no reconciliation
              opts.(ns dir)←(ns fulltarget)
              :If opts.preloaded
              :OrIf 0∊⍴⎕SE.Link.U.Diff opts
@@ -112,7 +113,7 @@ NOHOLD:
              U.Error'Source directory not found: ',U.FmtPath dir
          :ElseIf ~hasns ⋄ :AndIf opts.source≡'ns'
              U.Error'Source namespace not found: ',ns
-         :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir'
+         :ElseIf ~emptyns ⋄ :AndIf opts.source≡'dir' ⋄ :AndIf ~opts.merge
              U.Error'Destination namespace not empty: ',ns
          :ElseIf ~emptydir ⋄ :AndIf opts.source≡'ns'
              U.Error'Destination directory neither empty nor matches specified namespace: ',U.FmtPath dir
