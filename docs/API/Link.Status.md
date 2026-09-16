@@ -22,8 +22,9 @@ This function provides information about existing links.
 
 - Table of links
    > The first row contains column headers.
-   > First three columns are always:
+   > First four columns are always:
    - namespace reference
+   - arrow showing the direction(s) in which the link is watched
    - name of the linked directory or source file
    - number of linked files and directories (excluding root directory)
    > If `extended` was specified, options settings for each link:
@@ -33,4 +34,5 @@ This function provides information about existing links.
    - force extensions
    - force filenames
    - watch
+   - record flags
    - paused

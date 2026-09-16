@@ -1,4 +1,4 @@
- ok←test_merge(folder name);ns;opts;z;tools;more;dup;status;_;empty
+ ok←test_merge(folder name);ns;opts;z;tools;more;dup;status;_;empty;cfgopts
      ⍝ Test the merge option: a link into a namespace which is not empty (link issue #472)
 
  {}3 QMKDIR Retry⊢folder
@@ -30,6 +30,7 @@
  assert'1=ns.app 1'                                     ⍝ ... and app is untouched
  assert'3 3 3≡ns.tri 3'                                 ⍝ ... but the file replaces the existing definition of tri
  assert'~⎕NEXISTS tools,''/app.aplf'''                  ⍝ Nothing is written to the directory
+ assert'0=≢4⊃ns.(5179⌶)''app'''                          ⍝ ... and app is not associated with any file
  assertError'opts LinkCreate name more' 'already linked' ⍝ Still only one link per namespace
 
  (z←⎕NS'').extended←1
@@ -38,10 +39,19 @@
 
  ns'new'⎕SE.Link.Fix' r←new x' ' r←x'                     ⍝ New names go to the root of the link
  assert'⎕NEXISTS tools,''/new.aplf'''
+ z←⎕SE.Link.Add name,'.app'                             ⍝ ... as do pre-existing items which are explicitly added
+ assert'⎕NEXISTS tools,''/app.aplf'''
 
  z←⎕SE.Link.Break name
  assert'0=CountLinks'
  assert'''app'' ''dup'' ''new'' ''tri''≡ns.⎕NL ¯3'      ⍝ Break leaves everything in place
+
+ more SetConfig'merge:1'                                 ⍝ merge can also be set by the directory's .linkconfig
+ (cfgopts←⎕NS'').source←'dir'
+ z←cfgopts LinkCreate name more
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'9=ns.tri 3'                                     ⍝ more/tri.aplf replaces tri, the rest is left alone
+ z←⎕SE.Link.Break name
 
  opts.(source flatten)←'auto' 1                          ⍝ merge with source≡'auto' always loads files - it never exports the namespace
  {}3 ⎕MKDIR empty←folder,'/empty'
@@ -70,6 +80,9 @@
  assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  assert'9=ns.⎕NC''sub'''
  assert'3=ns.sub.⎕NC''dup'''
+ assert'3 3 3≡ns.tri 3'
+ assertError'opts LinkCreate name tools' 'already linked' ⍝ A repeated Create must not expunge the items tied to files
+ assert'''app'' ''dup'' ''new'' ''sub'' ''tri''≡ns.⎕NL ¯3 ¯9'
  assert'3 3 3≡ns.tri 3'
 
  CleanUp folder name

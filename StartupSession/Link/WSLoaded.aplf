@@ -1,4 +1,4 @@
- {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken;isLoadWs;preload
+ {ok}←WSLoaded;keep;links;msg;wslinks;link;diff;allOK;load;IsLoad;broken;isLoadWs;preload;param;default
 ⍝ Action to be taken upon )LOAD or )CLEAR
  ok←0
 
@@ -35,6 +35,10 @@
          ⍝ restore saved workspace links
          :If ~0∊⍴wslinks
              wslinks←⎕SE.Link.⎕NS¨wslinks  ⍝ avoid cross-ref between # and ⎕SE
+             ⍝ Links saved by an older Link lack any options added since (e.g. merge); code such as Status reads every option, so supply the defaults
+             :For link :In wslinks ⋄ :For (param default) :In ↓Config.LinkParams
+                 :If 0=link.⎕NC⊂param ⋄ param link.{⍎⍺,'←⍵'}default ⋄ :EndIf  ⍝ assign default to param within the link (same idiom as U.DefaultOpts)
+             :EndFor ⋄ :EndFor
              :If U.IS190
                  isLoadWS←(,1)≢IsLoad wslinks  ⍝ wslinks is not exactly the LOAD= directory
                  wslinks/⍨←isLoadWS            ⍝ before 19.0, always restore saved links

@@ -29,9 +29,9 @@ The **source** option specifies whether to consider the namespace in the active 
 
 `source` is a simple character vector, one of `'ns'`, `'dir'` or `'auto'`. From Link version 4.0, a file name can be used to load a namespace, class or interface from a single file, but `dir` is still used in this case.
 
-- **dir** means that the namespace must be non-existent or empty and will be populated from source files.
+- **dir** means that the namespace must be non-existent or empty (unless **merge** is set) and will be populated from source files.
 - **ns** means that the directory must be non-existent or empty and will be populated by source files for the items in the namespace.
-- **auto** will use whichever of ns or dir that is not empty. If both are empty, it will use **dir** on a subsequent [Refresh](Link.Refresh.md).
+- **auto** will use whichever of ns or dir that is not empty. If both are empty, it will use **dir** on a subsequent [Refresh](Link.Refresh.md). If **merge** is set, **auto** always resolves to **dir**.
 
 ### **watch**
 Default: **both** if a file system watcher can be created, else **ns**
@@ -126,7 +126,7 @@ Without **merge**, a directory can only be linked to an empty namespace, or to a
 When **merge** is set:
 
 - Items defined in the source files are loaded as usual. If an item of the same name already exists in the namespace, the file replaces it.
-- All other items in the namespace are left alone, and are not linked to any file. As with any link, if such an item is subsequently edited it is written to the root of the linked directory (or wherever **getFilename** decides).
+- All other items in the namespace are left alone, and are not linked to any file. The normal write rules apply to them from then on: a function or operator which is subsequently edited (if **watch** includes **ns**) or added with [Add](Link.Add.md) is written to the directory corresponding to its namespace - the root of the linked directory when **flatten** is set - or wherever **getFilename** decides.
 - The namespace can still have only one link. Linking a second directory into the same namespace reports "Already linked".
 - If **source** is **auto**, it resolves to **dir**: the namespace is never exported to the directory, and the directory must exist.
 
