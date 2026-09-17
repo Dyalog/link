@@ -995,6 +995,7 @@
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
      
       :If depth
+          :If 0∊⍴curfile ⋄ curfile←(≢name)⍴⊂'' ⋄ :EndIf  ⍝ no current file per name: ⍬ would be padded to 0 by ↑ and be taken as a file name when flattening (link issue #782)
           :If 0∊⍴args←↓⍉↑(where name oldname src curfile)
               (file oldfile nc)←⊂0⍴⊂''
           :Else
@@ -1116,7 +1117,7 @@
       :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
       fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
       (where expname)←SplitNs fullname
-      :If flatten ⋄ where←⍕ns ⋄ :EndIf              ⍝ all subdirectories link to linked namespace
+      :If flatten ⋄ :AndIf 0<≢subfile ⋄ where←⍕ns ⋄ :EndIf  ⍝ all subdirectories link to linked namespace - but the root directory is the linked namespace itself (link issue #782)
       :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
@@ -1467,7 +1468,7 @@
       :EndIf
     ∇
 
-    ∇ diff←Diff link;actname;arrays;difflist;expfile;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f
+    ∇ diff←Diff link;actname;arrays;difflist;expfile;oldexp;expname;file;fileiname;filemask;filenc;filesrc;linkmask;mask;name;nameifile;namemask;namenc;namesrc;nsref;subname;tocheck;tsdiff;where;changed;i;plain;With;s;f
     ⍝ uses link.arrays to determine which APL arrays to compare
       :If ~⎕NEXISTS link.dir ⋄ file←0⍴⊂'' ⋄ filesrc←0⍴⊂⍬
       :ElseIf link.singlefile
@@ -1511,7 +1512,11 @@
       expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
       (mask/expname)←(mask←where≡¨actname)/where  ⍝ roots have where≡expname≡actname
       subname←(1+≢link.ns)↓¨name
-      expfile←⊃link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc ⍬
+      (expfile oldexp)←2↑link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc ⍬
+      :If link.flatten  ⍝ names are unique across a flattened tree, so an untied item (e.g. after Break) can trust the one file that defines its name (link issue #782)
+          mask←(0=≢¨oldexp)∧(i←expname⍳name)=1+(≢expname)-(⌽expname)⍳name  ⍝ untied, and name defined by exactly one file
+          (mask/expfile)←file[mask/i]
+      :EndIf
       ⍝ expfile←(⎕NEXISTS expfile)/¨expfile  ⍝ not necesary since file shouldn't be listed anyways
       (filemask namemask)←0<(nameifile fileiname)←name file{(0<≢¨⍵)×(0@((1+≢⍺)∘=)⍺⍳⍵)}¨expname expfile  ⍝ 0 for not found
       filemask∧←filemask\(⍸filemask)=fileiname[filemask/nameifile]  ⍝ link must be both ways
