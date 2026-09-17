@@ -85,5 +85,33 @@
      ⎕EX name ⋄ 3 ⎕NDELETE folder
  :EndFor
 
+      ⍝ link issue #782: Diff and Resync must match items to files in a flattened link, so Break → Create can relink an unchanged namespace
+ opts←⎕NS'' ⋄ opts.(source flatten)←'dir' 1
+ :For layouts :In ('Foo.aplf' 'Goo.aplf')('Foo.aplf' 'sub/Goo.aplf')  ⍝ root-only and nested layouts
+     Layout layouts
+     z←opts LinkCreate name folder
+     'link issue #782'assert'0∊⍴⎕SE.Link.Diff name'                              ⍝ nothing changed: no differences
+     'link issue #782'assert'1∊''No action required''⍷⎕SE.Link.Resync name'
+     {}⎕SE.Link.Break name
+     z←opts LinkCreate name folder                                                ⍝ relink unchanged namespace (link issue #230)
+     'link issue #782'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+     'link issue #782'assert'0∊⍴⎕SE.Link.Diff name'
+     _←(⊂' r←Goo' 'r←782')⎕NPUT(folder,'/',⊃⌽layouts)1                            ⍝ change one file
+     'link issue #782'assert'1=≢⎕SE.Link.Diff name'                              ⍝ exactly one difference
+     {}⎕SE.Link.Break name
+     _←(⊂' r←Goo' 'r←1')⎕NPUT(folder,'/',⊃⌽layouts)1                              ⍝ restore the file, but modify the workspace item after Break
+     _←(⍎name).⎕FX' r←Goo' 'r←783'
+     'link issue #782'assertError'opts LinkCreate name folder' 'not empty'         ⍝ a modified item must still prevent relinking
+     ⎕EX name ⋄ 3 ⎕NDELETE folder
+ :EndFor
+      ⍝ link issue #782: forceFilenames must work when flattening (the file names are computed by the same code as Diff uses)
+ Layout,⊂'Foo.aplf'
+ _←(⊂' r←Goo' 'r←2')⎕NPUT(folder,'/sub/goo.aplf')1⊣3 ⎕MKDIR folder,'/sub'         ⍝ wrong case: must be renamed to Goo.aplf
+ opts.forceFilenames←1
+ z←opts LinkCreate name folder
+ 'link issue #782'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #782'assert'⎕NEXISTS folder,''/sub/Goo.aplf'''
+ {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
+
  CleanUp folder name
  ok←1
