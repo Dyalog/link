@@ -999,7 +999,11 @@
       cache←opts,opts.(dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)
      
       :If depth
-          :If 0∊⍴curfile ⋄ curfile←(≢name)⍴⊂'' ⋄ :EndIf  ⍝ no current file per name: ⍬ would be padded to 0 by ↑ and be taken as a file name when flattening (link issue #782)
+          :If 0∊⍴curfile ⍝ no current file for any name (callers pass ⍬)
+              ⍝ ↑ in the assignment of args pads curfile with its prototype.
+              ⍝ DetermineFileNameSub requires a character vector of length 0 to represent no current file, instead of 0 (with ⍬)
+              curfile←0⍴⊂''
+          :EndIf
           :If 0∊⍴args←↓⍉↑(where name oldname src curfile)
               (file oldfile nc)←⊂0⍴⊂''
           :Else
@@ -1105,11 +1109,24 @@
 ⍝      :EndIf
     ∇
     ∇ (where expname actname nc)←opts DetermineAplNameSub file;⎕AVU;beforeWrite;caseCode;dir;fastLoad;flatten;forceExtensions;forceFilenames;fullname;getFilename;ns;subdir;subfile;typeExtensions;subext
-    ⍝ ns is the target namespace
-    ⍝ expname is apl name expected from file name
-    ⍝ actname is actual list of names fixed from file
-    ⍝ nc is name class of name - returns ¯1 on invalid name and 0 on invalid/missing source
-    ⍝ opts cached for performance on ns lookup
+    ⍝ Work out which APL name a file (or directory) in the linked directory corresponds to.
+    ⍝
+    ⍝ Arguments:
+    ⍝   opts     link options (cached as a vector for performance: opts dir ns flatten ...)
+    ⍝            ns is the fully qualified name of the linked root namespace, e.g. '#.T'
+    ⍝   file     full path of the file or directory to name; may be the linked dir itself
+    ⍝
+    ⍝ Results:
+    ⍝   where    fully qualified name of the namespace the item lives in, e.g. '#.T.sub'
+    ⍝            With flatten, always ns itself for anything inside the linked dir.
+    ⍝            When file is the linked dir and ns is a root such as '#', where≡expname≡actname≡ns
+    ⍝   expname  APL name expected from the file name, e.g. 'foo' for .../sub/foo.aplf
+    ⍝            For the linked dir itself this is the leaf of ns, e.g. 'T'.
+    ⍝   actname  name actually defined by the file's source (from Sniff); '' if none found
+    ⍝            With fastLoad the source is not inspected and actname≡expname.
+    ⍝   nc       name class of actname: ¯1 invalid name, 0 invalid or missing source,
+    ⍝            ¯9.1 directory (trad ns), otherwise the usual ⎕NC value (2.1, 3.1, 9.4 ...)
+    
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
       subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
       (subdir subfile subext)←⎕NPARTS subfile
@@ -1121,7 +1138,13 @@
       :If 0=≢subfile ⋄ subdir←¯1↓subdir ⋄ :EndIf    ⍝ drop trailing slash for directories
       fullname←ns,DotSlash subfile←(≢dir)↓subdir,subfile
       (where expname)←SplitNs fullname
-      :If flatten ⋄ :AndIf 0<≢subfile ⋄ where←⍕ns ⋄ :EndIf  ⍝ all subdirectories link to linked namespace - but the root directory is the linked namespace itself (link issue #782)
+
+      ⍝ flatten: Files in subdirectories are redirected to the root ns. 
+      :If flatten
+      :AndIf 0<≢subfile ⍝ Make sure we aren't redirecting the root directory itself to inside the root namespace (#.T.T) (link issue #782)
+          where←⍕ns
+      :EndIf
+      
       :If fastLoad ⋄ (actname nc)←(expname 0)       ⍝ settle with expname - do not spend time inspecting source - only directories are detected as ¯9.1
       ⍝:ElseIf 0∊⍴src←GetFileSource file ⋄ (actname nc)←'' 0  ⍝ missing or empty file - nothing to infer
       :Else
@@ -1516,9 +1539,18 @@
       expname←((0<≢¨where)∧(0<≢¨expname))/¨where JoinNames expname  ⍝ fully qualified name
       (mask/expname)←(mask←where≡¨actname)/where  ⍝ roots have where≡expname≡actname
       subname←(1+≢link.ns)↓¨name
+      ⍝ expfile is where link thinks the file should be
+      ⍝ oldexp is the tied file (if it is tied)
       (expfile oldexp)←2↑link(1 DetermineFileName)((≢name)⍴⊂link.ns)subname subname namenc ⍬
-      :If link.flatten  ⍝ names are unique across a flattened tree, so an untied item (e.g. after Break) can trust the one file that defines its name (link issue #782)
-          mask←(0=≢¨oldexp)∧(i←expname⍳name)=1+(≢expname)-(⌽expname)⍳name  ⍝ untied, and name defined by exactly one file
+      :If link.flatten
+          ⍝ Untied items (e.g. after Break) get the default file, which is in the root directory. But, flatten, so the file may actually be in any subdirectory.
+          ⍝ Since this is flatten, one unique name must map to one unique file, so take the file that defines it. (link issue #782)
+          ⍝ Key with vocabulary (for future reference):
+          ⍝   i←⊃¨is←name ⌸ expname
+          ⍝   mask←(0=≢¨oldexp)∧(1=≢¨is)
+          
+          mask←(0=≢¨oldexp)∧(i←expname⍳name)=1+(≢expname)-(⌽expname)⍳name ⍝ untied, and the name occurs exactly once in expname
+
           (mask/expfile)←file[mask/i]
       :EndIf
       ⍝ expfile←(⎕NEXISTS expfile)/¨expfile  ⍝ not necesary since file shouldn't be listed anyways
