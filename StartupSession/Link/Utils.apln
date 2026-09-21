@@ -681,7 +681,7 @@
       :EndIf
     ∇
     ∇ tie←FixTie link
-      tie←'both'≡link.watch  ⍝ tie to file when fixing if watching both ways
+      tie←(⊂link.watch)∊'ns' 'both'  ⍝ tie to file when fixing if watching the namespace: the interpreter keeps the source of a tied item since v19.0, so ties are safe without a file watcher (link issues #140 and #789)
     ∇
 
     :EndSection
@@ -946,7 +946,7 @@
      
       :If tie ⋄ src←file   ⍝ tie to file - see FixTie
       :Else ⋄ src←GetFileSource file  ⍝ pure source - not tied
-          :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=both' ⋄ :EndIf
+          :If HasRequire src ⋄ Error'File "',file,'" contains a :Require keyword - link must use watch=ns or watch=both' ⋄ :EndIf
       :EndIf
       :If src≡⍬ ⋄ fixed←¯1 ⋄ :Return ⋄ :EndIf  ⍝ file not accessible
       :If tie ⋄ changed←0∊⍴target CurrentFileName name ⍝ file not tied - need to tie it
