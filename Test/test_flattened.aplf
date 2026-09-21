@@ -126,6 +126,17 @@
  'link issue #782'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #782'assert'⎕NEXISTS folder,''/sub/Goo.aplf'''
  {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
+      ⍝ link issue #789: items must be tied under watch=ns, so that an edit of a flattened item is written to its own file rather than to the link root
+ opts←⎕NS'' ⋄ opts.(source flatten watch)←'dir' 1 'ns'
+ 3 ⎕MKDIR¨(folder,'/')∘,¨'app' 'utils'
+ _←(⊂' r←app' 'r←42')⎕NPUT(folder,'/app/code.aplf')1
+ _←(⊂' r←utils' 'r←1')⎕NPUT(folder,'/utils/code.aplf')1
+ z←opts LinkCreate name folder
+ 'link issue #789'assert'(folder,''/app/code.aplf'')≡4⊃',name,'.(5179⌶)''app'''
+ (⍎name)'app'⎕SE.Link.Fix' r←app' 'r←789'
+ 'link issue #789'assert'('' r←app'' ''r←789'')≡⊃⎕NGET(folder,''/app/code.aplf'')1'
+ 'link issue #789'assert'~⎕NEXISTS folder,''/app.aplf'''
+ {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
 
  CleanUp folder name
  ok←1
