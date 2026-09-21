@@ -46,7 +46,14 @@
  'link issue #230'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  {}⎕SE.Link.Break name
  subname⍎'foo←{⍺+⍵}'
- assertError'opts LinkCreate name folder' 'Destination namespace not empty'
+ opts.source←'auto'
+ assertError'opts LinkCreate name folder' 'Cannot link a non-empty namespace to a non-empty directory'
+ opts.source←'dir'
+ z←opts LinkCreate name folder                     ⍝ link issue #788: explicit source=dir accepts items that no file defines
+ 'link issue #788'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #788'assert'3=⎕NC''',subname,'.foo'''
+ 'link issue #788'assert'(,⊂''→'' ''',subname,'.foo'')≡↓2↑⍤1⊢⎕SE.Link.Diff ''',name,''''
+ {}⎕SE.Link.Break name
  3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'ns'
  assertError'opts LinkCreate name folder' 'Source namespace not found'
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
@@ -416,9 +423,14 @@
  2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'  ⍝ this time name from subfolder was linked into the root namespace
  opts.source←'dir' ⋄ opts.watch←'both'  ⍝ try source=dir
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- 'link issue #160'assertError'opts LinkCreate name folder' 'Destination namespace not empty'
+ z←opts LinkCreate name folder  ⍝ link issue #788: explicit source=dir replaces the tied item from the file that defines it
+ 'link issue #788'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ 'link issue #788'assert'1=CountLinks'
+ 1 assert_create 1
+ z←⎕SE.Link.Break name
+ ⎕EX name ⋄ name ⎕NS''
+ 2(⍎name).⎕FIX'file://',subfolder,'/foo.aplf'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- ⎕EX subname
  z←opts LinkCreate name folder
  'link issue #160'assert'1=CountLinks'
  1 assert_create 1

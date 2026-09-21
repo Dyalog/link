@@ -101,8 +101,16 @@
      {}⎕SE.Link.Break name
      _←(⊂' r←Goo' 'r←1')⎕NPUT(folder,'/',⊃⌽layouts)1                              ⍝ restore the file, but modify the workspace item after Break
      _←(⍎name).⎕FX' r←Goo' 'r←783'
-     'link issue #782'assertError'opts LinkCreate name folder' 'not empty'         ⍝ a modified item must still prevent relinking
-     ⎕EX name ⋄ 3 ⎕NDELETE folder
+     _←(⍎name).⎕FX' r←Extra' 'r←788'                                              ⍝ and add an item that no file defines
+     opts.source←'auto'
+     'link issue #782'assertError'opts LinkCreate name folder' 'non-empty namespace' ⍝ a modified item must still prevent relinking with source=auto
+     opts.source←'dir'
+     z←opts LinkCreate name folder                                                ⍝ link issue #788: explicit source=dir replaces Goo from its file and leaves Extra alone
+     'link issue #788'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+     'link issue #788'assert'1=(⍎name).Goo'
+     'link issue #788'assert'788=(⍎name).Extra'
+     'link issue #788'assert'(,⊂''→'' ''',name,'.Extra'')≡↓2↑⍤1⊢⎕SE.Link.Diff name' ⍝ the only difference is the extra item
+     {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
  :EndFor
       ⍝ link issue #782: forceFilenames must work when flattening (the file names are computed by the same code as Diff uses)
  Layout,⊂'Foo.aplf'

@@ -89,6 +89,7 @@ NOHOLD:
          :If emptydir⍱emptyns  ⍝ link issue #230
              opts.(ns dir)←(ns fulltarget)
              :If opts.preloaded
+             :OrIf opts.source≡'dir'  ⍝ link issue #788: explicit source=dir - items defined by files are replaced, others left alone
              :OrIf 0∊⍴⎕SE.Link.U.Diff opts
                  emptydir←emptyns←1  ⍝ allow link creation
              :EndIf
