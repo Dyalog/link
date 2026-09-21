@@ -29,9 +29,9 @@ The **source** option specifies whether to consider the namespace in the active 
 
 `source` is a simple character vector, one of `'ns'`, `'dir'` or `'auto'`. From Link version 4.0, a file name can be used to load a namespace, class or interface from a single file, but `dir` is still used in this case.
 
-- **dir** means that the namespace must be non-existent or empty and will be populated from source files.
+- **dir** means that the namespace will be populated from source files. If the namespace already contains code, items that are defined by source files are replaced by the file contents, and items that no source file defines are left in place ([Link.Diff](Link.Diff.md) reports them as having no corresponding file). If the directory is empty, the namespace must be non-existent or empty.
 - **ns** means that the directory must be non-existent or empty and will be populated by source files for the items in the namespace.
-- **auto** will use whichever of ns or dir that is not empty. If both are empty, it will use **dir** on a subsequent [Refresh](Link.Refresh.md).
+- **auto** will use whichever of ns or dir that is not empty. If both are empty, it will use **dir** on a subsequent [Refresh](Link.Refresh.md). If both contain code, the link is only created if the code is identical on both sides; otherwise you must specify **source** explicitly.
 
 ### **watch**
 Default: **both** if a file system watcher can be created, else **ns**
