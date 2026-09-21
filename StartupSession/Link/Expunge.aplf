@@ -42,7 +42,7 @@
                          r[i]←parent.⎕EX leaf  ⍝ do it before the watcher kicks in
                          :If (⊂link.watch)∊'ns' 'both'
                              :If 0<≢oldfile  ⍝ tied to file
-                                 2 ⎕NDELETE oldfile
+                                 1 ⎕NDELETE oldfile  ⍝ file may already be gone (link issue #140)
                              :ElseIf ⎕NEXISTS file ⍝ guess file name
                                  2 ⎕NDELETE file
                              :EndIf

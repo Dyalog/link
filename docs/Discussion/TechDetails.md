@@ -84,7 +84,7 @@ With the exception of variables stored in `.apla` files, Link loads code into th
 
 Arrays, stored in `.apla` files, are either processed by `⎕SE.Dyalog.Array.Deserialise` or, if in plain text format (in which case they have a "sub-extension", for example `.mat.apla`), by Link itself.
 
-When you are watching both sides of a link, Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a *new* function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.
+When the namespace side of a link is watched (`watch` is `ns` or `both`), Link delegates the work of tracking the links to the interpreter. In this case, editing objects will cause the editor itself (not Link) to update the source file. You can inspect the links which are maintained by the interpreter using a family of I-Beams numbered 517x. When a *new* function, operator, namespace or class is created, a hook in the editor calls Link code which generates a new file and sets up the link.
 
 If .NET is available, Link uses a File System Watcher to monitor linked directories and immediately react to file creation, modification or deletion.
 

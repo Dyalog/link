@@ -263,7 +263,8 @@
  ⎕NDELETE folder,'/todelete.apln'
  Breathe ⋄ Breathe
  'link issue #140'assert'todelete≡⎕SRC ',name,'.todelete' ⍝ source still available
- ⎕SE.Link.Expunge name,'.todelete'
+ 'link issue #789'assert'0<≢4⊃',name,'.(5179⌶)''todelete''' ⍝ tied under watch=ns
+ ⎕SE.Link.Expunge name,'.todelete'  ⍝ tied file is already gone
  (⍎name).{⎕THIS.jsondict←⎕SE.Dyalog.Array.Deserialise ⍵}'(var:42 ⋄ list:1 2 3)'  ⍝ ⎕JSON'{"var":42,"list":[1,2,3]}' hits Mantis 18652
       ⍝'link issue #177'assertError'z←(⍎name).{⎕SE.UCMD''z←]Link.Add jsondict.list''}⍬'('Not a properly named namespace')0 ⍝ UCMD may trigger any error number
  z←(⍎name).{⎕SE.UCMD']Link.Add jsondict.list'}⍬

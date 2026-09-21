@@ -75,7 +75,7 @@
  link←GetLink name
  assert 'link.dir≡file'
  z←(⊂bare)QNPUT file                  ⍝ Write the truncated source
- assert'(,¨source)≡⎕SRC ',name        ⍝ Verify it was not updated in the ws
+ assert'3=',name,'.⎕NC''dup'''         ⍝ Verify it was not updated in the ws (⎕SRC of the tied script reports the changed file - link issue #789)
  parent←⊃⎕SE.Link.U.SplitNs name
  (⍎parent) ⎕SE.Link.Fix source        ⍝ Update the ws definition
  assert'(,¨source)≡⊃⎕NGET file 1'     ⍝ Check file WAS updated
