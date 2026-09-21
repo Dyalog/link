@@ -1692,9 +1692,9 @@ message ← {options} ⎕SE.Link.Create (namespace directory)
 <p>The <strong>source</strong> option specifies whether to consider the namespace in the active workspace (ns) or directory on the file system (dir) as the source (also used by a subsequent <a href="../Link.Refresh/">Refresh</a>).</p>
 <p><code>source</code> is a simple character vector, one of <code>'ns'</code>, <code>'dir'</code> or <code>'auto'</code>. From Link version 4.0, a file name can be used to load a namespace, class or interface from a single file, but <code>dir</code> is still used in this case.</p>
 <ul>
-<li><strong>dir</strong> means that the namespace must be non-existent or empty and will be populated from source files.</li>
+<li><strong>dir</strong> means that the namespace will be populated from source files. If the namespace already contains code, items that are defined by source files are replaced by the file contents, and items that no source file defines are left in place (<a href="Link.Diff.md">Link.Diff</a> reports them as having no corresponding file). If the directory is empty, the namespace must be non-existent or empty.</li>
 <li><strong>ns</strong> means that the directory must be non-existent or empty and will be populated by source files for the items in the namespace.</li>
-<li><strong>auto</strong> will use whichever of ns or dir that is not empty. If both are empty, it will use <strong>dir</strong> on a subsequent <a href="../Link.Refresh/">Refresh</a>.</li>
+<li><strong>auto</strong> will use whichever of ns or dir that is not empty. If both are empty, it will use <strong>dir</strong> on a subsequent <a href="../Link.Refresh/">Refresh</a>. If both contain code, the link is only created if the code is identical on both sides; otherwise you must specify <strong>source</strong> explicitly.</li>
 </ul>
 <h3 id="watch"><strong>watch</strong></h3>
 <p>Default: <strong>both</strong> if a file system watcher can be created, else <strong>ns</strong></p>
