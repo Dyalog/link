@@ -848,7 +848,7 @@
           :If ⎕NEXISTS file
               (modTime owner)←3 5 ⎕NINFO file
               modTime[7]←0           ⍝ 0 ms
-              owner←2⊃⎕NPARTS owner  ⍝ remove domain: foo/bar → bar; bar → bar
+              owner←{0=≢⍵:'' ⋄ 2⊃⎕NPARTS ⍵}owner  ⍝ remove domain: foo/bar → bar; bar → bar; '' → ''
             ⍝ ┌──set attribs to─┐┌────updated────┐┌─old attribs─┐
               name where.(1159⌶)⍨modTime owner@2 4 where.⎕AT name
           :EndIf
