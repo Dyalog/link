@@ -145,7 +145,7 @@
  ⍝ --- Try to Link to a function file
  file←folder,'/dup.aplf'
  source←'∇r←dup x' 'r←x x' '∇'
- z←source QNPUT file
+ z←(⊂source)QNPUT file
  assertError 'z←⎕SE.Link.Create name file' 'namespace, class or interface'
 
  ok←1

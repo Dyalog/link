@@ -442,10 +442,6 @@
  'link issue #160'assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
  z←⎕SE.Link.Break name
  opts.source←'ns' ⋄ opts.watch←'both'  ⍝ try source=ns
-
- (⊂foosrc)⎕NPUT(folder,'/foo.aplf')1       ⍝ native line endings: the CRLF from QNPUT would change when Link rewrites the tied files, and the interpreter then drops the source as typed 
- (⊂newfoosrc)⎕NPUT(subfolder,'/foo.aplf')1 ⍝ This broke the test suite on Linux. See #795
- 
  2(⍎name).⎕FIX'file://',folder,'/foo.aplf'
  2(⍎subname).⎕FIX'file://',subfolder,'/foo.aplf'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
