@@ -14,6 +14,14 @@
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX name ⋄ 3 ⎕NDELETE folder
 
+      ⍝ link issue #786: UCMD accepts and passes the preloaded modifier
+  2 QMKDIR folder ⋄ name ⎕NS ⍬
+  z←(⍎name).{⎕SE.UCMD ⍵}']Link.Create ⎕THIS.⎕this ',folder,' -preloaded'
+  'link issue #786'assert'∨/''Linked:''⍷z'
+  'link issue #786'assert'1=CountLinks'
+  {}⎕SE.Link.Break name
+  ⎕EX name ⋄ 3 ⎕NDELETE folder
+
       ⍝ test system variable inheritance
       ⍝ also test use of name which is not a valid identifier
       ⍝ and "redirection" of conflicting file names (Issue #454)

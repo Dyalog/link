@@ -2042,7 +2042,7 @@
       r,←'{"Name":"Add",         "args":"items[←def]",       "Parse":"", "Desc":"Associate items in linked namespaces with new files/directories in corresponding directory, optionally with simultaneous definition"},'
       r,←'{"Name":"Break",       "args":"[ns1]",             "Parse":"9999S -all[=]# ⎕SE * -recursive=on off error",  "Desc":"Break link between namespace and corresponding directory"},'
       ⍝r,←'{"Name":"CaseCode",    "args":"file1",             "Parse":"1L", "Desc":"Append filename with numeric encoding of capitalisation"},'
-      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -ignoreconfig -text=aplan plain -recordflags","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
+      r,←'{"Name":"Create",      "args":"[ns] dir",          "Parse":"1-2L -source=ns dir auto -watch=none ns dir both -casecode -forceextensions -forcefilenames -arrays[=] -sysvars -flatten -beforeread= -beforewrite= -getfilename= -codeextensions= -typeextensions= -fastload -preloaded -ignoreconfig -text=aplan plain -recordflags","Desc":"Link a namespace with a directory (create one but not both if non-existent)"},'
       r,←'{"Name":"Configure",   "args":"target [settings]", "Parse":"1-9999 -create", "Desc":"Set directory or user configuration options"},'
       r,←'{"Name":"Export",      "args":"ns0 dir2",          "Parse":"1-2L -overwrite -arrays[=] -sysvars -casecode -ignoreconfig -text=aplan plain -recordflags", "Desc":"Export a namespace to a directory (create the directory if absent); does not create a link"},'
       r,←'{"Name":"Expunge",     "args":"[item]",            "Parse":"9999S",  "Desc":"Erase item and associated file"},'
@@ -2081,6 +2081,7 @@
       m⍪←'-ignoreconfig' '' 'ignore configuration files'
       m⍪←'-text' '={aplan|plain}' 'always use array notation to store arrays, even if value is plain text'
       m⍪←'-overwrite' '' 'overwrite destination if needed'
+       m⍪←'-preloaded' '' 'skip initial synchronisation when creating a link from preloaded content'
       m⍪←'-proceed' '' 'perform changes required to resynchronise'
       m⍪←'-recursive' '={on|off|error}' 'whether children namespaces linked to their own directories must be unlinked too'
       m⍪←'-source' '={ns|dir|auto}' 'which source is authoritative if both are populated'
@@ -2146,7 +2147,7 @@
       :Case 2  ⍝ ambivalent or dyadic
           'opts'⎕NS ⍬
           :If 9=40 ⎕ATX'args' ⍝ args has been parsed
-              names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch' 'create' 'ignoreconfig' 'text' 'recordFlags'
+              names←'all' 'arrays' 'beforeRead' 'beforeWrite' 'caseCode' 'codeExtensions' 'extended' 'fastLoad' 'flatten' 'forceExtensions' 'forceFilenames' 'getFilename' 'overwrite' 'preloaded' 'proceed' 'recursive' 'source' 'sysVars' 'typeExtensions' 'watch' 'create' 'ignoreconfig' 'text' 'recordFlags'
               :For name :In names
                   lc←0 CaseText name
                   :If ×args.⎕NC lc
