@@ -3,7 +3,8 @@
     "version": "4.2",
     "title": "4.2",
     "aliases": [
-      "dev"
+      "dev",
+      "latest"
     ]
   },
   {
@@ -14,9 +15,7 @@
   {
     "version": "4.0",
     "title": "4.0",
-    "aliases": [
-      "latest"
-    ]
+    "aliases": []
   },
   {
     "version": "3.1",
