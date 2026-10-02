@@ -1,6 +1,6 @@
 # Version 4.2 Release Notes
 
-Link version 4.2 is distributed with Dyalog APL version 21.0.
+Link version 4.2 is distributed with Dyalog APL version 21.0 and is also supported on version 20.0. It is tested on version 19.0, but 19.0 is not officially supported.
 You can select documentation for other versions of Link using the dropdown in the title bar.
 
 Link 4.2 changes how stop and trace settings are recorded, and includes a number of bug fixes.
