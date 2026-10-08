@@ -1,7 +1,7 @@
 # Link.Create
 
 ## Syntax
-    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-preloaded] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}] [-recordflags]
+    ]LINK.Create [ns] <dirorfile> [-source={ns|dir|auto}] [-watch={none|ns|dir|both}] [-casecode] [-forceextensions] [-forcefilenames] [-arrays] [-sysvars] [-flatten] [-beforeread=<fn>] [-beforewrite=<fn>] [-getfilename=<fn>] [-codeextensions=<var>] [-typeextensions=<var>] [-fastload] [-ignoreconfig] [-text={aplan|plain}] [-recordflags]
     
     message ← {options} ⎕SE.Link.Create (namespace directory)
 
@@ -116,6 +116,8 @@ This option takes effect only when **source** is **dir**.
 
 ### **preloaded**
 Default: **off**
+
+*This option is for internal use when calling `⎕SE.Link.Create` programmatically, and is not available from the user command.*
 
 The **preloaded** flag skips the reading of source files when creating
 links. This is useful if you have loaded a saved workspace which is known
