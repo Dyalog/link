@@ -27,14 +27,14 @@
  nsref.⎕FX foosrc←' foo' '⍝⊢'
  {}LinkCreate name folder
  read←NREADALL folder,'/foo.aplf'
- assert'(3↑¯5↑read)≡¯30 ¯118 ¯94'  ⍝ UTF-8 U+22A2 right tack (ignore CRLF)
+ assert'(¯3↑read~13 10)≡¯30 ¯118 ¯94'  ⍝ UTF-8 U+22A2 right tack (ignore CRLF)
 
  nsref.⎕AVU[60]←164                 ⍝ Now change to map to currency symbol
  {}⎕SE.Link.Add name,'.⎕AVU'        ⍝ Record ⎕AVU
  name'foo'⎕SE.Link.Fix foosrc     ⍝ Refix the function, this should write the file
 
  read←NREADALL folder,'/foo.aplf'
- assert'(2↑¯4↑read)≡¯62 ¯92'       ⍝ UTF-8 U+00A4 currency symbol
+ assert'(¯2↑read~13 10)≡¯62 ¯92'       ⍝ UTF-8 U+00A4 currency symbol
  {}⎕SE.Link.Break name
  ⎕EX name
 
