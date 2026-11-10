@@ -292,7 +292,8 @@
 
     LOGCRAWLER←1  ⍝ Log crawler-specific internals - undesirable unless debugging the crawler itself
 
-    ∇ time←EncodeTS TS        ⍝ time in seconds
+    ∇ time←EncodeTS TS        ⍝ time in seconds, for a timestamp or a (possibly empty) list of them
+      :If 0=≢TS ⋄ time←⍬ ⋄ :Return ⋄ :EndIf  ⍝ no files (e.g. crawling an empty directory)
       time←0.001×0 12 31 24 60 60 1000⊥⍉↑⊆TS  ⍝ takes about 14 digits - ⎕CT must be zero
     ∇
     TS_OLD←EncodeTS 0  ⍝ old timestamp

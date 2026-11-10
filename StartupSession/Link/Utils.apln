@@ -1321,7 +1321,7 @@
       order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨list[1;]
       list←list[;order]
      
-      files←list[1;] ⋄ isdir←1=list[2;]
+      files←list[1;] ⋄ isdir←1=∊list[2;]  ⍝ ∊ so that an empty directory gives a simple empty mask, not a nested one
       :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
     ∇
 
