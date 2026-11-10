@@ -262,8 +262,31 @@
           _←(⊂⍺)⍺⍺.⎕NPUT⍠'ContentType' 'APLCode'⊢f 1
           ⍝ ⍺⍺.⎕NPUT in order to use the right ⎕AVU under Classic
           1=≢⊆⍵:_←1                ⍝ done?
-          ⎕USING←'System'
-          _←1⊣IO.File.SetLastWriteTime f(⎕NEW DateTime,⊢/⍵)
+          _←(⊃⌽⍵)SetModTime f
+      }
+
+      SetModTime←{ ⍝ Set the last modification time of file ⍵ to ⍺ (local time, ⎕TS format) - return success
+          0::0
+          20≤DYALOGVERSION:⍺{      ⍝ ⎕NINFO can only set the UTC time (property 13)
+              dn←1 ⎕DT⊂⍺ ⋄ f←⍵
+              h←÷2×86400000                 ⍝ half a millisecond: setting truncates, so this makes it land on ⍺'s millisecond
+              u←dn-(-/20 ⎕DT'JZ')÷86400     ⍝ guess the UTC time, using today's UTC offset
+              _←(⊂13,u+h)⎕NINFO f
+              err←dn-1 ⎕DT 3 ⎕NINFO f       ⍝ how far off the file's local time is
+              (|err)<÷86400:1               ⍝ right: the offset on that date is the same as today's
+              1⊣(⊂13,u+err+h)⎕NINFO f       ⍝ other side of a clock change (DST): correct it
+          }⍵
+          ⍝ v19.0 and earlier: .NET, or touch where there is none
+          ⍵{0::0 ⋄ ⎕USING←'System' 
+          1⊣IO.File.SetLastWriteTime ⍺(⎕NEW DateTime ⍵)}⍺:1
+          
+          ISWIN:0
+          ts←6↑⍺
+          ~∧/(ts=⌊ts)∧(ts≥0)∧ts<10000 100 100 100 100 100:0  ⍝ so that only digits reach the shell
+          file←(('/'≠⊃⍵)/'./'),⍵            ⍝ ./ before a relative name, so that a leading - is not an option
+          file←'''' ⎕R '&\\&&'⊢file         ⍝ ' → '\''
+          file←'''',file,''''               ⍝ single-quoted for the shell
+          1⊣⎕SH'touch -c -t ',(,'ZI4,ZI2,ZI2,ZI2,ZI2,<.>,ZI2'⎕FMT 1 6⍴ts),' ',file,' 2>&1'  ⍝ -c: never create a file
       }
 
     ∇ name←CaseCodePart name;bin;digits;len;⎕IO

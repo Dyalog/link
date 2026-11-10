@@ -1,15 +1,14 @@
- ok←test_attributes(folder name);z;ns;⎕USING;GetTime;SetTime;fn;dt;aplf;tmp;TMatch;at
+ ok←test_attributes(folder name);z;ns;GetTime;SetTime;fn;dt;aplf;tmp;TMatch;at
 ⍝ Verify that functions get their attributes (time, author) from the file rather than ⎕FIX
- ⎕USING←''
 
  GetTime←⊃∘⊃3 ⎕NINFO⊂
- SetTime←{System.IO.File.SetLastWriteTime ⍵(⎕NEW System.DateTime ⍺)}
+ SetTime←{⍺ ⎕SE.Link.U.SetModTime ⍵:_←1 ⋄ ('Cannot set the modification time of ',⍵)⎕SIGNAL 11}
  TMatch←1>86400×|⍤-⍥(1 ⎕DT⊆) ⍝ <1s ∆t
 
  CleanUp folder name
  ⎕MKDIR Retry folder
  (⊂fn'bar')⎕NPUT aplf←folder,'/',(fn←'foo'),'.aplf'
- (dt←2105 6 7 10 20 30)SetTime aplf
+ (dt←2035 6 7 10 20 30)SetTime aplf
 
 ⍝ Check that we import the special datetime
  z←LinkCreate name folder
