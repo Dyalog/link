@@ -1,4 +1,4 @@
- msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name;restored;setconfig
+ msg←{opts}Resync ns;FixFile;diff;file;files;mask;new;ok;type;⎕IO;⎕ML;links;manual;z;names;name;restored;setconfig;DEBUG
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (msg setconfig)←Config.GetConfig opts

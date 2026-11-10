@@ -1,4 +1,4 @@
- status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML;setconfig
+ status←{opts}Status ns;L;defopts;dirs;infos;items;lineages;links;nss;prop;props;ref;where;⎕IO;⎕ML;setconfig;DEBUG
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (status setconfig)←Config.GetConfig opts

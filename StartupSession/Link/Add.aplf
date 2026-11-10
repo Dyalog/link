@@ -1,4 +1,4 @@
- msg←{api}Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type;⎕TRAP;unnamed
+ msg←{api}Add items;added;item;name;ns;unfound;unlinked;⎕IO;⎕ML;setconfig;opts;lines;z;type;⎕TRAP;unnamed;DEBUG
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (msg setconfig)←Config.GetConfig opts
