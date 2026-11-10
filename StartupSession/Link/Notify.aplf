@@ -123,7 +123,7 @@
                  (⍎curnsname)U.Untie curactname
                  msg,←'creating 'affected' - unlinking previously linked 'curname
              :ElseIf dir
-                 :Trap 0 ⋄ children←⊃⎕NINFO⍠1⊢path,'/*'
+                 :Trap 0 ⋄ children←⊃(1 ClassicNames.NInfo)path,'/*'
                  :Else ⋄ children←0⍴⊂''
                  :EndTrap
                  children←(link U.HasExtn children)/children
@@ -178,7 +178,7 @@
                  :If 9=⌊oldnc ⍝ old name is an existing namespace
                      actname nsref.⎕NS''  ⍝ create empty namespace
                      oldnsref.⎕EX oldexpname                        ⍝ expunge old
-                     :Trap 0 ⋄ children←⊃⎕NINFO⍠1⊢path,'/*'
+                     :Trap 0 ⋄ children←⊃(1 ClassicNames.NInfo)path,'/*'
                      :Else ⋄ children←0⍴⊂''
                      :EndTrap
                      msg,←'namespace rename 'oldname' → 'affected

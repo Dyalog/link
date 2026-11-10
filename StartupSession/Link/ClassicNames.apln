@@ -1,0 +1,114 @@
+:Namespace ClassicNames
+⍝ Workaround for non-ASCII file names in Classic interpreters on non-Windows platforms.
+⍝ Classic writes such names as one ANSI byte per character (⎕ → 0x8C), and wildcard
+⍝ ⎕NINFO lists any multi-byte or invalid UTF-8 character as '?', so those entries
+⍝ cannot be stat'ed or deleted under the listed name; 3 ⎕NDELETE fails for the same reason.
+⍝ Here wildcard listings come from POSIX find instead (⎕SHELL from v20, ⎕SH in v19), and
+⍝ Link writes UTF-8 names, as Unicode interpreters do.
+⍝ "Filesystem form" is a character vector whose ⎕NXLATE bytes are the bytes on disk;
+⍝ every ⎕N function accepts it unchanged. Elsewhere all functions defer to the primitives.
+⍝ Everything here runs at ⎕FIX time without ##.U
+
+    ⎕IO ⎕ML←1 1
+    Affected←(82=⎕DR'')∧'Windows'≢7↑⊃'.'⎕WG'APLVersion'
+    Version←⊃(//)⎕VFI{⍵↑⍨¯1+⍵⍳'.'}2⊃'.'⎕WG'APLVersion'
+
+    ∇ r←ToFS name;b;a
+    ⍝ Name → filesystem form (UTF-8 on disk, as written by Unicode interpreters)
+      →0⍴⍨~Affected⊣r←name
+      b←'UTF-8'⎕UCS name
+      r←⎕AV[(⎕NXLATE 0)⍳b] ⋄ a←⍸b<128 ⋄ r[a]←⎕UCS b[a]
+    ∇
+
+    ∇ r←FromFS name;b;a
+    ⍝ Filesystem form → name. Names that are not valid UTF-8 (written by Classic
+    ⍝ without ToFS) are already in ⎕AV characters and are returned unchanged.
+      →0⍴⍨~Affected⊣r←name
+      b←(⎕NXLATE 0)[⎕AV⍳name] ⋄ a←⍸name∊⎕UCS 31+⍳95 ⋄ b[a]←⎕UCS name[a]
+      :Trap 0 ⋄ r←'UTF-8'⎕UCS b ⋄ :EndTrap
+    ∇
+
+    ∇ r←dir ToFSBelow file
+    ⍝ ToFS for the part of file below dir; dir is already in filesystem form
+      →0⍴⍨~Affected⊣r←file
+      :If dir≡(≢dir)↑file ⋄ r←dir,ToFS(≢dir)↓file
+      :Else ⋄ r←ToFS file
+      :EndIf
+    ∇
+
+    ∇ r←dir FromFSBelow file
+    ⍝ FromFS for the part of file below dir; dir stays in filesystem form
+      →0⍴⍨~Affected⊣r←file
+      :If dir≡(≢dir)↑file ⋄ r←dir,FromFS(≢dir)↓file
+      :Else ⋄ r←FromFS file
+      :EndIf
+    ∇
+
+    ∇ r←{props}(opts NInfo)path;o;Opt;rest;j;dir;pat;names
+    ⍝ Cover for props(⎕NINFO⍠opts)path. Wildcard listings (path ending in a pattern,
+    ⍝ as in dir,'/*') return names in filesystem form. Recurse does not follow
+    ⍝ symbolic links to directories.
+      :If 900⌶⍬ ⋄ props←0 ⋄ :EndIf
+      o←,{0=≡⍵:⊂'Wildcard'⍵ ⋄ 2=≡⍵:⊂⍵ ⋄ ⍵}opts
+      Opt←{(≢o)<i←(⊃¨o)⍳⊂⍺:⍵ ⋄ 2⊃i⊃o}
+      :If ~Affected∧'Wildcard'Opt 0
+          r←props(⎕NINFO⍠opts)path ⋄ →0
+      :EndIf
+      j←1+(≢path)-(⌽path)⍳'/'
+      (dir pat)←{0=j:'.'path ⋄ ((j-1)↑path)(j↓path)}⍬
+      dir←{0=≢⍵:'/' ⋄ ⍵}dir
+      :If ~⎕NEXISTS dir ⋄ r←props(⎕NINFO⍠opts)path ⋄ →0 ⋄ :EndIf  ⍝ same error as ⎕NINFO
+      names←Find dir pat(0≠'Recurse'Opt 0)
+      :If 0=≢names                      ⍝ nothing to misname, and ⎕NINFO gets the empty result's prototypes right
+          r←props(⎕NINFO⍠opts)path ⋄ →0
+      :EndIf
+      rest←o/⍨~(⊃¨o)∊'Wildcard' 'Recurse'
+      :If 0=≢rest
+          r←(,props)⎕NINFO names
+      :Else
+          r←(,props)(⎕NINFO⍠rest)names
+      :EndIf
+      r←↓⍉↑r                            ⍝ one item per name → one vector per property, as a wildcard call returns
+      :If 0=≢⍴props ⋄ r←⊂⊃r ⋄ :EndIf
+    ∇
+
+    ∇ r←{flags}NDelete path;names
+    ⍝ Cover for flags ⎕NDELETE path. A recursive delete of a directory (flags 2 or 3)
+    ⍝ first removes its contents one by one, deepest first, using names from Find.
+      :If 900⌶⍬ ⋄ flags←0 ⋄ :EndIf
+      :If Affected∧(flags∊2 3)∧⎕NEXISTS path
+      :AndIf 1=1 ⎕NINFO⍠('Follow' 0)⊢path
+          names←Find path'*' 1
+          {}1 ⎕NDELETE¨names[⍒≢¨names]
+      :EndIf
+      r←flags ⎕NDELETE path
+    ∇
+
+    ∇ paths←Find(dir pattern recurse);start;args;b
+    ⍝ Paths below dir whose base name matches the glob pattern, in filesystem form.
+    ⍝ Uses only POSIX find features; starting from dir/. keeps '.' out of the results.
+      start←dir,'/.'↓⍨'/'=⊃⌽dir
+      args←'find'start'!' '-name' '.',((~recurse)/⊂'-prune'),'-name'pattern
+      :If 20≤Version
+      ⍝ Run find directly (a nested argument bypasses the shell, so nothing needs quoting).
+      ⍝ ⎕SHELL decodes text output, so take raw bytes; NUL separators allow any file name.
+          args,←'-exec' 'printf' '%s\0' '{}' '+'
+          b←256|∊⊃⎕SHELL⍠('Output'((1('Array' 83))(2 'Null')))⊢args
+          paths←BytesToFS¨(b≠0)⊆b
+      :Else
+      ⍝ ⎕SH returns each byte as its ⎕AV character, which is filesystem form already,
+      ⍝ but stops at NUL; a name containing a newline is lost (no APL name contains one)
+          paths←⎕SH(⍕Quote¨args),' 2>/dev/null; true'      ⍝ ⎕SH signals any non-zero exit
+          paths/⍨←⎕NEXISTS¨paths
+      :EndIf
+      paths←(⊂dir,'/'↓⍨'/'=⊃⌽dir),¨(≢start,'/')↓¨paths
+    ∇
+
+    ∇ r←BytesToFS b;a
+    ⍝ Raw bytes → filesystem form (inverse of the translation ⎕NPUT etc. apply to names)
+      r←⎕AV[(⎕NXLATE 0)⍳b] ⋄ a←⍸(b≥32)∧b<127 ⋄ r[a]←⎕UCS b[a]
+    ∇
+
+    Quote←{'''',('''' ⎕R '&\\&&'⊢⍵),''''}
+
+:EndNamespace

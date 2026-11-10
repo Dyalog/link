@@ -490,7 +490,7 @@
               :EndIf
               :If 1∊mask←~mask  ⍝~0∊⍴lostfiles←oldfiles~allfiles  ⍝ delete oldfiles that are not tied to anything
                   (mask/delmask/oldnames){0 LogCrawler'Deleted APL item: '⍺' → '⍵}¨(mask/delfiles)
-                  3 ⎕NDELETE⌽(mask/delfiles)  ⍝ delete directories last
+                  {}3 ##.ClassicNames.NDelete¨⌽(mask/delfiles)  ⍝ delete directories last
               :EndIf
           :EndIf
           ⍝ check for creations

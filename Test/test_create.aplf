@@ -12,16 +12,16 @@
  z←(⍎name).{⎕SE.UCMD ⍵}']Link.Break ⎕ThIs'
  assert'∨/''Unlinked''⍷z'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- ⎕EX name ⋄ 3 ⎕NDELETE folder
+ ⎕EX name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ test system variable inheritance
       ⍝ also test use of name which is not a valid identifier
       ⍝ and "redirection" of conflicting file names (Issue #454)
 
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- 3 ⎕NDELETE folder ⋄ ⎕EX name
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
  2 ⎕MKDIR subfolder
- (⊂,'0')QNPUT folder,'/⎕IO.apla'
+ (⊂,'0')QNPUT folder,⎕SE.Link.ClassicNames.ToFS'/⎕IO.apla'
  (⊂'foo' '2+2')QNPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place
  (⊂'goo' '2+2')QNPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
  (⊂'bar' '2+2')QNPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
@@ -34,12 +34,12 @@
  assert'''/baz.aplf''≡¯9↑⎕SE.Link.GetFileName name,''.bar''' ⍝ baz also linked to bar
  assert'''/baz~2.aplf''≡¯11↑⎕SE.Link.GetFileName name,''.baz''' ⍝ baz linked to baz~2
  {}⎕SE.Link.Break name
- ⎕EX name ⋄ 3 ⎕NDELETE folder
+ ⎕EX name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
  assert'{6::1 ⋄ 0=CountLinks}⍬'
 
       ⍝ test failing creations
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- 3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'dir'
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name ⋄ opts.source←'dir'
  assertError'opts LinkCreate name folder' 'Source directory not found'
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
  z←opts LinkCreate name folder
@@ -54,7 +54,7 @@
  'link issue #788'assert'3=⎕NC''',subname,'.foo'''
  'link issue #788'assert'(,⊂''→'' ''',subname,'.foo'')≡↓2↑⍤1⊢⎕SE.Link.Diff ''',name,''''
  {}⎕SE.Link.Break name
- 3 ⎕NDELETE folder ⋄ ⎕EX name ⋄ opts.source←'ns'
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name ⋄ opts.source←'ns'
  assertError'opts LinkCreate name folder' 'Source namespace not found'
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
  z←opts LinkCreate name folder
@@ -62,7 +62,7 @@
  {}⎕SE.Link.Break name
  3 QMKDIR subfolder,'/subsub'
  assertError'opts LinkCreate name folder' 'Destination directory'
- ⎕EX name ⋄ 3 ⎕NDELETE folder
+ ⎕EX name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
  assert'{6::1 ⋄ 0=CountLinks}⍬'
 
  opts.source←'auto'
@@ -76,7 +76,7 @@
  'link issue #197'assertError'opts LinkCreate ref folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import ref folder' 'Not a properly named namespace'
  'link issue #197'assertError'⎕SE.Link.Import ref (folder,''/ns.apln'')' 'Not a properly named namespace'
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ link issue #163
  2 ⎕MKDIR folder
@@ -99,7 +99,7 @@
  'link issue #229'assert'{6::1 ⋄ 0=CountLinks}⍬'
  #.⎕EX #.⎕NL-⍳10
  # NSMOVE root ⋄ ⎕EX'root'  ⍝ restore #
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ test source=auto
  opts.source←'auto'
@@ -107,38 +107,38 @@
  assertError'opts LinkCreate name folder' 'Cannot link a non-existent namespace to a non-existent directory'
  assert'(~⎕NEXISTS folder)∧(0=⎕NC name)'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
       ⍝ only dir exists
  2 ⎕MKDIR folder
  z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  sourceis←'((~⎕SE.Link.Links.ns∊IGNORE_LINKS)/⎕SE.Link.Links.source)≡'
  assert sourceis,',⊂''dir'''
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
       ⍝ only ns exists
  name ⎕NS ⍬
  z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''ns'''
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
       ⍝ both exist
  2 ⎕MKDIR folder ⋄ name ⎕NS ⍬
  z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''dir'''
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
       ⍝ only dir is populated
  2 ⎕MKDIR subfolder ⋄ name ⎕NS ⍬
  z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''dir'''
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
       ⍝ only ns is populated
  2 ⎕MKDIR folder ⋄ subname ⎕NS ⍬
  z←opts LinkCreate name folder
  assert'(⎕NEXISTS folder)∧(9=⎕NC name)'
  assert sourceis,',⊂''ns'''
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder ⋄ ⎕EX name
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
       ⍝ both are populated
  2 ⎕MKDIR subfolder ⋄ subname ⎕NS ⍬
  z←opts LinkCreate name folder
@@ -156,7 +156,7 @@
  assertError'opts LinkCreate name folder' 'Cannot link a non-empty namespace to a non-empty directory'
  3 ⎕NDELETE subfolder,'/subsub'
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- 3 ⎕NDELETE folder ⋄ ⎕EX name
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ ⎕EX name
 
  2 ⎕MKDIR subfolder
       ⍝ actual contents
@@ -327,7 +327,7 @@
  subname'ns'EdFix nssrc
  Breathe ⋄ 0 assert_create 1
  {}⎕SE.Link.Break name
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ now try source=ns watch=dir
  opts.source←'ns' ⋄ opts.watch←'dir' ⋄ MOCK_OFF←0
@@ -360,7 +360,7 @@
  subname'ns'EdFix nssrc
  Breathe
  0 assert_create 1
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
  ⎕EX'#.outside'
 
       ⍝ now try source=ns watch=ns
@@ -380,7 +380,7 @@
  {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
  Breathe
  1 assert_create 0
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ now try source=ns watch=none
  opts.source←'ns' ⋄ opts.watch←'none'
@@ -403,7 +403,7 @@
  {}(⊂varsrc)QNPUT(subfolder,'/var.apla')1
  Breathe
  1 assert_create 0
- {}⎕SE.Link.Break name ⋄ 3 ⎕NDELETE folder
+ {}⎕SE.Link.Break name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ link issue #160 try having items in the namespace already tied to items in the folder
  ⎕EX name ⋄ subname ⎕NS'' ⋄ 3 QMKDIR subfolder
@@ -453,7 +453,7 @@
       ⍝:If ⎕SE.Link.U.IS181  ⍝ the ⎕NDELETE would make (0⎕ATX) produce ⎕NULL
       ⍝    foosrc←⎕NR name,'.foo' ⋄ newfoosrc←⎕NR subname,'.foo'
       ⍝:EndIf
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  z←opts LinkCreate name folder
  'link issue #160'assert'1=CountLinks'
  {}⎕SE.Link.Add name subname,¨⊂'.var'
@@ -465,28 +465,28 @@
  assert'({⍵[⍋⍵]}1 NSTREE name)≡{⍵[⍋⍵]} ',⍕Stringify¨(name,'.')∘,¨'foo' 'ns' 'sub' 'sub.foo' 'sub.ns' 'sub.var' 'var'
  z←⎕SE.Link.Break name
  assert'{6::1 ⋄ 0=CountLinks}⍬'
- ⎕EX name ⋄ 3 ⎕NDELETE folder
+ ⎕EX name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ test exporting arrays and sysvars
  (name,'.sub')⎕NS''
  name⍎'var←1 2 3 ⋄ sub.subvar←4 5 6'
  files←,'' 'sub/'∘.,'⎕AVU' '⎕CT' '⎕DCT' '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
  files,←'var' 'sub/subvar'
- files←(folder,'/')∘,¨files,¨(⊂'.apla')
+ files←(folder,'/')∘,¨⎕SE.Link.ClassicNames.ToFS¨files,¨(⊂'.apla')
       ⍝(opts←⎕NS'').source←'ns'
       ⍝z←opts LinkCreate name folder
  ⎕SE.UCMD'z←]link.create -source=ns ',name,' ',folder
  'link issue #187'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #187'assert'0∧.=⎕NEXISTS files'
  {}⎕SE.Link.Break name
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
       ⍝opts.(arrays sysVars)←1
       ⍝z←opts LinkCreate name folder
  ⎕SE.UCMD'z←]link.create -source=ns -arrays=1 -sysvars ',name,' ',folder  ⍝ link issue #194
  'link issue #187'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #187'assert'1∧.=⎕NEXISTS files'
  {}⎕SE.Link.Break name
- ⎕EX name ⋄ 3 ⎕NDELETE folder
+ ⎕EX name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
  MOCK_OFF←0
 
       ⍝ link issue #249

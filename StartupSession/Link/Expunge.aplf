@@ -44,7 +44,7 @@
                              :If 0<≢oldfile  ⍝ tied to file
                                  1 ⎕NDELETE oldfile  ⍝ file may already be gone (link issue #140)
                              :ElseIf ⎕NEXISTS file ⍝ guess file name
-                                 2 ⎕NDELETE file
+                                 2 ClassicNames.NDelete file
                              :EndIf
                          :EndIf
                      :Else

@@ -1,7 +1,7 @@
  ok←test_bugs(folder name);engine;foo;newbody;nr;opts;props;ref;root;search;server;src;src2;sub;todelete;unlikelyclass;unlikelyfile;unlikelyname;var;warn;z;f;b
     ⍝ Github issues
  name ⎕NS''
- 3 ⎕NDELETE folder    ⍝ folder must be non-existent
+ 3 ⎕SE.Link.ClassicNames.NDelete folder    ⍝ folder must be non-existent
  QMKDIR Retry⊢folder
 
       ⍝ link issue #774: rename targets can disappear before the queue is processed
@@ -144,7 +144,7 @@
  'link issue #458'assert'~⎕NEXISTS folder,''/var.myapla'''
  z←⎕SE.Link.Expunge name,'.var'
  assert'(z≡1)∧(0=⎕NC name,''.var'')'  ⍝ variable effectively expunged
- {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
+ {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
       ⍝ link issue #207
  3 ⎕MKDIR folder
@@ -153,7 +153,7 @@
  {}LinkCreate name folder
  (⊂';some new text')⎕NPUT(folder,'/config.ini')1  ⍝ should be ignored
  Breathe ⍝ allow notify to run before the break
- {}⎕SE.Link.Expunge name ⋄ 3 ⎕NDELETE folder
+ {}⎕SE.Link.Expunge name ⋄ 3 ⎕SE.Link.ClassicNames.NDelete folder
  'link issue #207'assert'0=≢⎕SE.Link.U.WARNLOG'
  ⎕SE.Link.U.WARN←warn
 
@@ -207,7 +207,7 @@
  3 QMKDIR folder,'/New directory (1)/'
  'link issue #183'assert'~0∊⍴''invalid name defined by file''⎕S ''\0''⊢⎕SE.Link.U.WARNLOG'
  ⎕SE.Link.U.WARN←warn
- 3 ⎕NDELETE folder,'/New directory (1)/'
+ 3 ⎕SE.Link.ClassicNames.NDelete folder,'/New directory (1)/'
 
       ⍝ attempt to rename a script
  src2←,¨':Namespace script2' '∇ res←function2 arg' 'res←arg' '∇' ':EndNamespace'
@@ -234,10 +234,10 @@
  name⍎'⎕IO←⎕ML←0'
  z←⎕SE.Link.Add(name,'.⎕IO')(name,'.⎕ML')
  'link issue #184'assert'1 0≡(∨/''Added:''⍷z)(∨/''Not found:''⍷z)'
- 'link issue #184'assert'1 1 0 0≡⎕NEXISTS folder∘,¨''/⎕IO.apla'' ''/⎕ML.apla'' ''/⎕RL.apla'' ''/⎕CT.apla'' '
+ 'link issue #184'assert'1 1 0 0≡⎕NEXISTS folder∘,¨⎕SE.Link.ClassicNames.ToFS¨''/⎕IO.apla'' ''/⎕ML.apla'' ''/⎕RL.apla'' ''/⎕CT.apla'' '
  z←⎕SE.Link.Add(name,'.⎕WSID')(name,'.⎕PATH')
  'link issue #184'assert'0 1≡(∨/''Added:''⍷z)(∨/''Not found:''⍷z)'
- 'link issue #184'assert'0 0≡⎕NEXISTS folder∘,¨''/⎕WSID.apla'' ''/⎕PATH.apla'' '
+ 'link issue #184'assert'0 0≡⎕NEXISTS folder∘,¨⎕SE.Link.ClassicNames.ToFS¨''/⎕WSID.apla'' ''/⎕PATH.apla'' '
 
       ⍝ attempt to write control characters
  :Trap 0
@@ -288,14 +288,14 @@
  :EndIf
 
       ⍝ attempt to export
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  (⍎name).⎕FX'res←failed arg'('res←''',(⎕UCS 13),''',arg')
  ⎕SE.UCMD'z←Link.Export ',name,' ',folder
  'link issue #151'assert'∧/∨/¨''ERRORS ENCOUNTERED:'' ''',name,'.failed''⍷¨⊂z'
  'link issue #131'assert'({⍵[⍋⍵]}1 NTREE folder)≡{⍵[⍋⍵]}folder∘,¨''/sub/'' ''/sub/foo.aplf''  ''/foo.aplo'' ''/script.apln'' ''/sub/script.apln'' '
 
       ⍝ link issue #159 - using casecode from namespace
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  root←⎕NS ⍬ ⋄ root NSMOVE #  ⍝ clear # - prevents using #.SLAVE
  #.⎕FX'UnlikelyName' '⎕←''UnlikelyName'''
  ⎕SE.UCMD'z←link.create -casecode # "',folder,'"'
@@ -313,7 +313,7 @@
  z←⎕SE.Link.Break #
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  ⎕EX'#.UnlikelyName' '#.jsondict'
- 3 ⎕NDELETE folder,'/jsondict-0'
+ 3 ⎕SE.Link.ClassicNames.NDelete folder,'/jsondict-0'
  # NSMOVE root ⋄ ⎕EX'root' ⍝ put back #
 
       ⍝ link issue #235
@@ -351,17 +351,17 @@
  ref←⍎name ⎕NS ⍬
  ref.(msg1 msg2 msg3)←'hello' 'world' '!!!'
  ref.(dot←{⍺←⍵ ⋄ ⍺+.×+⍵})
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  opts←⎕NS ⍬
  opts.arrays←,⊂'msg1,',name,'.msg2,⎕IO,',name,'.⎕ML'
  z←opts LinkCreate name folder
  'link issue #282'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #282'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/msg',⍵,'.apla'}¨'123'
- 'link issue #309'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/',⍵,'.apla'}¨'⎕IO' '⎕ML' '⎕WX'
+ 'link issue #309'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/',(⎕SE.Link.ClassicNames.ToFS ⍵),'.apla'}¨'⎕IO' '⎕ML' '⎕WX'
  {}⎕SE.Link.Break name
 
  opts.arrays←('wh!at')(name,'.!#')(name,'.''hello''')(name,'.dot')(name)
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  ⎕SE.Link.U.WARNLOG/⍨←0
  z←opts LinkCreate name folder
  'link issue #309'assert'1=≢⎕SE.Link.U.WARNLOG'

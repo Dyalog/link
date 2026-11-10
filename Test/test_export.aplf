@@ -15,7 +15,7 @@
  ⎕EX '#.foo'
  # NSMOVE ns        ⍝ Restore #
  ⎕EX 'ns'
- 3 ⎕NDELETE folder,'-export'
+ 3 ⎕SE.Link.ClassicNames.NDelete folder,'-export'
 
  z←⎕SE.Link.Export name folder
  assert'~∨/''ERRORS ENCOUNTERED''⍷z'
@@ -27,7 +27,7 @@
  z←⎕SE.Link.Configure folder
  'link issue #681' assert'1=⊃''No configuration options set''⍷z'
 
- 3 ⎕NDELETE folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
 
  here←⍕⎕THIS
  ⎕CS name
@@ -35,7 +35,7 @@
  ⎕CS here
  assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  assert'⎕NEXISTS ''',folder,''''
- 3 ⎕NDELETE folder ⋄ 3 ⎕MKDIR folder
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ 3 ⎕MKDIR folder
 
  (⊂'This is total garbage !!!!!;;;;')⎕NPUT folder,'/garbage.ini'
  z←⎕SE.Link.Export name folder
@@ -55,7 +55,7 @@
  assert'nssrc2≡⊃⎕NGET ''',folder,'/ns.apln'' 1'
  assert'~⎕NEXISTS ''',folder,'/var.apla'''
 
- 3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ 2 ref.⎕FIX foosrc
  z←⎕SE.Link.Export(name,'.foo')folder
  'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #79'assert'foosrc≡⊃⎕NGET ''',folder,'/foo.aplf'' 1'
@@ -72,7 +72,7 @@
  'link issue #79'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #79'assert'foosrc2≡⊃⎕NGET ''',folder,'/foo2.aplf'' 1'
 
- 3 ⎕NDELETE folder ⋄ 2 ref.⎕FIX foosrc
+ 3 ⎕SE.Link.ClassicNames.NDelete folder ⋄ 2 ref.⎕FIX foosrc
  ExportCmd←{'Link.Export ',(⍺/'-overwrite'),' ',⍵,' ',name,' ',folder}∘{⍵≡0:'' ⋄ ⍵≡1:'-arrays' ⋄ '-arrays=',∊⍵,[1.5]','}
  z←ref.{⎕SE.UCMD ⍵}0 ExportCmd 0
  'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
@@ -83,16 +83,16 @@
  assert'∨/''⎕SE.Link.Export: Files already exist:''⍷z'
  z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
  'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
- 3 ⎕NDELETE folder
+ 'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'',⎕SE.Link.ClassicNames.ToFS¨''⎕IO.apla'' ''⎕ML.apla'' '
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  z←ref.{⎕SE.UCMD ⍵}0 ExportCmd arrays
  'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
- 3 ⎕NDELETE folder
+ 'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'',⎕SE.Link.ClassicNames.ToFS¨''⎕IO.apla'' ''⎕ML.apla'' '
+ 3 ⎕SE.Link.ClassicNames.NDelete folder
  ⎕EX name
 
  :For io ml :In (0 3)(1 1)
-     3 ⎕NDELETE folder
+     3 ⎕SE.Link.ClassicNames.NDelete folder
      ⎕EX name
      ref←⍎name ⎕NS ⍬
      ref.⎕FIX':Namespace quadVars' '##.⎕IO←' '##.⎕ML←' ':EndNamespace',¨⍕¨⍬ io ml ⍬
@@ -102,7 +102,7 @@
      {}⎕SE.UCMD']link.import ',name,' "',folder,'"'
      'link issue #223'assert'io ml≡',name,'.(⎕IO ⎕ML)'
      'link issue #223'assert'io ml≡',name,'.sub.(⎕IO ⎕ML)'
-     3 ⎕NDELETE folder
+     3 ⎕SE.Link.ClassicNames.NDelete folder
      ⎕EX name
  :EndFor
 
