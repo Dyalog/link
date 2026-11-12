@@ -1,4 +1,4 @@
- msg←{opts}Import args;ns;src;defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML;setconfig;container;dir;nsgiven;nsexisted;DEBUG
+ msg←{opts}Import args;ns;src;defopts;dir;failed;files;fixed;nsref;rawns;single;⎕IO;⎕ML;setconfig;container;dir;nsgiven;nsexisted
  ⎕IO ⎕ML←1 1
  preProcessOpts
  (container ns src nsgiven)←preProcessNsDir args

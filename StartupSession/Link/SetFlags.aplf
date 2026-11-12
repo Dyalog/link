@@ -1,4 +1,4 @@
- msg←type SetFlags(args container opts);setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z;relname;fullname;err;DEBUG
+ msg←type SetFlags(args container opts);setconfig;lines;name;query;container;links;fn;current;link;file;exists;rc;config;flagarray;flags;i;ns;leaf;vfi;ok;z;relname;fullname;err
  ⍝ Set or report on user and directory configuration settings
  ⍝ Called by Stop and Trace
  ⍝ 1st element of args is a name to set flags for

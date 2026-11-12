@@ -1,4 +1,4 @@
- msg←{opts}Refresh nss;inFail;ko;link;links;ns;nsref;ok;outFail;rsi;source;xsi;⎕IO;⎕ML;setconfig;DEBUG
+ msg←{opts}Refresh nss;inFail;ko;link;links;ns;nsref;ok;outFail;rsi;source;xsi;⎕IO;⎕ML;setconfig
  ⎕IO ⎕ML←1 1
  preProcessOpts ⍝ Make sure opts is a namespace
  (msg setconfig)←Config.GetConfig opts
