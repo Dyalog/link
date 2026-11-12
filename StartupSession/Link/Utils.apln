@@ -1315,37 +1315,37 @@
 
     ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order;parts;g
       :If 0=⎕NC'opts.singlefile' ⋄ opts.singlefile←0 ⋄ :EndIf ⍝ /// temporary
-      list←↑(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
-      parts←⎕NPARTS¨list[1;]
-      list←list[;g←⍋'⎕'≠⊃¨list[3;]]                 ⍝ System names first
-     
-      mask←1=list[3;]                               ⍝ mask for hidden items
-      hidden←mask/list ⋄ list/⍨←~mask               ⍝ crop hidden (files and) folders
-      parts←parts[(~mask)/g]
-      hidden←(1=hidden[2;])/hidden[1;]              ⍝ keep directories only (files have already been removed from list)
+      list←(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+      list{⍺[⍵]}¨←⊂g←⍋'⎕'≠⊃¨3⊃list                  ⍝ System names first
+      parts←⎕NPARTS⊃list
+      
+      mask←1=3⊃list                                 ⍝ mask for hidden items
+      hidden←mask∘/¨list ⋄ list/¨⍨←⊂~mask           ⍝ crop hidden (files and) folders
+      parts/⍨←~mask
+      hidden←(1=2⊃hidden)/1⊃hidden                  ⍝ keep directories only (files have already been removed from list)
       hidden←hidden,¨'/'                            ⍝ protect against similarly named files
-      hidden,←('.'=⊃¨∊¨1↓¨parts)/list[1;]           ⍝ files and directories that start with a '.' are considered hidden too
-      list/⍨←~∨⌿hidden∘.Begins list[1;]             ⍝ filter away things that come below hidden directories
+      hidden,←('.'=⊃¨∊¨1↓¨parts)/1⊃list             ⍝ files and directories that start with a '.' are considered hidden too
+      list/¨⍨←⊂~∨⌿hidden∘.Begins 1⊃list             ⍝ filter away things that come below hidden directories
      
-      dirs←(1=list[2;])/list                        ⍝ second column has 1 for dirs
+      dirs←(⊂1=2⊃list)/¨list                        ⍝ second column has 1 for dirs
       :If root
-          dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)       ⍝ add self with a fake timestamp (dir timestamps are ignored)
+          dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)      ⍝ add self with a fake timestamp (dir timestamps are ignored)
       :EndIf
-      dirs[1;],←'/'                                 ⍝ add slash to name
+      (1⊃dirs),¨←'/'                                 ⍝ add slash to name
      
-      files←(2=list[2;])/list                       ⍝ second column has 2 for files; first column is filename
-      files/⍨←opts HasExtn files[1;]                ⍝ must be of correct extension
+      files←(⊂2=2⊃list)/¨list                       ⍝ second column has 2 for files; first column is filename
+      files/¨⍨←⊂opts HasExtn 1⊃files                ⍝ must be of correct extension
      
-      list←files,dirs
+      list←files,¨dirs
       ⍝ slashes after all chars and quads before all
       ⍝ in "descending" order into folders:
       ⍝ must process parent folders and all its files (including sysvars) first
       ⍝ we do ↑1+⎕UCS so that fill item (0) is not the same as have (⎕UCS 0) in filename (and comes before it)
-      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨list[1;]
-      list←list[;order]
+      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨1⊃list
+      list←{⍵[order]}¨list
      
-      files←list[1;] ⋄ isdir←1=∊list[2;]  ⍝ ∊ so that an empty directory gives a simple empty mask, not a nested one
-      :If ts ⋄ ts←list[4;] ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
+      files←1⊃list ⋄ isdir←1=2⊃list
+      :If ts ⋄ ts←4⊃list ⋄ :Else ⋄ ts←⊂⍬ ⋄ :EndIf
     ∇
 
     ∇ (fixed failed)←opts FixFiles(target source overwrite);⎕AVU;FixFile;_;actname;actnames;actnc;actncs;alldirs;allexts;allfiles;allnames;dir;expfiles;expname;expnames;ext;extorder;exts;file;fixedfiles;flatten;fullname;hasnc;hidden;i;inx;lasttodo;list;mask;ncorder;ns;order;parent;parents;quadfile;source;todo;classic;z;hasAplName;names
