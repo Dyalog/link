@@ -66,7 +66,7 @@
          z←opts LinkCreate name folder
          'link issue #781'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
          z←(⍎name).⎕NL-3 9
-         'link issue #781'assert'((i⊃expected)[⍋↑i⊃expected])≡z[⍋↑z]'
+         'link issue #781'assert'z≡⍥{⍵[⍋⍵]}i⊃expected'
          {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE folder
      :EndFor
      opts.flatten←0                                       ⍝ without flatten, B links: FOO is a namespace containing a function FOO

@@ -1329,7 +1329,7 @@
      
       dirs←(⊂1=2⊃list)/¨list                        ⍝ second column has 1 for dirs
       :If root
-          dirs,⍨←(-~ts)↓dir 1 0(0 0 0 0 0 0 0)      ⍝ add self with a fake timestamp (dir timestamps are ignored)
+          dirs,⍨¨←(-~ts)↓(⊂dir)1 0(⊂0 0 0 0 0 0 0)      ⍝ add self with a fake timestamp (dir timestamps are ignored)
       :EndIf
       (1⊃dirs),¨←'/'                                 ⍝ add slash to name
      

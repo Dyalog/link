@@ -2,7 +2,10 @@
 ⍝ Verify that functions get their attributes (time, author) from the file rather than ⎕FIX
 
  GetTime←⊃∘⊃3 ⎕NINFO⊂
- SetTime←{⍺ ⎕SE.Link.U.SetModTime ⍵:_←1 ⋄ ('Cannot set the modification time of ',⍵)⎕SIGNAL 11}
+ SetTime←{
+     ⍺ ⎕SE.Link.U.SetModTime ⍵:_←1
+     ('Cannot set the modification time of ',⍵)⎕SIGNAL 11
+ }
  TMatch←1>86400×|⍤-⍥(1 ⎕DT⊆) ⍝ <1s ∆t
 
  CleanUp folder name
