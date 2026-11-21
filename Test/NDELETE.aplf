@@ -10,7 +10,7 @@
  :Case 2 ⍝ Recursive
      (name type)←0 1 ⎕NINFO file
      :If type=1 ⍝ Directory
-         (names types)←0 1(1 ⎕SE.Link.ClassicNames.NInfo)file,'/*'
+         (names types)←0 1(⎕NINFO⍠1)file,'/*'
          :For (n t) :InEach names types
              :If t=1 ⋄ 2 NDELETE n          ⍝ Subdirectory
              :Else ⋄ ⎕NDELETE n ⋄ ⎕DL 0.01 ⍝ Better be a file

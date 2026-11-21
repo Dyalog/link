@@ -7,5 +7,5 @@
  :If ∨/m←((≢folder)↑¨z)∊⊂folder
      Log'Links not cleared:'(⍪m/z)
  :EndIf
- 3 ⎕SE.Link.ClassicNames.NDelete folder
+ 3 ⎕NDELETE folder
  #.⎕EX name

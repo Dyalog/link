@@ -173,7 +173,7 @@ NOHOLD:
              :If delete  ⍝ old file must be removed
                  1 ⎕NDELETE oldfile
              :ElseIf 2.1=nc  ⍝ might have changed format
-                 1 ⎕NDELETE(⊃(1 ClassicNames.NInfo)'\.(\w+\.)?apla$'⎕R'.*apla'⊢file)~⊂file  ⍝ delete all other possible source files
+                 1 ⎕NDELETE(⊃⎕NINFO⍠1⊢'\.(\w+\.)?apla$'⎕R'.*apla'⊢file)~⊂file  ⍝ delete all other possible source files
              :EndIf
          :EndIf
 

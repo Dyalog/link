@@ -224,7 +224,7 @@
     ⍝ find a single file, allowing dotted extensions
       :If ⎕NEXISTS file ⋄ files←,⊂,file ⋄ :Return ⋄ :EndIf  ⍝ file exists : fine
       :Trap 0   ⍝ directory where file is may not exist at all
-          files←⊃0(1 ##.ClassicNames.NInfo)file,'.*'    ⍝ files with this name and an extension
+          files←⊃0 ⎕NINFO⍠1⊢file,'.*'    ⍝ files with this name and an extension
           files/⍨←opts HasExtn files     ⍝ files with valid extensions
       :Else
           files←0⍴⊂''
@@ -1036,7 +1036,7 @@
           (file oldfile nc)←cache DetermineFileNameSub(where name oldname src curfile)
       :EndIf
     ∇
-    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src curfile);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext;built
+    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src curfile);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext;built;fsn
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through NormNs
@@ -1052,6 +1052,7 @@
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
       built←0                      ⍝ whether file is built from APL names (rather than an existing file name)
+      fsn←≢dir                     ⍝ length of the leading part of a built file that is already an on-disk name
       :If 0∊⍴src  ⍝ no information about item - item must exist
           nc←ref NameClass name  ⍝ no source : item must exist
           ⍝:If 0=nc ⋄ ¯1 Warn'Source of name 'where'.'name' doesn''t exist' ⋄ :EndIf
@@ -1072,6 +1073,7 @@
                   file←'/'@(=∘'.')⊢(≢ns)↓where       ⍝ Add sub.namespace structure, replacing dots with slashes
               :Else                 ⍝ when flattening, use the same dir as the old file (if any)
                   file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
+                  fsn+←≢file                         ⍝ taken from an existing file name, so already an on-disk name
               :EndIf
               file←dir,file
               file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
@@ -1092,7 +1094,7 @@
           subext←SubExt where⍎name
       :EndIf
       file←subdir,file,subext,ext
-      file←dir ##.ClassicNames.ToFSBelow⍣built⊢file  ⍝ name on disk (Unix Classic writes UTF-8 names, as Unicode does)
+      file←{(fsn↑⍵),##.ClassicNames.ToFS fsn↓⍵}⍣built⊢file  ⍝ name on disk (Unix Classic writes UTF-8 names, as Unicode does)
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
       :If opts.flatten∧0≠≢curfile ⍝ Notify passes file name down
@@ -1154,7 +1156,7 @@
     ⍝            ¯9.1 directory (trad ns), otherwise the usual ⎕NC value (2.1, 3.1, 9.4 ...)
     
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      subfile←dir StripCaseCode flatten⊢dir ##.ClassicNames.FromFSBelow file  ⍝ always strip case code - apl name can't have them anyways
+      subfile←dir StripCaseCode flatten⊢dir,##.ClassicNames.FromFS(≢dir)↓file  ⍝ always strip case code - apl name can't have them anyways (dir is an on-disk name)
       (subdir subfile subext)←⎕NPARTS subfile
       subfile←'\.(mat|vec|CRLF|CR|LF)'⎕R''⍠1⊢subfile
       :If ⎕NEXISTS file
@@ -1283,7 +1285,7 @@
           :EndIf
           :If overwrite≡0 ⋄ :AndIf 1∊mask←⎕NEXISTS files
               Error'Files already exist: use the -overwrite flag to force overwriting the following files:',FmtLines WinSlash¨mask/files
-          :ElseIf overwrite≡1 ⋄ {}3 ##.ClassicNames.NDelete¨files
+          :ElseIf overwrite≡1 ⋄ 3 ⎕NDELETE files
           :EndIf
      
           :If 3=opts.(⎕NC beforeWrite)  ⍝ user callback on file write
@@ -1318,7 +1320,7 @@
 
     ∇ (files isdir ts)←opts(root ListFiles ts)dir;dirs;hidden;list;mask;order;parts;g
       :If 0=⎕NC'opts.singlefile' ⋄ opts.singlefile←0 ⋄ :EndIf ⍝ /// temporary
-      list←(0 1 6,ts/3)(('Wildcard' 1)('Recurse' 1)##.ClassicNames.NInfo)dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
+      list←(0 1 6,ts/3)⎕NINFO⍠1⍠'Recurse' 1⊢dir,(~opts.singlefile)/'/*'     ⍝ recursive listing of everything  list[filename type hidden;]
       list{⍺[⍵]}¨←⊂g←⍋'⎕'≠⊃¨3⊃list                  ⍝ System names first
       parts←⎕NPARTS⊃list
       
