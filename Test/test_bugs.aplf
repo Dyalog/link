@@ -234,10 +234,10 @@
  name⍎'⎕IO←⎕ML←0'
  z←⎕SE.Link.Add(name,'.⎕IO')(name,'.⎕ML')
  'link issue #184'assert'1 0≡(∨/''Added:''⍷z)(∨/''Not found:''⍷z)'
- 'link issue #184'assert'1 1 0 0≡⎕NEXISTS folder∘,¨''/⎕IO.apla'' ''/⎕ML.apla'' ''/⎕RL.apla'' ''/⎕CT.apla'' '
+ 'link issue #184'assert'1 1 0 0≡⎕NEXISTS folder∘,¨⎕SE.Link.U.ClassicToFSName¨''/⎕IO.apla'' ''/⎕ML.apla'' ''/⎕RL.apla'' ''/⎕CT.apla'' '
  z←⎕SE.Link.Add(name,'.⎕WSID')(name,'.⎕PATH')
  'link issue #184'assert'0 1≡(∨/''Added:''⍷z)(∨/''Not found:''⍷z)'
- 'link issue #184'assert'0 0≡⎕NEXISTS folder∘,¨''/⎕WSID.apla'' ''/⎕PATH.apla'' '
+ 'link issue #184'assert'0 0≡⎕NEXISTS folder∘,¨⎕SE.Link.U.ClassicToFSName¨''/⎕WSID.apla'' ''/⎕PATH.apla'' '
 
       ⍝ attempt to write control characters
  :Trap 0
@@ -357,7 +357,7 @@
  z←opts LinkCreate name folder
  'link issue #282'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
  'link issue #282'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/msg',⍵,'.apla'}¨'123'
- 'link issue #309'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/',⍵,'.apla'}¨'⎕IO' '⎕ML' '⎕WX'
+ 'link issue #309'assert'1 1 0≡⎕NEXISTS ',⍕Stringify¨folder∘{⍺,'/',(⎕SE.Link.U.ClassicToFSName ⍵),'.apla'}¨'⎕IO' '⎕ML' '⎕WX'
  {}⎕SE.Link.Break name
 
  opts.arrays←('wh!at')(name,'.!#')(name,'.''hello''')(name,'.dot')(name)

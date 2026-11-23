@@ -83,11 +83,11 @@
  assert'∨/''⎕SE.Link.Export: Files already exist:''⍷z'
  z←ref.{⎕SE.UCMD ⍵}1 ExportCmd 1
  'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
+ 'link issue #37'assert'1 1 1 1 0 0≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'',⎕SE.Link.U.ClassicToFSName¨''⎕IO.apla'' ''⎕ML.apla'' '
  3 ⎕NDELETE folder
  z←ref.{⎕SE.UCMD ⍵}0 ExportCmd arrays
  'link issue #37'assert'~∨/''ERRORS ENCOUNTERED''⍷z'
- 'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'' ''⎕IO.apla'' ''⎕ML.apla'' '
+ 'link issue #37'assert'1 1 1 0 1 1≡⎕NEXISTS (folder,''/sub/'')∘,¨''var1.apla'' ''var2.apla'' ''var3.apla'' ''var4.apla'',⎕SE.Link.U.ClassicToFSName¨''⎕IO.apla'' ''⎕ML.apla'' '
  3 ⎕NDELETE folder
  ⎕EX name
 

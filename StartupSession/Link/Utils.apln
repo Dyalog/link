@@ -7,6 +7,7 @@
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
     PATHDEL←':;'[1+ISWIN]
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
+    ISCLASSIC←(82=⎕DR'')
     CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION
@@ -373,6 +374,27 @@
           :EndIf
       :EndWhile
     ∇
+
+    ClassicToFSName←{
+        ⍝ On-disk form of a path in Unix Classic: the ⎕AV characters whose bytes 
+        ⍝ (via ⎕NXLATE 0) spell the UTF-8 encoding of ⍵, so that file names match what a
+        ⍝ Unicode interpreter writes. Returns ⍵ unchanged on other editions/platforms.
+        ISWIN∨~ISCLASSIC:⍵
+        ascii←128>utf8←'UTF-8'⎕UCS ⍵
+        ⍝ ⎕NXLATE does not map every ASCII character to its own byte, so ASCII uses ⎕UCS
+        (⎕UCS ascii/utf8)@{ascii}⎕AV[(⎕NXLATE 0)⍳utf8]
+    }
+
+    ClassicFromFSName←{
+        ⍝ Decode an on-disk path from UTF-8 into ⎕AV characters.
+        ⍝ Names that are not valid UTF-8 (written by Classic without this translation)
+        ⍝ are already in ⎕AV form and are returned unchanged.
+        ISWIN∨~ISCLASSIC:⍵
+        printable←⍵∊⎕UCS 31+⍳95   ⍝ printable ASCII bypasses ⎕NXLATE (see ClassicToFSName)
+        utf8←(⎕UCS printable/⍵)@{printable}(⎕NXLATE 0)[⎕AV⍳⍵]
+        11::⍵
+        'UTF-8'⎕UCS utf8
+    }
 
     :EndSection
 
@@ -1036,7 +1058,7 @@
           (file oldfile nc)←cache DetermineFileNameSub(where name oldname src curfile)
       :EndIf
     ∇
-    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src curfile);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext
+    ∇ (file oldfile nc)←opts DetermineFileNameSub(where name oldname src curfile);⎕AVU;beforeWrite;caseCode;dir;ext;fastLoad;flatten;forceExtensions;forceFilenames;getFilename;isroot;nc;ns;oldfile;path;ref;subdir;typeExtensions;userfile;subext;built;fsn
     ⍝ what should the file name be according to link
     ⍝ src may be the (nested) text source of item, or may be the scalar name class
     ⍝ where must have been through NormNs
@@ -1051,6 +1073,8 @@
           ⎕AVU←where⍎'⎕AVU'
       :EndIf
       file←(oldname≡name)/oldfile  ⍝ if object was renamed we don't have a file name any more
+      built←0                      ⍝ whether file is built from APL names (rather than an existing file name)
+      fsn←≢dir                     ⍝ length of the leading part of a built file that is already an on-disk name
       :If 0∊⍴src  ⍝ no information about item - item must exist
           nc←ref NameClass name  ⍝ no source : item must exist
           ⍝:If 0=nc ⋄ ¯1 Warn'Source of name 'where'.'name' doesn''t exist' ⋄ :EndIf
@@ -1063,6 +1087,7 @@
       :If isroot←nc=¯9.1 ⋄ isroot←ns≡where,'.',name ⋄ :EndIf ⍝ we're asking for the root of the link
       :If 0=≢file           ⍝ no existing file name for it
       :OrIf forceFilenames  ⍝ force using the default
+          built←1
           :If isroot∨opts.singlefile
               file←dir
           :Else
@@ -1070,6 +1095,7 @@
                   file←'/'@(=∘'.')⊢(≢ns)↓where       ⍝ Add sub.namespace structure, replacing dots with slashes
               :Else                 ⍝ when flattening, use the same dir as the old file (if any)
                   file←(≢dir)↓¯1↓⊃⎕NPARTS oldfile    ⍝ if 0∊⍴oldfile, then file remains empty
+                  fsn+←≢file                         ⍝ taken from an existing file name, so already an on-disk name
               :EndIf
               file←dir,file
               file,←'/','/'@(=∘'.')⊢name             ⍝ Add object name , replacing dots with slashes
@@ -1090,6 +1116,7 @@
           subext←SubExt where⍎name
       :EndIf
       file←subdir,file,subext,ext
+      file←{(fsn↑⍵),ClassicToFSName fsn↓⍵}⍣built⊢file  ⍝ name on disk (Unix Classic writes UTF-8 names, as Unicode does)
       file←ApplyOldExtn⍣(~forceExtensions)⊢file  ⍝ doesn't sound like a good idea - the existing .dyalog file could define something different (in particular if one of the two files is an array and casecode is off)
       ⍝ Allow user to determine file name - they return '' to give up
       :If opts.flatten∧0≠≢curfile ⍝ Notify passes file name down
@@ -1151,7 +1178,7 @@
     ⍝            ¯9.1 directory (trad ns), otherwise the usual ⎕NC value (2.1, 3.1, 9.4 ...)
     
       (opts dir ns flatten caseCode typeExtensions forceFilenames forceExtensions beforeWrite getFilename fastLoad)←opts
-      subfile←dir StripCaseCode flatten⊢file        ⍝ always strip case code - apl name can't have them anyways
+      subfile←dir StripCaseCode flatten⊢dir,ClassicFromFSName(≢dir)↓file  ⍝ always strip case code - apl name can't have them anyways (dir is an on-disk name)
       (subdir subfile subext)←⎕NPARTS subfile
       subfile←'\.(mat|vec|CRLF|CR|LF)'⎕R''⍠1⊢subfile
       :If ⎕NEXISTS file
@@ -1341,7 +1368,7 @@
       ⍝ in "descending" order into folders:
       ⍝ must process parent folders and all its files (including sysvars) first
       ⍝ we do ↑1+⎕UCS so that fill item (0) is not the same as have (⎕UCS 0) in filename (and comes before it)
-      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨1⊃list
+      order←⍋¯2@{0=⍵}¯1@{9109=¯1+⍵}9999999@{47=¯1+⍵}↑1+⎕UCS¨ClassicFromFSName¨1⊃list  ⍝ sort on the names (⎕ is 3 bytes in a UTF-8 file name)
       list←{⍵[order]}¨list
      
       files←1⊃list ⋄ isdir←1=2⊃list
@@ -1359,7 +1386,7 @@
       :EndIf
      
       :If classic←82=⎕DR'' ⍝ Classic
-      :AndIf (≢allfiles)≥i←(¯10↑¨allfiles)⍳⍥⎕C⊂'/⎕AVU.apla' ⍝ Source contains ⎕AVU
+      :AndIf (≢allfiles)≥i←(¯10↑¨ClassicFromFSName¨allfiles)⍳⍥⎕C⊂'/⎕AVU.apla' ⍝ Source contains ⎕AVU
           :Trap 0 ⍝ Try to set ⎕AVU so that all ⎕NGET/⎕FIX operations will use saved ⎕AVU
               ⎕AVU←(⍎opts.ns).⎕AVU←⎕SE.Dyalog.Array.Deserialise⊃⎕NGET i⊃allfiles
           :Else

@@ -1,4 +1,4 @@
- ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes;nsref;z;nsbytes
+ ok←test_classic(folder name);foosrc;foobytes;read;goosrc;goobytes;nsref;z;nsbytes;T;dir;nm;ns;opts;sub;_
  :If 82≠⎕DR''  ⍝ Classic interpreter required for classic QA !
      Log'Not a classic interpreter - not running ',⊃⎕SI
      ok←1 ⋄ :Return
@@ -55,4 +55,48 @@
 
  CleanUp folder name
 
+ ⍝ --- Non-ASCII link directory, file names and flattened subdirectory
+ ⍝ Unix Classic writes UTF-8 names as Unicode does, so paths given to it are on-disk names (U.ClassicToFSName);
+ ⍝ elsewhere it changes nothing. Link must not translate the part of a path that is already an on-disk name.
+ T←⎕SE.Link.U.ClassicToFSName
+ dir←folder,'/',T'dir',⎕UCS 233 9082                 ⍝ diré⍺
+ nm←'caf',⎕UCS 233                                   ⍝ café
+ 3 ⎕MKDIR dir
+
+ ns←⍎name ⎕NS''                                      ⍝ export, including a system variable (⎕ is not ASCII either)
+ ns.⎕FX(' r←',nm)' r←42'
+ 'sub'ns.⎕NS'' ⋄ ns.sub.var←1 2 3 ⋄ ns.sub.⎕IO←0
+ opts←⎕NS'' ⋄ opts.source←'ns'
+ z←opts LinkCreate name dir
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ z←⎕SE.Link.Add(name,'.sub.var')(name,'.sub.⎕IO')
+ assert'⎕NEXISTS dir,''/'',(T nm),''.aplf'''
+ assert'⎕NEXISTS dir,''/sub/var.apla'''
+ assert'⎕NEXISTS dir,T''/sub/⎕IO.apla'''
+ assert'(,⊂dir)≡⊃⎕NINFO⍠1⊢folder,''/*'''            ⍝ nothing written under a doubly translated name
+
+ {}⎕SE.Link.Break name ⋄ ⎕EX name                    ⍝ import back, and write through the link
+ z←LinkCreate name dir
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'42≡(⍎name)⍎nm'
+ assert'1 2 3≡(⍎name).sub.var'
+ assert'0≡(⍎name).sub.⎕IO'
+ name nm ⎕SE.Link.Fix(' r←',nm)' r←43'
+ assert'∨/''43''⍷∊⊃⎕NGET(dir,''/'',(T nm),''.aplf'')1'
+ {}⎕SE.Link.Break name ⋄ ⎕EX name ⋄ 3 ⎕NDELETE dir
+
+ sub←'sub',⎕UCS 9082                                 ⍝ sub⍺: flatten with forceFilenames must rename within this subdirectory
+ 3 ⎕MKDIR dir,'/',T sub
+ _←(⊂' r←Goo' 'r←2')⎕NPUT(dir,'/',(T sub),'/goo.aplf')1  ⍝ wrong case: must be renamed to Goo.aplf
+ opts←⎕NS'' ⋄ opts.(source flatten forceFilenames)←'dir' 1 1
+ z←opts LinkCreate name dir
+ assert'~∨/''ERRORS ENCOUNTERED''⍷z'
+ assert'2≡(⍎name).Goo'
+ assert'⎕NEXISTS dir,''/'',(T sub),''/Goo.aplf'''
+ name'Goo'⎕SE.Link.Fix' r←Goo' 'r←3'               ⍝ file name is rebuilt from the tied file's directory
+ assert'∨/''r←3''⍷∊⊃⎕NGET(dir,''/'',(T sub),''/Goo.aplf'')1'
+ assert'(,⊂dir,''/'',T sub)≡⊃⎕NINFO⍠1⊢dir,''/*'''   ⍝ no other directory created
+ {}⎕SE.Link.Break name
+
+ CleanUp folder name
  ok←1
