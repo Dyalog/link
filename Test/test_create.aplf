@@ -21,7 +21,7 @@
  assert'{6::1 ⋄ 0=CountLinks}⍬'
  3 ⎕NDELETE folder ⋄ ⎕EX name
  2 ⎕MKDIR subfolder
- (⊂,'0')QNPUT folder,⎕SE.Link.ClassicNames.ToFS'/⎕IO.apla'
+ (⊂,'0')QNPUT folder,⎕SE.Link.U.ClassicToFSName'/⎕IO.apla'
  (⊂'foo' '2+2')QNPUT folder,'/foo~2.aplf' ⍝ one function in an "bad" place
  (⊂'goo' '2+2')QNPUT folder,'/goo.aplf'   ⍝ one function in a  "good" place
  (⊂'bar' '2+2')QNPUT folder,'/baz.aplf'   ⍝ one function in a  "wrong" place
@@ -472,7 +472,7 @@
  name⍎'var←1 2 3 ⋄ sub.subvar←4 5 6'
  files←,'' 'sub/'∘.,'⎕AVU' '⎕CT' '⎕DCT' '⎕DIV' '⎕FR' '⎕IO' '⎕ML' '⎕PP' '⎕RL' '⎕RTL' '⎕USING' '⎕WX'
  files,←'var' 'sub/subvar'
- files←(folder,'/')∘,¨⎕SE.Link.ClassicNames.ToFS¨files,¨(⊂'.apla')
+ files←(folder,'/')∘,¨⎕SE.Link.U.ClassicToFSName¨files,¨(⊂'.apla')
       ⍝(opts←⎕NS'').source←'ns'
       ⍝z←opts LinkCreate name folder
  ⎕SE.UCMD'z←]link.create -source=ns ',name,' ',folder

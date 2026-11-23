@@ -56,9 +56,9 @@
  CleanUp folder name
 
  ⍝ --- Non-ASCII link directory, file names and flattened subdirectory
- ⍝ Unix Classic writes UTF-8 names as Unicode does, so paths given to it are on-disk names (ClassicNames.ToFS);
- ⍝ elsewhere ToFS changes nothing. Link must not translate the part of a path that is already an on-disk name.
- T←⎕SE.Link.ClassicNames.ToFS
+ ⍝ Unix Classic writes UTF-8 names as Unicode does, so paths given to it are on-disk names (U.ClassicToFSName);
+ ⍝ elsewhere it changes nothing. Link must not translate the part of a path that is already an on-disk name.
+ T←⎕SE.Link.U.ClassicToFSName
  dir←folder,'/',T'dir',⎕UCS 233 9082                 ⍝ diré⍺
  nm←'caf',⎕UCS 233                                   ⍝ café
  3 ⎕MKDIR dir
