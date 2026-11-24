@@ -1,0 +1,10 @@
+ AssertFailed txt
+⍝ Report a failed assertion (called by assert and assertMsg)
+⍝ ASSERT_ERROR=1: signal ASSERT_EN, which RunTest traps to fail the current test and carry on with the next
+⍝ ASSERT_ERROR=0: record the failure in ASSERT_FAILURES and let the test carry on; RunTest still reports the test as failed
+ :If ASSERT_ERROR
+     ⎕SIGNAL⊂('EN'ASSERT_EN)('EM' 'ASSERTION FAILED')('Message'txt)
+ :Else
+     ASSERT_FAILURES,←⊂txt
+     'assert'Log txt
+ :EndIf

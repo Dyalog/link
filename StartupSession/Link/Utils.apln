@@ -7,7 +7,7 @@
     ISWIN←'Win'≡3↑⊃# ⎕WG'APLVersion'
     PATHDEL←':;'[1+ISWIN]
     DYALOGVERSION←1 .1+.×2↑⊃(//)'.'⎕VFI 2⊃'.'⎕WG'AplVersion'
-    ISCLASSIC←(82=⎕DR'')
+    ISCLASSIC←82=⎕DR''
     CODE_EXTENSIONS←'aplf' 'aplo' 'apln' 'aplc' 'apli' 'dyalog' 'apl' 'mipage'
     IS180←18.0≤DYALOGVERSION
     IS181←18.1≤DYALOGVERSION

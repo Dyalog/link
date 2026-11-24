@@ -1,0 +1,30 @@
+ folder←Recover folder;links;opts;reset
+⍝ Tidy up after a test that failed or errored: it will not have reached its own CleanUp,
+⍝ so break its links, expunge its namespace and delete its folder so the next test starts from scratch.
+⍝ Returns the folder for the next test: a fresh one if the old one could not be deleted (e.g. still held by a crawler)
+ MOCK_OFF←0
+ reset←{ ⍝ a valid Link configuration file for folder ⍵, as Setup makes it: the test may have damaged it (test_config writes
+     ⍝ invalid JSON on purpose), and Break does nothing while the configuration cannot be read - so this comes first
+     0::Log'Could not reset the Link configuration file: ',⎕DMX.(EM,(×≢Message)/': ',Message)
+     ⎕SE.Link.USERCONFIGFILE←⍵,'-config/.linkconfig'
+     _←3 ⎕MKDIR ⍵,'-config'
+     _←(⊂'{Settings:{}}')⎕NPUT ⎕SE.Link.USERCONFIGFILE 1
+ }
+ reset folder
+ :Trap 0
+     :If 0≠CountLinks
+         links←⎕SE.Link.Links.ns~IGNORE_LINKS
+         (opts←⎕NS ⍬).recursive←'on' ⍝ all in one call, each with everything linked below it: one by one, Break refuses a parent while its child is still linked
+         {0::Log'Could not break links ',(⍕⍵),': ',⎕DMX.(EM,(×≢Message)/': ',Message) ⋄ _←opts ⎕SE.Link.Break ⍵}links
+     :EndIf
+     ⎕EX NAME
+     3 ⎕NDELETE Retry⊢folder
+ :Else
+     Log'Could not tidy up after failed test: ',⎕DMX.(EM,(×≢Message)/': ',Message)
+     :Trap 0
+         Log'Continuing in a new folder: ',folder←CreateTempDir 1
+         reset folder ⍝ the configuration file lives beside the folder
+     :Else
+         Log'Could not create a new folder either: ',⎕DMX.(EM,(×≢Message)/': ',Message)
+     :EndTrap
+ :EndTrap

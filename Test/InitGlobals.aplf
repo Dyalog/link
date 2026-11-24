@@ -28,5 +28,11 @@
  ASSERT_DORECOVER←0 ⍝ Attempt recovery if expression provided in the argument to "assert"
                     ⍝    This setting is a "bodge" to allow tests to continue after FSW-related failures
 
- ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures will error and stop ⋄ 0=assert failures will output message to session and keep running
+ ASSERT_ERROR←1     ⍝ Boolean : 1=assert failures signal ASSERT_EN, which Run traps to fail the test and move on to the next one
+                    ⍝           0=assert failures are logged and the test carries on, but is still reported as failed by Run
+ ASSERT_EN←900      ⍝ Error number signalled by a failed assertion - distinguishes it from any other (fatal) error
+ ASSERT_FAILURES←0⍴⊂'' ⍝ Failed assertions recorded by the current test when ASSERT_ERROR=0 (reset by RunTest)
+ LAST_ERROR←'' ''   ⍝ ⎕DMX.DM and the stack of the last error in a test, recorded by RecordError while the stack was still there (see CallTest)
+ JUNIT_FILE←2 ⎕NQ'.' 'GetEnvironment' 'LINKTEST_JUNIT' ⍝ If set, Run writes a JUnit XML report to this file (for Jenkins etc.)
+ LABEL←2 ⎕NQ'.' 'GetEnvironment' 'LINKTEST_LABEL'      ⍝ Name of the test suite in the JUnit report (defaults to Dyalog platform and version)
  STOP_TESTS←0       ⍝ Can be used in a failing thread to stop the action

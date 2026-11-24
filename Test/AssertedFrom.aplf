@@ -1,0 +1,12 @@
+ r←AssertedFrom;i;names;helpers;prefix
+⍝ 'name[line]' of where the assertion was made: the line of the test function (test_...) on the stack, which says which
+⍝ of its many assertions failed also when it went through assertError or a helper of its own such as assert_create;
+⍝ or, off a test (e.g. RunTestThread), the nearest function that is not one of the assertion helpers
+ names←1↓⎕XSI ⍝ without this function
+ prefix←(⍕⎕THIS),'.test_'
+ i←1⍳⍨(⊂prefix)≡¨(≢prefix)↑¨names
+ :If i>≢names
+     helpers←(⊂(⍕⎕THIS),'.'),¨'assert' 'assertError' 'assertMsg' 'AssertFailed'
+     i←1⍳⍨~names∊helpers
+ :EndIf
+ r←(i⊃names),'[',(⍕i⊃1↓⎕LC),']'

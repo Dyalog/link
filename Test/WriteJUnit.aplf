@@ -1,0 +1,32 @@
+ {file}←results WriteJUnit file;body;detail;esc;label;line;ms;msg;name;names;nerr;nfail;ntests;os;status;ver;xml
+⍝ Write a JUnit XML report of the results table built by Run (columns: test mode status message detail ms)
+⍝ so that a CI server such as Jenkins can show exactly which tests failed. The message is the message attribute of
+⍝ <failure> or <error>, and the detail (the error and the stack it happened on, one line per element) is the element's
+⍝ text, which Jenkins shows as the stack trace of the test case
+ esc←(,¨'&<>"')⎕R'\&amp;' '\&lt;' '\&gt;' '\&quot;'
+ :If 0=≢label←LABEL
+     (os ver)←2↑# ⎕WG'APLVersion'
+     label←'Dyalog-',os,'-',ver,(82=⎕DR'')/'-Classic'
+ :EndIf
+ (status msg detail ms)←↓⍉results[;3 4 5 6]
+ names←results[;1],¨(⊂' ('),¨results[;2],¨⊂')'
+ ntests←≢status
+ nfail←+/(⊂'failed')≡¨status
+ nerr←+/(⊂'error')≡¨status
+ xml←⊂'<?xml version="1.0" encoding="UTF-8"?>'
+ xml,←⊂'<testsuite name="',(esc label),'" tests="',(⍕ntests),'" failures="',(⍕nfail),'" errors="',(⍕nerr),'" time="',(⍕0.001×+/∊ms),'">' ⍝ ∊: ms is an empty nested vector when no test ran
+ :For name status msg detail ms :InEach names status msg detail ms
+     body←¯1↓∊(esc¨detail),¨⎕UCS 10 ⍝ escaped line by line: ⎕R would treat the newlines as line ends
+     line←'  <testcase classname="',(esc label),'" name="',(esc name),'" time="',(⍕0.001×ms),'"'
+     :Select status
+     :Case 'passed' ⋄ line,←'/>'
+     :Case 'failed' ⋄ line,←'><failure message="',(esc msg),'">',body,'</failure></testcase>'
+     :Else ⋄ line,←'><error message="',(esc msg),'">',body,'</error></testcase>'
+     :EndSelect
+     xml,←⊂line
+ :EndFor
+ xml,←⊂'</testsuite>'
+ {}3 ⎕MKDIR⊃⎕NPARTS file
+ (⊂xml)⎕NPUT(file,'.tmp')1 ⍝ written beside the report and then moved into place, so that a report is never left half-written if the interpreter is killed
+ {}1 ⎕NDELETE file ⍝ ⎕NMOVE does not replace an existing file
+ {}file ⎕NMOVE file,'.tmp'

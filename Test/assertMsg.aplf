@@ -1,4 +1,6 @@
- assertMsg←{
-     msg←⍎⍵
-     ('assertion failed: "',msg,'" instead of "',⍺,'" from: ',⍵)⎕SIGNAL 11/⍨~∨/⍺⍷msg
- }
+ {txt}←expected assertMsg expr;msg
+⍝ Assert that the message produced by executing expr contains expected
+ msg←⍎expr
+ :If ∨/expected⍷msg ⋄ txt←'' ⋄ :Return ⋄ :EndIf
+ txt←'assertion failed: "',msg,'" instead of "',expected,'" from: ',expr,' ⍝ at ',AssertedFrom
+ AssertFailed txt

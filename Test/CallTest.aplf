@@ -1,0 +1,12 @@
+ ok←CallTest(test folder);⎕TRAP
+⍝ Run one test function (called by RunTest) under a ⎕TRAP which records where an error occurred (RecordError) while the stack
+⍝ is still there, and then signals the error again for the :Trap in RunTest to handle as before.
+⍝ An E (execute) trap runs before the stack is cut back, unlike the :Trap. A :Trap or error guard inside the test is nearer
+⍝ to the error and still takes precedence, so tests which expect errors are not affected.
+⍝ The trap is emptied before signalling again, otherwise it would run again for the signal.
+⍝ The expression runs in the context of the function where the error occurred, which may be in another namespace (Link,
+⍝ ⎕SE.Dyalog.Utils, ...): RecordError must be named in full, or the trap expression itself fails with a VALUE ERROR and the
+⍝ interpreter neither traps nor signals anything - the test thread is left suspended and Run hangs on its ⎕TSYNC.
+ LAST_ERROR←'' ''
+ ⎕TRAP←0 'E'((⍕⎕THIS),'.RecordError ⋄ ⎕TRAP←0⍴⎕TRAP ⋄ ⎕SIGNAL⊂⎕DMX.((''EN''EN)(''EM''EM)(''Message''Message))')
+ ok←(⍎test)folder NAME
