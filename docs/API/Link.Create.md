@@ -226,6 +226,19 @@ Specify file extensions that are expected to contain source code. Link will only
 
 From a user command, the syntax is `-codeExtensions=var` where `var` holds the expected vector of extensions.
 
+The standard extensions correspond to APL source types:
+
+| Extension | APL Source Type |
+| -------- | -------------- |
+| `.aplf` | Function |
+| `.aplo` | Operator |
+| `.apln` | Scripted namespace |
+| `.aplc` | Class |
+| `.apli` | Interface |
+| `.dyalog` | Legacy Dyalog format (scripted namespace or class) |
+| `.apl` | Generic APL source (legacy) |
+| `.mipage` | MiPage web framework source |
+
 ### **customExtensions**
 Default: `''   ⍝ an empty character vector meaning no custom extensions`
 
