@@ -3,8 +3,6 @@
 # This is a small subset of what Jenkins runs (see the Jenkinsfile): 64-bit Unicode on Linux, Windows and macOS, in the latest
 # public release - the version CI/testmatrix lists for the linux_public, win_public and mac_public platforms. Linux runs
 # in the public Docker Hub image; on Windows and macOS the public installer from dyalog.com is installed on the runner.
-# Classic, the other platforms, older versions and the version in development need Dyalog's own machines and images,
-# and are tested by Jenkins (nightly, and for pull requests from branches of this repository - never for forks).
 name: test
 
 on:
