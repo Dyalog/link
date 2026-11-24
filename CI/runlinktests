@@ -1,0 +1,469 @@
+#!/bin/bash
+# Run the Link test suite in every Dyalog interpreter of one version available on this machine.
+#
+#   CI/runlinktests <platform> <version> [tests]        e.g.  CI/runlinktests linux 20.0
+#
+#   platform  as listed in CI/testmatrix:
+#             linux         Docker: the internal nightly images from Gitea, one per edition (Classic and Unicode),
+#                           named in CI/testmatrix [docker] and pulled here - see PullImages below
+#             linux_public  Docker: the public image of the released Unicode interpreter from Docker Hub, the "public" line
+#                           of CI/testmatrix [docker] (not used by Jenkins - GitHub Actions runs it, see .github/workflows/test.yml)
+#             linux_native  interpreters installed under /opt/mdyalog (not used by Jenkins - handy for a local run)
+#             win_public | mac_public   the public release installed on a GitHub Actions runner (not used by Jenkins):
+#                           as win (an installation under Program Files; Git Bash instead of Cygwin) and mac
+#             win           the build trees under C:\obj\<version> (or the folder CI/testmatrix [buildtree] names, e.g. trunk for
+#                           the version in development) on the Windows build machines (not an installation: see
+#                           RunInBuildTree below), or an installation under Program Files if there is none
+#             mac | mac_arm | linux_arm | pi | aix   interpreters installed on the machine
+#   version   e.g. 18.2, 19.0, 20.0 ...
+#   tests     argument for ⎕SE.Link.RunTests: 'all' (default) or test names separated by spaces - letters, digits and _ only,
+#             because it ends up inside an APL string (the Jenkinsfile checks the same before passing its TESTS parameter)
+#
+#   LINKTEST_TIMEOUT  seconds allowed for each interpreter run before it is killed (default 300: a full run takes 15s on
+#                     Windows and Linux, 55s on macOS and up to 2 minutes on AIX, nearly all of it in test_threads)
+#
+# Meant to be run by Jenkins with $WORKSPACE set to a checkout of the Link repository (see ../Jenkinsfile); anything
+# else that runs it (GitHub Actions, you) sets WORKSPACE itself.
+# Interpreter discovery and headless invocation follow the conventions of Dyalog's other QA jobs.
+# Link is loaded from this checkout (DYALOGLINK), not the copy shipped with the interpreter or image.
+# CI/testmatrix says which interpreters (32/64 bit, Classic/Unicode) to expect: every one found is run, and
+# every one expected but not found is reported as an error.
+#
+# Output, in $WORKSPACE/results/:
+#   <label>.log                  session output of each interpreter, where <label> is <platform>_<version>_<bits><C|U>
+#   junit-<label>.<n>.xml        JUnit report of the n-th start of that interpreter, written by Test/WriteJUnit.aplf after every test
+#                                (as junit-....xml.tmp first, then moved into place, so that it is never half-written)
+#   junit-<label>.<n>.crash.xml  one error: the interpreter crashed, hung or wrote an aplcore during that start
+#   junit-<label>.<n>.exit.xml   one failure: the interpreter finished the tests but did not exit
+#   junit-<label>.missing.xml    one error: an interpreter CI/testmatrix expects was not found
+#   junit-<platform>_<version>.infra.xml  one error: nothing could run at all (e.g. no Docker image)
+#   <label>.<n>.aplcore          only if the interpreter crashed
+#
+# Exit code:  0  every test passed in every interpreter
+#             1  some tests failed (Jenkins marks the build UNSTABLE, details in the JUnit report)
+#             2  something else went wrong: interpreter or image missing, untrapped error, crash or hang, no report written
+#
+# A crashed or hung interpreter is started again with the tests that had not yet run (up to MAXRESTARTS times), so one
+# crash does not hide the results of the remaining tests; the results of the tests before the crash are already in the
+# report, which Run writes after every test. An interpreter that finishes the tests but does not exit is killed after
+# EXITGRACE seconds and reported as a test failure, not a crash.
+
+PLATFORM=$1
+VERSION=$2
+TESTS=${3:-all}
+TIMEOUT=${LINKTEST_TIMEOUT:-300}
+MAXRESTARTS=5
+EXITGRACE=60
+
+case $(uname) in
+	AIX)	PATH=/opt/freeware/bin:$PATH ;;	# GNU grep/awk/sed - the native AIX ones lack e.g. grep -a (as CI/inject_version.sh does)
+esac
+
+SCRIPTDIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG="$SCRIPTDIR/testmatrix"
+
+Exit()
+{
+	EC=$1 ; shift
+	echo "$*"
+	exit $EC
+}
+
+Fatal()	# nothing can run: say so in a JUnit report too (Jenkins would otherwise see an empty result), then exit 2
+{
+	[ -d "$RESULTS" ] && ErrorReport "$RESULTS/junit-${PLATFORM}_${VERNODOT}.infra.xml" "${PLATFORM}_${VERNODOT}" "interpreter (setup)" "$*"
+	Exit 2 "!!!!! $*"
+}
+
+Section()	# print the lines of one section of CI/testmatrix, without comments
+{
+	awk -v s="[$1]" '/^\[/ {on=($1==s); next} on {sub(/#.*/,""); if (NF) print}' "$CONFIG"
+}
+
+XmlEscape()
+{
+	echo "$1" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g;s/"/\&quot;/g'
+}
+
+XmlText()	# stdin to text that is safe inside an XML element: no CR, no other control characters and only valid UTF-8
+{		# (a Windows Classic log is single bytes, see APLT below) - an invalid report would be rejected by the junit step
+	tr -d '\000-\010\013\014\015\016-\037' | if command -v iconv >/dev/null 2>&1 ; then iconv -c -f UTF-8 -t UTF-8 ; else tr -cd '\011\012\040-\176' ; fi
+}
+
+# Write a JUnit report with a single test case: $1 = file, $2 = label, $3 = test case name, $4 = message, $5 = failure|error,
+# $6 = text for the body of the <failure>/<error> element (the end of the log), which Jenkins shows as the stack trace
+ErrorReport()
+{
+	local KIND=${5:-error} BODY=""
+	[ -n "${6:-}" ] && BODY="$(printf '%s\n' "$6" | XmlText | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')"
+	cat >"$1" <<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="$2" tests="1" failures="$([ $KIND = failure ] && echo 1 || echo 0)" errors="$([ $KIND = error ] && echo 1 || echo 0)">
+  <testcase classname="$2" name="$(XmlEscape "$3")"><$KIND message="$(XmlEscape "$4")">$BODY</$KIND></testcase>
+</testsuite>
+XML
+}
+
+LastTest()	# the test the interpreter was running, from the last "Running:" line of the log
+{		# ASCII only (test names are): a Windows Classic log has single bytes for APL characters, which are not valid UTF-8,
+	local WHERE	# and in a UTF-8 locale sed's .* stops at one, leaving it in the name and making the report invalid XML
+	WHERE="$(grep -a 'Running: test_' "$LOG" | tail -1 | tr -cd '\40-\176' | sed 's/.*Running: //;s/ *$//')"
+	[ -z "$WHERE" ] && WHERE="before the first test"
+	echo "$WHERE"
+}
+
+LogTail()	# what the run that just ended added to the log, at most $1 lines from the end: the body of its crash report
+{
+	tail -n +$((LOGLINES+1)) "$LOG" | tail -n "$1" | tr -d '\r'
+}
+
+KillTree()	# kill a process and all its descendants (mapl is a shell script which runs the interpreter as a child)
+{
+	local child
+	if [ $WIN = 1 ] ; then	# Cygwin ps: PID PPID ..., sometimes preceded by a status letter
+		for child in $(ps -e | awk -v p=$1 'NR>1 { if ($1 ~ /^[0-9]+$/) {pid=$1; ppid=$2} else {pid=$2; ppid=$3} ; if (ppid==p) print pid }') ; do KillTree $child ; done
+	else
+		for child in $(ps -e -o pid= -o ppid= | awk -v p=$1 '$2==p {print $1}') ; do KillTree $child ; done
+	fi
+	kill -9 $1 2>/dev/null
+}
+
+RunInBuildTree()	# Windows: run dyalog.exe ($1) from a build tree. Unlike an installation, the build tree has no StartupSession.aplf,
+{			# SALT or session file next to dyalog.exe: they are built into sibling trees (obj/startupsession, obj/SALT, obj/dse, ...),
+			# so run bare it starts without Link or SALT and the first ⎕SE.Link reference is a VALUE ERROR. Set here is what the
+			# build's own launcher, svn/apl/allos/bin/apl, sets for them (the svn tree itself is not on the QA machines), as Windows
+			# paths - the interpreter cannot read Cygwin ones. Only DYALOGSTARTUPSE and MAXWS may already be set by the caller.
+			# A subshell keeps this environment from leaking into the next interpreter's run.
+	local EXE=$1 ; shift
+	(
+		OBJDIR="$(cygpath -m "$(dirname "$EXE")")"	# C:/obj/<version>/obj/apl/win/<bits>/<edition>/winapi/dev/opt
+		OBJ="${OBJDIR%/apl/*}" ; SUB="${OBJDIR##*/apl/}"	# component X of the same build is in $OBJ/X/$SUB (as svn/apl/allos/bin/mapobjdir)
+		export SALT="$OBJ/SALT/$SUB/SALT"
+		export SALT_SOURCEFOLDER="SALT/core;$OBJ/apltoolslib/$SUB/Library/Core;$OBJ/apltoolslib/$SUB/Library/Conga"
+		export DYALOGCODEPATH="$OBJ/apltoolslib/$SUB/Library/*"	# where Link looks up library names such as HttpCommand; without it, it expands [DYALOG]/Library, and
+								# ⎕SE.Dyalog.Utils.Config 'DYALOG' gives ⎕NULL here (no registry entry for a build tree) - a DOMAIN ERROR
+		export UCMDCACHEFILE="$OBJDIR/ucmdcachefile.dcf"
+		export DYALOGSTARTUP="$OBJ/startupsession/$SUB/StartupSession.aplf"
+		export DYALOGSTARTUPSESSIONDYALOG="$OBJ/startupsession/$SUB"	# where StartupSession.aplf finds its Dyalog folder; without it SALT is never booted
+		export DYALOGSTARTUPSE="${DYALOGSTARTUPSE:-$OBJ/startupsession/$SUB/StartupSession}"
+		export SESSION_FILE="$OBJ/dse/$SUB/def_uk.dse"
+		export MAXWS="${MAXWS:-256M}"
+		exec "$EXE" "$@"
+	)
+}
+
+RemoveContainer()	# remove the container $CONTAINER (also when it is still running) and forget its name - unless the removal failed
+{
+	local ERR
+	[ -z "$CONTAINER" ] && return
+	if ERR="$(docker rm -f "$CONTAINER" 2>&1 >/dev/null)" ; then CONTAINER=""
+	else
+		case $ERR in
+			*"No such container"*)	CONTAINER="" ;;	# --rm already removed it when it exited
+			*)			echo "!!!!! could not remove container $CONTAINER: $ERR" ;;	# try again at exit
+		esac
+	fi
+}
+
+PromoteReports()	# a JUnit report is written as .tmp and moved into place (see Test/WriteJUnit.aplf); if the interpreter or this
+{			# script was killed in between, a complete .tmp is all there is: put it in place, and throw away a half-written one
+	local F
+	[ -n "$RESULTS" ] || return
+	for F in "$RESULTS"/junit-*.xml.tmp ; do
+		[ -f "$F" ] || continue
+		if [ ! -s "${F%.tmp}" ] && grep -q '</testsuite>' "$F" ; then mv "$F" "${F%.tmp}" ; else rm -f "$F" ; fi
+	done
+}
+
+Cleanup()	# on exit (including a Jenkins abort): leave no interpreter, container or watchdog behind
+{
+	[ -n "$WATCHDOG" ] && kill $WATCHDOG 2>/dev/null
+	if [ "$DOCKER" = 1 ] ; then
+		RemoveContainer	# whether or not the docker client ($PID) is still alive: a Jenkins abort kills the client, and the container would outlive it
+	elif [ -n "$PID" ] && kill -0 $PID 2>/dev/null ; then
+		KillTree $PID
+	fi
+	PromoteReports
+	[ -n "$ETC" ] && rm -rf "$ETC"
+}
+trap Cleanup EXIT
+
+# Platforms linux and linux_public: the image for one edition (e.g. 64C), from the templates in CI/testmatrix [docker]
+ImageFor()
+{
+	local NAME
+	case $1 in *C) NAME=classic ;; *) NAME=unicode ;; esac
+	[ $PLATFORM = linux_public ] && NAME=public	# one public image, Unicode only
+	Section docker | awk -v n=$NAME '$1==n {print $2}' | sed "s/{version}/$VERSION/g"
+}
+
+# Platforms linux and linux_public: the image ID recorded by PullImages for one edition
+ImageIdFor()
+{
+	echo "$IMAGEIDS" | tr ' ' '\n' | sed -n "s/^$1=//p"
+}
+
+# Platforms linux and linux_public: pull the image of every expected edition of this version from the registry named in CI/testmatrix
+# [docker]. The tags move (a new nightly build every night, a new public one with each update), so pull every time; if the registry cannot be reached, a copy pulled
+# earlier is used with a warning. Sets HAVE (the editions whose image is available) and IMAGEIDS (edition=image ID): the
+# containers are run from the ID, not the tag, so that a tag moving during the run (another build pulling the next nightly)
+# cannot change which image a later edition or a restart runs, and the log says exactly which image was tested.
+PullImages()
+{
+	local E IMG ID
+	HAVE="" ; IMAGEIDS=""
+	for E in $EXPECTED ; do
+		IMG="$(ImageFor $E)"
+		[ -z "$IMG" ] && Fatal "CI/testmatrix [docker] names no image for the $E edition"
+		if docker pull -q "$IMG" >/dev/null 2>"$RESULTS/docker-pull.log" ; then
+			:
+		elif docker image inspect "$IMG" >/dev/null 2>&1 ; then
+			echo "!!!!! cannot pull $IMG ($(tail -1 "$RESULTS/docker-pull.log")) - using the copy pulled earlier"
+		else
+			echo "!!!!! cannot pull $IMG: $(tail -1 "$RESULTS/docker-pull.log")"
+			continue
+		fi
+		ID="$(docker image inspect "$IMG" --format '{{.Id}}')" || { echo "!!!!! cannot inspect $IMG" ; continue ; }
+		if [ $PLATFORM = linux_public ] ; then	# the public image has none of the nightly images' build labels
+			echo "====== $E: $IMG built $(docker image inspect "$ID" --format '{{.Created}}') = $ID"
+		else
+			echo "====== $E: $IMG = Dyalog $(docker image inspect "$ID" --format '{{index .Config.Labels "com.dyalog.build"}} {{index .Config.Labels "com.dyalog.edition"}} (.NET {{index .Config.Labels "com.dyalog.dotnet"}}) built {{index .Config.Labels "org.opencontainers.image.created"}}') = $ID"
+		fi
+		HAVE="$HAVE $E" ; IMAGEIDS="$IMAGEIDS $E=$ID"
+	done
+	rm -f "$RESULTS/docker-pull.log"
+	[ -z "$HAVE" ] && Fatal "No Docker image of Dyalog $VERSION could be pulled (is $(ImageFor 64U | sed 's,/.*,,') reachable from this Docker host?)"
+}
+
+[ -z "$PLATFORM" ] || [ -z "$VERSION" ] && Exit 2 "Usage: $0 <platform> <version> [tests]"
+[ -z "$WORKSPACE" ] && Exit 2 "WORKSPACE is not set: Jenkins sets it; otherwise set it to the checkout of the Link repository"
+[ -f "$CONFIG" ] || Exit 2 "Cannot read $CONFIG"
+case $TESTS in	# it ends up inside an APL string: allow nothing that could break out of it
+	*[!A-Za-z0-9_\ ]*)	Exit 2 "Invalid tests argument '$TESTS': 'all' or test names separated by spaces (letters, digits and _ only)" ;;
+esac
+[ -z "${TESTS// }" ] && Exit 2 "Invalid tests argument: empty ('all' runs all tests)"
+
+case $(uname) in
+	CYGWIN*|MSYS*|MINGW*)	WIN=1 ; cd "$(cygpath -u "$WORKSPACE")" || Exit 2 "Cannot cd to $WORKSPACE" ;;
+	*)			WIN=0 ; cd "$WORKSPACE" || Exit 2 "Cannot cd to $WORKSPACE" ;;
+esac
+[ -d StartupSession/Link ] && [ -d Test ] || Exit 2 "$WORKSPACE does not look like a checkout of the Link repository"
+
+VERNODOT="$(echo $VERSION | tr -d '.')"
+DOCKER=0 ; case $PLATFORM in linux|linux_public) DOCKER=1 ;; esac
+
+RESULTS="$PWD/results"
+rm -rf "$RESULTS" && mkdir -p "$RESULTS" || Exit 2 "Cannot create $RESULTS"
+
+# --- Which interpreters are expected on this platform for this version? ---
+EXPECTED="$(Section versions | awk -v p=$PLATFORM -v v=$VERSION '$1==p && $2==v {for (i=3; i<=NF; i++) printf "%s ", $i}')"
+[ -z "$EXPECTED" ] && Fatal "CI/testmatrix does not list Dyalog $VERSION on $PLATFORM"
+
+# --- Where are they? Paths with spaces are protected by turning the spaces into # while in a list ---
+if [ $DOCKER = 1 ] ; then
+	PullImages
+	INTERPRETERS="$EXPECTED"	# one container run per edition, each in its own image
+	# The containers run as the current user, so that the files written to results/ belong to the Jenkins user, not to
+	# the image's "dyalog" account. That uid must be known inside the container: Link records the owner of each file,
+	# and an unknown uid makes 18.2 fail with a LENGTH ERROR. So passwd and group files with just this user are mounted over the image's.
+	[ "$(id -u)" = 0 ] && Fatal "Refusing to run the containers as root - run the Jenkins agent as an unprivileged user"
+	ETC="$(mktemp -d)" || Fatal "Cannot create a temporary directory for the container's passwd and group files"
+	getent passwd "$(id -u)" >"$ETC/passwd" 2>/dev/null || echo "linktest:x:$(id -u):$(id -g):linktest:/tmp:/bin/bash" >"$ETC/passwd"
+	getent group "$(id -g)" >"$ETC/group" 2>/dev/null || echo "linktest:x:$(id -g):" >"$ETC/group"
+	[ -s "$ETC/passwd" ] && [ -s "$ETC/group" ] || Fatal "Cannot write the passwd and group files for the container in $ETC"
+else
+	case $PLATFORM in
+		win*)		# The Windows QA agents are build machines with no installed Dyalog: the interpreters are the optimised builds in the
+				# build trees, C:\obj\<version>\obj\apl\win\<32|64>\<classic|unicode>\winapi\dev\opt\dyalog.exe, run with the build's
+				# launcher environment (RunInBuildTree). An installation under Program Files (a developer's machine) is used only
+				# when there is no build tree of this version
+				# build tree of this version, C:\obj\<version> unless CI/testmatrix [buildtree] says otherwise (svn trunk builds into C:\obj\trunk)
+				TREE="$(Section buildtree | awk -v p=$PLATFORM -v v=$VERSION '$1==p && $2==v {print $3}')"
+				# C: is /cygdrive/c in Cygwin (Jenkins) and /c in Git Bash (GitHub Actions)
+				C="$(cygpath -u C:/)" ; C="${C%/}"
+				INTERPRETERS="$(ls $C/obj/${TREE:-$VERSION}/obj/apl/win/*/*/winapi/dev/opt/dyalog.exe 2>/dev/null | tr ' ' '#')"
+				[ -z "$INTERPRETERS" ] && INTERPRETERS="$(ls $C/Program*/Dyalog/*$VERSION*/dyalog.exe 2>/dev/null | tr ' ' '#')" ;;
+		aix)		INTERPRETERS="$(ls /opt/mdyalog/$VERSION/*/*/*/mapl 2>/dev/null | tr ' ' '#')" ;;
+		pi|linux*)	INTERPRETERS="$(ls /opt/mdyalog/$VERSION/*/*/mapl 2>/dev/null | tr ' ' '#')" ;;
+		mac*)		INTERPRETERS="$(ls /Applications/Dyalog-${VERSION}.app/Contents/Resources/Dyalog/mapl 2>/dev/null | tr ' ' '#')" ;;
+		*)		Fatal "Don't know where to find interpreters on platform $PLATFORM" ;;
+	esac
+fi
+
+# --- Environment for the interpreter: load Link from this checkout rather than the one shipped with it ---
+# In Docker the checkout is mounted at /link, so all paths the interpreter sees are relative to that
+REPO="$PWD"
+[ $WIN = 1 ] && REPO="$(cygpath -m "$PWD")"
+[ $DOCKER = 1 ] && REPO="/link"
+ENVS=("DYALOGLINK=$REPO" DYALOGSTARTUPKEEPLINK=0 DEBUG_LINKQA=N CITA_APIDEV=0 ENABLE_CEF=0 DYALOG_NOPOPUPS=1 DYALOG_LINEEDITOR_MODE=0)
+[ $WIN = 1 ] && ENVS+=(PASSEXCEPTIONSTOOPSYS=0)	# a crash writes an aplcore and exits instead of going to Windows Error Reporting (as the interpreter's QA scripts do)
+# v18.2 loads Link from the DYALOGSTARTUPSE directories, as in CITA.json5 (the list separator is ; on Windows and : elsewhere)
+[ $WIN = 1 ] && SEP=";" || SEP=":"
+[ $VERNODOT -lt 190 ] && ENVS+=("DYALOGSTARTUPSE=$REPO/StartupSession$SEP$REPO/qse/StartupSession")
+
+echo "====== Link tests: $PLATFORM Dyalog $VERSION ($TESTS) - expecting interpreters: $EXPECTED"
+echo "$INTERPRETERS" | tr '#' ' '
+echo ""
+
+RC=0
+FOUND=""
+for F in $INTERPRETERS
+do
+	D="$(echo $F | tr '#' ' ')"
+	if [ $DOCKER = 1 ] ; then	# F is an edition from CI/testmatrix, e.g. 64C
+		EDITION="$F" ; W="${F%?}" ; E1="${F#$W}"
+		if ! echo " $HAVE " | grep " $F " >/dev/null ; then continue ; fi	# no image for this edition: reported as missing below
+		IMAGE="$(ImageFor $F)" ; IMAGEID="$(ImageIdFor $F)"
+	else
+		if echo "$F" | grep -i classic >/dev/null 2>&1 ; then E1="C" ; else E1="U" ; fi
+		echo "$F" | egrep "/32/|x86\)" >/dev/null 2>&1 && W=32 || W=64
+		EDITION="$W$E1"
+	fi
+	FOUND="$FOUND $EDITION"
+	T="${PLATFORM}_${VERNODOT}_${EDITION}"
+	LOG="$RESULTS/$T.log"
+	LOGLINES=0
+	FILTER="$(echo $TESTS | sed "s/[^ ]*/'&'/g")"	# APL argument for ⎕SE.Link.RunTests: 'all', or each test name quoted (TESTS is checked above to contain no quotes); after a crash, the names of the tests still to run
+	ATTEMPT=0
+	while : ; do
+		ATTEMPT=$((ATTEMPT+1))
+		JUNIT="$RESULTS/junit-$T.$ATTEMPT.xml"
+		CRASHREPORT="$RESULTS/junit-$T.$ATTEMPT.crash.xml"
+		APLCORE="$RESULTS/$T.$ATTEMPT.aplcore"
+		if [ $WIN = 1 ] ; then
+			RUNENVS=("${ENVS[@]}" "LINKTEST_LABEL=$T" "LINKTEST_JUNIT=$(cygpath -m "$JUNIT")" "APLCORENAME=$(cygpath -m "$APLCORE")")
+		else
+			RUNENVS=("${ENVS[@]}" "LINKTEST_LABEL=$T" "LINKTEST_JUNIT=$REPO/results/junit-$T.$ATTEMPT.xml" "APLCORENAME=$REPO/results/$T.$ATTEMPT.aplcore")
+		fi
+
+		if [ $DOCKER = 1 ] ; then
+			# As the current user (see ETC above); the image's entrypoint sets up the interpreter environment and starts it reading stdin.
+			# The tests need no network and no privileges, and may write only to results/: the checkout itself is mounted read-only
+			CONTAINER="linktest-$T-$$-$ATTEMPT"
+			RUN=(docker run --rm -i --name "$CONTAINER" --user "$(id -u):$(id -g)" -e HOME=/tmp -w /tmp
+			     --network none --cap-drop ALL --security-opt no-new-privileges --pids-limit 1024
+			     -v "$ETC/passwd:/etc/passwd:ro" -v "$ETC/group:/etc/group:ro"
+			     -v "$PWD:/link:ro" -v "$RESULTS:/link/results")
+			for E in "${RUNENVS[@]}" ; do RUN+=(-e "$E") ; done
+			RUN+=("$IMAGEID")
+			echo "====== $T: $IMAGE (run $ATTEMPT: $FILTER)"
+		else
+			for E in "${RUNENVS[@]}" ; do export "$E" ; done
+			# NB: do not set DYALOG here - mapl sets it, and on Windows a Cygwin-style path would stop the interpreter finding its own startup files
+			unset APLK APLK0 APLT APLT1 APLT2 APLT3 APLT9 APLKEYS
+			if [ $E1 = C ] ; then	# a Classic interpreter reads this UTF-8 script through an input translate table, or ⎕ etc. are SYNTAX ERRORs
+				if [ $WIN = 0 ] ; then	# Unix: the utf8 tables shipped with the interpreter, for the input and for the output in the log
+					export APLK=utf8 APLK0=utf8 APLT=utf8 APLT1=utf8 APLT2=utf8 APLT3=utf8 APLT9=utf8
+				else			# Windows: stdin is translated by APLK0, a .din file found in APLKEYS: CI/aplkeys/utf8.din is a copy of the
+					export APLK0=utf8 APLKEYS="$REPO/CI/aplkeys"	# one the Windows installer ships (aplkeys\utf8.din) - the build trees
+				fi			# have none. There is no UTF-8 output table on Windows: APL characters in a Classic log are single bytes
+			fi
+			case $D in
+				*/obj/apl/win/*)	RUN=(RunInBuildTree "$D") ;;	# a Windows build tree: needs the build's launcher environment
+				*)			RUN=("$D") ;;
+			esac
+			echo "====== $T: $D (run $ATTEMPT: $FILTER)"
+		fi
+
+		# Exit codes chosen here: 10 = all passed, 11 = some tests failed, 12 = untrapped error (outside the tests: RunTest traps
+		# errors inside them). The trap is an E one, so it runs before the stack is cut back and can print it after the error:
+		# the "Untrapped" line is picked up for the crash report below, and the log tail holds the rest
+		"${RUN[@]}" <<APL >>"$LOG" 2>&1 &
+⎕TRAP←0 'E' '⎕←''Untrapped '',⎕DMX.(EM,(×≢Message)/'': '',Message) ⋄ ⎕←↑1↓⎕DMX.DM ⋄ ⎕←↑(⊂''Stack:''),''  ''∘,¨(0<≢¨⎕XSI)/⎕XSI,¨''['',¨(⍕¨⎕LC),¨'']'' ⋄ ⎕OFF 12'
+⎕PW←500
+⎕←'Dyalog ',(⍕2↑# ⎕WG'APLVersion'),' with Link ',⎕SE.Link.Version,' from ',2 ⎕NQ'.' 'GetEnvironment' 'DYALOGLINK'
+r←⎕TSYNC ⎕SE.Link.RunTests&$FILTER
+ec←10+1≢r
+⎕OFF ec
+APL
+		PID=$!
+		# Watchdog: the interpreter has been seen to hang, both inside tests (a deadlock in a test using threads) and
+		# on exit after finishing (Run writes <junit>.done when it is complete) - kill it rather than hang the build,
+		# and leave the reason in <log>.killed
+		KILLED="$LOG.killed" ; rm -f "$KILLED"
+		(
+			WAITED=0 ; DONEFOR=0
+			while : ; do
+				sleep 5 ; WAITED=$((WAITED+5))
+				kill -0 $PID 2>/dev/null || exit 0
+				if [ -f "$JUNIT.done" ] ; then
+					DONEFOR=$((DONEFOR+5))
+					[ $DONEFOR -ge $EXITGRACE ] && { echo "exit" >"$KILLED" ; break ; }
+				elif [ $WAITED -ge $TIMEOUT ] ; then
+					echo "hung" >"$KILLED" ; break
+				fi
+			done
+			echo "!!!!! $T still running after ${WAITED}s - killing it" >>"$LOG"
+			if [ $DOCKER = 1 ] ; then docker kill "$CONTAINER" ; else KillTree $PID ; fi
+		) >/dev/null 2>&1 &
+		WATCHDOG=$!
+		wait $PID
+		EC=$?
+		wait $WATCHDOG 2>/dev/null
+		WATCHDOG=""
+		[ $DOCKER = 1 ] && RemoveContainer	# --rm removes it when it exits; this is for a client that died before its container
+		tail -n +$((LOGLINES+1)) "$LOG"	# show what this run added to the log
+		TAIL="$(LogTail 40)"		# and keep the end of it for the body of a crash report, before LOGLINES moves on
+		LOGLINES=$(wc -l <"$LOG")
+
+		DIED=0
+		case $EC in
+			10)	echo "===== $T OK" ;;
+			126|127)	# the shell could not start the executable at all (not found, not executable, or on Windows a DLL it
+					# needs is missing): a build tree being rebuilt under us, for instance. Nothing ran, so no restart -
+					# it would only fail the same way, MAXRESTARTS times in as many seconds
+				echo "!!!!! $T could not be started - exit code $EC: $(LogTail 1)" ; RC=2
+				ErrorReport "$CRASHREPORT" "$T" "interpreter (start)" "The interpreter could not be started (exit code $EC): $(LogTail 1)" error "$TAIL" ;;
+			11)	echo "===== $T TEST FAILURES" ; [ $RC -lt 1 ] && RC=1 ;;
+			12)	echo "!!!!! $T untrapped APL ERROR" ; RC=2
+				ErrorReport "$CRASHREPORT" "$T" "interpreter ($(LastTest))" "Untrapped APL error while running $(LastTest): $(grep -a '^Untrapped ' "$LOG" | tail -1 | tr -d '\r' | sed 's/^Untrapped //')" error "$TAIL" ;;
+			*)	if [ "$(cat "$KILLED" 2>/dev/null)" = exit ] ; then
+					echo "!!!!! $T finished the tests but did not exit - killed after ${EXITGRACE}s" ; [ $RC -lt 1 ] && RC=1
+					ErrorReport "$RESULTS/junit-$T.$ATTEMPT.exit.xml" "$T" "interpreter (exit)" "Interpreter did not exit within ${EXITGRACE}s of finishing the tests and was killed" failure "$TAIL"
+				elif [ "$(cat "$KILLED" 2>/dev/null)" = hung ] ; then
+					echo "!!!!! $T HUNG - killed after ${TIMEOUT}s" ; RC=2 ; DIED=1
+					ErrorReport "$CRASHREPORT" "$T" "interpreter ($(LastTest))" "Interpreter hung and was killed after ${TIMEOUT}s while running $(LastTest)" error "$TAIL"
+				else
+					echo "!!!!! $T INTERPRETER CRASHED - exit code $EC" ; RC=2 ; DIED=1
+					ErrorReport "$CRASHREPORT" "$T" "interpreter ($(LastTest))" "Interpreter crashed with exit code $EC while running $(LastTest)" error "$TAIL"
+				fi ;;
+		esac
+		CORE="$(ls "$APLCORE"* 2>/dev/null | head -1)"
+		if [ -n "$CORE" ] ; then
+			echo "!!!!! $T wrote an aplcore: $CORE ($(du -k "$CORE" | cut -f1) kB) - archived with the build" ; RC=2
+			[ -s "$CRASHREPORT" ] || ErrorReport "$CRASHREPORT" "$T" "interpreter ($(LastTest))" "Interpreter wrote an aplcore while running $(LastTest)" error "$TAIL"
+		fi
+		PromoteReports	# killed between writing the report and moving it into place
+		if [ ! -s "$JUNIT" ] && [ ! -s "$CRASHREPORT" ] ; then
+			echo "!!!!! $T no JUnit report was written" ; RC=2
+			ErrorReport "$CRASHREPORT" "$T" "interpreter (no report)" "The interpreter exited with code $EC without writing a JUnit report" error "$TAIL"
+		fi
+		rm -f "$KILLED" "$JUNIT.done"
+
+		# Crashed or hung: start again with the tests that had not run yet (the results so far are in $JUNIT already)
+		[ $DIED = 1 ] && [ $ATTEMPT -le $MAXRESTARTS ] || break
+		ALL="$(grep -a 'Tests to run: ' "$LOG" | tail -1 | tr -cd '\40-\176' | sed 's/.*Tests to run: //')"	# ASCII only: CR line ends and single-byte APL characters (see LastTest)
+		LAST="$(grep -a 'Running: test_' "$LOG" | tail -1 | tr -cd '\40-\176' | sed 's/.*Running: //;s/ with .*//')"
+		REMAINING="$(echo $ALL | tr ' ' '\n' | grep . | sed -n "/^$LAST\$/,\$p" | tail -n +2)"
+		[ -n "$LAST" ] && [ -n "$REMAINING" ] || break
+		FILTER="$(echo $REMAINING | sed "s/[^ ]*/'&'/g")"
+		echo "====== $T: restarting the interpreter for the remaining tests"
+	done
+	PID=""
+	echo ""
+done
+
+# --- Every interpreter CI/testmatrix expects must have been found ---
+for EDITION in $EXPECTED
+do
+	if ! echo " $FOUND " | grep " $EDITION " >/dev/null ; then
+		T="${PLATFORM}_${VERNODOT}_${EDITION}"
+		echo "!!!!! $T: expected a $EDITION interpreter for Dyalog $VERSION on $PLATFORM but found none" ; RC=2
+		ErrorReport "$RESULTS/junit-$T.missing.xml" "$T" "interpreter (missing)" "No $EDITION interpreter for Dyalog $VERSION found on this $PLATFORM machine (expected by CI/testmatrix)"
+	fi
+done
+[ -z "$FOUND" ] && Fatal "No Dyalog $VERSION interpreter found on this $PLATFORM machine"
+
+echo "====== Files in $RESULTS:"
+ls -l "$RESULTS"
+exit $RC

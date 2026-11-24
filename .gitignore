@@ -1,2 +1,5 @@
 site/*
 aplcore
+results/
+report.html
+testreport.html

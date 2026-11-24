@@ -1,0 +1,271 @@
++---------------------------------------------------------------+
++   Input translation for utf8 input streams			+
++			PuTTY					+
++								+
++	For Dyalog APL Version Classic versions			+
++								+
++NOTE: utf8 and utf8.din SHOULD BE IDENTICAL. PLEASE MODIFY BOTH+
++---------------------------------------------------------------+
+
++---------------------------------------------------------------+
++								+
++	Atomic Vector						+
++								+
++---------------------------------------------------------------+
+5:				+	(Reserved Dyalog)
+6:				+	(Reserved Dyalog)
+7:				+	(Reserved Dyalog)
+8:				+	(Reserved Dyalog)
+9:      			+	(Reserved Dyalog)
+10:	226 140 182		+ Up-Tack Down-Tack (I-beam)
+11:	201 171			+ Stile Bar
+12:	37			+ Percent
+13:	39			+ APL-Quote
+14:	226 141 186		+ Alpha
+15:	226 141 181		+ Omega
+16:	95			+ Underbar    (Had to define this to line up)
+17:	97			+ Lower-a
+18:	98			+ Lower-b
+19:	99			+ Lower-c
+20:	100			+ Lower-d
+21:	101			+ Lower-e
+22:	102			+ Lower-f
+23:	103			+ Lower-g
+24:	104			+ Lower-h
+25:	105			+ Lower-i
+26:	106			+ Lower-j
+27:	107			+ Lower-k
+28:	108			+ Lower-l
+29:	109			+ Lower-m
+30:	110			+ Lower-n
+31:	111			+ Lower-o
+32:	112			+ Lower-p
+33:	113			+ Lower-q
+34:	114			+ Lower-r
+35:	115			+ Lower-s
+36:	116			+ Lower-t
+37:	117			+ Lower-u
+38:	118			+ Lower-v
+39:	119			+ Lower-w
+40:	120			+ Lower-w
+41:	121			+ Lower-y
+42:	122			+ Lower-z
+43:
+44:
+45:	194 175			+ Overbar (High Minus)
+46:	46			+ Dot
+47:	226 141 172		+ Zero Tilde (Zilde)
+48:	48			+ 0 Zero
+49:	49			+ 1 One
+50:	50			+ 2 Two
+51:	51			+ 3 Three
+52:	52			+ 4 Four
+53:	53			+ 5 Five
+54:	54			+ 6 Six
+55:	55			+ 7 Seven
+56:	56			+ 8 Eight
+57:	57			+ 9 Nine
+58:
+59:	226 138 162		+ Right-Tack
+60:
+61:	36			+ Dollar
+62:	194 163			+ L bar (Pound Sterling)
+63:	194 162			+ Left Shoe Stile (Cent)
+64:	226 136 134		+ Delta
+65:	65			+ Upper-A
+66:	66			+ Upper-B
+67:	67			+ Upper-C
+68:	68			+ Upper-D
+69:	69			+ Upper-E
+70:	70			+ Upper-F
+71:	71			+ Upper-G
+72:	72			+ Upper-H
+73:	73			+ Upper-I
+74:	74			+ Upper-J
+75:	75			+ Upper-K
+76:	76			+ Upper-L
+77:	77			+ Upper-M
+78:	78			+ Upper-N
+79:	79			+ Upper-O
+80:	80			+ Upper-P
+81:	81			+ Upper-Q
+82:	82			+ Upper-R
+83:	83			+ Upper-S
+84:	84			+ Upper-T
+85:	85			+ Upper-U
+86:	86			+ Upper-V
+87:	87			+ Upper-W
+88:	88			+ Upper-X
+89:	89			+ Upper-Y
+90:	90			+ Upper-Z
+91:
+92:
+93:
+94:
+95:
+96:	226 141 153		+ Delta underbar
+97:				+ Upper-A underbar
+98:				+ Upper-B underbar
+99:				+ Upper-C underbar
+100:				+ Upper-D underbar
+101:				+ Upper-E underbar
+102:				+ Upper-F underbar
+103:				+ Upper-G underbar
+104:				+ Upper-H underbar
+105:				+ Upper-I underbar
+106:				+ Upper-J underbar
+107:				+ Upper-K underbar
+108:				+ Upper-L underbar
+109:				+ Upper-M underbar
+110:				+ Upper-N underbar
+111:				+ Upper-O underbar
+112:				+ Upper-P underbar
+113:				+ Upper-Q underbar
+114:				+ Upper-R underbar
+115:				+ Upper-S underbar
+116:				+ Upper-T underbar
+117:				+ Upper-U underbar
+118:				+ Upper-V underbar
+119:				+ Upper-W underbar
+120:				+ Upper-X underbar
+121:				+ Upper-Y underbar
+122:				+ Upper-Z underbar
+123:	123			+ Left-Brace
+124:	226 130 172		+ Euro
+125:	125			+ Right-Brace
+126:	226 138 163		+ Left-Tack
+127:	226 140 183		+ Left-Bracket Right-Bracket (Squish)
+128:	194 168			+ Diaeresis (each)
+129:
+130:
+131:
+132:
+133:	226 141 168		+ Diaeresis Tilde (Commute)
+134:			+ ------.
+135:			+	|
+136:			+	|
+137:			+	|
+138:			+	|
+139:			+	| This
+140:			+	| area
+141:			+	| recommended 
+142:			+	| for
+143:			+	| National
+144:			+	| Language
+145:			+	| characters
+146:			+	|
+147:			+	|
+148:			+	|
+149:			+	|
+150:			+	|
+151:			+	|
+152:			+	|
+153:			+	|
+154:			+ ------'
+155:	91,			+ Left-Bracket
+156:	47,			+ Slash (Replicate  Reduce)
+157:	226 140 191		+ Slash Bar
+158:	92			+ Back-Slash (Expand  Scan)
+159:	226 141 128		+ Back-Slash bar
+160:	60			+ Left-Caret (Less than)
+161:	226 137 164		+ Less-than-or-Equal
+162:	61			+ Equal
+163:	226 137 165		+ Greater-than-or-Equal
+164:	62			+ Right-Caret (Greater than)
+165:	226 137 160		+ Not-Equal
+166:	226 136 168		+ Down-Caret (Or)
+167:	226 136 167		+ Up-Caret (And)
+168:	45			+ Bar (Negate Minus Subtract)
+169:	43			+ Plus (Conjugate Add)
+170:	195 183			+ Divide (Reciprocal)
+171:	195 151			+ Multiply (Signum)
+172:	63			+ Query (Roll Deal)
+173:	226 136 138		+ Epsilon (Type Membership)
+174:	226 141 180		+ Rho (Shape Reshape)
+175:	126			+ Tilde (Not Exclude Without)
+176:	226 134 145		+ Up-Arrow (Mix Take)
+177:	226 134 147		+ Down-Arrow (Split Drop)
+178:	226 141 179		+ Iota (Index)
+179:	226 151 139		+ Circle (Trig)
+180:	42			+ Star (Exponential Power)
+181:	226 140 136		+ Ceiling (Max)
+182:	226 140 138		+ Floor (Min)
+183:	226 136 135		+ Del (Function Edit)
+184:	226 136 152		+ Jot (Compose)
+185:	40			+ Left-Parenthesis
+186:	226 138 130		+ Left-Shoe (Enclose)
+187:	226 138 131		+ Right-Shoe (Disclose)
+188:	226 136 169		+ Up-Shoe (Intersection)
+189:	226 136 170		+ Down-Shoe (Union)
+190:	226 138 165		+ Down-Tack (decode base)
+191:	226 138 164		+ Up-Tack (encode represent)
+192:	124			+ Stile (Absolute Residue Modulus)
+193:	59			+ Semicolon
+194:	44			+ Comma (Ravel Catenate)
+195:	226 141 177		+ Down-Caret Tilde (Nor)
+196:	226 141 178		+ Up-Caret Tilde (Nand)
+197:	226 141 146		+ Del Stile (Down Grade)
+198:	226 141 139		+ Delta Stile (Up Grade)
+199:	226 141 137		+ Circle Backslash (Transpose)
+200:	226 140 189		+ Circle Stile (Rotate)
+201:	226 138 150		+ Circle Bar (Rotate 1st)
+202:	226 141 159		+ Circle Star (Power)
+203:	226 140 185		+ Quad Divide (Domino  Matrix Inverse)
+204:	33			+ Quote Dot (Shriek  Binomial  Factorial)
+205:	226 141 149		+ Up-Tack Jot (Format)
+206:	226 141 142		+ Down-Tack Jot (Execute)
+207:	226 141 171		+ Del Tilde
+208:	226 141 170		+ Comma Bar
+209:	226 137 161		+ Equal Underbar (Match)
+210:	226 137 162		+ Not-Equal Underbar (Natch)
+211:
+212:
+213:
+214:
+215:	34			+ Ascii Double Quote "
+216:	35			+ Ascii Hash +
+217:				+	(Reserved Dyalog)
+218:	38			+ Ascii Ampersand &
+219:				+ Ascii Quote Single '
+220:	226 148 152		+ Lower Right Corner	3 ------.
+221:	226 148 144		+ Upper Right Corner	9	|
+222:	226 148 140		+ Upper Left Corner	7	|
+223:	226 148 148		+ Lower Left Corner	1	|
+224:	226 148 188		+ Crossing Lines	5	| Line
+225:	226 148 128		+ Horiz Bar Scan 5	.	| Drawing
+226:	226 148 156		+ Left T		4	| Chars
+227:	226 148 164		+ Right T		6	|
+228:	226 148 180		+ Bottom T		2	|
+229:	226 148 172		+ Top T			8	|
+230:	226 148 130		+ Vertical Bar		0 ------'
+231:	64			+ Ascii At sign @
+232:
+233:
+234:
+235:	94			+ Ascii Caret
+236:
+237:	96			+ Ascii Back Quote
+238:	226 136 163		+ Ascii Pipe
+239:
+240:	58			+ Colon
+241:	226 141 183		+ Epsilon underscore
+242:			+	(Reserved Dyalog)
+243:			+	(Reserved Dyalog)
+244:	226 139 132		+ Diamond
+245:	226 134 144		+ Left-Arrow
+246:	226 134 146		+ Right-Arrow
+247:	226 141 157		+ Up-Shoe Jot (Lamp  Comment)
+248:	41			+ Right-Parenthesis
+249:	93			+ Right-Bracket
+250:				+	(Reserved Dyalog)
+251:				+	(Reserved Dyalog)
+252:				+	(Reserved Dyalog)
+253:	226 142 149		+ Quad
+254:	226 141 158		+ Quote Quad
+255:	226 141 163		+ Diresis Star (Power)
+
+ER:     10      + standard unix line ending
+,ER:    133     + NEL
+,ER:    13 10   + DOS, Windows
+DP:	32	+ Destructive space
+HT:	9	+ Horizontal tab
