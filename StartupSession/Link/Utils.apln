@@ -278,8 +278,11 @@
               1⊣(⊂13,u+err+h)⎕NINFO f       ⍝ other side of a clock change (DST): correct it
           }⍵
           ⍝ v19.0 and earlier: .NET, or touch where there is none
-          ⍵{0::0 ⋄ ⎕USING←'System' 
-          1⊣IO.File.SetLastWriteTime ⍺(⎕NEW DateTime ⍵)}⍺:1
+          ⍵{0::0 ⋄ ⎕USING←'System'
+              fi←⎕NEW IO.FileInfo(⊂⍺)
+              fi.LastWriteTime←⎕NEW DateTime ⍵  ⍝ not File.SetLastWriteTime: in a dfn, a void call can neither be an argument nor a statement
+              1
+          }⍺:1
           
           ISWIN:0
           ts←6↑⍺
