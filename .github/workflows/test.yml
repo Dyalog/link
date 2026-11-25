@@ -1,4 +1,4 @@
-# Run the Link test suite on every push and on pull requests from forks, on GitHub's own runners.
+# Run the Link test suite on every push and every pull request, on GitHub's own runners.
 #
 # This is a small subset of what Jenkins runs (see the Jenkinsfile): 64-bit Unicode on Linux, Windows and macOS, in the latest
 # public release - the version CI/testmatrix lists for the linux_public, win_public and mac_public platforms. Linux runs
@@ -7,9 +7,9 @@ name: test
 
 on:
   push:
-    branches: ['**']   # every branch of this repository; its pull requests show these runs as their checks
+    branches: ['**']   # every branch of this repository
   pull_request:
-    branches: [master] # pull requests from forks only - see the "if" of the first job
+    branches: [master] # including those from forks, which have no push run here
   workflow_dispatch:   # Allows you to run this workflow manually from the Actions tab
 
 permissions:
@@ -23,9 +23,6 @@ jobs:
   # What to test: every linux_public, win_public and mac_public line of CI/testmatrix [versions], as a JSON list of
   # {platform, version, os} for the matrix of the next job
   cells:
-    # A pull request from a branch of this repository is already tested by the push of that branch: running it again
-    # for the pull_request event would test every push twice. Forks have no push run here, so theirs run for the PR.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     outputs:
       cells: ${{ steps.read.outputs.cells }}
