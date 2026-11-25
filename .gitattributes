@@ -1,2 +1,41 @@
+# Normalise text to LF in the repository. Git decides what is text.
 * text=auto eol=lf
-*.apl? linguist-language=APL
+
+# APL source: always text, always LF, reported as APL by GitHub.
+*.apl?      text eol=lf linguist-language=APL
+*.apl       text eol=lf linguist-language=APL
+*.dyalog    text eol=lf linguist-language=APL
+*.dyapp     text eol=lf
+
+# Shell scripts should always be LF
+*.sh   text eol=lf
+
+# Files that must keep CRLF on every platform.
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.sln       text eol=crlf
+*.vcxproj   text eol=crlf
+
+# Dyalog binaries: never touch line endings, never try to diff or merge.
+*.dws       binary
+*.dcf       binary
+
+# Other binaries.
+*.png       binary
+*.jpg       binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.zip       binary
+*.exe       binary
+*.dll       binary
+*.so        binary
+*.dylib     binary
+*.ttf       binary
+*.woff      binary
+*.woff2     binary
+
+# Keep generated/vendored code out of GitHub's language stats and diffs.
+# Uncomment and adjust per repo:
+# dist/**      linguist-generated
+CI/aplkeys/**    linguist-vendored
