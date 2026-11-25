@@ -20,3 +20,5 @@ Version 3.0 is distributed with version 18.2 and works with version 18.0.
 Version 2.0 is distributed with Dyalog APL versions 17.1 and 18.0. It is no longer being actively developed. Support (and fixes if necessary) are available to Dyalog customers via our normal support channels.
 
 [Version 2.0 documentation](https://github.com/Dyalog/link/wiki) is hosted using the old GitHub wiki technology, and includes a [Version 2.0 API reference](https://github.com/Dyalog/link/wiki/API).
+
+See [TESTING.md](TESTING.md) for how to run the tests, and how CI runs them.

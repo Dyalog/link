@@ -1,0 +1,38 @@
+ r←RunTest(test mode folder);ok;start;status;msg;detail;dm;stack
+⍝ Run one test function (mode is 'watcher': mocked when USE_MOCK_FSW) and report how it went
+⍝ r ← status message detail milliseconds folder, where status is 'passed', 'failed' (an assertion failed) or 'error' (any other error),
+⍝ detail is a vector of lines saying where it went wrong (the error as the interpreter displays it and the stack, see RecordError)
+⍝ and folder is the one the next test should use (Recover may have had to switch to a fresh one)
+⍝ Assertion failures signal ASSERT_EN (see AssertFailed) and are trapped here so that Run can carry on with the next test
+⍝ When debugging (⎕SE.Link.DEBUG≠0) nothing is trapped, so that a failing test stops where it went wrong
+ :If USE_MOCK_FSW ⋄ ⎕SE.Link.Watcher.(CRAWLER MOCK)←0 1 ⍝ mocked watcher: links watch, but no watcher is started - DOTNET stays as detected
+ :Else ⋄ ⎕SE.Link.Watcher.(CRAWLER MOCK)←0 0 ⍝ a real FileSystemWatcher (never the crawler)
+ :EndIf
+ ASSERT_FAILURES←0⍴⊂''
+ detail←0⍴⊂''
+ start←3⊃⎕AI
+ :If ×⎕SE.Link.DEBUG
+     ok←(⍎test)folder NAME
+ :Else
+     :Trap 0
+         ok←CallTest test folder ⍝ records the stack in LAST_ERROR before this :Trap cuts it back
+     :Case ASSERT_EN
+         (status msg)←'failed'(⎕DMX.Message)
+         (dm stack)←LAST_ERROR
+         detail←(⊂'ASSERTION FAILED: ',msg),(0<≢stack)/(⊂'Stack:'),'  '∘,¨stack
+     :Else
+         (dm stack)←LAST_ERROR
+         :If 0=≢dm ⋄ dm←⎕DMX.DM ⋄ :EndIf ⍝ RecordError did not get to run
+         (status msg)←'error'(⎕DMX.(EM,(×≢Message)/': ',Message),' ⍝ at ',2⊃dm)
+         detail←(⊂msg),(1↓dm),(0<≢stack)/(⊂'Stack:'),'  '∘,¨stack ⍝ the offending line and the caret under it, as the interpreter shows them
+         :If 0≠≢ASSERT_FAILURES ⋄ msg,←' ⋄ after failed assertions: ',⊃{⍺,' ⋄ ',⍵}/ASSERT_FAILURES ⋄ :EndIf ⍝ recorded when ASSERT_ERROR=0
+     :EndTrap
+ :EndIf
+ :If 0=⎕NC'status' ⍝ the test ran to completion
+     :If 0≠≢ASSERT_FAILURES ⋄ (status msg)←'failed'(⊃{⍺,' ⋄ ',⍵}/ASSERT_FAILURES)
+     :ElseIf ok≢1 ⋄ (status msg)←'failed'('test returned ',⍕ok)
+     :Else ⋄ (status msg)←'passed' ''
+     :EndIf
+ :EndIf
+ :If status≢'passed' ⋄ folder←Recover folder ⋄ :EndIf ⍝ the test will not have cleaned up after itself
+ r←status msg detail((3⊃⎕AI)-start)folder

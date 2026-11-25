@@ -1,5 +1,18 @@
- dir←CreateTempDir create;i;prefix;tmp;dirs
- prefix←(739⌶0),'/linktest-' ⋄ i←0
- :Repeat ⋄ dir←prefix,⍕i←i+1
- :Until ~∨/⎕NEXISTS dirs←dir∘,¨'' '-config'
- :If create ⋄ 2 ⎕MKDIR dirs ⋄ :EndIf
+ dir←CreateTempDir create;i;prefix;failed
+⍝ New folders (739⌶0)/linktest-<n> and linktest-<n>-config. create=0: just find a free name.
+⍝ Another session may grab the same <n> at the same time: ⎕MKDIR fails if the folder exists, so on failure try the next <n>.
+ prefix←(739⌶0),'/linktest-' ⋄ i←failed←0
+ :Repeat
+     dir←prefix,⍕i←i+1
+     :If ∨/⎕NEXISTS dir∘,¨'' '-config' ⋄ :Continue ⋄ :EndIf
+     :If ~create ⋄ :Return ⋄ :EndIf
+     :Trap 22
+         2 ⎕MKDIR dir
+         :Leave
+     :Else
+         :If 10≤failed←failed+1
+             (⎕DMX.(EM,(×≢Message)/': ',Message))⎕SIGNAL 22
+         :EndIf
+     :EndTrap
+ :EndRepeat
+ 2 ⎕MKDIR dir,'-config'

@@ -1,0 +1,10 @@
+ RecordError;frames;n;names
+⍝ Called by the ⎕TRAP that CallTest sets, at the point where an error occurred in a test (a failed assertion is signalled, so it
+⍝ arrives here too), while the stack is still intact: the :Trap in RunTest cuts it back before RunTest can look at it.
+⍝ Records LAST_ERROR: ⎕DMX.DM (the error as the interpreter would display it) and the stack from the failing line up to the test
+⍝ function, innermost first, as 'name[line]'. Frames without a name (⍎, unnamed dfns) are left out, as they tell nothing.
+ →(0≠≢⊃LAST_ERROR)⍴0 ⍝ already recorded for this test: the trap fired again for the re-signal (a function between the error and CallTest localises ⎕TRAP, so the first firing could not empty CallTest's), and the first record is the deeper one
+ names←1↓⎕XSI ⍝ without this function
+ n←¯1+names⍳⊂(⍕⎕THIS),'.CallTest' ⍝ nor CallTest and everything below it (RunTest, Run, ...)
+ frames←(n↑names),¨'[',¨(⍕¨n↑1↓⎕LC),¨']'
+ LAST_ERROR←(⎕DMX.DM)((0<≢¨n↑names)/frames)

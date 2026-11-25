@@ -19,7 +19,7 @@
  :EndIf
  :If ~timeout ⋄ txt←'' ⋄ :Return ⋄ :EndIf
 
- txt←msg,': ',expr,' ⍝ at ',(2⊃⎕XSI),'[',(⍕2⊃⎕LC),']'
+ txt←msg,': ',expr,' ⍝ at ',AssertedFrom
  :If ASSERT_DORECOVER∧0≠≢clean ⍝ Was a recovery expression provided?
      ⍎clean
  :AndIf ~0∊{0::0 ⋄ ⍎⍵}expr ⍝ Did it work?
@@ -28,8 +28,4 @@
  :EndIf
 
       ⍝ No recovery, or recovery failed
- :If ASSERT_ERROR
-     txt ⎕SIGNAL 11
- :Else ⍝ Just muddle on, not recommended!
-     Log txt
- :EndIf
+ AssertFailed txt ⍝ signal ASSERT_EN, or record the failure and muddle on if ASSERT_ERROR=0

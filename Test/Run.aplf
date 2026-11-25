@@ -1,4 +1,4 @@
- {ok}←Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z;CITA;CITA_LOG;⎕TRAP;extn;isassert;file
+ {ok}←Run test_filter;all;aplv;cancrawl;canwatch;core;dnv;folder;interval;notused;ok;oktxt;olddebug;opts;rep;showmsg;slow;test;tests;time;udebug;z;CITA;CITA_LOG;⎕TRAP;file;failed;mode;modes;nerr;nfail;npass;results;status;watcher
     ⍝ Do (⎕SE.Link.Test.Run'all') to run ALL the Link Tests, including slow ones
     ⍝ Do (⎕SE.Link.Test.Run'') to run the basic Link Tests
 
@@ -40,7 +40,11 @@
      :Return
  :EndIf
       ⍝ set up watcher/crawler
- (canwatch cancrawl interval)←⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)
+ (canwatch cancrawl interval)←watcher←⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)
+ cancrawl←0 ⍝ never test with the crawler: it is unfinished and does not work
+ :If USE_MOCK_FSW ⍝ the tests call Notify themselves and no watcher is ever started (Watcher.MOCK): the same tests run on every platform, with or without .NET
+     canwatch←1
+ :EndIf
  :If ~USE_MOCK_FSW∨canwatch∨cancrawl
      Log'Set USE_MOCK_FSW - no FileSystemWatcher or Crawler available'
      :Return
@@ -65,24 +69,18 @@
  udebug←4↓,⎕SE.UCMD']udebug ','off' 'on'⊃⍨1+×debug
  (showmsg ⎕SE.Link.U.SHOWMSG)←(⎕SE.Link.U.SHOWMSG)(×debug)  ⍝ do not show messages if not debugging
  ⎕SE.Link.Watcher.INTERVAL←0.1 1⊃⍨1+(×debug)∧⎕SE.Link.Watcher.LOGCRAWLER  ⍝ force watching a lot - can't go below 100ms because windows may have granularity of 20ms
-      ⍝ run tests
- time←⎕AI[3] ⋄ ok←1
- :If ~×debug ⋄ Log'Running:',⍕tests ⋄ :EndIf
+      ⍝ run tests - each test is run in each available watcher mode, see RunTest for what happens when one fails
+ time←⎕AI[3]
+ results←0 6⍴⊂'' ⍝ test mode status message detail ms
+ Log'Tests to run: ',⍕tests
  :For test :In tests
-     :If ×debug ⋄ Log'Running: ',test ⋄ :EndIf
-     :If canwatch ⍝ test with file watcher
-         ⎕SE.Link.Watcher.(CRAWLER DOTNET)←0 1
-⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
-         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
-⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
-     :EndIf
-     :If cancrawl ⍝ test with crawler
-     :AndIf ~(canwatch∧test≡'test_watcherrors')  ⍝ already done with file watcher - no need to do it with file crawler
-         ⎕SE.Link.Watcher.(CRAWLER DOTNET)←1 0
-⍝_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓_↓
-         ok∧←(⍎test)folder NAME      ⍝ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
-⍝¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑¯↑
-     :EndIf
+     modes←(canwatch/⊂'watcher'),(cancrawl>canwatch∧test≡'test_watcherror')/⊂'crawler' ⍝ no need to repeat test_watcherror with the crawler
+     :For mode :In modes
+         Log'Running: ',test,' with ',mode ⍝ always logged, so a hung run shows which test it was in
+         results⍪←test mode,4↑z←RunTest test mode folder
+         folder←5⊃z ⍝ Recover may have moved to a fresh folder
+         :If 0≠≢JUNIT_FILE ⋄ {}results WriteJUnit JUNIT_FILE ⋄ :EndIf ⍝ after every test, so that nothing is lost if the interpreter dies
+     :EndFor
  :EndFor
  time←⎕AI[3]-time
  UnSetup
@@ -90,7 +88,7 @@
  {}⎕SE.UCMD']udebug ',udebug
  ⎕SE.Link.DEBUG←olddebug
  ⎕SE.Link.U.SHOWMSG←showmsg
- ⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL)←(canwatch cancrawl interval)
+ ⎕SE.Link.Watcher.(DOTNET CRAWLER INTERVAL MOCK)←watcher,0
  ⎕SE.Link.USERCONFIGFILE←''
 
       ⍝ display results
@@ -101,20 +99,30 @@
  opts←' (USE_ISOLATES: ',(⍕USE_ISOLATES),', '
  opts,←'USE_MOCK_FSW: ',(⍕USE_MOCK_FSW),')'
 
+ status←results[;3]
+ (npass nfail nerr)←+⌿status∘.≡'passed' 'failed' 'error'
+ ok←(npass=≢status)∧0<≢status ⍝ running no tests at all is not a pass
+ failed←⊃,/(⊂0⍴⊂''),{(⊂'  ',(1⊃⍵),' (',(2⊃⍵),') ',(3⊃⍵),': ',4⊃⍵),'      '∘,¨5⊃⍵}¨↓(~(⊂'passed')≡¨status)⌿results ⍝ each with the error and stack (RunTest) indented below it
  oktxt←(1+ok)⊃'!!! NOT OK !!!' 'OK'
- Log z←(⍕≢tests),' test[s] passed ',oktxt,' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+ z←(⍕≢status),' test run[s]: ',(⍕npass),' passed, ',(⍕nfail),' failed, ',(⍕nerr),' errored - ',oktxt
+ z,←' in',(1⍕time÷1000),'s with Link ',⎕SE.Link.Version,' on Dyalog ',aplv,' and .Net',core,' ',dnv,opts
+ :If ~ok ⋄ {⎕←⍵}¨(⊂'Failures:'),failed ⋄ :EndIf
+ Log z
+ :If 0≠≢JUNIT_FILE
+     Log'JUnit report written to ',results WriteJUnit JUNIT_FILE
+     (⊂z)⎕NPUT(JUNIT_FILE,'.done')1 ⍝ tells CI/runlinktests that the run is complete, so a hang from here on is a hang on exit
+ :EndIf
 
  :If CITA
      ⎕TRAP←0 'S'
-     (⊂z) ⎕NPUT (CITA_LOG,'.ok') 1
+     (⊂(⊂z),failed)⎕NPUT(CITA_LOG,(1+ok)⊃'.fail' '.ok')1
  :EndIf
+ :If ~ok ⋄ ok←(⊂z),failed ⋄ :EndIf ⍝ result is 1 if all tests passed, otherwise the summary and the list of failures
  →0
 
- ERROR:
+ ERROR: ⍝ fatal: something other than a test failed (e.g. Setup) - the run is abandoned
    ⎕TRAP←0 'S'
    z←⎕DMX.DM
-   isassert←2
-   extn←'.',isassert⊃'fail' 'err'
-   ⎕←'Writing file: ',file←CITA_LOG,extn
+   ⎕←'Writing file: ',file←CITA_LOG,'.err'
    z←(⊂z) ⎕NPUT file 1
    ok←file,' created.'

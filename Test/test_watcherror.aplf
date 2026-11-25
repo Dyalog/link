@@ -4,6 +4,11 @@
      ok←1
      :Return
  :EndIf
+ :If USE_MOCK_FSW ⍝ link issue #120 is about a real FileSystemWatcher dropping events: the mock delivers them all, and has no watcher to report an error
+     Log'FileSystemWatcher is mocked - not running ',⊃⎕SI
+     ok←1
+     :Return
+ :EndIf
  3 QMKDIR src←folder,'/src'
  {(⊂'foo',⍵)⎕NPUT(src,'/foo',⍵,'.aplf')1}¨⍕¨⍳n←10000
  3 QMKDIR link←folder,'/link'

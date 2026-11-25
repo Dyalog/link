@@ -7,6 +7,7 @@
     IS181←18.1≤DYALOGVERSION
     BUFFER←⍬                                ⍝ event buffer for throttling FSW events
     CRAWLER←0                               ⍝ allow using crawler
+    MOCK←0                                  ⍝ QA: links watch directories, but no watcher is ever started - the tests call Notify themselves
 
 
 
@@ -54,7 +55,7 @@
     (DOTNET DOTNETCORE)←HasDotNet ⍝ cache result
 
     ∇ canwatch←CanWatch         ⍝ FileSystemWatcher or Crawler
-      canwatch←CRAWLER∨DOTNET   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
+      canwatch←CRAWLER∨DOTNET∨MOCK   ⍝ must be evaluated at runtime to allow ⎕SE.Link.Test to change them
     ∇
 
     ∇ RequeuedEvent(obj event args)
@@ -198,6 +199,9 @@
     ⍝ Set up a file system watcher, return object that will be stored as "fsw" in ⎕SE.Link.Links[i]
       link.fsw←⎕NULL
       :If ~'dir' 'both'∊⍨⊂link.watch
+          :Return
+      :EndIf
+      :If MOCK ⍝ QA with a mocked watcher: file changes are reported by calling Notify
           :Return
       :EndIf
       :If DOTNET

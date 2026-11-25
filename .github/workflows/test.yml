@@ -1,0 +1,115 @@
+# Run the Link test suite on every pull request and every push to master, on GitHub's own runners.
+#
+# This is a small subset of what Jenkins runs (see the Jenkinsfile): 64-bit Unicode on Linux, Windows and macOS, in the latest
+# public release - the version CI/testmatrix lists for the linux_public, win_public and mac_public platforms. Linux runs
+# in the public Docker Hub image; on Windows and macOS the public installer from dyalog.com is installed on the runner.
+name: test
+
+on:
+  push:
+    branches: [master] # only master: a branch with a pull request would otherwise be tested twice per push
+  pull_request:        # every pull request, including those from forks
+  workflow_dispatch:   # Allows you to run this workflow manually from the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:   # a new push to a pull request replaces the run of the previous one
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # What to test: every linux_public, win_public and mac_public line of CI/testmatrix [versions], as a JSON list of
+  # {platform, version, os} for the matrix of the next job
+  cells:
+    runs-on: ubuntu-latest
+    outputs:
+      cells: ${{ steps.read.outputs.cells }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: |
+          CELLS="$(awk '/^\[/ {on=($1=="[versions]"); next}
+                        on && $1=="linux_public" {print $1, $2, "ubuntu-latest"}
+                        on && $1=="win_public"   {print $1, $2, "windows-latest"}
+                        on && $1=="mac_public"   {print $1, $2, "macos-latest"}' CI/testmatrix |
+                   jq -Rc 'split(" ") | {platform: .[0], version: .[1], os: .[2]}' | jq -sc .)"
+          echo "cells=$CELLS"
+          [ "$CELLS" != "[]" ] || { echo "::error::CI/testmatrix lists no version for linux_public, win_public or mac_public" ; exit 1 ; }
+          echo "cells=$CELLS" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: cells
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30   # a run takes a few minutes; CI/runlinktests has its own watchdog for an interpreter that hangs
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.cells.outputs.cells) }}
+    name: ${{ matrix.platform }} ${{ matrix.version }}
+    defaults:
+      run:
+        shell: bash   # Git Bash on Windows, which CI/runlinktests supports as it does Cygwin
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      VERSION: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The installers' file names include the build number, which changes with every update of a release: look up
+      # the current ones on the public download page
+      - name: Find the installer
+        if: matrix.platform != 'linux_public'
+        run: |
+          case "$PLATFORM" in
+            win_public)  PATTERN="windows_64_${VERSION}\.[0-9]*_unicode\.zip" ;;
+            mac_public)  PATTERN="macarm_64_${VERSION}\.[0-9]*_unicode\.pkg" ;;
+          esac
+          FILE="$(curl -fsSL 'https://www.dyalog.com/download-zone.htm?p=download' | grep -o "file=${VERSION}/${PATTERN}" | sed 's/^file=//' | sort -u | tail -1)"
+          [ -n "$FILE" ] || { echo "::error::No public installer of Dyalog $VERSION for $PLATFORM found on https://www.dyalog.com/download-zone.htm?p=download" ; exit 1 ; }
+          echo "Installing $FILE"
+          echo "INSTALLER_URL=https://www.dyalog.com/uploads/php/download.dyalog.com/download.php?file=$FILE" >> "$GITHUB_ENV"
+          echo "INSTALLER_FILE=$(basename "$FILE")" >> "$GITHUB_ENV"
+
+      - name: Install Dyalog (Windows)
+        if: matrix.platform == 'win_public'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'dyalog'
+          Invoke-WebRequest -Uri $env:INSTALLER_URL -OutFile (Join-Path $env:RUNNER_TEMP $env:INSTALLER_FILE)
+          Expand-Archive -Path (Join-Path $env:RUNNER_TEMP $env:INSTALLER_FILE) -DestinationPath $dir
+          $msi = Join-Path $dir 'setup_64_unicode.msi'
+          $log = Join-Path $env:RUNNER_TEMP 'dyalog-install.log'
+          $p = Start-Process msiexec.exe -ArgumentList '/i', "`"$msi`"", '/qn', '/norestart', '/l*v', "`"$log`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content $log -Tail 50 ; throw "msiexec failed with exit code $($p.ExitCode)" }
+          Get-ChildItem 'C:\Program Files\Dyalog' | Select-Object -ExpandProperty FullName
+
+      - name: Install Dyalog (macOS)
+        if: matrix.platform == 'mac_public'
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/$INSTALLER_FILE" "$INSTALLER_URL"
+          sudo installer -pkg "$RUNNER_TEMP/$INSTALLER_FILE" -target /
+          ls -d /Applications/Dyalog-*.app
+
+      # Exit code 1 = tests failed, 2 = the tests could not run properly (no interpreter or image, crash, hang, ...): both fail the job
+      - name: Run the tests
+        run: WORKSPACE="$GITHUB_WORKSPACE" bash CI/runlinktests "$PLATFORM" "$VERSION" all
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '```'
+            grep -ah -E 'test run\[?s?\]?: |^!!!!! ' results/*.log 2>/dev/null || echo "No test summary in results/*.log - see the log of the previous step"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          python3 CI/testreport.py results/ || python CI/testreport.py results/ || true   # writes results/testreport.html
+
+      - name: Upload the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.platform }}-${{ matrix.version }}
+          path: results/
+          if-no-files-found: warn

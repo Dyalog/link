@@ -1,0 +1,79 @@
+# Link CI test matrix - the single place that says where the Link tests run.
+# Read by CI/runlinktests (which interpreters to expect) and by the Jenkinsfile (which cells to run, on which agents).
+# Blank lines and # comments are ignored. A platform/version that is not listed is not tested.
+#
+# [agents]    platform [version] Jenkins agent label; {version} is replaced by the Dyalog version. A line with a version
+#                       applies to that version only and overrides the platform's general line.
+# [docker]    edition   the Docker image the Linux tests run in for that edition (classic|unicode), as an image name
+#                       template in which {version} is replaced: the internal nightly images from Gitea, which
+#                       CI/runlinktests pulls (anonymously) on every run. Unicode uses the "-dotnet" variant, which
+#                       has the .NET runtime Link's watcher needs; there is no .NET variant of Classic.
+#                       "public" is the image the linux_public platform runs in instead: the released Unicode image
+#                       on Docker Hub (with .NET), which GitHub's runners can pull - see .github/workflows/test.yml
+# [versions]  platform  version  interpreters expected there, as <bits><C|U> (C = Classic, U = Unicode)
+#                       every listed interpreter must be found, or the cell reports an error
+# [buildtree] platform  version  folder: the build tree of that version on the platform's build machines is not named after
+#                       the version. The Windows build machines build the svn branch of each version into C:\obj\<branch>,
+#                       and the version in development is svn trunk, so its tree is C:\obj\trunk: move this line on to the
+#                       next version when the current one gets its own branch
+
+[agents]
+win         qa && build && win && {version}      # build: the build machines, which have the C:\obj trees
+mac         qa && mac && x86 && {version}
+mac_arm     qa && mac && arm && {version}
+linux       Docker                          
+linux_arm   qa && linux_arm && {version}
+pi          qa && pi && {version}
+aix   19.0  qa && aix && {version}
+aix         qa && aix73 && {version}     # 20.0+ run on the AIX 7.3 machine
+
+[buildtree]
+win   22.0  trunk
+
+[docker]
+classic   git.bramley.dyalog.com/dyalog/dyalog:{version}-classic-nightly
+unicode   git.bramley.dyalog.com/dyalog/dyalog:{version}-unicode-dotnet-nightly
+public    dyalog/dyalog:{version}
+
+[versions]
+win         19.0  32C 32U 64C 64U 
+win         20.0  32C 32U 64C 64U
+win         21.0  32C 32U 64C 64U
+win         22.0  32C 32U 64C 64U
+
+mac         19.0  64U           # Intel macs
+
+mac_arm     19.0  64U           # Apple Silicon: from v19.0
+mac_arm     20.0  64U
+mac_arm     21.0  64U
+mac_arm     22.0  64U
+
+linux       19.0  64C 64U       # in Docker: the nightly images in [docker]
+linux       20.0  64C 64U
+linux       21.0  64C 64U
+linux       22.0  64C 64U
+
+linux_arm   20.0  64U           # arm64: from v20.0
+linux_arm   21.0  64U
+linux_arm   22.0  64U
+
+pi          19.0  32U
+pi          20.0  32U
+
+aix         19.0  32C 32U 64C 64U
+aix         20.0  32C 32U 64C 64U
+aix         21.0  32C 32U 64C 64U
+aix         22.0  32C 32U 64C 64U
+
+# Not Jenkins platforms (no [agents] entry): the latest public release, run by GitHub Actions on GitHub's own runners
+# (.github/workflows/test.yml runs every version listed for these three). Unicode only: there is no public Classic image,
+# and Classic is tested by Jenkins. Move all three lines on to the next version when it is released.
+linux_public 21.0  64U          # the public Docker Hub image, [docker] public
+win_public   21.0  64U          # the public installer from dyalog.com, installed on the runner
+mac_public   21.0  64U          # the public installer from dyalog.com (Apple Silicon), installed on the runner
+
+# Not a Jenkins platform (no [agents] entry): interpreters installed under /opt/mdyalog, for running the suite locally
+linux_native 19.0  64U
+linux_native 20.0  64U
+linux_native 21.0  64U
+linux_native 22.0  64U
