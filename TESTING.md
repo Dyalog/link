@@ -49,7 +49,9 @@ WORKSPACE=$(cygpath -w "$PWD") bash CI/runlinktests win 21.0     # Windows, from
   crashes or hangs is restarted for the remaining tests.
 - `python3 CI/testreport.py results/` turns the results into one HTML page, `results/testreport.html`. It also takes
   the URL of a Jenkins build.
-- Do not run two test runs on one machine at the same time: they share temporary folders.
+- Each run gets its own temporary directory (`TMPDIR`; `TMP`/`TEMP` on Windows), so runs in different checkouts
+  don't collide. Under Jenkins it's `/tmp/linkci-<checksum of workspace path>`, emptied at the start and kept
+  afterwards; otherwise a new `/tmp/linkci-XXXXXX`, removed if every test passed.
 
 ## Writing tests
 

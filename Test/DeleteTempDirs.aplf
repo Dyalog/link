@@ -1,2 +1,0 @@
- dirs←DeleteTempDirs;dir;dirs;list
- 3 ⎕NDELETE⊃⎕NINFO⍠1⊢'\d+'⎕R'*'⊢CreateTempDir

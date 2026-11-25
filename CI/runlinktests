@@ -185,6 +185,7 @@ Cleanup()	# on exit (including a Jenkins abort): leave no interpreter, container
 	fi
 	PromoteReports
 	[ -n "$ETC" ] && rm -rf "$ETC"
+	[ -n "$RMLINKTMP" ] && [ "$RC" = 0 ] && rm -rf "$LINKTMP"	# see LINKTMP below
 }
 trap Cleanup EXIT
 
@@ -300,6 +301,26 @@ ENVS=("DYALOGLINK=$REPO" DYALOGSTARTUPKEEPLINK=0 DEBUG_LINKQA=N CITA_APIDEV=0 EN
 # v18.2 loads Link from the DYALOGSTARTUPSE directories, as in CITA.json5 (the list separator is ; on Windows and : elsewhere)
 [ $WIN = 1 ] && SEP=";" || SEP=":"
 [ $VERNODOT -lt 190 ] && ENVS+=("DYALOGSTARTUPSE=$REPO/StartupSession$SEP$REPO/qse/StartupSession")
+
+# --- Temporary directory (739⌶0) of our own, so runs in other workspaces on this agent can't collide with ours ---
+# Jenkins: one per workspace, emptied first and kept afterwards for debugging. Otherwise: a new one, removed if all passed.
+# In /tmp rather than the workspace: local disk (some workspaces are on NFS) and a short path (Windows MAX_PATH).
+# Docker containers already have their own /tmp.
+if [ $DOCKER = 0 ] ; then
+	if [ -n "$JENKINS_URL" ] ; then
+		LINKTMP="/tmp/linkci-$(echo "$PWD" | cksum | cut -d' ' -f1)"
+		rm -rf "$LINKTMP" && mkdir -p "$LINKTMP" || Fatal "Cannot create the temporary directory $LINKTMP"
+	else
+		LINKTMP="$(mktemp -d /tmp/linkci-XXXXXX)" || Fatal "Cannot create a temporary directory in /tmp"
+		RMLINKTMP=1
+	fi
+	echo "====== temporary directory for $PWD: $LINKTMP"
+	if [ $WIN = 1 ] ; then	# 739⌶0 uses TMP, then TEMP
+		ENVS+=("TMP=$(cygpath -m "$LINKTMP")" "TEMP=$(cygpath -m "$LINKTMP")")
+	else
+		ENVS+=("TMPDIR=$LINKTMP")
+	fi
+fi
 
 echo "====== Link tests: $PLATFORM Dyalog $VERSION ($TESTS) - expecting interpreters: $EXPECTED"
 echo "$INTERPRETERS" | tr '#' ' '
