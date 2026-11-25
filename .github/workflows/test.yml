@@ -1,4 +1,4 @@
-# Run the Link test suite on every push and every pull request, on GitHub's own runners.
+# Run the Link test suite on every pull request and every push to master, on GitHub's own runners.
 #
 # This is a small subset of what Jenkins runs (see the Jenkinsfile): 64-bit Unicode on Linux, Windows and macOS, in the latest
 # public release - the version CI/testmatrix lists for the linux_public, win_public and mac_public platforms. Linux runs
@@ -7,9 +7,8 @@ name: test
 
 on:
   push:
-    branches: ['**']   # every branch of this repository
-  pull_request:
-    branches: [master] # including those from forks, which have no push run here
+    branches: [master] # only master: a branch with a pull request would otherwise be tested twice per push
+  pull_request:        # every pull request, including those from forks
   workflow_dispatch:   # Allows you to run this workflow manually from the Actions tab
 
 permissions:
